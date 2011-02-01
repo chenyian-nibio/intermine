@@ -1,0 +1,81 @@
+<aspects>
+  <aspect name="modENCODE">
+    <subtitle></subtitle>
+    <icon-image>model/images/modENCODE_s.png</icon-image>
+    <large-image>model/images/modENODE_s.png</large-image>
+    <intro-text>
+      The National Human Genome Research Institute (NHGRI) model organism ENCyclopedia Of DNA Elements 
+      (modENCODE) Project will try to identify all of the sequence-based functional elements in the 
+      Caenorhabditis elegans and Drosophila melanogaster genomes. 
+      The project is run as a Research Network. 
+    </intro-text>
+    <tile-name></tile-name>
+    <aspect-source name="FlyBase" url="http://www.flybase.org"/>
+    <aspect-source name="WormBase" url="http://www.wormbase.org/"/>
+  </aspect>
+
+  <aspect name="Genomics">
+    <subtitle>Genome annotation</subtitle>
+    <icon-image>model/images/genomics.gif</icon-image>
+    <large-image>model/images/genomics.gif</large-image>
+    <intro-text>
+      The gene structure and other genome annotation in modMine are provided by
+      a variety of source databases.  In most cases modMine includes
+      all genome features that have chromosomal locations (e.g. genes and repeat regions).
+    </intro-text>
+    <tile-name>model/genomics.jsp</tile-name>
+    <aspect-source name="FlyBase" url="http://www.flybase.org"/>
+    <aspect-source name="WormBase" url="http://www.wormbase.org/"/>
+  </aspect>
+
+  <aspect name="Comparative Genomics">
+    <subtitle>Orthologues and paralogues</subtitle>
+    <icon-image>model/images/comparativeGenomics.png</icon-image>
+    <large-image>model/images/comparativeGenomics.png</large-image>
+    <intro-text>
+      Orthologues and Paralogues.  Orthologues are equivalent genes in
+      different species that evolved from a common ancestor by
+      speciation.  Paralogues are genes from the same homologous
+      superfamily found in another part of the genome of a particular
+      taxon. Paralogues are the result of gene duplication.
+    </intro-text>
+    <tile-name>model/orthologues.jsp</tile-name>
+    <aspect-source name="Inparanoid" url="http://inparanoid.cgb.ki.se/"/>
+  </aspect>
+
+  <aspect name="Proteins">
+    <subtitle>Protein and&lt;br/&gt;proteomics data</subtitle>
+    <icon-image>model/images/proteins.png</icon-image>
+    <large-image>model/images/proteins.png</large-image>
+    <intro-text>
+      Protein annotation, including family and domain annotation, from UniProt
+      and InterPro.
+    </intro-text>
+    <tile-name>model/proteins.jsp</tile-name>
+    <aspect-source name="InterPro" url="http://www.ebi.ac.uk/interpro"/>
+    <aspect-source name="UniProt" url="http://www.uniprot.org"/>
+  </aspect>
+
+  <aspect name="Gene Ontology">
+    <subtitle></subtitle>
+    <icon-image>model/images/geneOntology.png</icon-image>
+    <large-image>model/images/geneOntology.png</large-image>
+    <intro-text>
+      Gene Ontology (GO) annotations for &lt;i&gt;Drosophila&lt;/i&gt; and &lt;i&gt;C. elegans&lt;/i&gt;.  The GO annotations are 'attached' to
+      Genes and so each Gene has a reference (link) to a list of its GO
+      annotations (if available).
+    </intro-text>
+    <tile-name>model/GO.jsp</tile-name>
+    <aspect-source name="Gene Ontology Consortium" url="http://www.geneontology.org/"/>
+  </aspect>
+
+  <aspect name="Literature">
+    <subtitle></subtitle>
+    <icon-image>model/images/book.png</icon-image>
+    <large-image>model/images/book.png</large-image>
+    <intro-text>Literature
+    </intro-text>
+    <tile-name>model/literature.jsp</tile-name>
+    <aspect-source name="NCBI" url="http://www.ncbi.nlm.nih.gov/"/>
+  </aspect>
+</aspects>

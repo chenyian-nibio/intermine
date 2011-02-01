@@ -1,0 +1,141 @@
+<project type="bio">
+  <property name="target.model" value="genomic"/>
+  <property name="source.location" location="../bio/sources/"/>
+  <property name="common.os.prefix" value="common"/>
+  <property name="intermine.properties.file" value="metabolicmine.properties"/>
+  <property name="default.intermine.properties.file" location="../default.intermine.integrate.properties"/>
+
+
+  <sources>
+    <source name="ncbi-gene" type="ncbi-gene">
+     <property name="src.data.dir" location="/shared/data/metabolic/ncbi/current/"/>
+     <property name="organisms" value="9606"/>
+    </source>
+    <source name="mgi-identifiers" type="mgi-identifiers">
+      <property name="src.data.dir" location="/shared/data/mgi/current"/>
+    </source>
+    <source name="so" type="so">
+      <property name="src.data.file" location="../../bio/sources/so/so.obo"/>
+    </source> 
+    <source name="ensembl-human" type="ensembl" dump="true">
+     <property name="src.data.dir" location="/shared/data/ensembl/metabolic/current"/>
+    </source>
+    <source name="ensembl-gwas-db-human" type="ensembl-gwas-db">
+     <property name="source.db.name" value="ensembl.9606.variation"/>
+    </source>
+    <source name="ensembl-snp-db-human" type="ensembl-snp-db" dump="true">
+     <property name="source.db.name" value="ensembl.9606.variation"/>
+    </source>
+    <source name="uniprot" type="uniprot">
+      <property name="uniprot.organisms" value="9606 10090"/>
+      <property name="createinterpro" value="true"/>
+      <property name="src.data.dir" location="/shared/data/uniprot/2010_09/split/"/>
+    </source>
+    <source name="uniprot-fasta" type="fasta" dump="true">
+      <property name="fasta.taxonId" value="9606 10090"/>
+      <property name="fasta.className" value="org.intermine.model.bio.Protein"/>
+      <property name="fasta.classAttribute" value="primaryAccession"/>
+      <property name="fasta.dataSetTitle" value="UniProt data set"/>
+      <property name="fasta.dataSourceName" value="UniProt"/>
+      <property name="src.data.dir" location="/shared/data/uniprot/2010_09/"/>
+      <property name="fasta.includes" value="uniprot_sprot_varsplic.fasta"/>
+      <property name="fasta.sequenceType" value="protein" />
+      <property name="fasta.loaderClassName"
+                value="org.intermine.bio.dataconversion.UniProtFastaLoaderTask"/>
+    </source>
+    <source name="uniprot-keywords" type="uniprot-keywords">
+      <property name="src.data.dir" location="/shared/data/uniprot/current"/>
+      <property name="src.data.dir.includes" value="keywlist.xml"/>
+    </source>
+    <source name="interpro" type="interpro">
+      <property name="src.data.dir" location="/shared/data/interpro/current"/>
+    </source>
+    <source name="psi-mi-ontology" type="psi-mi-ontology">
+      <property name="src.data.file" location="/shared/data/psi/ontology/current/psi-mi.obo"/>
+    </source>
+    <source name="go" type="go" dump="true">
+      <property name="src.data.file" location="/shared/data/go-annotation/gene_ontology.obo"/>
+    </source>
+    <source name="go-annotation" type="go-annotation">
+      <property name="ontologyfile" location="/shared/data/go-annotation/gene_ontology.obo"/>
+      <property name="src.data.dir" location="/shared/data/go-annotation/metabolic/"/>
+      <property name="src.data.includes" value="**/gene_association*"/>
+    </source>
+    <source name="kegg-pathway" type="kegg-pathway">
+      <property name="src.data.dir" location="/shared/data/kegg/2010-10-20"/>
+      <property name="kegg.organisms" value="9606 10090"/>
+    </source>
+    <source name="reactome" type="biopax">
+      <property name="src.data.dir" location="/shared/data/metabolic/biopax/reactome/current/not-curated"/>
+      <property name="biopax.organisms" value="9606"/>
+      <property name="biopax.datasourcename" value="Reactome"/>
+      <property name="biopax.datasetname" value="Reactome data set"/>
+      <property name="biopax.curated" value="false"/>
+    </source>
+    <source name="psi-intact" type="psi" dump="true">
+      <property name="src.data.dir" location="/shared/data/psi/intact/current"/>
+      <property name="intact.organisms" value="9606 10090"/>
+    </source>
+    <source name="biogrid" type="biogrid">
+      <property name="src.data.dir" location="/shared/data/metabolic/biogrid"/>
+      <property name="src.data.dir.includes" value="*psi25.xml"/>
+      <property name="biogrid.organisms" value="9606 10090"/>
+    </source>
+    <source name="pubmed-gene" type="pubmed-gene" dump="true">
+      <property name="src.data.dir" location="/shared/data/pubmed/current"/>
+      <property name="pubmed.organisms" value="9606 10090"/>
+      <property name="src.data.dir.includes" value="gene2pubmed"/>
+      <property name="infoFile" location="/shared/data/pubmed/current/gene_info"/>
+    </source>
+    <source name="omim" type="omim" dump="true">
+      <property name="src.data.dir" location="/shared/data/metabolic/omim/test"/>
+    </source>
+    <source name="ensembl-mouse" type="ensembl" dump="true">
+      <property name="src.data.dir" location="/shared/data/ensembl/current"/>     
+      <property name="src.data.dir.includes" value="10090.xml"/>
+    </source>
+    <source name="ensembl-human-chr-fasta" type="fasta">
+      <property name="fasta.taxonId" value="9606"/>
+      <property name="fasta.dataSetTitle" value="Ensembl human chromosome sequence"/>
+      <property name="fasta.dataSourceName" value="Ensembl"/>
+      <property name="fasta.className" value="org.intermine.model.bio.Chromosome"/>
+      <property name="fasta.classAttribute" value="primaryIdentifier"/>
+      <property name="fasta.includes" value="*.fa"/>
+      <property name="src.data.dir" location="/shared/data/ensembl/homo_sapiens/current_core/fasta"/>
+    </source>
+    <source name="treefam" type="treefam">
+      <property name="src.data.dir" location="/shared/data/treefam/current"/>
+      <property name="src.data.dir.includes" value="ortholog.txt.table"/>
+      <property name="geneFile" value="/shared/data/treefam/current/genes.txt.table"/>
+      <!-- will load all genes for human, rat and mouse -->
+      <property name="treefam.organisms" value="9606 10090 10116"/>
+      <!-- will only load gene if it is a homologue for human, rat or mouse -->
+      <property name="treefam.homologues" value="9606 10090 10116"/>
+    </source>
+    <source name="update-publications" type="update-publications">
+      <property name="src.data.file" location="build/publications.xml"/>
+    </source>
+    <source name="entrez-organism" type="entrez-organism">
+      <property name="src.data.file" location="build/organisms.xml"/>
+    </source>
+  </sources>
+
+  <post-processing>
+    <post-process name="create-references"/>
+    <post-process name="transfer-sequences"/>
+
+    <!-- this runs the postprocessing steps in all sources -->
+    <post-process name="do-sources" dump="true"/>
+    <post-process name="create-gene-flanking-features"/>
+
+    <post-process name="create-bioseg-location-index"/>
+    <post-process name="create-overlap-view" />
+
+    <post-process name="summarise-objectstore"/>
+    <post-process name="create-autocomplete-index"/>
+    <post-process name="create-search-index"/>
+    <post-process name="create-attribute-indexes"/>
+  </post-processing>
+
+</project>
+
