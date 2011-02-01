@@ -76,7 +76,6 @@ public class PdbExtConverter extends BioFileConverter {
 	 * 
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
 	public void process(Reader reader) throws Exception {
 		// create pdbId pubmedId first
 		createPdbIdPubmedIdMap();
@@ -121,7 +120,6 @@ public class PdbExtConverter extends BioFileConverter {
 
 	}
 
-	@SuppressWarnings("unchecked")
 	private void createPdbIdPubmedIdMap() throws IOException, ObjectStoreException {
 		if (pdbPubmedFile == null) {
 			throw new NullPointerException("pdbPubmedFile property not set");

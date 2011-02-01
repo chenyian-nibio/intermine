@@ -5,7 +5,6 @@ import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
@@ -15,7 +14,7 @@ import org.intermine.xml.full.ItemHelper;
 
 public class Integr8Converter extends FileConverter {
 	
-	private static Logger m_oLogger = Logger.getLogger(Integr8Converter.class);
+//	private static Logger m_oLogger = Logger.getLogger(Integr8Converter.class);
 	
 	private ItemWriter m_oWriter;
 	

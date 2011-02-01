@@ -278,7 +278,6 @@ public class ScopConverter extends FileConverter {
 	 * 
 	 *             added by chenyian
 	 */
-	@SuppressWarnings("unchecked")
 	private void readClsFile() throws IOException, ObjectStoreException {
 		if (null == claFile) {
 			throw new NullPointerException("claFile property not set");

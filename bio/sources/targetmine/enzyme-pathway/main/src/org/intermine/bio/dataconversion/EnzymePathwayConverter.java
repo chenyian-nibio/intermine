@@ -53,7 +53,6 @@ public class EnzymePathwayConverter extends FileConverter {
 	 * 
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
 	public void process(Reader reader) throws Exception {
 
 		Iterator<String[]> iterator = FormattedTextParser

@@ -50,7 +50,7 @@ public class IrefindexConverter extends BioFileConverter {
 	private Map<String, String> geneMap = new HashMap<String, String>();
 	private Map<String, String> pubMap = new HashMap<String, String>();
 	private Map<String, String> miMap = new HashMap<String, String>();
-	private Map<String, String> organismMap = new HashMap<String, String>();
+//	private Map<String, String> organismMap = new HashMap<String, String>();
 	private Map<MultiKey, String> expMap = new HashMap<MultiKey, String>();
 
 	// to prevent duplications
@@ -73,7 +73,6 @@ public class IrefindexConverter extends BioFileConverter {
 	 * 
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
 	public void process(Reader reader) throws Exception {
 		readInteractionType();
 
@@ -226,17 +225,17 @@ public class IrefindexConverter extends BioFileConverter {
 		return itemId;
 	}
 
-	private String getOrganism(String taxonId) throws ObjectStoreException {
-		String ret = organismMap.get(taxonId);
-		if (ret == null) {
-			Item item = createItem("Organism");
-			item.setAttribute("taxonId", taxonId);
-			ret = item.getIdentifier();
-			organismMap.put(taxonId, ret);
-			store(item);
-		}
-		return ret;
-	}
+//	private String getOrganism(String taxonId) throws ObjectStoreException {
+//		String ret = organismMap.get(taxonId);
+//		if (ret == null) {
+//			Item item = createItem("Organism");
+//			item.setAttribute("taxonId", taxonId);
+//			ret = item.getIdentifier();
+//			organismMap.put(taxonId, ret);
+//			store(item);
+//		}
+//		return ret;
+//	}
 
 	private String getInteractionTerm(String miId) throws ObjectStoreException {
 		String itemId = miMap.get(miId);

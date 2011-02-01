@@ -16,7 +16,7 @@ public class ProteinAnalysisConverter extends FileConverter {
 
 	private static Logger m_oLogger = Logger.getLogger(ProteinAnalysisConverter.class);
 	
-	private ItemWriter m_oWriter;
+//	private ItemWriter m_oWriter;
 	// <ToolName, ComputationalAnalysis>
 	private Map<String, Item> m_oToolMap = new HashMap<String, Item>();
 	// <PrimaryAcc, Protein>
@@ -24,7 +24,8 @@ public class ProteinAnalysisConverter extends FileConverter {
 	
 	public ProteinAnalysisConverter(ItemWriter writer, Model model) {
 		super(writer, model);
-		m_oWriter = writer;
+		// chenyian: unused?
+//		m_oWriter = writer;
 	}
 	
 	@Override

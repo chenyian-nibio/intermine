@@ -48,7 +48,7 @@ public class GeneInfoConverter extends BioFileConverter {
 	private static final String DATA_SOURCE_NAME = "NCBI";
 
 	private Set<String> taxonIds;
-	private Map<String, String> organismMap = new HashMap<String, String>();
+	// private Map<String, String> organismMap = new HashMap<String, String>();
 
 	private Map<String, String> chromosomeMap = new HashMap<String, String>();
 	private Map<String, Set<String>> transcriptMap;
@@ -80,7 +80,7 @@ public class GeneInfoConverter extends BioFileConverter {
 
 	private void readConfigFile() {
 		LOG.info("Reading configuration file......");
-		
+
 		Properties properties = new Properties();
 		try {
 			properties.load(getClass().getClassLoader().getResourceAsStream(PROP_FILE));
@@ -117,7 +117,6 @@ public class GeneInfoConverter extends BioFileConverter {
 	 * 
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
 	public void process(Reader reader) throws Exception {
 
 		if (idMap == null) {
@@ -236,17 +235,17 @@ public class GeneInfoConverter extends BioFileConverter {
 		}
 	}
 
-//	private String getOrganism(String taxId) throws ObjectStoreException {
-//		String ret = organismMap.get(taxId);
-//		if (ret == null) {
-//			Item organism = createItem("Organism");
-//			organism.setAttribute("taxonId", taxId);
-//			store(organism);
-//			ret = organism.getIdentifier();
-//			organismMap.put(taxId, ret);
-//		}
-//		return ret;
-//	}
+	// private String getOrganism(String taxId) throws ObjectStoreException {
+	// String ret = organismMap.get(taxId);
+	// if (ret == null) {
+	// Item organism = createItem("Organism");
+	// organism.setAttribute("taxonId", taxId);
+	// store(organism);
+	// ret = organism.getIdentifier();
+	// organismMap.put(taxId, ret);
+	// }
+	// return ret;
+	// }
 
 	private String getChromosome(String taxId, String no) throws ObjectStoreException {
 		String ret = chromosomeMap.get(taxId + "-" + no);
@@ -279,8 +278,8 @@ public class GeneInfoConverter extends BioFileConverter {
 	}
 
 	// type and isPrimary are deprecated from v0.94
-	private String getSynonym(String subjectId, String value, 
-			String datasetRefId) throws ObjectStoreException {
+	private String getSynonym(String subjectId, String value, String datasetRefId)
+			throws ObjectStoreException {
 		String key = subjectId + value;
 		if (StringUtils.isEmpty(value)) {
 			return null;
@@ -297,10 +296,9 @@ public class GeneInfoConverter extends BioFileConverter {
 		return refId;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void readGene2ensembl() {
 		LOG.info("Parsing the file gene2ensembl......");
-		
+
 		transcriptMap = new HashMap<String, Set<String>>();
 		translationMap = new HashMap<String, Set<String>>();
 

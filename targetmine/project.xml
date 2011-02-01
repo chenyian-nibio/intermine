@@ -106,7 +106,6 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ligand_expo" />
       <property name="src.data.dir.includes" value="cc-to-pdb.tdd" />
     </source>
-<!--
     <source name="metazoan" type="metazoan" dump="true">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/metazoan" />
     </source>
@@ -114,7 +113,6 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/tfactor" />
       <property name="src.data.dir.includes" value="oreg.all.txt" />
     </source>
--->
     <source name="enzyme" type="enzyme">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/enzyme" />
       <property name="src.data.dir.includes" value="enzyme.dat" />
@@ -125,7 +123,7 @@
       <property name="src.data.dir.includes" value="ec.list" />
     </source>
 
-  	<!--Intermine default -->
+  	<!--Intermine default : Start-->
     <source name="psi-mi" type="psi-mi-ontology">
       <property name="src.data.file" location="/data/bio/db/Targetmine/psi-mi/psi-mi25.obo"/>
     </source>
@@ -133,7 +131,8 @@
 		<property name="src.data.dir" location="/data/bio/db/Targetmine/biogrid"/>
 		<property name="src.data.dir.includes" value="*psi25.xml"/>
 	</source>
-<!--
+  	<!--Intermine default : End-->
+
     <source name="irefindex" type="irefindex">
 		<property name="src.data.dir" location="/data/bio/db/Targetmine/irefindex"/>
 		<property name="src.data.dir.includes" value="*.txt"/>
@@ -155,7 +154,6 @@
       <property name="pubmed.organisms" value="7227 9606 10090 10116"/>
       <property name="src.data.dir.includes" value="gene2pubmed"/>
     </source>
--->
   	<!--Intermine default -->
   	<source name="update-publications" type="update-publications">
       <!-- this source finds the publication ids (pubmed ids) in the

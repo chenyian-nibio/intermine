@@ -3,9 +3,7 @@ package org.intermine.bio.dataconversion;
 import java.io.BufferedReader;
 import java.io.Reader;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,16 +107,16 @@ public class DrugBankConverter extends FileConverter {
 	private Map<String, Item> m_oPublicationMap = new TreeMap<String, Item>();
 	
 	// key is brand name, value is curresponding Synonym Item.
-	private Map<String, Item> m_oSynonymMap = new TreeMap<String, Item>();
+//	private Map<String, Item> m_oSynonymMap = new TreeMap<String, Item>();
 	
 	// key is hetid, value is list of pdb ids
-	private Map<String, String> m_oHetIdPdbMap = new TreeMap<String, String>();
+//	private Map<String, String> m_oHetIdPdbMap = new TreeMap<String, String>();
 	
 	// key is header string, value is HEADER enum
 	private Map<String, HEADER> oMap = createHeaderMap();
 	
 	// parser (from String to java.util.Date)
-	private SimpleDateFormat m_oFormat = new SimpleDateFormat("yyyy-MM-dd");
+//	private SimpleDateFormat m_oFormat = new SimpleDateFormat("yyyy-MM-dd");
 	
 	// variables below are for retaining data of ONE drug cards.
 	

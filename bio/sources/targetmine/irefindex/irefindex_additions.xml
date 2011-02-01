@@ -5,8 +5,8 @@
         <attribute name="description" type="java.lang.String"/>
         <attribute name="hostOrganism" type="java.lang.String" />
         <reference name="publication" referenced-type="Publication"/>
-        <collection name="interactionDetectionMethods" referenced-type="InteractionTerm"/>
         <collection name="interactions" referenced-type="Interaction" reverse-reference="experiment"/>
+        <collection name="interactionDetectionMethods" referenced-type="InteractionTerm"/>
         <!--new attributes -->
         <attribute name="sourceDb" type="java.lang.String"/>
         <attribute name="sourceId" type="java.lang.String"/>

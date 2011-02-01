@@ -60,13 +60,13 @@ public class KeggOrthologyConverter extends FileConverter {
 				continue;
 			}
 			
-			String strGene = a_strFields[0];
-			String strNcbiGi = a_strFields[1];
+//			String strGene = a_strFields[0];
+//			String strNcbiGi = a_strFields[1];
 			String strGeneId = a_strFields[2].replace("ncbi-geneid:", "");
-			String strUniProts = a_strFields[3].replace("up:", "");
-			String strEcNum = a_strFields[4];
+//			String strUniProts = a_strFields[3].replace("up:", "");
+//			String strEcNum = a_strFields[4];
 			String strKoNums = a_strFields[5];
-			String strPathway = a_strFields[6];
+//			String strPathway = a_strFields[6];
 			
 			// All line must have at least one gene id
 			if("".equals(strGeneId)) {
@@ -149,7 +149,7 @@ public class KeggOrthologyConverter extends FileConverter {
 	private void addToParalog(String strKoNum, String strAcc) {
 		
 		if( !m_oParalogMap.containsKey(strKoNum) ) {
-			m_oParalogMap.put(strKoNum, new ArrayList());
+			m_oParalogMap.put(strKoNum, new ArrayList<String>());
 		}
 		
 		m_oParalogMap.get(strKoNum).add(strAcc);

@@ -57,7 +57,6 @@ public class OmimGeneConverter extends BioFileConverter {
 	 * 
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
 	public void process(Reader reader) throws Exception {
 
 		// parse omim and geneId mapping file
@@ -77,7 +76,6 @@ public class OmimGeneConverter extends BioFileConverter {
 
 	}
 
-	@SuppressWarnings("unchecked")
 	private void readMim2gene() throws Exception {
 
 		Reader reader = new BufferedReader(new FileReader(mim2geneFile));

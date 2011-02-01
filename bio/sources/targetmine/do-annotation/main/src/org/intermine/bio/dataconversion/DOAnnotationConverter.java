@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.log4j.Logger;
 import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
@@ -21,7 +20,7 @@ import org.intermine.xml.full.Item;
  */
 public class DOAnnotationConverter extends FileConverter {
 
-	private static Logger m_oLogger = Logger.getLogger(DOAnnotationConverter.class);
+//	private static Logger m_oLogger = Logger.getLogger(DOAnnotationConverter.class);
 
 	private Map<String, Item> m_oDOTermMap = new TreeMap<String, Item>();
 

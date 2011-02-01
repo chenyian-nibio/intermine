@@ -7,7 +7,6 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
 import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
@@ -21,7 +20,7 @@ import org.intermine.xml.full.Item;
  */
 public class MsdConverter extends FileConverter {
 	
-	private static Logger m_oLogger = Logger.getLogger(MsdConverter.class);
+//	private static Logger m_oLogger = Logger.getLogger(MsdConverter.class);
 	
 	// <UniProtAccession, Protein item>
 	private Map<String, Item> m_oProteinMap = new TreeMap<String, Item>();
