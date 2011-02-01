@@ -1,0 +1,80 @@
+<webconfig>
+  <class className="org.intermine.model.testmodel.Company">
+    <fields>
+      <fieldconfig fieldExpr="name" showInSummary="true" showInInlineCollection="true" showInResults="true"/>
+      <fieldconfig fieldExpr="vatNumber" showInSummary="true" showInInlineCollection="true" showInResults="true"/>
+      <fieldconfig fieldExpr="address.address" showInSummary="true" showInInlineCollection="true" showInResults="true"/>
+    </fields>
+    <longdisplayers>
+      <displayer src="/model/companiesHouse.jsp"/>
+    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.testmodel.Employee">
+    <fields>
+      <fieldconfig fieldExpr="name" showInSummary="true" showInInlineCollection="true" showInResults="true"/>
+      <fieldconfig fieldExpr="department.name" showInSummary="true" showInResults="true" showInInlineCollection="true"/>
+      <fieldconfig fieldExpr="department.company.name" showInSummary="true" showInResults="true" showInInlineCollection="false"/>
+      <fieldconfig fieldExpr="age" showInSummary="false" showInResults="false" showInInlineCollection="true"/>
+      <fieldconfig fieldExpr="fullTime" showInSummary="true" showInResults="true" showInInlineCollection="true"/>
+      <fieldconfig fieldExpr="address.address" showInSummary="true" showInResults="true" showInInlineCollection="true"/>
+    </fields>
+    <longdisplayers>
+      <displayer src="/model/employeeName.jsp" aspects="People"/>
+    </longdisplayers>
+    <bagdisplayers>
+      <bagtabledisplayer title="Department information" type="Department" collectionName="department" 
+      urlGen="org.intermine.model.testmodel.web.widget.EmployeeURLQuery" 
+      description="Most popular Departments for this bag" />
+    </bagdisplayers>
+  </class>
+
+  <!-- exists to test that long displayers for base classes (in this case
+       /model/managerName.jsp) show up in sub-classes and that longdisplayers
+       can be overridden in base classes (Manager overrides Employee -->
+  <class className="org.intermine.model.testmodel.Manager">
+    <fields>
+      <fieldconfig fieldExpr="name" showInSummary="true" showInInlineCollection="true" showInResults="true"/>
+      <fieldconfig fieldExpr="department.name" showInSummary="true" showInResults="true" showInInlineCollection="true"/>
+      <fieldconfig fieldExpr="department.company.name" showInSummary="true" showInResults="true" showInInlineCollection="false"/>
+      <fieldconfig fieldExpr="age" showInSummary="false" showInResults="false" showInInlineCollection="true"/>
+      <fieldconfig fieldExpr="fullTime" showInSummary="false" showInResults="true" showInInlineCollection="true"/>
+      <fieldconfig fieldExpr="address.address" showInSummary="true" showInResults="true" showInInlineCollection="true"/>
+      <fieldconfig fieldExpr="seniority" showInSummary="true" showInInlineCollection="true" showInResults="true"/>
+      <!-- the doNotTruncate flag, when set to true, stops the object details
+           page from truncating long fields and putting a [View all...] link -->
+      <fieldconfig fieldExpr="title" doNotTruncate="true"/>
+    </fields>
+    <longdisplayers>
+      <displayer src="/model/managerSeniority.jsp" aspects="People"/>
+    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.testmodel.Address">
+    <fields>
+      <fieldconfig fieldExpr="address" doNotTruncate="true"
+                   fieldExporter="org.intermine.model.testmodel.web.CommaFieldExporter"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.testmodel.Department">
+    <fields>
+      <fieldconfig fieldExpr="name" showInSummary="true" showInInlineCollection="true" showInResults="true"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.testmodel.Broke" fieldName="debt">
+    <longdisplayers>
+      <displayer src="/model/debtField.jsp"/>
+    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.testmodel.HasAddress" fieldName="address">
+    <longdisplayers>
+      <displayer src="/model/addressField.jsp" aspects="Entities"/>
+    </longdisplayers>
+  </class>
+
+  <tableExportConfig id="employeeExporter" actionPath="/exportAction?type=employeeExporter"
+                     className="org.intermine.model.testmodel.web.EmployeeExporter"/>
+</webconfig>
