@@ -1,0 +1,81 @@
+#bagTable{
+    padding:5px;}
+
+#bagTable td{
+  padding-right: 10px;padding-left: 10px;
+  vertical-align: top;}
+
+#bagDescriptionTextarea{
+  width:100%;text-align: center;}
+
+#bagDescriptionDiv{
+  padding:10px;
+  overflow: auto;
+  text-align:left;position:relative;}
+
+#bagDescriptionDiv h3 { display:inline; }
+
+#textarea {
+  padding:5px; margin:0;
+  width:900px;height:25px;margin-bottom:4px;}
+
+#emptyDesc{
+  text-align:center;font-style: italic;display:inline; position:absolute; left:40%;margin-top:4px;}
+
+table tr td.tableleftcol {
+    padding:0 15px 0 0;
+}
+
+li {
+  margin-left: 10px;
+  list-style: none;}
+
+#convertList{
+  padding:0 10px 20px 10px;}
+
+#linkOuts{
+  padding:0 10px 10px 10px;}
+
+.listtoolbox {
+  padding: 0 10px 10px 10px; margin: 0 15px 15px 15px;
+  background-repeat: repeat-x;
+  background-position: top;
+  vertical-align: middle; text-align: left;}
+
+.listtoolbox h3, #bagDescriptionDiv h3 {
+  color:#333; font-size:1.2em;}
+
+.listtoolbox p, #bagDescriptionDiv p {
+  margin:10px 0px 0px 20px;}
+
+table.listinfotable {
+}
+table.listinfotable tr td {
+    font-style: italic;
+}
+table.listinfotable tr td.infotitle {
+    font-style: normal;
+    text-align:right;
+    color:#5C0075;
+    padding-right:10px;
+}
+ol.widgetList li {
+    float:left;
+    margin-bottom:5px;
+}
+.active, a:link.active, a:visited.active {
+    background-color:#9F67AD;
+    color:white;
+    padding:0 3px 0 3px;
+    /*font-weight: bold;*/
+}
+span.widgetcloser{
+    float:right;
+    padding:0;
+    margin:-5px 0;
+    font-size:0.9em;
+}
+
+.selected {
+  padding: 1px 0 1px 3px; margin-left: 3px; margin-right: 3px;
+  background-color: #E7F1FB; border: 1px solid #bbb; line-height: 25px;}

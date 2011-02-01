@@ -1,0 +1,200 @@
+<!--
+  Tasks and target for building a complete web application which includes a
+  model, and is deployable
+
+  properties:
+    base.webapp.path - the path to the base war file that we will add to
+
+-->
+
+<project name="application" default="default" basedir="."
+         xmlns:appl="http://www.intermine.org/ns/im-appl-proj/1"
+         xmlns:task="http://www.intermine.org/ns/im-task-proj/1">
+
+  <dirname property="application.xml.basedir" file="${ant.file.application}"/>
+
+  <import file="${application.xml.basedir}/webapp.xml"/>
+  <import file="${application.xml.basedir}/task.xml"/>
+
+
+  <target name="-init-summarise-objectstore"
+          depends="init, -init-deps, -init-task-xml, -init-properties, -pre-jar"/>
+
+  <target name="retrieve-objectstore-summary" depends="-init-summarise-objectstore"
+          unless="temporary.webapp.project">
+    <!-- Summarise objectstore -->
+    <echo message="Retrieving object store summary from ${objectstore.name}..."/>
+    <summarise-objectstore alias="${objectstore.name}"
+                           configFileName="objectstoresummary.config.properties"
+                           outputFile="${build.dir}/webapp/WEB-INF/objectstoresummary.properties"/>
+  </target>
+
+
+  <target name="-pre-init" depends="webapp.-pre-init">
+    <!-- Files -->
+    <property name="default.template.queries" location="resources/default-template-queries.xml"/>
+    <!-- Location of model-less intermine-webapp.war -->
+    <property name="source.intermine.webapp.war" location="${application.xml.basedir}/../${base.webapp.path}"/>
+  </target>
+
+
+  <!-- WAR INSTEAD OF JAR -->
+
+  <target name="-final-app-pre-jar" depends="-init-properties"
+          unless="temporary.webapp.project">
+    <!-- Concatenate local build.properties with web.properties -->
+    <!-- TODO we only want to copy some properties over -->
+    <concat destfile="${build.dir}/webapp/WEB-INF/web.properties" force="yes">
+      <fileset file="resources/web.properties"/>
+      <fileset file="${build.task.dir}/intermine.properties"/>
+    </concat>
+    <copy file="${build.task.dir}/intermine.properties"
+          tofile="${build.dir}/webapp/WEB-INF/classes/intermine.properties"
+          overwrite="true"/>
+    <copy file="${build.task.dir}/default.intermine.properties"
+          tofile="${build.dir}/webapp/WEB-INF/classes/default.intermine.properties"
+          overwrite="true"/>
+  </target>
+
+  <target name="-pre-jar" 
+          depends="-final-app-pre-jar, webapp.-pre-jar">
+    <!-- Start with base intermine webapp war -->
+    <copy file="${source.intermine.webapp.war}" tofile="${dist.war}"/>
+  </target>
+
+  <target name="do-jar" depends="-init-presetdef-war, retrieve-objectstore-summary">
+    <appl:war/>
+  </target>
+
+  <!-- USER PROFILE -->
+
+  <target name="-init-build-db" depends="init, -init-deps, -init-task-xml"/>
+
+  <target name="create-db-userprofile" depends="-do-build-db-userprofile"/>
+
+  <target name="build-db-userprofile" depends="-do-build-db-userprofile, -load-default-templates"/>
+	
+  <target name="-do-build-db-userprofile" depends="-init-properties, -init-build-db">
+    <task:build-db osname="${userprofile.objectstore.name}"
+                   model="${userprofile.model.name}"/>
+  </target>
+
+  <target name="-load-default-templates" depends="-init-properties, -init-build-db">
+    <load-default-templates templatesXml="${default.template.queries}"
+                            username="${superuser.account}" osAlias="${objectstore.name}"
+                            userProfileAlias="${userprofile.objectstorewriter.name}"
+                            superuserPassword="${superuser.initialPassword}"/>
+  </target>
+	
+  <target name="dump-default-templates" depends="-init-properties, -init-build-db">
+    <dump-default-templates fileName="${default.template.queries}"
+                            username="${superuser.account}" osAlias="${objectstore.name}"
+                            userProfileAlias="${userprofile.objectstorewriter.name}"/>
+  </target>
+
+  <target name="write-userprofile-xml" depends="-init-properties, -init-build-db">
+    <write-userprofile-xml fileName="${build.dir}/userprofile.xml" osAlias="${objectstore.name}"
+                           userProfileAlias="${userprofile.objectstorewriter.name}"/>
+  </target>
+
+  <target name="read-userprofile-xml" depends="-init-properties, -init-build-db">
+    <read-userprofile-xml fileName="${build.dir}/userprofile.xml" osAlias="${objectstore.name}"
+                            userProfileAlias="${userprofile.objectstorewriter.name}"/>
+  </target>
+
+  <target name="write-templatetrack-xml" depends="-init-properties, -init-build-db">
+    <write-templatetrack-xml fileName="${build.dir}/templatetrack.xml"
+                             userProfileAlias="${userprofile.objectstorewriter.name}"/>
+  </target>
+
+  <target name="read-templatetrack-xml" depends="-init-properties, -init-build-db">
+    <read-templatetrack-xml fileName="${build.dir}/templatetrack.xml"
+                        userProfileAlias="${userprofile.objectstorewriter.name}"/>
+  </target>
+
+  <!-- RELEASE / REMOVE FROM TOMCAT -->
+
+  <target name="release-webapp" depends="-init-properties, init">
+    <taskdef name="tomcat-deploy" classname="org.apache.catalina.ant.DeployTask"
+             classpath="${webapp.xml.basedir}/lib/catalina-ant.jar"/>
+    <tomcat-deploy url="${webapp.deploy.url}/manager"
+                   username="${webapp.manager}"
+                   password="${webapp.password}"
+                   path="/${webapp.path}"
+                   war="file://${dist.war}"/>
+  </target>
+
+  <target name="remove-webapp" depends="-init-properties, init">
+    <taskdef name="tomcat-undeploy" classname="org.apache.catalina.ant.UndeployTask"
+             classpath="${webapp.xml.basedir}/lib/catalina-ant.jar"/>
+    <tomcat-undeploy url="${webapp.deploy.url}/manager"
+                     username="${webapp.manager}"
+                     password="${webapp.password}"
+                     path="/${webapp.path}"
+                     failOnError="false"/>
+  </target>
+
+  <target name="start-webapp" depends="-init-properties, init">
+    <taskdef name="tomcat-start" classname="org.apache.catalina.ant.StartTask"
+             classpath="${webapp.xml.basedir}/lib/catalina-ant.jar"/>
+    <tomcat-start url="${webapp.deploy.url}/manager"
+                  username="${webapp.manager}"
+                  password="${webapp.password}"
+                  path="/${webapp.path}"
+                  failOnError="true"/>
+  </target>
+
+  <target name="stop-webapp" depends="-init-properties, init">
+    <taskdef name="tomcat-stop" classname="org.apache.catalina.ant.StopTask"
+             classpath="${webapp.xml.basedir}/lib/catalina-ant.jar"/>
+    <tomcat-stop url="${webapp.deploy.url}/manager"
+                 username="${webapp.manager}"
+                 password="${webapp.password}"
+                 path="/${webapp.path}"
+                 failOnError="false"/>
+  </target>
+
+  <!-- PRECOMPUTING -->
+
+  <target name="drop-precomputed-tables" depends="-init-build-db, -init-properties">
+    <drop-precomputed-tables alias="${objectstore.name}"/>
+  </target>
+
+  <target name="precompute-queries" depends="-init-build-db, -init-properties">
+    <precompute-queries alias="${objectstore.name}"
+                        minRows="0"/>
+  </target>
+
+  <target name="precompute-templates" depends="-init-build-db, -init-properties">
+    <precompute-templates alias="${objectstore.name}"
+                          userProfileAlias="${userprofile.objectstorewriter.name}"
+                          minRows="0" username="${superuser.account}"
+                          summarise="${summarise}"
+                          ignore="${ignore}"/>
+  </target>
+
+  <!-- CONSOLE -->
+
+  <target name="console" depends="skip-deps, -init-build-db">
+    <copy file="${application.xml.basedir}/console.bshrc" tofile="${user.home}/.bshrc"/>
+    <java classname="bsh.Console" fork="true" spawn="true">
+      <classpath>
+        <pathelement location="${application.xml.basedir}/lib/bsh-2.0b4.jar"/>
+        <path refid="task.class.path"/>
+      </classpath>
+    </java>
+  </target>
+
+  <!-- MACRO DEFINITIONS -->
+
+  <target name="-init-presetdef-war">
+    <macrodef name="war" uri="http://www.intermine.org/ns/im-appl-proj/1">
+      <sequential>
+        <war compress="${jar.compress}" destfile="${dist.war}" update="true">
+          <fileset dir="${build.dir}/webapp"/>
+        </war>
+      </sequential>
+    </macrodef>
+  </target>
+
+</project>

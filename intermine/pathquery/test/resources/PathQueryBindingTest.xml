@@ -1,0 +1,18 @@
+<query-list>
+  <query name="allCompanies" model="testmodel" view="Company">
+  </query>
+  <query name="employeesWithOldManagers" model="testmodel" view="Employee.name Employee.age Employee.department.name Employee.department.manager.age">
+    <pathDescription pathString="Employee.department" description="Department of the Employee"/>
+    <constraint path="Employee.department.manager.age" op=">" value="10"/>
+  </query>
+  <query name="companyInBag" model="testmodel" view="Company">
+    <constraint path="Company" op="IN" value="bag1"/>
+  </query>
+  <query name="queryWithConstraint" model="testmodel"
+  		 view="Company.name Company.departments.name Company.departments.employees.name Company.departments.employees.title">
+    <constraint path="Company.departments.employees" type="CEO"/>
+  </query>
+  <query name="employeeEndInBag" model="testmodel" view="Employee.name">
+    <constraint path="Employee.end" op="IN" value="e1" code="A"/>
+  </query>
+</query-list>

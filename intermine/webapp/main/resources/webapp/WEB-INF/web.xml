@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd" version="2.4">
+
+  <context-param>
+    <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
+    <param-value>InterMineWebApp</param-value>
+  </context-param>
+
+  <listener>
+    <listener-class>org.intermine.web.logic.session.SessionListener</listener-class>
+  </listener>
+
+<!-- Main webapp mapping -->
+<!-- ================================================================================ -->
+  <servlet>
+    <servlet-name>action</servlet-name>
+    <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+    <init-param>
+      <param-name>config</param-name>
+      <param-value>/WEB-INF/struts-config.xml</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>action</servlet-name>
+    <url-pattern>*.do</url-pattern>
+  </servlet-mapping>
+<!-- ================================================================================= -->
+
+<!-- DWR mapping -->
+<!-- ================================================================================= -->
+  <servlet>
+  <servlet-name>dwr-invoker</servlet-name>
+  <servlet-class>org.directwebremoting.servlet.DwrServlet</servlet-class>
+  <init-param>
+     <param-name>debug</param-name>
+     <param-value>true</param-value>
+  </init-param>
+    <init-param>
+      <param-name>activeReverseAjaxEnabled</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <init-param>
+      <param-name>allowGetForSafariButMakeForgeryEasier</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <load-on-startup>2</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+  <servlet-name>dwr-invoker</servlet-name>
+  <url-pattern>/dwr/*</url-pattern>
+  </servlet-mapping>
+
+<!-- ================================================================================= -->
+<!-- Intermine Web Service mapping -->
+<!-- ================================================================================= -->
+  <servlet>
+  <servlet-name>ws-query-results</servlet-name>
+  <servlet-class>org.intermine.webservice.server.query.result.QueryResultServlet</servlet-class>
+  <init-param>
+     <param-name>debug</param-name>
+     <param-value>true</param-value>
+  </init-param>
+  </servlet>
+
+  <servlet-mapping>
+  <servlet-name>ws-query-results</servlet-name>
+  <url-pattern>/service/query/results</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+  <servlet-name>ws-lists</servlet-name>
+  <servlet-class>org.intermine.webservice.server.lists.ListsServlet</servlet-class>
+  <init-param>
+     <param-name>debug</param-name>
+     <param-value>true</param-value>
+  </init-param>
+  </servlet>
+
+  <servlet-mapping>
+  <servlet-name>ws-lists</servlet-name>
+  <url-pattern>/service/listswithobject</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+  <servlet-name>ws-template-results</servlet-name>
+  <servlet-class>org.intermine.webservice.server.template.result.TemplateResultServlet</servlet-class>
+  <init-param>
+     <param-name>debug</param-name>
+     <param-value>true</param-value>
+  </init-param>
+  </servlet>
+
+  <servlet-mapping>
+  <servlet-name>ws-template-results</servlet-name>
+  <url-pattern>/service/template/results</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ws-template</servlet-name>
+    <servlet-class>org.intermine.webservice.server.template.AvailableTemplatesServlet</servlet-class>
+    <init-param>
+       <param-name>debug</param-name>
+       <param-value>true</param-value>
+    </init-param>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ws-template</servlet-name>
+    <url-pattern>/service/templates/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ws-model</servlet-name>
+    <servlet-class>org.intermine.webservice.server.model.ModelServlet</servlet-class>
+    <init-param>
+       <param-name>debug</param-name>
+       <param-value>true</param-value>
+    </init-param>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ws-model</servlet-name>
+    <url-pattern>/service/model</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ws-widgets</servlet-name>
+    <servlet-class>org.intermine.webservice.server.widget.WidgetsServlet</servlet-class>
+    <init-param>
+       <param-name>debug</param-name>
+       <param-value>true</param-value>
+    </init-param>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ws-widgets</servlet-name>
+    <url-pattern>/service/widgets</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ws-version</servlet-name>
+    <servlet-class>org.intermine.webservice.server.VersionServlet</servlet-class>
+    <init-param>
+       <param-name>debug</param-name>
+       <param-value>true</param-value>
+    </init-param>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ws-version</servlet-name>
+    <url-pattern>/service/version/*</url-pattern>
+  </servlet-mapping>
+
+<!-- ================================================================================= -->
+
+  <session-config>
+    <session-timeout>1440</session-timeout>      <!-- 1440 = 24 * 60 = 1 day -->
+  </session-config>
+
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+
+  <taglib>
+    <taglib-uri>http://jakarta.apache.org/taglibs/string-1.1</taglib-uri>
+    <taglib-location>/WEB-INF/string.tld</taglib-location>
+  </taglib>
+
+  <filter>
+    <filter-name>DontCache</filter-name>
+    <filter-class>org.intermine.web.filters.HeaderFilter</filter-class>
+    <init-param>
+      <param-name>Cache-Control</param-name>
+    <param-value>no-cache,no-store,max-age=0</param-value>
+    </init-param>
+    <init-param>
+      <param-name>Expires</param-name>
+    <param-value>0</param-value>
+    </init-param>
+  </filter>
+
+  <filter-mapping>
+    <filter-name>DontCache</filter-name>
+    <url-pattern>/query.do</url-pattern>
+  </filter-mapping>
+
+  <error-page>
+    <error-code>500</error-code>
+    <location>/static/flymine-offline/</location>
+  </error-page>
+  <error-page>
+    <error-code>502</error-code>
+    <location>/static/flymine-offline/</location>
+  </error-page>
+  <error-page>
+    <error-code>503</error-code>
+    <location>/static/flymine-offline/</location>
+  </error-page>
+  <error-page>
+    <error-code>404</error-code>
+    <location>/pagenotfound.do</location>
+  </error-page>
+</web-app>

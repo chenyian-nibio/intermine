@@ -1,0 +1,82 @@
+package org.intermine.web.struts;
+
+/*
+ * Copyright (C) 2002-2011 FlyMine
+ *
+ * This code may be freely distributed and modified under the
+ * terms of the GNU Lesser General Public Licence.  This should
+ * be distributed with the code.  See the LICENSE file for more
+ * information or http://www.gnu.org/copyleft/lesser.html.
+ *
+ */
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.struts.action.ActionForm;
+import org.apache.struts.action.ActionForward;
+import org.apache.struts.action.ActionMapping;
+import org.apache.struts.tiles.ComponentContext;
+import org.apache.struts.tiles.actions.TilesAction;
+import org.intermine.api.InterMineAPI;
+import org.intermine.api.profile.InterMineBag;
+import org.intermine.api.search.Scope;
+import org.intermine.api.tag.AspectTagUtil;
+import org.intermine.api.template.TemplateManager;
+import org.intermine.api.template.TemplateQuery;
+import org.intermine.util.DynamicUtil;
+import org.intermine.web.logic.results.DisplayObject;
+import org.intermine.web.logic.session.SessionMethods;
+
+/**
+ * Controller for the template list tile.
+ * @author Richard Smith
+ */
+public class TemplateListController extends TilesAction
+{
+    /**
+     * {@inheritDoc}
+     */
+    public ActionForward execute(ComponentContext context,
+                                 @SuppressWarnings("unused") ActionMapping mapping,
+                                 @SuppressWarnings("unused") ActionForm form,
+                                 HttpServletRequest request,
+                                 @SuppressWarnings("unused") HttpServletResponse response)
+        throws Exception {
+        final InterMineAPI im = SessionMethods.getInterMineAPI(request.getSession());
+
+        String scope = (String) context.getAttribute("scope");
+        String aspect = (String) context.getAttribute("placement");
+        DisplayObject object = (DisplayObject) context.getAttribute("displayObject");
+
+        if (AspectTagUtil.isAspectTag(aspect)) {
+            aspect = AspectTagUtil.getAspect(aspect);
+        }
+
+        InterMineBag interMineIdBag = (InterMineBag) context.getAttribute("interMineIdBag");
+        List<TemplateQuery> templates = null;
+        TemplateManager templateManager = im.getTemplateManager();
+
+        if (StringUtils.equals(Scope.GLOBAL, scope)) {
+            if (interMineIdBag != null) {
+                templates = templateManager.getReportPageTemplatesForAspect(aspect,
+                        interMineIdBag.getType());
+            } else if (object != null) {
+                templates = templateManager.getReportPageTemplatesForAspect(aspect,
+                        DynamicUtil.getFriendlyName(object.getObject().getClass()));
+            } else {
+                templates = templateManager.getAspectTemplates(aspect);
+            }
+
+        } else if (StringUtils.equals(Scope.USER, scope)) {
+            // no user template functionality implemented
+        }
+
+        request.setAttribute("templates", templates);
+
+        return null;
+    }
+}
