@@ -1,0 +1,5 @@
+update-publications is a source that operates in two steps.  It first queries
+the ObjectStore to find the pubmed identifiers of all Publications.  It then
+queries the NCBI pubmed server to find the full title and author list, then
+updates the Publication objects with that information.  All sources use pubmed
+ID to identify publications.

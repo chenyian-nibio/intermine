@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="DrugProteinInteraction" is-interface="true">
+		<reference name="protein" referenced-type="Protein" reverse-reference="drugs"/>
+		<reference name="drug" referenced-type="Drug" reverse-reference="targetProteins"/>
+		<collection name="publications" referenced-type="Publication"/>
+    </class>
+	<class name="Protein" is-interface="true">
+		<collection name="drugs" referenced-type="DrugProteinInteraction" reverse-reference="protein"/>
+    </class>
+	<class name="Compound" is-interface="true">
+		<attribute name="casRegistryNumber" type="java.lang.String"/>
+    </class>
+	<class name="ChemicalCompound" is-interface="true">
+		<collection name="drugs" referenced-type="Drug" reverse-reference="chemicalCompounds"/>
+    </class>
+
+	<class name="DrugType" is-interface="true">
+		<attribute name="name" type="java.lang.String"/>
+    </class>
+
+	<class name="Drug" extends="Compound" is-interface="true">
+		<attribute name="genericName" type="java.lang.String"/>
+		<attribute name="drugBankId" type="java.lang.String"/>
+		<attribute name="keggDrugId" type="java.lang.String"/>
+		<attribute name="description" type="java.lang.String"/>
+		<attribute name="hetId" type="java.lang.String"/>
+		<attribute name="fdaLabelIssuedDate" type="java.util.Date"/>
+		<collection name="drugTypes" referenced-type="DrugType"/>		
+		<collection name="chemicalCompounds" referenced-type="ChemicalCompound" reverse-reference="drugs"/>		
+		<collection name="brandNames" referenced-type="Synonym"/>
+		<collection name="targetProteins" referenced-type="DrugProteinInteraction" reverse-reference="drug"/>
+    </class>
+</classes>

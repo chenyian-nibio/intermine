@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<classes>
+    <class name="ProteinDNAExperiment" extends="Experiment" is-interface="true">
+        <attribute name="name" type="java.lang.String"/>
+        <attribute name="description" type="java.lang.String"/>
+        <collection name="interactions" referenced-type="ProteinDNAInteraction" reverse-reference="experiment"/>
+    </class>
+    <class name="ProteinDNAInteraction" is-interface="true">
+      <attribute name="role" type="java.lang.String"/>
+      <attribute name="name" type="java.lang.String"/>
+      <attribute name="interactionType" type="java.lang.String"/>
+      <reference name="gene" referenced-type="Gene" reverse-reference="proteinDNAinteractions" />
+      <reference name="interactWith" referenced-type="Gene" reverse-reference="proteinDNAinteractions"/>
+      <reference name="experiment" referenced-type="ProteinDNAExperiment" reverse-reference="interactions"/>
+      <collection name="dataSets" referenced-type="DataSet"/>
+      <!--
+      <reference name="bindingSite" referenced-type="BindingSite" reverse-reference="proteinDNAInteraction"/>
+      -->
+    </class>
+
+    <class name="Gene" is-interface="true">
+        <collection name="proteinDNAinteractions" referenced-type="ProteinDNAInteraction" reverse-reference="gene"/>
+    </class>
+
+</classes>

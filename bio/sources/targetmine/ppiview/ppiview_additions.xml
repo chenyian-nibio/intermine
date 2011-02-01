@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="Protein" is-interface="true">
+		<attribute name="hipId" type="java.lang.String"/>
+		<collection name="proteinInteractions" referenced-type="ProteinInteraction" reverse-reference="protein" />
+	</class>
+	
+	<class name="ProteinInteraction" is-interface="true">
+		<attribute name="intId" type="java.lang.Integer"/>
+		<attribute name="shortName" type="java.lang.String"/>
+		<reference name="protein" referenced-type="Protein" reverse-reference="proteinInteractions" />
+		<reference name="representativePartner" referenced-type="Protein" />
+		<collection name="allPartners" referenced-type="Protein"/>
+		<collection name="piSources" referenced-type="ProteinInteractionSource" reverse-reference="integratedPPIs"/>
+	</class>
+
+	<class name="ProteinInteractionSource" is-interface="true">
+		<attribute name="dbName" type="java.lang.String"/>
+		<attribute name="identifier" type="java.lang.String" />
+		<collection name="integratedPPIs" referenced-type="ProteinInteraction" reverse-reference="piSources" />
+	</class>
+</classes>

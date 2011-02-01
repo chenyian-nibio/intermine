@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<classes>
+  <class name="ProteinDomain" extends="BioEntity" is-interface="true">
+    <attribute name="name" type="java.lang.String"/>
+    <attribute name="shortName" type="java.lang.String"/>
+    <attribute name="type" type="java.lang.String"/>
+    <attribute name="description" type="java.lang.String"/>
+    <collection name="parentFeatures" referenced-type="ProteinDomain"/>
+    <collection name="childFeatures" referenced-type="ProteinDomain"/>
+    <collection name="contains" referenced-type="ProteinDomain"/>
+    <collection name="foundIn" referenced-type="ProteinDomain"/>
+    <collection name="publications" referenced-type="Publication"/>
+  </class>
+</classes>

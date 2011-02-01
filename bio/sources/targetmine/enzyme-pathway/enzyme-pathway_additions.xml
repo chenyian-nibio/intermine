@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<classes>
+    <class name="Enzyme" is-interface="true">
+        <attribute name="ecNumber" type="java.lang.String"/>
+        <collection name="pathways" referenced-type="Pathway" reverse-reference="enzymes"/>
+    </class>
+    <class name="Pathway" is-interface="true" >
+        <attribute name="identifier" type="java.lang.String"/>
+        <collection name="enzymes" referenced-type="Enzyme" reverse-reference="pathways"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
+    </class>
+
+</classes>

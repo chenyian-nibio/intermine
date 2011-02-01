@@ -1,0 +1,25 @@
+<items>
+  <item id="-1_1" class="Organism">
+    <attribute name="genus" value="Drosophila"/>
+    <attribute name="name" value="Drosophila melanogaster"/>
+    <attribute name="shortName" value="D. melanogaster"/>
+    <attribute name="species" value="melanogaster"/>
+    <attribute name="taxonId" value="7227"/>
+    <attribute name="commonName" value="fruit fly"/>
+  </item>
+ <item id="-1_2" class="Organism">
+
+  <attribute name="commonName" value="Norway rat"/>
+
+  <attribute name="genus" value="Rattus"/>
+
+  <attribute name="name" value="Rattus norvegicus"/>
+
+  <attribute name="shortName" value="R. norvegicus"/>
+
+  <attribute name="species" value="norvegicus"/>
+
+  <attribute name="taxonId" value="10116"/>
+
+</item>
+</items>

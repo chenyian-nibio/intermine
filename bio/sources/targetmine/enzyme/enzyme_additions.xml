@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<classes>
+    <class name="Enzyme" extends="BioEntity" is-interface="true">
+        <attribute name="ecNumber" type="java.lang.String"/>
+        <attribute name="description" type="java.lang.String"/>
+        <attribute name="catalyticActivity" type="java.lang.String" />
+        <attribute name="cofactor" type="java.lang.String" />
+        <collection name="proteins" referenced-type="Protein" reverse-reference="enzymes"/>
+    </class>
+
+    <class name="Protein" is-interface="true">
+        <collection name="enzymes" referenced-type="Enzyme" reverse-reference="proteins"/>
+    </class>
+
+</classes>

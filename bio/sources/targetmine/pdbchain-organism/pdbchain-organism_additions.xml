@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<classes>
+	<class name="ProteinChain" is-interface="true">
+		<attribute name="pdbId" type="java.lang.String"/>
+		<attribute name="chain" type="java.lang.String"/>
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="moleculeType" type="java.lang.String"/>
+		<collection name="organism" referenced-type="PdbOrganism"/>
+	</class>
+
+	<class name="PdbOrganism" is-interface="true">
+		<attribute name="taxonId" type="java.lang.Integer"/>
+	</class>
+
+</classes>

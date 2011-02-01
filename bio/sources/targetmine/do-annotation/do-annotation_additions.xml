@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="DOAnnotation" extends="OntologyAnnotation" is-interface="true">
+		<collection name="geneRifs" referenced-type="GeneRIF"/>
+	</class>
+	<class name="GeneRIF" is-interface="true">
+		<attribute name="sentence" type="java.lang.String"/>
+		<attribute name="phrase" type="java.lang.String"/>
+		<attribute name="score" type="java.lang.Integer"/>
+		<collection name="publications" referenced-type="Publication"/>
+    </class>
+	<class name="Gene" is-interface="true">
+		<collection name="doAnnotations" referenced-type="DOAnnotation"/>
+    </class>
+	<class name="DOTerm" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+    </class>
+	<class name="Publication" is-interface="true">
+		<attribute name="pubMedId" type="java.lang.String"/>
+	</class>
+</classes>
