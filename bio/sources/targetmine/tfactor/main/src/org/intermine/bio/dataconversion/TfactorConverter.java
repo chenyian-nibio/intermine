@@ -58,7 +58,7 @@ public class TfactorConverter extends FileConverter {
 		dataSource.setAttribute("name", "ORegAnno");
 
 		Item dataSet = createItem("DataSet");
-		dataSet.setAttribute("title", "ORegAnno");
+		dataSet.setAttribute("name", "ORegAnno");
 		dataSet.setReference("dataSource", dataSource);
 		dataSet.setAttribute("url", "http://www.oreganno.org/oregano/");
 		dataSet.setAttribute("description", "Open regulatory annotation database");

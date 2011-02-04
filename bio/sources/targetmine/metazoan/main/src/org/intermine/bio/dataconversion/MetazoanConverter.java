@@ -61,7 +61,7 @@ public class MetazoanConverter extends DirectoryConverter {
 		dataSource.setAttribute("name", "Amadeus");
 
 		Item dataSet = createItem("DataSet");
-		dataSet.setAttribute("title", "Metazoan compendium");
+		dataSet.setAttribute("name", "Metazoan compendium");
 		dataSet.setReference("dataSource", dataSource);
 		dataSet.setAttribute("url", "http://acgt.cs.tau.ac.il/amadeus");
 		dataSet.setAttribute("description", "Compendium of metazoan TF and miRNA target sets");

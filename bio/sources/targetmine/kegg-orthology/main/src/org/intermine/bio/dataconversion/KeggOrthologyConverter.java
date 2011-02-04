@@ -134,7 +134,7 @@ public class KeggOrthologyConverter extends FileConverter {
 			m_oKeggGeneSource.setAttribute("description", "KEGG_GENES");
 			
 			m_oKeggGeneDataSet = createItem("DataSet");
-			m_oKeggGeneDataSet.setAttribute("title", "KEGG GENES data set");
+			m_oKeggGeneDataSet.setAttribute("name", "KEGG GENES data set");
 			m_oKeggGeneDataSet.setAttribute("url", "http://www.genome.jp/kegg/genes.html");
 			m_oKeggGeneDataSet.setReference("dataSource", m_oKeggGeneSource);
 			

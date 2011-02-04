@@ -23,4 +23,7 @@
     <typedef
             name="fetch-sequences"
             classname="org.intermine.bio.postprocess.PostProcessOperationsTask"/>
+	<typedef
+            name="ppi2ggi"
+            classname="org.intermine.bio.postprocess.PPI2GGITask"/>
 </antlib>

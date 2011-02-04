@@ -402,7 +402,7 @@ public class DrugBankConverter extends FileConverter {
 	private Item getSynonym(String strSynonym) throws ObjectStoreException {
 		
 		Item oSynonym = createItem("Synonym");
-		oSynonym.setAttribute("type", "drug brand name");
+//		oSynonym.setAttribute("type", "drug brand name");
 		oSynonym.setAttribute("value", strSynonym);
 		store(oSynonym);
 		

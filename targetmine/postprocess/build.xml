@@ -1,0 +1,7 @@
+<project name="targetmine-postprocess" default="default" basedir=".">
+
+  <description>perform post processing for targetmine</description>
+
+  <import file="../../imbuild/postprocess.xml"/>
+
+</project>

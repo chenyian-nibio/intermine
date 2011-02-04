@@ -69,6 +69,9 @@ public class UniprotConverter extends BioDirectoryConverter
     protected IdResolverFactory flyResolverFactory;
     private String datasourceRefId = null;
 
+    // chenyian: to prevent isoform
+    private boolean includeIsoform = false;
+
     /**
      * Constructor
      * @param writer the ItemWriter used to handle the resultant items
@@ -274,9 +277,9 @@ public class UniprotConverter extends BioDirectoryConverter
                 attName = "value";
             } else if ("dbReference".equals(qName) && "organism".equals(previousQName)) {
                 entry.setTaxonId(getAttrValue(attrs, "id"));
-            } else if ("id".equals(qName)  && "isoform".equals(previousQName)) {
+            } else if (includeIsoform && "id".equals(qName)  && "isoform".equals(previousQName)) {
                 attName = "isoform";
-            } else if ("sequence".equals(qName)  && "isoform".equals(previousQName)) {
+            } else if (includeIsoform && "sequence".equals(qName)  && "isoform".equals(previousQName)) {
                 String sequenceType = getAttrValue(attrs, "type");
                 // ignore "external" types
                 if ("displayed".equals(sequenceType)) {
@@ -312,6 +315,10 @@ public class UniprotConverter extends BioDirectoryConverter
                     && getAttrValue(attrs, "position") != null) {
                 entry.addFeatureLocation("begin", getAttrValue(attrs, "position"));
                 entry.addFeatureLocation("end", getAttrValue(attrs, "position"));
+                // chenyian: retrieve IPI ids   
+            } else if ("dbReference".equals(qName)
+            		&& "IPI".equals(getAttrValue(attrs, "type"))) {
+            	entry.addIpiId(getAttrValue(attrs, "id"));
             } else if (createInterpro && "dbReference".equals(qName)
                     && "InterPro".equals(getAttrValue(attrs, "type"))) {
                 entry.addAttribute(getAttrValue(attrs, "id"));
@@ -421,7 +428,7 @@ public class UniprotConverter extends BioDirectoryConverter
                     && "recommendedName".equals(previousQName)
                     && stack.search("component") == 2) {
                 entry.addComponent(attValue.toString());
-            } else if ("id".equals(qName) && "isoform".equals(previousQName)) {
+            } else if (includeIsoform && "id".equals(qName) && "isoform".equals(previousQName)) {
                 String accession = attValue.toString();
 
                 // 119 isoforms have commas in their IDs
@@ -714,6 +721,11 @@ public class UniprotConverter extends BioDirectoryConverter
                     createSynonym(proteinRefId, identifier, true);
                 }
             }
+
+            // chenyian: IPI identifiers
+            for (String ipiId : entry.getIpiIds()) {
+            	createSynonym(proteinRefId, ipiId, true);
+			}
 
             // store xrefs and other synonyms we've created elsewhere
             for (Item item : synonymsAndXrefs) {

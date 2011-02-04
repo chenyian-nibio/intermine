@@ -106,7 +106,7 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ligand_expo" />
       <property name="src.data.dir.includes" value="cc-to-pdb.tdd" />
     </source>
-    <source name="metazoan" type="metazoan" dump="true">
+    <source name="amadeus" type="metazoan" dump="true">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/metazoan" />
     </source>
     <source name="oreg" type="tfactor" dump="true">
@@ -131,6 +131,9 @@
 		<property name="src.data.dir" location="/data/bio/db/Targetmine/biogrid"/>
 		<property name="src.data.dir.includes" value="*psi25.xml"/>
 	</source>
+    <source name="so" type="so">
+      <property name="src.data.file" location="../../bio/sources/so/so.obo"/>
+    </source>
   	<!--Intermine default : End-->
 
     <source name="irefindex" type="irefindex">
