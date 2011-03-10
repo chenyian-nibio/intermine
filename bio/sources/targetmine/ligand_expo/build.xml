@@ -1,0 +1,5 @@
+<project name="ligand_expo" default="default" basedir=".">
+  <description>build, test, package ligand_expo</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

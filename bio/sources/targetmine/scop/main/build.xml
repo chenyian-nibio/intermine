@@ -1,0 +1,4 @@
+<project name="scop" default="default" basedir=".">
+  <description>build scop tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

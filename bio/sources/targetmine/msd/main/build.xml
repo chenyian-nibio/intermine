@@ -1,0 +1,4 @@
+<project name="msd-tasks" default="default" basedir=".">
+  <description>build msd tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

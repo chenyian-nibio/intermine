@@ -1,0 +1,4 @@
+<project name="metazoan-tasks" default="default" basedir=".">
+  <description>build metazoan tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

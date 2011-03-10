@@ -1,0 +1,6 @@
+<project name="integr8" default="default" basedir=".">
+  <description>build, test, package integr8</description>
+
+  <import file="../../../../imbuild/source.xml"/>
+
+</project>

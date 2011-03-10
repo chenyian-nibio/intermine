@@ -1,0 +1,6 @@
+<project name="msd" default="default" basedir=".">
+  <description>build, test, package msd</description>
+
+  <import file="../../../../imbuild/source.xml"/>
+
+</project>

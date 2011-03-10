@@ -1,0 +1,4 @@
+<project name="ppiview" default="default" basedir=".">
+  <description>build ppiview tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

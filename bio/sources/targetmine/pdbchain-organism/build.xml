@@ -1,0 +1,5 @@
+<project name="pdbchain-organism" default="default" basedir=".">
+  <description>build, test, package pdbchain-organism</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

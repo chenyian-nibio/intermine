@@ -1,0 +1,4 @@
+<project name="gene-pubmed-tasks" default="default" basedir=".">
+  <description>build gene-pubmed tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

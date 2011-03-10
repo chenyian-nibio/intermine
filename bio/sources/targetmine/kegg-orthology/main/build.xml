@@ -1,0 +1,4 @@
+<project name="kegg-orthology-tasks" default="default" basedir=".">
+  <description>build kegg-orthology tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

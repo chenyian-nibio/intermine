@@ -1,0 +1,5 @@
+<project name="omim-gene" default="default" basedir=".">
+  <description>build, test, package omim-gene</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

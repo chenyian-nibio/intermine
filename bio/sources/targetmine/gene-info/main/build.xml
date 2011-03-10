@@ -1,0 +1,4 @@
+<project name="gene-info-tasks" default="default" basedir=".">
+  <description>build gene-info tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

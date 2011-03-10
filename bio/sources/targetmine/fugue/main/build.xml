@@ -1,0 +1,5 @@
+<project name="fugue-tasks" default="default" basedir=".">
+  <description>build fugue tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>
+

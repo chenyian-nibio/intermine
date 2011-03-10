@@ -1,0 +1,5 @@
+<project name="pdb_ext" default="default" basedir=".">
+  <description>build, test, package pdb_ext</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

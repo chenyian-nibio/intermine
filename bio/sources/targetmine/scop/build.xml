@@ -1,0 +1,6 @@
+<project name="scop" default="default" basedir=".">
+  <description>build, test, package scop</description>
+
+  <import file="../../../../imbuild/source.xml"/>
+
+</project>

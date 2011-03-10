@@ -1,0 +1,5 @@
+<project name="gene-pubmed" default="default" basedir=".">
+  <description>build, test, package gene-pubmed</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

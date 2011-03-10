@@ -1,0 +1,5 @@
+<project name="irefindex" default="default" basedir=".">
+  <description>build, test, package irefindex</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>
