@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>TargetMine Help page 3 - Lists</title>
+    <link media="screen,print" href="../style/genhelp.css" type="text/css" rel="stylesheet" />
+    <link media="screen,print" href="../style/tabtastic.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../js/addclasskillclass.js"></script>
+    <script type="text/javascript" src="../js/attachevent.js"></script>
+    <script type="text/javascript" src="../js/addcss.js"></script>
+    <script type="text/javascript" src="../js/tabtastic.js"></script>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+  </head>
+  <body>
+    <div class="genhelp">
+      <table width="100%">
+        <tr>
+          <td colspan="3" align="right">
+            <span style="padding: 3px; font-size: 70%;" onclick="window.close()">
+              <img src="../images/close.png" title="Close" onmouseout="this.style.cursor='normal';"
+                   onmouseover="this.style.cursor='pointer';"/>
+            </span>
+          </td>
+        </tr>
+      </table>
+      <div class="heading">
+        <table width="100%">
+          <tr>
+            <td width="20%" align="left" valign="top">
+<a href="templates.html">previous</a>
+            </td>
+            <td width="60%" rowspan="2" align="center" valign="top">
+              <span class="title">
+Lists &#160; &#160; (3/16)
+              </span>
+            </td>
+            <td width="20%" align="right" valign="top">
+<a href="customQuery.html">next</a>
+            </td>
+          </tr>
+          <tr>
+            <td width="20%" align="left" class="nextprev" valign="top">
+Templates
+            </td>
+            <td width="20%" align="right" class="nextprev" valign="top">
+QueryBuilder
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div style="padding-top: 20px" class="content">
+        <div >
+<ul class="tabset_tabs">
+<li><a href="#upload" class="active">Upload</a></li>
+<li><a href="#view">View</a></li>
+</ul>
+
+<div id="upload" class="tabset_content">
+<h2 class="tabset_label">Upload</h2>
+<p>TargetMine can operate on lists of data.  Lists can then be analysed
+on a list analysis page, or can be used in (template) queries. The
+Upload page allows you to create a list yourself. The list can contain
+a mix of identifier types (eg symbols, names, organism database id,)
+but it cannot contain different object types (eg a list of genes and
+proteins is currently not possible).</p>
+
+<p>To create a list, follow these steps:</p> 
+
+<img alt="[Lists]"  src="lists_upload.png"/>
+
+
+
+<table class="inlinetable">
+<tr>
+
+<td valign="center" width="30%">  
+
+and then click on </td>
+
+<td valign="center" width="60%">
+<img alt="[Lists]"  src="lists_upload_create.png"/></td>
+</tr> 
+</table>
+
+Identifiers must be separated by commas, spaces, or lines.  If you have an identifier that contains spaces, use double quotes, eg:
+<pre>
+  eve, zen, "Enhancer of zeste", CG32211
+</pre>
+not:
+<pre>
+  eve zen Enhancer of zeste CG32211
+
+</pre>
+
+</div>
+<div id="view" class="tabset_content">
+<h2 class="tabset_label">View</h2>
+<p>The View page shows all public lists, as
+well as your own (marked with 'my') - if you are logged in. Clicking
+on a List name will show the List analysis page for this list. </p>
+
+<img alt="[Lists]"  src="lists_view.png"/>
+
+<p>You can merge lists, subtract lists and find common members between lists.</p>
+
+
+<p><i>As an example, an union of 2 lists is shown:</i></p>
+
+
+<img alt="[Lists]"  src="lists_subtract1.png"/>
+
+<img alt="[Lists]"  src="lists_subtract2.png"/>
+
+
+
+</div>
+
+        </div>
+      </div>
+      <div class="heading">
+        <table width="100%">
+          <tr>
+            <td width="20%" align="left" valign="top">
+<a href="templates.html">previous</a>
+            </td>
+            <td width="60%" rowspan="2" align="center" valign="top">
+              <span class="title">
+3/16
+              </span>
+            </td>
+            <td width="20%" align="right" valign="top">
+<a href="customQuery.html">next</a>
+            </td>
+          </tr>
+          <tr>
+            <td width="20%" align="left" class="nextprev" valign="top">
+Templates
+            </td>
+            <td width="20%" align="right" class="nextprev" valign="top">
+QueryBuilder
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>
