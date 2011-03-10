@@ -1,0 +1,48 @@
+<html>
+	<head>
+		<title>TargetMine - Release Information</title>
+		
+		<link rel="stylesheet" type="text/css" href="/targetmine/css/webapp.css">
+		<link rel="stylesheet" type="text/css" href="/targetmine/themes/grey/theme.css">
+	</head>
+<body>
+
+<div align="center" id="headercontainer">
+  <div id="header"> 
+    <a href="/targetmine" alt="Home" rel="NOFOLLOW"><img id="logo" src="/targetmine/model/images/logo.png" width="45px" height="43px" alt="Logo" /></a> 
+    <h1><a href="/targetmine/">TargetMine</a></h1> 
+    <p>Data mining system to find drug target proteins</p> 
+  </div> 
+</div>
+<div align="center" id="pagecontentcontainer">
+
+ <div id="pagecontent" style="margin-top: 32px; border: 1px solid black;">
+  <div style="text-align:right; margin-right: 32px;"><a href="/targetmine" alt="Home" rel="NOFOLLOW">Home</a></div>
+  <h3 style="margin-left: 32px; margin-bottom: 32px;">Release information</h3>
+
+  <p>
+  <table class="dbsources" cellpadding="0" cellspacing="0" border="0" width="90%">
+  <tr><th>Data Source</th><th>Version</th><th>Date</th></tr>
+  
+<!--release_info_table-->
+
+  </table>
+ </div>
+
+</div>
+
+<div class="body" align="center" style="clear:both">
+
+ <br />
+ <div>TargetMine is funded by <a href="http://www.nedo.go.jp/" target="_new" 
+ 	title="New Energy and Industrial Technology Development Organization">NEDO</a>. 
+ 	Developed by <a href="http://mizuguchilab.org/" target="_new">The Mizuguchi Laboratory</a>. 
+ 	<a href="http://www.nibio.go.jp/" target="_new" title="National Institute of Biomedical Innovation">
+ 	<img src="/targetmine/model/images/logo_nibio_full.png" border="0" alt="NIBIO_logo"></a>
+ </div>
+
+</div>
+
+</body>
+
+</html>
