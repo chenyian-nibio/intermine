@@ -280,6 +280,11 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
                 CreateFlyBaseLinkIns.createLinkInFile(getObjectStoreWriter().getObjectStore());
             } else if ("modmine-metadata-cache".equals(operation)) {
                 CreateModMineMetaDataCache.createCache(getObjectStoreWriter().getObjectStore());
+                // chenyian: add by ishikawa for ppi2ggi
+                // TODO: to be removed, preventing change too much default codes  
+            } else if("ppi2ggi".equals(operation)){
+            	PPI2GGITask oTask = new PPI2GGITask(getObjectStoreWriter());
+            	oTask.ppi2ggi();
             } else {
                 throw new BuildException("unknown operation: " + operation);
             }

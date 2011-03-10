@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <classes>
 	<class name="Protein" is-interface="true">
-		<attribute name="hipId" type="java.lang.String"/>
 		<collection name="proteinInteractions" referenced-type="ProteinInteraction" reverse-reference="protein" />
 	</class>
 	

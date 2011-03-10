@@ -31,6 +31,15 @@
 	<a target="new" href="http://intermine.org" title="InterMine">
 		<img src="images/icons/intermine-footer-logo.png" alt="InterMine logo" />
 	</a>
+<!-- chenyian: NIBIO -->
+ <br/><br/>
+ <div>TargetMine is funded by <a href="http://www.nedo.go.jp/" target="_new" 
+ 	title="New Energy and Industrial Technology Development Organization">NEDO</a>. 
+ 	Developed by <a href="http://mizuguchilab.org/" target="_new">The Mizuguchi Laboratory</a>. 
+ 	<a href="http://www.nibio.go.jp/" target="_new" title="National Institute of Biomedical Innovation">
+ 	<img src="/targetmine/model/images/logo_nibio_full.png" border="0" alt="NIBIO_logo"></a>
+ </div>
+
 </div>
 
 </div>

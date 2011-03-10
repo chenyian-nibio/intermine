@@ -82,6 +82,8 @@ public class KeywordSearchResultsController extends TilesAction
                         SessionMethods.getWebProperties(servletContext).getProperty(
                                 "project.title", "unknown").toLowerCase()
                                 + "_searches.log";
+                // chenyian: assign the path
+                logFileName = "logs/" + logFileName;
 
                 Layout layout = new PatternLayout("%d{ISO8601}\t%m%n");
 

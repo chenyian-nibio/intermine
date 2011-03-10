@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+<channel>
+  <title>TargetMine</title>
+  <link>http://targetmine.nibio.go.jp:8080/targetmine/</link>
+  <description>Data mining system to find drug target proteins</description>
+
+  <item>
+    <title>Update</title>
+    <link>news/2011/03/index.html</link>
+    <description>build 20110307 released</description>
+    <pubDate>Tue, 08 Mar 2011 12:00:00 +0900</pubDate>
+  </item>
+  <item>
+    <title>Update</title>
+    <link>news/2011/02/index.html</link>
+    <description>build 20110209 released</description>
+    <pubDate>Wed, 09 Feb 2011 12:00:00 +0900</pubDate>
+  </item>
+  <item>
+    <title>Update</title>
+    <link>news/2011/01/index.html</link>
+    <description>build 20110119 released</description>
+    <pubDate>Wed, 19 Jan 2011 12:00:00 +0900</pubDate>
+  </item>
+  <item>
+    <title>Update</title>
+    <link>news/2010/11/index.html</link>
+    <description>build 20101102 released</description>
+    <pubDate>Tue, 02 Nov 2010 12:00:00 +0900</pubDate>
+  </item>
+  <item>
+    <title>Update</title>
+    <link>news/2010/09/index.html</link>
+    <description>build 20100903 released</description>
+    <pubDate>Fri, 03 Sep 2010 12:00:00 +0900</pubDate>
+  </item>
+  <item>
+    <title>Update</title>
+    <link>news/2010/07/index.html</link>
+    <description>build 20100726 released</description>
+    <pubDate>Mon, 26 Jul 2010 12:00:00 +0900</pubDate>
+  </item>
+
+</channel>
+</rss>
+

@@ -89,7 +89,7 @@ public class PPI2GGITask {
 			ResultsRow row = (ResultsRow)pGIter.next();
 			Protein oProtein = (Protein)row.get(0);
 			Gene oGene = (Gene)row.get(1);
-			//System.out.println("pid:" + oProtein.getPrimaryIdentifier()+", geneid:" +oGene.getNcbiGeneNumber());
+//			System.out.println("pid:" + oProtein.getPrimaryIdentifier()+", geneid:" +oGene.getNcbiGeneNumber());
 			oMap.put( oProtein.getPrimaryIdentifier(), oGene.getNcbiGeneNumber() );
 			
 		}
@@ -149,12 +149,18 @@ public class PPI2GGITask {
 					oPIS.getIdentifier(),
 					oPIS.getDbName(),
 					oPI.getIntId());
+//			System.out.println(String.format("%s, %s, %s, %s, %s",
+//					oProtein.getPrimaryIdentifier(),
+//					oRepPartner.getPrimaryIdentifier(),
+//					oPIS.getIdentifier(),
+//					oPIS.getDbName(),
+//					oPI.getIntId() ));
 			oPiSetList.add(oPiSet);
 		}
 		Iterator<PISet> oItr = oPiSetList.iterator();
 		while(oItr.hasNext()){
 			PISet oPiSet = oItr.next();
-			//System.out.println("oPiSet.getIntId():" + oPiSet.getIntId() + ", geneid:" + oMap.get( oPiSet.getProteinPrimaryIdentifier() ));
+//			System.out.println("oPiSet.getIntId():" + oPiSet.getIntId() + ", geneid:" + oMap.get( oPiSet.getProteinPrimaryIdentifier() ));
 			//Gene oGene = (Gene)DynamicUtil.createObject( Collections.singleton( Gene.class ) );
 			//oGene.setNcbiGeneNumber(oMap.get( oPiSet.getProteinPrimaryIdentifier() ));
 			// ignore if gene has no ncbigenenumber

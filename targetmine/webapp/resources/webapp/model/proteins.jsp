@@ -14,22 +14,23 @@
           <DD>
             All proteins from the <A
             href="http://www.ebi.uniprot.org/index.shtml">UniProt
-            Knowledgebase</A> (version 7.5) for the following organisms have
+            Knowledgebase</A> for the following organisms have
             been loaded:
             <UL>
-              <LI><I>Plasmodium falciparum (isolate 3D7)</I></LI>
+              <LI><I>Homo sapiens</I></LI>
+              <LI><I>Rattus norvegicus</I></LI>
+              <LI><I>Mus musculus</I></LI>
+              <LI><I>Drosophila melanogaster</I></LI>
             </UL>
             For each protein record in UniProt for each species the following
             information is extracted:
             <UL>
               <LI>Entry name</LI>
-              <LI>Primary accession number</LI>
-              <LI>Secondary accession number</LI>
+              <LI>Primary accession number (Uniprot ID)</LI>
               <LI>Protein name</LI>
               <LI>Comments</LI>
               <LI>Publications</LI>
               <LI>Sequence</LI>
-              <LI>Gene ORF name</LI>
             </UL>
           </DD>
         </DL>
@@ -37,18 +38,12 @@
     </td>
     <td valign="top">
       <div class="heading2">
-        Bulk download <i>P. falciparum 3d7</i> data
+        Bulk download data
       </div>
       <div class="body">
         <ul>
           <li>
-            <span style="white-space:nowrap">
-              <im:querylink text="Plasmodium falciparum proteins and corresponding genes:" skipBuilder="true">
-<query name="" model="genomic" view="Protein.primaryIdentifier Protein.primaryAccession Protein.organism.name Protein.genes.primaryIdentifier Protein.genes.secondaryIdentifier Protein.genes.organism.shortName" sortOrder="Protein.primaryIdentifier asc">
-  <constraint path="Protein.organism.name" op="=" value="Plasmodium falciparum 3D7"/>
-</query>
-              </im:querylink>
-            </span>
+			Not available currently.
           </li>
         </ul>
       </div>

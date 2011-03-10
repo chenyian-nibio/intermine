@@ -52,13 +52,14 @@
 
   <class className="org.intermine.model.bio.Gene">
     <fields>
+      <fieldconfig fieldExpr="ncbiGeneNumber"/>
       <fieldconfig fieldExpr="primaryIdentifier"/>
       <fieldconfig fieldExpr="secondaryIdentifier"/>
       <fieldconfig fieldExpr="symbol"/>
       <fieldconfig fieldExpr="name"/>
-      <fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" />
-      <fieldconfig fieldExpr="chromosomeLocation" displayer="/model/chromosomeLocDisplayer.jsp" showInResults="false" />
-      <fieldconfig fieldExpr="chromosome.primaryIdentifier" showInInlineCollection="false" showInSummary="false" />
+      <!-- fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" /-->
+      <!-- fieldconfig fieldExpr="chromosomeLocation" displayer="/model/chromosomeLocDisplayer.jsp" showInResults="false" /-->
+      <!-- fieldconfig fieldExpr="chromosome.primaryIdentifier" showInInlineCollection="false" showInSummary="false" /-->
       <fieldconfig fieldExpr="chromosomeLocation.start" showInInlineCollection="false" showInSummary="false" />
       <fieldconfig fieldExpr="chromosomeLocation.end" showInInlineCollection="false" showInSummary="false" />
       <fieldconfig fieldExpr="organism.shortName" />
@@ -66,7 +67,7 @@
     <longdisplayers>
       <!-- attribute links can now be configured for gene report pages -->
       <displayer src="attributeLinkDisplayer.tile"/>
-      <displayer src="geneMicroArrayDisplayer.tile"/>
+      <!-- displayer src="geneMicroArrayDisplayer.tile"/-->
     </longdisplayers>
     <bagdisplayers>
       <!-- attribute links can now be configured for gene list analysis pages -->
@@ -74,15 +75,9 @@
     </bagdisplayers>
   </class>
 
-  <class className="org.intermine.model.bio.InfoSource">
-    <fields>
-      <fieldconfig fieldExpr="title"/>
-    </fields>
-  </class>
-
  <class className="org.intermine.model.bio.Location">
     <fields>
-      <fieldconfig fieldExpr="object.primaryIdentifier"/>
+      <fieldconfig fieldExpr="locatedOn.primaryIdentifier"/>
       <fieldconfig fieldExpr="start"/>
       <fieldconfig fieldExpr="end"/>
       <fieldconfig fieldExpr="strand"/>
@@ -134,6 +129,7 @@
     <fields>
       <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="taxonId" />
+      <fieldconfig fieldExpr="shortName" />
     </fields>
     <longdisplayers>
       <displayer src="attributeLinkDisplayer.tile"/>
@@ -144,11 +140,13 @@
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
       <fieldconfig fieldExpr="primaryAccession"/>
+      <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="organism.name"/>
       <fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" />
     </fields>
     <longdisplayers>
       <displayer src="attributeLinkDisplayer.tile"/>
+	  <displayer src="/model/proteinAnalysisResult.jsp"/>
     </longdisplayers>
     <bagdisplayers>
     </bagdisplayers>
@@ -188,15 +186,187 @@
   <class className="org.intermine.model.bio.Transcript">
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
-      <fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" />
-      <fieldconfig fieldExpr="chromosomeLocation" displayer="/model/chromosomeLocDisplayer.jsp" showInResults="false"/>
-      <fieldconfig fieldExpr="chromosome.primaryIdentifier" showInInlineCollection="false" showInSummary="false" />
-      <fieldconfig fieldExpr="chromosomeLocation.start" showInInlineCollection="false" showInSummary="false" />
-      <fieldconfig fieldExpr="chromosomeLocation.end" showInInlineCollection="false" showInSummary="false" />
+      <fieldconfig fieldExpr="refSeqId"/>
     </fields>
     <longdisplayers>
       <displayer src="attributeLinkDisplayer.tile"/>
     </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.bio.Translation">
+    <fields>
+      <fieldconfig fieldExpr="primaryIdentifier"/>
+      <fieldconfig fieldExpr="refSeqId"/>
+    </fields>
+    <longdisplayers>
+      <displayer src="attributeLinkDisplayer.tile"/>
+    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.bio.ProteinStructure">
+    <fields>
+      <fieldconfig fieldExpr="pdbId"/>
+      <fieldconfig fieldExpr="resolution"/>
+      <fieldconfig fieldExpr="experimentType"/>
+    </fields>
+    <longdisplayers>
+      <displayer src="attributeLinkDisplayer.tile"/>
+    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.bio.ChemicalCompound">
+    <fields>
+      <fieldconfig fieldExpr="compId"/>
+    </fields>
+    <longdisplayers>
+      <displayer src="attributeLinkDisplayer.tile"/>
+    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.bio.ProteinDomain">
+    <fields>
+      <fieldconfig fieldExpr="primaryIdentifier"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="shortName"/>
+      <fieldconfig fieldExpr="type"/>
+    </fields>
+    <longdisplayers>
+      <displayer src="attributeLinkDisplayer.tile"/>
+    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.bio.ProteinDomainRegion">
+    <fields>
+      <fieldconfig fieldExpr="start"/>
+      <fieldconfig fieldExpr="end"/>
+      <fieldconfig fieldExpr="originalId"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.Pathway">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="mainClass" showInSummary="false"/>
+      <fieldconfig fieldExpr="subClass" showInSummary="false"/>
+    </fields>
+    <longdisplayers>
+      <displayer src="pathwayLinkDisplayer.tile"/>
+    </longdisplayers>
+  </class>
+
+<!-- chenyian: disable for external server 
+-->
+  <class className="org.intermine.model.bio.Disease">
+    <fields>
+      <fieldconfig fieldExpr="omimId"/>
+      <fieldconfig fieldExpr="title"/>
+    </fields>
+    <longdisplayers>
+      <displayer src="attributeLinkDisplayer.tile"/>
+    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.bio.PdbOrganism">
+    <fields>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="taxonId" />
+      <fieldconfig fieldExpr="shortName" />
+    </fields>
+    <longdisplayers>
+      <displayer src="attributeLinkDisplayer.tile"/>
+    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.bio.DrugProteinInteraction">
+    <fields>
+      <fieldconfig fieldExpr="protein.primaryAccession"/>
+      <fieldconfig fieldExpr="drug.drugBankId" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.Drug">
+    <fields>
+      <fieldconfig fieldExpr="drugBankId"/>
+      <fieldconfig fieldExpr="genericName" />
+      <fieldconfig fieldExpr="description" showInSummary="false"/>
+      <fieldconfig fieldExpr="casRegistryNumber" showInSummary="false"/>
+      <fieldconfig fieldExpr="keggDrugId" showInSummary="false"/>
+    </fields>
+    <longdisplayers>
+      <displayer src="attributeLinkDisplayer.tile"/>
+    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.bio.Enzyme">
+    <fields>
+      <fieldconfig fieldExpr="ecNumber"/>
+      <fieldconfig fieldExpr="description" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.ProteinChain">
+    <fields>
+      <fieldconfig fieldExpr="pdbId" />
+      <fieldconfig fieldExpr="chain" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.ProteinRegion">
+    <fields>
+      <fieldconfig fieldExpr="start" />
+      <fieldconfig fieldExpr="end" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.ScopEntry">
+    <fields>
+      <fieldconfig fieldExpr="description" />
+      <fieldconfig fieldExpr="sccs" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.ScopClassification">
+    <fields>
+      <fieldconfig fieldExpr="sid"/>
+      <fieldconfig fieldExpr="scopClass.description" />
+      <fieldconfig fieldExpr="scopFold.description" />
+      <fieldconfig fieldExpr="scopSuperFamily.description" />
+      <fieldconfig fieldExpr="scopFamily.description" />
+      <fieldconfig fieldExpr="scopDomain.description" />
+      <fieldconfig fieldExpr="scopSpecies.description" />
+      <fieldconfig fieldExpr="scopProtein.description"  showInSummary="false"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.DOTerm">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="description" doNotTruncate="true" />
+    </fields>
+    <longdisplayers>
+      <displayer src="attributeLinkDisplayer.tile"/>
+    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.bio.DrugType">
+    <fields>
+      <fieldconfig fieldExpr="name"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.GeneRIF">
+    <fields>
+      <fieldconfig fieldExpr="phrase"/>
+      <fieldconfig fieldExpr="sentence"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.InteractionExperiment">
+    <fields>
+      <fieldconfig fieldExpr="description"/>
+    </fields>
   </class>
 
 <!-- exporters -->
@@ -205,6 +375,7 @@
   
 <!-- widgets -->
 <widgets>
+<!--
       <graphdisplayer id="chromosome_distribution" title="Chromosome Distribution"
         domainLabel="Chromosome"
         rangeLabel="Count"
@@ -215,6 +386,100 @@
         extraAttributeClass="org.intermine.bio.web.logic.BioUtil"
         typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.SequenceFeature"
        />
+-->
+      <enrichmentwidgetdisplayer id="pathway_enrichment" title="KEGG Pathway Enrichment"
+                                 link="org.intermine.bio.web.widget.TmPathwayURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.PathwayDataLoader"
+                                 label="Pathway"
+                                 description="Pathways enriched for genes in this list."
+                                 externalLink="http://www.genome.jp/kegg-bin/show_pathway?map"
+                                 typeClass="org.intermine.model.bio.Gene"
+                                 externalLinkLabel="KEGG:" />
+
+      <enrichmentwidgetdisplayer id="protein_pathway_enrichment" title="KEGG Pathway Enrichment"
+                                 link="org.intermine.bio.web.widget.TmPathwayURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.ProteinPathwayDataLoader"
+                                 label="Pathway"
+                                 description="Pathways enriched for proteins in this list."
+                                 externalLink="http://www.genome.jp/kegg-bin/show_pathway?map"
+                                 typeClass="org.intermine.model.bio.Protein"
+                                 externalLinkLabel="KEGG:" />
+ 
+      <enrichmentwidgetdisplayer id="go_enrichment" title="Gene Ontology Enrichment"
+                                 link="org.intermine.bio.web.widget.TmGoStatURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.GoStatLdr"
+                                 description="GO terms enriched for items in this list."
+                                 label="GO Term"
+                                 filters="biological_process,cellular_component,molecular_function"
+                                 filterLabel="Ontology"
+                                 typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
+                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term-details.cgi?term=" />
+
+      <enrichmentwidgetdisplayer id="drug_enrichment" title="Drug Enrichment"
+                                 link="org.intermine.bio.web.widget.DrugURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.DrugDataLoader"
+                                 label="Drug"
+                                 description="Drugs enriched for proteins in this list."
+                                 externalLink="http://www.drugbank.ca/drugs/"
+                                 typeClass="org.intermine.model.bio.Protein"
+                                 externalLinkLabel="DrugBank:" />
+<!-- chenyian: diable for external server 
+-->
+      <enrichmentwidgetdisplayer id="omim_enrichment" title="OMIM Enrichment"
+                                 link="org.intermine.bio.web.widget.OmimURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.OmimDataLoader"
+                                 label="Disease"
+                                 description="Disease enriched for genes in this list."
+                                 externalLink="http://www.ncbi.nlm.nih.gov/omim/"
+                                 typeClass="org.intermine.model.bio.Gene"
+                                 externalLinkLabel="OMIM:" />
+
+      <enrichmentwidgetdisplayer id="protein_omim_enrichment" title="OMIM Enrichment"
+                                 link="org.intermine.bio.web.widget.OmimURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.ProteinOmimDataLoader"
+                                 label="Disease"
+                                 description="Disease enriched for proteins in this list."
+                                 externalLink="http://www.ncbi.nlm.nih.gov/omim/"
+                                 typeClass="org.intermine.model.bio.Protein"
+                                 externalLinkLabel="OMIM:" />
+
+      <enrichmentwidgetdisplayer id="do_enrichment" title="Disease Ontology Enrichment"
+                                 link="org.intermine.bio.web.widget.DoURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.DoDataLoader"
+                                 label="DO Term"
+                                 description="Disease ontology enriched for genes in this list."
+                                 typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein" 
+                                 externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/" />
+
+ 
+      <bagtabledisplayer id="table_ppis" title="Protein-Protein Interactions"
+                         link="org.intermine.bio.web.widget.PpiURLQuery"
+                         pathStrings="Protein.proteinInteractions.representativePartner"
+                         description="Proteins that interact with proteins in this list."
+                         displayFields="primaryAccession"
+                         exportField="primaryAccession"
+                         typeClass="org.intermine.model.bio.Protein"
+                         columnTitle="PPIs"/>
+
+      <bagtabledisplayer id="table_drugs_protein" title="Associated Drugs"
+                         link="org.intermine.bio.web.widget.DrugURLQuery"
+                         pathStrings="Protein.drugs.drug"
+                         description="Drugs which associated with proteins in the list."
+                         displayFields="drugBankId"
+                         exportField="primaryAccession"
+                         typeClass="org.intermine.model.bio.Protein"
+                         columnTitle="Targeted Proteins"/>
+
+      <bagtabledisplayer id="table_drugs_gene" title="Associated Drugs"
+                         link="org.intermine.bio.web.widget.DrugURLQuery"
+                         pathStrings="Gene.proteins.drugs.drug"
+                         description="Drugs which associated with genes in the list."
+                         displayFields="drugBankId"
+                         exportField="ncbiGeneNumber"
+                         typeClass="org.intermine.model.bio.Gene"
+                         externalLinkLabel="DrugBank:"
+                         externalLink="http://www.drugbank.ca/drugs/"
+                         columnTitle="Targeted Genes"/>
 
 </widgets>
 </webconfig>

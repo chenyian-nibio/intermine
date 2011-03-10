@@ -46,7 +46,8 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ipi-ipc"/>
       <property name="src.data.dir.includes" value="ipi.*.IPC"/>
     </source>
- <!-- chenyian: disabled for external version --> 
+ <!-- chenyian: disabled for external version 
+ --> 
     <source name="protein-analysis" type="protein-analysis">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis"/>
       <property name="src.data.dir.includes" value="result.out"/>
@@ -69,10 +70,20 @@
       <property name="hieFile" value="/data/bio/db/Targetmine/scop/dir.hie.scop.txt_1.75"/>
       <property name="clsFile" value="/data/bio/db/Targetmine/scop/dir.cla.scop.txt_1.75"/>
     </source>
+
+<!-- use intermine default instead of our version-->
+    <source name="kegg-orthologues" type="kegg-orthologues">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg"/>
+      <property name="src.data.dir.includes" value="ko" />
+      <property name="kegg.organisms" value="7227 9606 10090 10116"/>
+    </source>
+<!--
     <source name="kegg-orthology" type="kegg-orthology">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg"/>
       <property name="src.data.dir.includes" value="*_xrefall.list"/>
     </source>
+-->
+
     <source name="drugbank" type="drugbank">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank"/>
       <property name="src.data.dir.includes" value="drugcards.txt"/>
@@ -171,13 +182,11 @@
 
   <post-processing>
 	<post-process name="do-sources"/>
-<!--
-	<post-process name="ppi2ggi"/>
--->
+	<post-process name="create-references"/>
 	<post-process name="summarise-objectstore"/>
 	<post-process name="create-attribute-indexes"/>
-
-
+    <post-process name="create-autocomplete-index"/>
+    <post-process name="create-search-index"/>
 
   </post-processing>
 

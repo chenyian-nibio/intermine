@@ -1,0 +1,160 @@
+#!/usr/bin/perl
+# 2011/3/1 chenyian
+# Script for stepwise building production database
+# The script have to execute from the base directory of the project, which contains project.xml
+# syntax:
+# $0 									// build source from beginning to end
+# $0 from=[source_1] to=[source_2]		// build source from source_1 to source_2
+# $0 from=[source_1]					// build source from source_1 to end
+# $0 to=[source_2]						// build source from beginning to source_2
+#
+# NOTICE:
+# The script doesn't initialize the database, and doesn't execute the post-processing steps.   
+
+use XML::DOM;
+use Data::Dumper;
+use Net::SMTP;
+
+my $integrate = "integrate";
+my $projectXmlFile= "project.xml";
+
+my $antCmd = "/usr/local/ant/bin/ant -v ";
+
+my $integrateDir = "integrate";
+
+if ($#ARGV > 1) {
+	die "Invalid arguments; too may arguments.";
+}
+my %argvs;
+foreach (@ARGV) {
+	my ($key, $value) = split /=/,$_;
+	if ($key ne "from" && $key ne "to") {
+		die "Invalid arguments; $_";
+	}
+	$argv{$key} = $value;
+}
+
+if (-e $projectXmlFile) {
+#    print("Found $projectXmlFile\n");
+} else {
+    die "Can't find a file named $projectXmlFile check that you are in the root directory of the chosen mine.\n";
+}
+
+my $parser = new XML::DOM::Parser;
+my $doc = $parser->parsefile ($projectXmlFile);
+
+my $result = buildCommandsForTag("source", "integrate", "-Dsource=");
+
+$result = sliceAssignedSource($result);
+
+# change directory to integrate/
+chdir($integrateDir);
+executeCommand($result);
+
+#print Data::Dumper->Dump($result);
+#print "end of script.\n";
+sendNoticeMail("Build finished","The production database has been successfully built.");
+
+exit;
+
+sub executeCommand {
+	foreach my $source(@{$_[0]}) {
+		my $cmd = $source->{"cmd"};
+		print "Executing...",$cmd,"\n";
+		print STDOUT `date`, "\n\n";
+	    open PIPE, "$cmd |" or die "can't run $cmd: $?\n";
+		while (<PIPE>) {
+			print STDOUT " [$source->{'tag'}] $_";
+		}
+		print STDOUT `date`, "\n\n";
+		print $cmd," finished\n\n";
+	    close PIPE;
+	    if ($? != 0) {
+	    # build failed? send a mail...
+	    	sendNoticeMail("Build Failed","Building the production database encounter some errors.");
+	    	die "failed with exit code $?: @_\n";
+	    }
+	}
+}
+
+sub sendNoticeMail {
+	my ($subject, $content) = @_;
+	my $smtp = Net::SMTP->new(Host=>'127.0.0.1', Hello=>'localhost', Debug=>1,);
+	
+	$smtp->mail('chenyian@nibio.go.jp');
+	$smtp->to('chenyian@nibio.go.jp');
+	
+	$smtp->data();
+	$smtp->datasend("To: chenyian\@nibio.go.jp\n");
+	$smtp->datasend("Subject: $subject\n");
+	$smtp->datasend("\n");
+	$smtp->datasend("$content\n");
+	$smtp->dataend();
+	
+	$smtp->quit;
+}
+
+sub sliceAssignedSource {
+	my @sliced = ();
+	my $flag = 1;
+	my $from_set = 0;
+	my $to_set = 0;
+	if (defined $argv{'from'}) {
+		$flag = 0;
+		$from_set = 1;
+	} 
+	if (defined $argv{'to'}) {
+		$to_set = 1;
+	} 
+	foreach (@{$_[0]}) {
+		if (!$flag && $_->{'tag'} eq $argv{'from'}) {
+			$flag = 1;
+			$from_set = 0;
+		}
+		if ($flag) {
+			push @sliced, $_;
+		}
+		if ($flag && $_->{'tag'} eq $argv{'to'}) {
+			$flag = 0;
+			$to_set = 0;
+		}
+	}
+	if ($from_set) {
+		die "Wrong source name: ",$argv{'from'},"\n";
+	}
+	if ($to_set) {
+		die "Wrong source name: ",$argv{'to'},"\n";
+	}
+	
+	return \@sliced;
+}
+
+sub buildCommandsForTag {
+
+  my $tagAlias = $_[0];
+  my $stageDir = $_[1];
+  my $cmdStub = $_[2];
+
+  unless (defined $tagAlias and defined $cmdStub) {
+    die "Need to supply both a tag name and a cmd stub!";
+  }
+
+  my $tags = $doc->getElementsByTagName("$tagAlias");
+  my @cmds;
+
+#  printStdOut("TAG: $tagAlias has this many occurances:" . $tags->getLength . "\n");
+
+  for (my $i = 0; $i < $tags->getLength; $i++)
+  {
+    my $tag = $tags->item ($i);
+    my $tagName = $tag->getAttributeNode ("name")->getValue;
+    my $cmd = $antCmd . "$cmdStub$tagName";
+
+    #Check to see if we have encountered a dump or index instruction.
+    my $dump = $tag->getAttributeNode("dump");
+    my $index = $tag->getAttributeNode("index");
+    push @cmds, {"dir" => $stageDir, "cmd" => $cmd, "tag" => $tagName,
+                 "dmp" => (defined $dump ? 1 : 0), "idx" => (defined $index ? 1 : 0) };
+  }
+  return \@cmds;
+}

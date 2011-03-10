@@ -1,16 +1,18 @@
 <aspects>
+
   <aspect name="Genomics">
     <subtitle>Genome annotation</subtitle>
     <icon-image>model/images/genomics.gif</icon-image>
     <large-image>model/images/genomics.gif</large-image>
     <intro-text>
-      The gene structure and other genome annotation in MalariaMine are provided by
-      a variety of curated source databases.  In most cases MalariaMine includes
-      all genome features that have chromosomal locations.
+      The gene structure and other genome annotation in TargetMine are provided by
+      a variety of curated source databases. 
     </intro-text>
     <tile-name>model/genomics.jsp</tile-name>
-    <aspect-source name="GeneDB" url="http://www.genedb.org"/>
+    <aspect-source name="Entrez Gene" url="http://www.ncbi.nlm.nih.gov/gene"/>
+    <aspect-source name="Ensembl" url="http://www.ensembl.org/"/>
   </aspect>
+
   <aspect name="Proteins">
     <subtitle>Protein and proteomics&lt;br/&gt;data</subtitle>
     <icon-image>model/images/proteins.png</icon-image>
@@ -21,4 +23,128 @@
     <tile-name>model/proteins.jsp</tile-name>
     <aspect-source name="UniProt" url="http://www.uniprot.org"/>
   </aspect>
+
+  <aspect name="Gene Ontology">
+    <subtitle></subtitle>
+    <icon-image>model/images/geneOntology.png</icon-image>
+    <large-image>model/images/geneOntology.png</large-image>
+    <intro-text>
+      Gene Ontology (GO) annotations for &lt;i&gt;H. sapien&lt;/i&gt;, &lt;i&gt;R. norvegicus&lt;/i&gt; and &lt;i&gt;M. musculus&lt;/i&gt;.  The GO annotations are 'attached' to both Protein and Genes.
+    </intro-text>
+    <tile-name>model/GO.jsp</tile-name>
+    <aspect-source name="Gene Ontology Consortium" url="http://www.geneontology.org/"/>
+  </aspect>
+
+  <aspect name="Pathways">
+    <subtitle></subtitle>
+    <icon-image>model/images/pathways.png</icon-image>
+    <large-image>model/images/pathways.png</large-image>
+    <intro-text>
+      KEGG pathway data for &lt;i&gt;H. sapien&lt;/i&gt;, &lt;i&gt;R. norvegicus&lt;/i&gt;, &lt;i&gt;M. musculus&lt;/i&gt; and &lt;i&gt;D. melanogaster&lt;/i&gt;.
+    </intro-text>
+    <tile-name>model/pathways.jsp</tile-name>
+    <aspect-source name="Kegg pathway database" url="http://www.genome.jp/kegg/pathway.html"/>
+  </aspect>
+
+  <aspect name="Protein Structure">
+    <subtitle>3-D protein structures</subtitle>
+    <icon-image>model/images/pstructure.gif</icon-image>
+    <large-image>model/images/pstructure.gif</large-image>
+    <intro-text>
+      3-D protein structure information.
+    </intro-text>
+    <tile-name>model/proteinStructure.jsp</tile-name>
+     <aspect-source name="RCSB Protein Data Bank" url="http://www.rcsb.org/pdb/home/home.do"/>
+  </aspect>
+
+  <aspect name="Interactions">
+    <subtitle></subtitle>
+    <icon-image>model/images/interaction.gif</icon-image>
+    <large-image>model/images/interaction.gif</large-image>
+    <tile-name></tile-name>
+    <intro-text>
+      Containing protein-protein interactions, genetic interactions and transcription factor interactions.
+    </intro-text>
+    <tile-name>model/proteinInteraction.jsp</tile-name>
+    <aspect-source name="PPI view" url="http://www.h-invitational.jp/hinv/ppi/"/>
+    <aspect-source name="BioGRID" url="http://www.thebiogrid.org/"/>
+    <aspect-source name="AMADEUS" url="http://acgt.cs.tau.ac.il/amadeus/"/>
+    <aspect-source name="ORegAnno" url="http://www.oreganno.org/oregano/"/>
+    <aspect-source name="iRefWeb" url="http://wodaklab.org/iRefWeb/"/>
+  </aspect>
+
+  <aspect name="Homologues">
+    <subtitle>Homologues (Orthologues and Paralogues)</subtitle>
+    <icon-image>model/images/homolog.png</icon-image>
+    <large-image>model/images/homolog.png</large-image>
+    <intro-text>
+      Homologues (Orthologues and Paralogues).
+    </intro-text>
+    <tile-name>model/orthologues.jsp</tile-name>
+    <aspect-source name="KEGG Orthology" url="http://www.genome.jp/kegg/ko.html"/>
+  </aspect>
+
+  <aspect name="Disease">
+    <subtitle></subtitle>
+    <icon-image>model/images/disease2.png</icon-image>
+    <large-image>model/images/disease2.png</large-image>
+    <intro-text>
+      Human Disease
+    </intro-text>
+    <tile-name>model/diseaseAspect.jsp</tile-name>
+<!-- chenyian: disable for external server 
+-->
+    <aspect-source name="OMIM" url="http://www.ncbi.nlm.nih.gov/omim/"/>
+    <aspect-source name="Disease Ontology Wiki" url="http://do-wiki.nubic.northwestern.edu/index.php" />
+  </aspect>
+
+
+  <aspect name="Protein Domain">
+    <subtitle></subtitle>
+    <icon-image>model/images/domain.png</icon-image>
+    <large-image>model/images/domain.png</large-image>
+    <intro-text>
+      Prtoein domain annotations. 
+    </intro-text>
+    <tile-name>model/domain.jsp</tile-name>
+    <aspect-source name="InterPro" url="http://www.ebi.ac.uk/interpro/"/>
+    <aspect-source name="IPI" url="http://www.ebi.ac.uk/IPI/"/>
+    <aspect-source name="Integr8" url="http://www.ebi.ac.uk/integr8/"/>
+  </aspect>
+
+  <aspect name="Literature">
+    <subtitle></subtitle>
+    <icon-image>model/images/book.png</icon-image>
+    <large-image>model/images/book.png</large-image>
+    <intro-text>
+      Publications of Genes, Proteins, GO annotations, Interactions and Drugs. 
+    </intro-text>
+    <tile-name>model/literature.jsp</tile-name>
+    <aspect-source name="NCBI" url="http://www.ncbi.nlm.nih.gov/"/>
+  </aspect>
+
+  <aspect name="Drugs">
+    <subtitle></subtitle>
+    <icon-image>model/images/drug.png</icon-image>
+    <large-image>model/images/drug.png</large-image>
+    <tile-name></tile-name>
+    <intro-text>
+      Drug data with comprehensive drug target information.
+    </intro-text>
+    <tile-name>model/drug.jsp</tile-name>
+    <aspect-source name="DrugBank" url="http://www.drugbank.ca/"/>
+  </aspect>
+
+  <aspect name="Enzymes">
+    <subtitle></subtitle>
+    <icon-image>model/images/enzyme.png</icon-image>
+    <large-image>model/images/enzyme.png</large-image>
+    <tile-name></tile-name>
+    <intro-text>
+      Enzyme related information.
+    </intro-text>
+    <tile-name>model/enzyme.jsp</tile-name>
+    <aspect-source name="ENZYME" url="http://www.expasy.org/enzyme/"/>
+  </aspect>
+
 </aspects>
