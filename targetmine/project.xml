@@ -77,12 +77,6 @@
       <property name="src.data.dir.includes" value="ko" />
       <property name="kegg.organisms" value="7227 9606 10090 10116"/>
     </source>
-<!--
-    <source name="kegg-orthology" type="kegg-orthology">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg"/>
-      <property name="src.data.dir.includes" value="*_xrefall.list"/>
-    </source>
--->
 
     <source name="drugbank" type="drugbank">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank"/>
