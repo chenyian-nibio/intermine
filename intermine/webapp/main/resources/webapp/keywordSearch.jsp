@@ -45,15 +45,14 @@
 		<ul>
             <li>
                 Search this entire website. Enter <strong>identifiers</strong>, <strong>names</strong> or <strong>keywords</strong> for
-				genes, pathways, authors, ontology terms, etc.  (e.g. <i>eve</i>, <i>embryo</i>,
-				<i>zen</i>, <i>allele</i>)
+				genes, pathways, ontology terms, etc.  (e.g. TNF, ADH1A_HUMAN, glucokinase, Alzheimer) 
             </li>
             <li>
-                Use <i>OR</i> to search for either of two terms (e.g. <i>fly OR drosophila</i>)
+                Use <i>OR</i> to search for either of two terms (e.g. <i>human OR mouse</i>)
                 or quotation marks to search for phrases  (e.g. <i>"dna binding"</i>)
             </li>
             <li>
-                <strong>Boolean search syntax</strong> is supported: e.g. <i>dros*</i> for partial matches or <i>fly AND NOT embryo</i> to exclude a term
+                <strong>Boolean search syntax</strong> is supported: e.g. <i>trans*</i> for partial matches or <i>human AND NOT transcription</i> to exclude a term
             </li>
 	    </ul>
     </div>
