@@ -36,7 +36,8 @@ public class TmPathwayURLQuery implements WidgetURLQuery {
 		PathQuery q = new PathQuery(os.getModel());
 		if (bagType.equals("Gene")) {
 			q.addViews("Gene.ncbiGeneNumber", "Gene.symbol", "Gene.name",
-					"Gene.pathways.identifier", "Gene.pathways.name");
+					"Gene.pathways.identifier", "Gene.pathways.name", "Gene.pathways.mainClass",
+					"Gene.pathways.subClass");
 			q.addConstraint(Constraints.in(bag.getType(), bag.getName()));
 			if (!showAll) {
 				String[] keys = key.split(",");
@@ -48,7 +49,8 @@ public class TmPathwayURLQuery implements WidgetURLQuery {
 
 		} else if (bagType.equals("Protein")) {
 			q.addViews("Protein.primaryAccession", "Protein.name", "Protein.genes.symbol",
-					"Protein.genes.pathways.identifier", "Protein.genes.pathways.name");
+					"Protein.genes.pathways.identifier", "Protein.genes.pathways.name",
+					"Protein.genes.pathways.mainClass", "Protein.genes.pathways.subClass");
 			q.addConstraint(Constraints.in(bag.getType(), bag.getName()));
 			if (!showAll) {
 				String[] keys = key.split(",");
