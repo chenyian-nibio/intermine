@@ -1,0 +1,61 @@
+
+<project name="genomic-test-dbmodel" default="default" basedir=".">
+
+  <description>represents the production objectstore and the model therein</description>
+  <import file="../../../imbuild/objectstore.xml"/>
+
+
+  <target name="create-so-model" depends="init, -init-deps">
+    <taskdef name="so-model" classname="org.intermine.bio.task.SOToModelTask">
+      <classpath refid="task.class.path"/>
+    </taskdef>
+    <so-model
+       soTermListFile="${so.termlist.file}"
+       soFile="${so.obo.file}"
+       outputFile="${so.output.file}"/>
+  </target>   
+
+  <target name="-pre-init-merge" depends="create-so-model"/>
+
+
+  <target name="-merge-models" if="doing.build.db">
+    <merge-additions file="bio/test-all/dbmodel/build/model/so_additions.xml"/>
+    <merge-additions file="bio/core/genomic_additions.xml"/>
+    <merge-additions file="bio/sources/psi/psi_additions.xml"/>
+    <merge-additions file="bio/sources/psi-mi-ontology/psi-mi-ontology_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/rnai/rnai_additions.xml"/>
+    <merge-additions file="bio/sources/go/go_additions.xml"/>
+    <merge-additions file="bio/sources/go-annotation/go-annotation_additions.xml"/>
+    <merge-additions file="bio/sources/uniprot/uniprot_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/protein-structure/protein-structure_additions.xml"/>
+    <merge-additions file="bio/sources/pdb/pdb_additions.xml"/>
+    <merge-additions file="bio/sources/orthologue/orthologue_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/flyreg/flyreg_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/tiling-path/tiling-path_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/long-oligo/long-oligo_additions.xml"/>
+    <merge-additions file="bio/sources/chado-db/chado-db_additions.xml"/>
+    <merge-additions file="bio/sources/chado-db/flybase-chado-db_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/homophila/homophila_additions.xml"/>
+    <merge-additions file="bio/sources/interpro/interpro_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/bdgp-clone/bdgp-clone_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/drosdel-gff/drosdel-gff_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/redfly/redfly_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/affy-probes/affy-probes_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/arbeitman-items-xml/arbeitman-items-xml_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/flyatlas/flyatlas_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/flyrnai-screens/flyrnai-screens_additions.xml"/>
+    <merge-additions file="bio/sources/kegg-pathway/kegg-pathway_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/tiffin/tiffin_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/tiffin-expression/tiffin-expression_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/fly-fish/fly-fish_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/anoph-expr/anoph-expr_additions.xml"/>
+    <merge-additions file="bio/sources/flymine/bdgp-insitu/bdgp-insitu_additions.xml"/>
+    <merge-additions file="bio/sources/biogrid/biogrid_additions.xml"/>
+    <merge-additions file="bio/sources/miranda/miranda_additions.xml"/>
+    <merge-additions file="bio/sources/biopax/biopax_additions.xml"/>
+    <merge-additions file="bio/sources/treefam/treefam_additions.xml"/>
+    <merge-additions file="bio/sources/interpro-go/interpro-go_additions.xml"/>
+  </target>
+
+</project>
+
