@@ -44,8 +44,8 @@ public class BenjaminiHochberg implements ErrorCorrection {
 	 */
 	@SuppressWarnings("unchecked")
 	public BenjaminiHochberg(HashMap<String, BigDecimal> originalMap, int testCount) {
-		// numberOfTests = originalMap.size();
-		numberOfTests = testCount;
+		numberOfTests = originalMap.size();
+//		numberOfTests = testCount;
 		SortableMap sortedMap = new SortableMap(originalMap);
 		// sort descending
 		sortedMap.sortValues(false, false);
