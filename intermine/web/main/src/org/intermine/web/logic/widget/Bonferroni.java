@@ -37,7 +37,7 @@ public class Bonferroni implements ErrorCorrection
      */
     public Bonferroni(HashMap<String, BigDecimal> originalMap, int testCount) {
         this.originalMap = originalMap;
-        numberOfTests = new BigDecimal(testCount);
+        numberOfTests = new BigDecimal(originalMap.size());
     }
 
     /**
