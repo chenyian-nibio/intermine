@@ -67,6 +67,7 @@
     <longdisplayers>
       <!-- attribute links can now be configured for gene report pages -->
       <displayer src="attributeLinkDisplayer.tile"/>
+      <displayer src="cytoscapeNetworkDisplayer.tile"/>
       <!-- displayer src="geneMicroArrayDisplayer.tile"/-->
     </longdisplayers>
     <bagdisplayers>
@@ -147,6 +148,7 @@
     <longdisplayers>
       <displayer src="attributeLinkDisplayer.tile"/>
 	  <displayer src="/model/proteinAnalysisResult.jsp"/>
+	  <displayer src="cytoscapeNetworkDisplayer.tile"/>
     </longdisplayers>
     <bagdisplayers>
     </bagdisplayers>

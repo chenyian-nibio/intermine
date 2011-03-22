@@ -16,6 +16,16 @@
 <action path="/gff3ExportAction" name="gff3ExportForm"
         type="org.intermine.web.struts.TableExportAction" parameter="method"/>
 
+<!-- Cytoscape plugin-->
+<action path="/initCytoscapeNetworkDisplayer"
+        type="org.intermine.bio.web.struts.CytoscapeNetworkController"/>
+
+<action path="/cytoscapeNetworkExport"
+        type="org.intermine.bio.web.struts.CytoscapeNetworkExportAction"/>
+
+<action path="/cytoscapeNetworkAjax"
+        type="org.intermine.bio.web.struts.CytoscapeNetworkAjaxAction"/>
+
 <!-- TargetMine -->
 <action path="/proteinAnalysisResultRenderer"
         type="org.intermine.bio.web.widget.ProteinAnalysisResultImgRenderer"/>

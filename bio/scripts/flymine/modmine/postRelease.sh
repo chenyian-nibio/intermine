@@ -7,11 +7,12 @@
 ARKDIR=/micklem/releases/modmine
 DBHOST=modprod1
 DBUSER=modmine
-DATADIR=/shared/data/modmine/subs/chado
+DATADIR=/micklem/data/modmine/subs/chado
 LOADDIR="$DATADIR/load"
 INTERACT=y
 DOIT=y
 
+#PRO="celniker waterston"
 #PRO="lai lieb henikoff macalpine oliver snyder karpen piano white celniker waterston"
 PRO="lieb henikoff macalpine oliver snyder karpen white celnikerlai waterstonpiano"
 
@@ -83,10 +84,10 @@ USER=`whoami`
 if [ "$USER" != "modmine" ]
 then
 echo
+echo "IMPORTANT: you are not running this script as modmine: "
 echo "You need to become modmine to release the archived webapp."
-echo "Please run this script as modmine."
 echo
-exit
+#exit
 fi
 }
 
@@ -142,9 +143,10 @@ echo
 function archive_mine {
 #dump release
 echo
-echo "Dumping current release $REL ..."
+#echo "Dumping current release $REL ..."
 #pg_dump -F c -i -h modprod0 -f $ARKDIR/r$REL/modmine-r$REL modmine-r$REL -U modmine
-pg_dump -F c -i -h modfast -f $ARKDIR/r$REL/modmine-r$REL modmine-build -U modminebuild
+echo "Dumping modmine-build in modfast..."
+pg_dump -F c -i -h modfast -f $ARKDIR/r$REL/modmine-build modmine-build -U modminebuild
 #create release on archive server
 echo
 echo "Creating empty archive modmine-r$REL on modalone..."

@@ -70,12 +70,14 @@ public class ObjectViewController extends TilesAction
 
         DisplayObject dobj = displayObjects.get(object);
         FieldConfig fc = dobj.getFieldConfigMap().get(fieldName);
+
+
         // truncate fields by default, unless it says otherwise in config
         boolean doNotTruncate = false;
         if (fc != null) {
             doNotTruncate = fc.getDoNotTruncate();
         }
-        request.setAttribute("doNotTruncate", doNotTruncate);
+        request.setAttribute("doNotTruncate", Boolean.valueOf(doNotTruncate));
         request.setAttribute("fieldName", fieldName);
         return null;
     }

@@ -10,30 +10,32 @@ package org.intermine.webservice.server.output;
  *
  */
 
+
 import java.util.Iterator;
 
+import org.intermine.api.InterMineAPI;
 import org.intermine.api.results.ExportResultsIterator;
 
 /**
- * @author Alexis Kalderimis
- * A class for producing rows of results as JSON arrays being written to the output.
+ * A result processor for result rows.
+ * @author Alex Kalderimis
+ *
  */
 public class JSONRowResultProcessor extends JSONResultProcessor
 {
-
-    private String baseUrl;
-
+    private final InterMineAPI im;
     /**
      * Constructor.
-     * @param baseUrl The base URL to be used for constructing links with.
+     * @param im The API settings bundle
      */
-    public JSONRowResultProcessor(String baseUrl) {
-        this.baseUrl = baseUrl;
+    public JSONRowResultProcessor(InterMineAPI im) {
+        this.im = im;
     }
 
     @Override
     protected Iterator<? extends Object> getResultsIterator(ExportResultsIterator it) {
-        JSONRowIterator jsonIter = new JSONRowIterator(it, baseUrl);
+        JSONRowIterator jsonIter = new JSONRowIterator(it, im);
         return jsonIter;
     }
+
 }

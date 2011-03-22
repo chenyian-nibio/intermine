@@ -185,8 +185,9 @@ public class OrthologueConverter extends BagConverter
         // organism
         q.addConstraint(Constraints.lookup("Gene.homologues.homologue.organism", parameters, ""));
 
+        // chenyian: we only use KEGG orthologues data, and the type is 'homologue'
         // homologue.type = "orthologue"
-        q.addConstraint(Constraints.eq("Gene.homologues.type", "orthologue"));
+//        q.addConstraint(Constraints.eq("Gene.homologues.type", "orthologue"));
 
         WebResultsExecutor executor = im.getWebResultsExecutor(profile);
 

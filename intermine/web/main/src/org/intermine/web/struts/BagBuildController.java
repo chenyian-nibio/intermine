@@ -11,6 +11,7 @@ package org.intermine.web.struts;
  */
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -110,8 +111,16 @@ public class BagBuildController extends TilesAction
         if (extraClassName != null) {
             request.setAttribute("extraBagQueryClass", TypeUtil.unqualifiedName(extraClassName));
 
-            List extraClassFieldValues =
-                getFieldValues(os, oss, extraClassName, bagQueryConfig.getConstrainField());
+            // chenyian: only show the 4 organisms
+            List extraClassFieldValues;
+            if (extraClassName.equals("org.intermine.model.bio.Organism")){
+            	extraClassFieldValues = Arrays.asList("H. sapiens", "M. musculus", "R. norvegicus",
+            			"D. melanogaster");
+            } else {
+            	extraClassFieldValues = 
+            		getFieldValues(os, oss, extraClassName, bagQueryConfig.getConstrainField());
+            }
+            
             request.setAttribute("extraClassFieldValues", extraClassFieldValues);
 
             // find the types in typeList that contain a field with the name given by

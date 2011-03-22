@@ -10,12 +10,9 @@ package org.intermine.dwr;
  *
  */
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -53,6 +50,9 @@ import org.intermine.api.InterMineAPI;
 import org.intermine.api.bag.BagManager;
 import org.intermine.api.bag.BagQueryConfig;
 import org.intermine.api.bag.TypeConverter;
+import org.intermine.api.mines.HomologueMapping;
+import org.intermine.api.mines.Mine;
+import org.intermine.api.mines.OrthologueLinkManager;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.ProfileAlreadyExistsException;
@@ -627,6 +627,51 @@ public class AjaxServices
     }
 
     /**
+     * For a given bag type, return links to friendly intermines.
+     *
+     * @param organismName the type of object
+     * @param primaryIdentifier identifier for gene
+     * @return the links to friendly intermines
+     */
+    public static String getInterMineLinks(String organismName, String primaryIdentifier) {
+        try {
+            ServletContext servletContext = WebContextFactory.get().getServletContext();
+            HttpSession session = WebContextFactory.get().getSession();
+            final InterMineAPI im = SessionMethods.getInterMineAPI(session);
+            Properties webProperties = SessionMethods.getWebProperties(servletContext);
+            OrthologueLinkManager olm = OrthologueLinkManager.getInstance(im, webProperties);
+
+            // mines with orthologues
+            Map<Mine, Map<String, HomologueMapping>> minesWithOrthologues
+                = olm.getMines(Arrays.asList(organismName));
+            // mines with genes
+//            Set<Mine> minesWithGenes = olm.getMines(organismName);
+
+            if (minesWithOrthologues.isEmpty()) {
+                return null;
+            }
+            StringBuffer sb = new StringBuffer("<div class='other-mines'><h3>Orthologues in other"
+                    + " mines:</h3><ul>");
+            for (Map.Entry<Mine, Map<String, HomologueMapping>> entry
+                    : minesWithOrthologues.entrySet()) {
+                Mine mine = entry.getKey();
+                Map<String, HomologueMapping> homologueMap = entry.getValue();
+                String href = mine.getUrl() + "/portal.do?class=Gene&externalid="
+                    + primaryIdentifier + "&orthologue=" + organismName;
+                sb.append("<li><a href=\"" + href + "\">");
+                sb.append("<img src=\"model/images/" + mine.getLogo() + "\" target=\"_new\">");
+                sb.append("</a></li>");
+
+            }
+            sb.append("</ul></div>");
+            return sb.toString();
+        } catch (RuntimeException e) {
+            processException(e);
+            return null;
+        }
+    }
+
+    /**
      * Saves information, that some element was toggled - displayed or hidden.
      *
      * @param elementId element id
@@ -721,6 +766,12 @@ public class AjaxServices
                     if (queries.size() > 0) {
                         return "List " + selectedBags[i] + " cannot be deleted as it is referenced "
                             + "by other queries " + queries;
+                    }
+                }
+                for (int i = 0; i < selectedBags.length; i++) {
+                    if (profile.getSavedBags().get(selectedBags[i]) == null) {
+                        return "List " + selectedBags[i] + " cannot be deleted as it is a shared "
+                            + "list";
                     }
                 }
             } else if (!"copy".equals(operation)) {
@@ -1153,28 +1204,6 @@ public class AjaxServices
     // Tags AJAX Interface
     //*****************************************************************************
 
-    /**
-     * Returns all objects names tagged with specified tag type and tag name.
-     * @param type tag type
-     * @param tag tag name
-     * @return objects names
-     */
-    public static Set<String> filterByTag(String type, String tag) {
-        Profile profile = getProfile(getRequest());
-
-        SearchRepository searchRepository = profile.getSearchRepository();
-        Map<String, WebSearchable> map = (Map<String, WebSearchable>) searchRepository.
-            getWebSearchableMap(type);
-        if (map == null) {
-            return null;
-        }
-        Map<String, WebSearchable> filteredMap = new TreeMap<String, WebSearchable>();
-        List<String> tagList = new ArrayList<String>();
-        tagList.add(tag);
-        filteredMap.putAll(new SearchFilterEngine().filterByTags(map, tagList, type,
-                profile.getUsername(), getTagManager()));
-        return filteredMap.keySet();
-    }
     /**
      * Adds tag and assures that there is only one tag for this combination of tag name, tagged
      * Object and type.

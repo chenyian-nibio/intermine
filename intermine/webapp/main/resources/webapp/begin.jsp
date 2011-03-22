@@ -57,17 +57,46 @@
         </div>
         <div id="welcome-bochs">
             <div class="inner">
-                <h3><c:out value="${WEB_PROPERTIES['begin.thirdBox.title']}" /></h3>
+              <c:choose>
+                <c:when test="${!isNewUser && !empty (WEB_PROPERTIES['begin.thirdBox.visitedTitle'])}">
+                  <h3><c:out value="${WEB_PROPERTIES['begin.thirdBox.visitedTitle']}" /></h3>
+                </c:when>
+                <c:otherwise>
+                  <h3><c:out value="${WEB_PROPERTIES['begin.thirdBox.title']}" /></h3>
+                </c:otherwise>
+              </c:choose>
                 <br />
-                <p><c:out value="${WEB_PROPERTIES['begin.thirdBox.description']}" escapeXml="false" /></p>
+                <c:choose>
+                  <c:when test="${!isNewUser && !empty (WEB_PROPERTIES['begin.thirdBox.visitedDescription'])}">
+                    <p><c:out value="${WEB_PROPERTIES['begin.thirdBox.visitedDescription']}" escapeXml="false" /></p>
+                  </c:when>
+                  <c:otherwise>
+                    <p><c:out value="${WEB_PROPERTIES['begin.thirdBox.description']}" escapeXml="false" /></p>
+                  </c:otherwise>
+                </c:choose>
                 <c:if test="${!empty WEB_PROPERTIES['begin.thirdBox.linkTitle']}">
                   <div class="bottom">
                       <center>
-                          <a class="button gray" href="<c:out value="${WEB_PROPERTIES['begin.thirdBox.link']}" />"
-                          onclick="javascript:window.open('<c:out value="${WEB_PROPERTIES['begin.thirdBox.link']}" />','_help','toolbar=0,scrollbars=1,location=1,statusbar=1,menubar=0,resizable=1,width=800,height=600');return false">
+                        <c:choose>
+                          <c:when test="${!isNewUser && !empty (WEB_PROPERTIES['begin.thirdBox.visitedLink'])}">
+                            <a class="button gray" href="<c:out value="${WEB_PROPERTIES['begin.thirdBox.visitedLink']}" />"
+                            onclick="javascript:window.open('<c:out value="${WEB_PROPERTIES['begin.thirdBox.visitedLink']}" />','_help','toolbar=0,scrollbars=1,location=1,statusbar=1,menubar=0,resizable=1,width=800,height=600');return false">
+                          </c:when>
+                          <c:otherwise>
+                            <a class="button gray" href="<c:out value="${WEB_PROPERTIES['begin.thirdBox.link']}" />"
+                            onclick="javascript:window.open('<c:out value="${WEB_PROPERTIES['begin.thirdBox.link']}" />','_help','toolbar=0,scrollbars=1,location=1,statusbar=1,menubar=0,resizable=1,width=800,height=600');return false">
+                          </c:otherwise>
+                        </c:choose>
                             <div>
                               <span>
-                                <c:out value="${WEB_PROPERTIES['begin.thirdBox.linkTitle']}" />
+                                <c:choose>
+                                  <c:when test="${!isNewUser && !empty (WEB_PROPERTIES['begin.thirdBox.visitedLinkTitle'])}">
+                                    <c:out value="${WEB_PROPERTIES['begin.thirdBox.visitedLinkTitle']}" />
+                                  </c:when>
+                                  <c:otherwise>
+                                    <c:out value="${WEB_PROPERTIES['begin.thirdBox.linkTitle']}" />
+                                  </c:otherwise>
+                                </c:choose>
                               </span>
                             </div>
                           </a>
@@ -199,12 +228,12 @@
     var months = new Array(12); months[0]="Jan"; months[1]="Feb"; months[2]="Mar"; months[3]="Apr"; months[4]="May"; months[5]="Jun";
     months[6]="Jul"; months[7]="Aug"; months[8]="Sep"; months[9]="Oct"; months[10]="Nov"; months[11]="Dec";
 
-    jQuery(document).ready(function() {
+    $(document).ready(function () {
         // DWR fetch, see AjaxServices.java
-        AjaxServices.getNewsPreview(feedURL, function(data) {
+        AjaxServices.getNewsPreview(feedURL, function (data) {
             if (data) {
                 // show us
-                jQuery('#rss').slideToggle('slow');
+                $('#rss').slideToggle('slow');
 
                 // declare
                 var feedTitle, feedDescription, feedDate, feedLink, row, feed;
@@ -213,13 +242,13 @@
                 try {
                     // Internet Explorer
                     feed = new ActiveXObject("Microsoft.XMLDOM");
-                    feed.async="false";
+                    feed.async = "false";
                     feed.loadXML(data);
-                } catch(e) {
+                } catch (e) {
                     try {
                         // ...the good browsers
                         feed = new DOMParser().parseFromString(data, "text/xml");
-                    } catch(e) {
+                    } catch (e) {
                         // ... BFF
                         alert(e.message);
                         return;
@@ -231,20 +260,29 @@
                     // early bath
                     if (i == maxEntries) return;
 
-                    feedTitle = trimmer(items[i].getElementsByTagName("title")[0].firstChild.nodeValue, 80);
-                    feedDescription = trimmer(items[i].getElementsByTagName("description")[0].firstChild.nodeValue, 80);
-                    feedDate = new Date(items[i].getElementsByTagName("pubDate")[0].firstChild.nodeValue);
-                    feedLink = items[i].getElementsByTagName("link")[0].firstChild.nodeValue
+                    feedTitle = trimmer(items[i].getElementsByTagName("title")[0].firstChild.nodeValue, 70);
+                    feedDescription = trimmer(items[i].getElementsByTagName("description")[0].firstChild.nodeValue, 70);
+                    // we have a feed date
+                    if (items[i].getElementsByTagName("pubDate")[0]) {
+                        feedDate = new Date(items[i].getElementsByTagName("pubDate")[0].firstChild.nodeValue);
+                        feedLink = items[i].getElementsByTagName("link")[0].firstChild.nodeValue
 
-                    // build table row
-                    row = '<tr>'
-                            + '<td class="date">'
-                                + '<a target="new" href="' + feedLink + '">' + feedDate.getDate()
-                                + '<br /><span>' + months[feedDate.getMonth()] + '</span></a></td>'
-                            + '<td><a target="new" href="' + feedLink + '">' + feedTitle + '</a><br/>' + feedDescription + '</td>'
+                        // build table row
+                        row = '<tr>' + '<td class="date">' + '<a target="new" href="' + feedLink + '">' + feedDate.getDate()
+                        + '<br /><span>' + months[feedDate.getMonth()] + '</span></a></td>'
+                        + '<td><a target="new" href="' + feedLink + '">' + feedTitle + '</a><br/>' + feedDescription + '</td>'
                         + '</tr>';
+                    } else {
+                        feedLink = items[i].getElementsByTagName("link")[0].firstChild.nodeValue
+
+                        // build table row
+                        row = '<tr>'
+                        + '<td><a target="new" href="' + feedLink + '">' + feedTitle + '</a><br/>' + feedDescription + '</td>'
+                        + '</tr>';
+                    }
+
                     // append, done
-                    jQuery(target).append(row);
+                    $(target).append(row);
                 }
             }
         });

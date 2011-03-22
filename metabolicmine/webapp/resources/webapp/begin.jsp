@@ -25,9 +25,37 @@
     }
   }
   // placeholder value for search boxes
-  var placeholder = 'e.g. PPARG, Insulin, rs876498';
+  var placeholder = '<c:out value="${WEB_PROPERTIES['homeSearch.identifiers']}" />';
   // class used when toggling placeholder
   var inputToggleClass = 'eg';
+
+  /**
+   * A function that will save a cookie under a key-value pair
+   * @key Key under which to save the cookie
+   * @value Value to associate with the key
+   * @days (optional) The number of days from now when to expire the cookie
+   */
+    jQuery.setCookie = function(key, value, days) {
+      if (days == null) {
+        document.cookie = key + "=" + escape(value);
+      } else {
+        // form date
+        var expires = new Date();
+        expires.setDate(expires.getDate() + days);
+        // form cookie
+        document.cookie = encodeURIComponent(key) + "=" + encodeURIComponent(value) + "; expires=" + expires.toUTCString();
+      }
+    };
+
+  /**
+   * A function that will get a cookie's value based on a provided key
+   * @key Key under which the cookie is saved
+   */
+    jQuery.getCookie = function(key) {
+      return (r = new RegExp('(?:^|; )' + encodeURIComponent(key) + '=([^;]*)').exec(document.cookie)) ?
+      decodeURIComponent(r[1]) : null;
+    };
+
 </script>
 
 <!-- preview div -->
@@ -51,15 +79,22 @@
 
   <script type="text/javascript">
     // minimize big welcome box into an info message
-    function toggleWelcome() {
+    function toggleWelcome(speed) {
+      // default speed
+      if (speed == null) speed = "slow";
+
       // minimizing?
       if ($("#welcome").is(':visible')) {
         // hide the big box
-        $('#welcome').slideUp();
+        if (speed == "fast") {
+          $('#welcome').toggle();
+        } else {
+          $('#welcome').slideUp();
+        }
         // do we have words to say?
         var welcomeText = $("#welcome-content.current").text();
         if (welcomeText.length > 0) {
-          $("#ctxHelpDiv.welcome").slideDown("slow", function() {
+          $("#ctxHelpDiv.welcome").slideDown(speed, function() {
             // ...display a notification with an appropriate text
             if (welcomeText.length > 150) {
               // ... substr
@@ -69,9 +104,13 @@
             }
             });
         }
+        // set the cookie
+        jQuery.setCookie("welcome-visibility", "minimized", 365);
       } else {
         $("#ctxHelpDiv.welcome").slideUp(function() {
-          $("#welcome").slideDown("slow");
+          $("#welcome").slideDown(speed);
+          // set the cookie
+          jQuery.setCookie("welcome-visibility", "maximized", 365);
         });
       }
     }
@@ -234,6 +273,9 @@
     </div>
 
     <script type="text/javascript">
+    // are we showing a minimized welcome box?
+    if (jQuery.getCookie("welcome-visibility") == "minimized") toggleWelcome("fast");
+
     /* hide switcher of we are on first time here */
     if ($("#switcher-1").hasClass('current')) {
       $("#switcher").hide();
@@ -367,7 +409,7 @@
     <div id="rss" class="span-6 last white-half" style="display:none;">
       <script type="text/javascript">
       // feed URL
-      var feedURL = "http://blog.metabolicmine.org/feed/";
+      var feedURL = "${WEB_PROPERTIES['project.rss']}";
       // limit number of entries displayed
       var maxEntries = 2;
       // where are we appending entries? (jQuery syntax)
@@ -376,55 +418,64 @@
       var months = new Array(12); months[0]="Jan"; months[1]="Feb"; months[2]="Mar"; months[3]="Apr"; months[4]="May"; months[5]="Jun";
       months[6]="Jul"; months[7]="Aug"; months[8]="Sep"; months[9]="Oct"; months[10]="Nov"; months[11]="Dec";
 
-      $(document).ready(function() {
-        // DWR fetch, see AjaxServices.java
-        AjaxServices.getNewsPreview(feedURL, function(data) {
-          if (data) {
-            // show us
-            $('#rss').slideToggle('slow');
+      $(document).ready(function () {
+          // DWR fetch, see AjaxServices.java
+          AjaxServices.getNewsPreview(feedURL, function (data) {
+              if (data) {
+                  // show us
+                  $('#rss').slideToggle('slow');
 
-            // declare
-            var feedTitle, feedDescription, feedDate, feedLink, row, feed;
+                  // declare
+                  var feedTitle, feedDescription, feedDate, feedLink, row, feed;
 
-            // convert to XML, jQuery manky...
-            try {
-              // Internet Explorer
-              feed = new ActiveXObject("Microsoft.XMLDOM");
-              feed.async="false";
-              feed.loadXML(data);
-            } catch(e) {
-              try {
-                // ...the good browsers
-                feed = new DOMParser().parseFromString(data, "text/xml");
-              } catch(e) {
-                // ... BFF
-                alert(e.message);
-                return;
-              }
-            }
+                  // convert to XML, jQuery manky...
+                  try {
+                      // Internet Explorer
+                      feed = new ActiveXObject("Microsoft.XMLDOM");
+                      feed.async = "false";
+                      feed.loadXML(data);
+                  } catch (e) {
+                      try {
+                          // ...the good browsers
+                          feed = new DOMParser().parseFromString(data, "text/xml");
+                      } catch (e) {
+                          // ... BFF
+                          alert(e.message);
+                          return;
+                      }
+                  }
 
                   var items = feed.getElementsByTagName("item"); // ATOM!!!
                   for (var i = 0; i < items.length; i++) {
-              // early bath
-              if (i == maxEntries) return;
+                      // early bath
+                      if (i == maxEntries) return;
 
-                    feedTitle = trimmer(items[i].getElementsByTagName("title")[0].firstChild.nodeValue, 70);
-                    feedDescription = trimmer(items[i].getElementsByTagName("description")[0].firstChild.nodeValue, 70);
-                    feedDate = new Date(items[i].getElementsByTagName("pubDate")[0].firstChild.nodeValue);
-                    feedLink = items[i].getElementsByTagName("link")[0].firstChild.nodeValue
+                      feedTitle = trimmer(items[i].getElementsByTagName("title")[0].firstChild.nodeValue, 70);
+                      feedDescription = trimmer(items[i].getElementsByTagName("description")[0].firstChild.nodeValue, 70);
+                      // we have a feed date
+                      if (items[i].getElementsByTagName("pubDate")[0]) {
+                          feedDate = new Date(items[i].getElementsByTagName("pubDate")[0].firstChild.nodeValue);
+                          feedLink = items[i].getElementsByTagName("link")[0].firstChild.nodeValue
 
-                // build table row
-                row = '<tr>'
-                                + '<td class="date">'
-                                  + '<a target="new" href="' + feedLink + '">' + feedDate.getDate()
-                                  + '<br /><span>' + months[feedDate.getMonth()] + '</span></a></td>'
-                                + '<td><a target="new" href="' + feedLink + '">' + feedTitle + '</a><br/>' + feedDescription + '</td>'
+                          // build table row
+                          row = '<tr>' + '<td class="date">' + '<a target="new" href="' + feedLink + '">' + feedDate.getDate()
+                          + '<br /><span>' + months[feedDate.getMonth()] + '</span></a></td>'
+                          + '<td><a target="new" href="' + feedLink + '">' + feedTitle + '</a><br/>' + feedDescription + '</td>'
                           + '</tr>';
-                // append, done
-                $(target).append(row);
+                      } else {
+                          feedLink = items[i].getElementsByTagName("link")[0].firstChild.nodeValue
+
+                          // build table row
+                          row = '<tr>'
+                          + '<td><a target="new" href="' + feedLink + '">' + feedTitle + '</a><br/>' + feedDescription + '</td>'
+                          + '</tr>';
+                      }
+
+                      // append, done
+                      $(target).append(row);
                   }
-                }
-        });
+              }
+          });
       });
 
           // trim text to a specified length

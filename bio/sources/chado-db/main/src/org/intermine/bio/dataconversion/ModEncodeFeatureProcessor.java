@@ -62,13 +62,14 @@ public class ModEncodeFeatureProcessor extends SequenceProcessor
             "five_prime_UTR", "three_prime_untranslated_region",
             "three_prime_UTR", "origin_of_replication",
             "binding_site", "protein_binding_site", "TF_binding_site",
+            "insulator_binding_site",
             "transcript_region", "histone_binding_site", "copy_number_variation",
             "natural_transposable_element", "start_codon", "stop_codon"
             , "cDNA", "cDNA_match", "miRNA"
             , "three_prime_RACE_clone", "three_prime_RST", "three_prime_UST"
             , "polyA_site", "polyA_signal_sequence", "overlapping_EST_set", "exon_region"
             , "SL1_acceptor_site", "SL2_acceptor_site"
-            , "transcription_end_site", "TSS"
+            , "transcription_end_site", "TSS", "under-replicated-region"
     );
 
     // the FB name for the mitochondrial genome
@@ -188,6 +189,10 @@ public class ModEncodeFeatureProcessor extends SequenceProcessor
 
         // do experimental features (expression levels)
         processExpressionLevels(connection);
+        
+        // adding sources (result files) for binding sites
+        processPeaksSources(connection);        
+        
     }
 
     /**
@@ -580,6 +585,52 @@ public class ModEncodeFeatureProcessor extends SequenceProcessor
         return identifier;
     }
 
+
+    private void processPeaksSources(Connection connection) throws SQLException,
+    ObjectStoreException {
+        ResultSet res = getPeaksSources(connection);
+        while (res.next()) {
+
+            Integer featureId = res.getInt("feature_id");
+//            Integer score = res.getInt("data_id");
+            String sourceFile = res.getString("value");
+
+            if (featureMap.containsKey(featureId)) {
+                FeatureData fData = featureMap.get(featureId);
+                Integer storedFeatureId = fData.getIntermineObjectId();
+
+                Attribute sourceFileAttribute = new Attribute("sourceFile", sourceFile);
+                getChadoDBConverter().store(sourceFileAttribute, storedFeatureId);
+
+//                if (scoreProtocolItemId != null) {
+//                    Reference scoreProtocolRef =
+//                        new Reference("scoreProtocol", scoreProtocolItemId);
+//                    getChadoDBConverter().store(scoreProtocolRef, storedFeatureId);
+//                }
+            }
+        }
+        res.close();
+    }
+
+    private ResultSet getPeaksSources(Connection connection) throws SQLException {
+        String query =
+            "SELECT df.feature_id, df.data_id, d.value "
+            + "FROM data_feature df, feature f, cvterm c, data d "
+            + "WHERE f.feature_id = df.feature_id "
+            + "AND c.cvterm_id = f.type_id " 
+            + "AND d.data_id = df.data_id "
+            + "AND c.name like '%binding_site' " ;
+        LOG.info("executing: " + query);
+        long bT = System.currentTimeMillis();
+        Statement stmt = connection.createStatement();
+        ResultSet res = stmt.executeQuery(query);
+        LOG.info("QUERY TIME feature sources: " + (System.currentTimeMillis() - bT));
+        return res;
+    }
+
+    
+    
+    
     private void processFeatureScores(Connection connection) throws SQLException,
     ObjectStoreException {
         ResultSet res = getFeatureScores(connection);

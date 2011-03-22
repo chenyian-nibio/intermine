@@ -36,9 +36,11 @@ use Webservice::InterMine::ResultIterator;
 use Net::HTTP;
 use URI;
 use LWP::UserAgent;
-use MooseX::Types::Moose qw/Str/;
+use MIME::Base64;
+use MooseX::Types::Moose qw/Str Int/;
 use InterMine::TypeLibrary
-  qw(Uri Model TemplateFactory SavedQueryFactory ListFactory);
+  qw(VersionNumber ServiceRootUri Model TemplateFactory SavedQueryFactory ListFactory);
+
 
 =head2 new( $url, [$user, $pass] )
 
@@ -53,11 +55,13 @@ login information in the form of a username and password.
 around BUILDARGS => sub {
     my $orig  = shift;
     my $class = shift;
+    my @build_args = @_;
     if ( @_ <= 3 and $_[0] ne 'root' ) {
         my %args;
-        $args{root} = shift if @_;
-        $args{user} = shift if @_;
-        $args{pass} = shift if @_;
+        for (qw/root user pass/) {
+            my $next = shift @build_args;
+            $args{$_} = $next if $next;
+        }
         return $class->$orig(%args);
     } else {
         return $class->$orig(@_);
@@ -86,7 +90,7 @@ a scheme added if none was provided.
 
 has root => (
     is       => 'ro',
-    isa      => Uri,
+    isa      => ServiceRootUri,
     required => 1,
     coerce   => 1,
     handles  => { host => 'host', },
@@ -95,11 +99,13 @@ has root => (
 has user => (
     is  => 'ro',
     isa => Str,
+    predicate => 'has_user',
 );
 
 has pass => (
     is  => 'ro',
     isa => Str,
+    predicate => 'has_pass',
 );
 
 =head2 new_query
@@ -192,15 +198,16 @@ sub _build_model {
 =head2 version
 
 Returns the version of the webservice - used for determining
-compatibility with different query formats
+compatibility with different query formats. The version is always
+an integer. An attempt to get the version is made on instantiation, 
+which serves to validate the webservice.
 
 =cut
 
 has version => (
     is       => 'ro',
-    isa      => Str,
+    isa      => VersionNumber,
     required => 1,
-    lazy     => 1,
     default  => sub {
         my $self = shift;
         $self->fetch( $self->root . VERSION_PATH );
@@ -226,11 +233,15 @@ has release => (
 
 # Returns a LWP::UserAgent suitable for getting and posting with
 sub agent {
+    my $self = shift;
     my $ua = LWP::UserAgent->new;
     $ua->env_proxy;
     $ua->agent(USER_AGENT);
+    if ($self->has_user and $self->has_pass) {
+        my $auth_string = join(':', $self->user, $self->pass);
+        $ua->default_header( Authorization => encode_base64($auth_string) );
+    }
 
-#    $ua->credentials($self->host.':80', $realm, $self->user, $self->pass);
     return $ua;
 }
 

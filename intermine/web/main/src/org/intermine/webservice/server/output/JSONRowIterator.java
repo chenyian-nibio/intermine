@@ -1,7 +1,14 @@
-/**
+package org.intermine.webservice.server.output;
+
+/*
+ * Copyright (C) 2002-2011 FlyMine
+ *
+ * This code may be freely distributed and modified under the
+ * terms of the GNU Lesser General Public Licence.  This should
+ * be distributed with the code.  See the LICENSE file for more
+ * information or http://www.gnu.org/copyleft/lesser.html.
  *
  */
-package org.intermine.webservice.server.output;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,8 +16,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.intermine.api.InterMineAPI;
 import org.intermine.api.results.ExportResultsIterator;
 import org.intermine.api.results.ResultElement;
+import org.intermine.model.InterMineObject;
 import org.intermine.pathquery.Path;
 import org.intermine.web.logic.PortalHelper;
 import org.json.JSONArray;
@@ -25,7 +34,7 @@ public class JSONRowIterator implements Iterator<JSONArray>
 
     private final ExportResultsIterator subIter;
     private final List<Path> viewPaths = new ArrayList<Path>();
-    private final String baseUrl;
+    private final InterMineAPI im;
 
     private static final String CELL_KEY_URL = "url";
     private static final String CELL_KEY_VALUE = "value";
@@ -33,11 +42,11 @@ public class JSONRowIterator implements Iterator<JSONArray>
     /**
      * Constructor
      * @param it An ExportResultsIterator that will be used internally to process the data.
-     * @param baseUrl The base to build the URL off.
+     * @param im A reference to the the API settings bundle.
      */
-    public JSONRowIterator(ExportResultsIterator it, String baseUrl) {
+    public JSONRowIterator(ExportResultsIterator it, InterMineAPI im) {
         this.subIter = it;
-        this.baseUrl = baseUrl;
+        this.im = im;
         init();
     }
 
@@ -60,9 +69,14 @@ public class JSONRowIterator implements Iterator<JSONArray>
         Map<String, Object> mapping = new HashMap<String, Object>();
         if (cell == null || cell.getId() == null) {
             mapping.put(CELL_KEY_URL, null);
-	        mapping.put(CELL_KEY_VALUE, null);
+            mapping.put(CELL_KEY_VALUE, null);
         } else {
-            mapping.put(CELL_KEY_URL, PortalHelper.generateObjectDetailsLink(cell, baseUrl));
+            if (im.getLinkRedirector() != null) {
+                mapping.put(CELL_KEY_URL,
+                    im.getLinkRedirector().generateLink(im, (InterMineObject) cell.getObject()));
+            } else {
+                mapping.put(CELL_KEY_URL, PortalHelper.generateObjectDetailsPath(cell));
+            }
             mapping.put(CELL_KEY_VALUE, cell.getField());
         }
         JSONObject ret = new JSONObject(mapping);

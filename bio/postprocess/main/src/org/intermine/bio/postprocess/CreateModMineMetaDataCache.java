@@ -52,6 +52,10 @@ public final class CreateModMineMetaDataCache
 {
     private static final Logger LOG = Logger.getLogger(CreateModMineMetaDataCache.class);
 
+    private CreateModMineMetaDataCache() {
+        // don't
+    }
+
     /**
      * Run queries to generate summary information for the modMine database and store resulting
      * properties file in the database.
@@ -76,8 +80,7 @@ public final class CreateModMineMetaDataCache
                 PropertiesUtil.serialize(props));
     }
 
-    private static void readSubmissionFeatureCounts(ObjectStore os, Properties props)
-        throws IllegalAccessException {
+    private static void readSubmissionFeatureCounts(ObjectStore os, Properties props) {
         long startTime = System.currentTimeMillis();
 
         Model model = os.getModel();
@@ -126,7 +129,7 @@ public final class CreateModMineMetaDataCache
             (Iterator) results.iterator();
         while (iter.hasNext()) {
             ResultsRow<?> row = iter.next();
-            Integer dccId = (Integer) row.get(0);
+            String dccId = (String) row.get(0);
             Class<?> feat = (Class<?>) row.get(1);
             Long count = (Long) row.get(2);
 
@@ -277,7 +280,7 @@ public final class CreateModMineMetaDataCache
             (Iterator) results.iterator();
         while (iter.hasNext()) {
             ResultsRow<?> row = iter.next();
-            Integer dccId = (Integer) row.get(0);
+            String dccId = (String) row.get(0);
             Class<?> feat = (Class<?>) row.get(1);
             Long count = (Long) row.get(2);
 
@@ -378,14 +381,14 @@ public final class CreateModMineMetaDataCache
         long timeTaken = System.currentTimeMillis() - startTime;
         LOG.info("Read experiment feature counts, took: " + timeTaken + "ms");
     }
-    
+
     // TODO MOVE THIS QUERY TO CreateModMineMetaDataCache and add value to ModMineCacheKeys
     private static void readSubmissionLocatedFeature(ObjectStore os, Properties props) {
 
         long startTime = System.currentTimeMillis();
 
         Model model = os.getModel();
-        
+
         Query q = new Query();
         q.setDistinct(true);
 
@@ -422,16 +425,16 @@ public final class CreateModMineMetaDataCache
             (Iterator) results.iterator();
         while (iter.hasNext()) {
             ResultsRow<?> row = iter.next();
-            Integer dccId = (Integer) row.get(0);
+            String dccId = (String) row.get(0);
             Class<?> feat = (Class<?>) row.get(1);
 
             String key = ModMineCacheKeys.SUB_LOCATED_FEATURE_TYPE
-            + "." + dccId + "." + TypeUtil.unqualifiedName(feat.getName());
+                + "." + dccId + "." + TypeUtil.unqualifiedName(feat.getName());
             props.put(key, "" + TypeUtil.unqualifiedName(feat.getName()));
 
         }
         long timeTaken = System.currentTimeMillis() - startTime;
         LOG.info("Read located features types, took: " + timeTaken + " ms.");
     }
-    
+
 }

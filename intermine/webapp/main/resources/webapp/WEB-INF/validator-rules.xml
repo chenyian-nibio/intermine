@@ -4,7 +4,7 @@
 <!--
   $Header$
   $Revision: 9359 $
-  $Date: 2006-06-12 17:50:27 +0100 (Mon, 12 Jun 2006) $
+  $Date: 2006-06-13 01:50:27 +0900 (Tue, 13 Jun 2006) $
 
    This file contains the default Struts Validator pluggable validator
    definitions.  It should be placed somewhere under /WEB-INF and
