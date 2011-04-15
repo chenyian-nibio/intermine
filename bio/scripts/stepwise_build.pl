@@ -9,7 +9,13 @@
 # $0 to=[source_2]						// build source from beginning to source_2
 #
 # NOTICE:
-# The script doesn't initialize the database, and doesn't execute the post-processing steps.   
+# The script doesn't initialize the database, and doesn't execute the post-processing steps.  
+#
+# 2011/4/15 chenyian
+# The following procedures were add:
+# 1. Back up when the integration has been done.
+# 2. Run post processing
+# 3. Back up the complete production database  
 
 use XML::DOM;
 use Data::Dumper;
@@ -21,6 +27,13 @@ my $projectXmlFile= "project.xml";
 my $antCmd = "/usr/local/ant/bin/ant -v ";
 
 my $integrateDir = "integrate";
+my $postprocessDir = "postprocess";
+
+# Need to be customized
+my $databaseName = "production-target-chen";
+my $databaseUser = "intermine";
+my $backupPath = "/scratch/targetmine";
+my $dumpCmd = "pg_dump -U $databaseUser $databaseName > $backupPath";
 
 if ($#ARGV > 1) {
 	die "Invalid arguments; too may arguments.";
@@ -55,7 +68,46 @@ executeCommand($result);
 #print "end of script.\n";
 sendNoticeMail("Build finished","The production database has been successfully built.");
 
+print "Start dumping production database...\n";
+dumpDatabase("all.src");
+print "Finish dumping production database...\n";
+
+print "Run postprocessing...\n";
+chdir("../$postprocessDir");
+executePostprocessing();
+sendNoticeMail("Post processing finished","The post processing has been successfully done.");
+
+print "Start dumping production database...\n";
+dumpDatabase("complete");
+print "Finish dumping production database...\n";
+
 exit;
+
+sub executePostprocessing {
+	my $cmd = "$antCmd";
+	open PIPE, "$cmd |" or die "cannot run $cmd: $?\n";
+	while (<PIPE>) {
+		print STDOUT " [post] $_";
+	}
+	close PIPE;
+}
+
+sub dumpDatabase {
+	my @t = localtime();
+	my $date = sprintf("%02d", $t[5] % 100).sprintf("%02d", $t[4]+1).sprintf("%02d", $t[3]);
+	my $time = sprintf("%02d", $t[2]).sprintf("%02d", $t[1]).sprintf("%02d", $t[0]);
+	my $cmd = "$dumpCmd/$_[0].$date.$time.auto.pgdump";
+
+	open PIPE, "$cmd |" or die "cannot run $cmd: $?\n";
+	while (<PIPE>) {
+		print STDOUT " [dump] $_";
+	}
+	close PIPE;
+	if ($? != 0) {
+		sendNoticeMail("Dump Failed","Dumping the production database encounter some errors.");
+		die "failed with exit code $?: @_\n";
+	}
+}
 
 sub executeCommand {
 	foreach my $source(@{$_[0]}) {

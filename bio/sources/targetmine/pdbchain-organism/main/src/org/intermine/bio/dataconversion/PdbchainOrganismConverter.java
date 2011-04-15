@@ -115,7 +115,7 @@ public class PdbchainOrganismConverter extends FileConverter {
 	private String getOrganism(String taxonId) throws ObjectStoreException {
 		String refId = organismMap.get(taxonId);
 		if (refId == null) {
-			Item item = createItem("PdbOrganism");
+			Item item = createItem("Organism");
 			item.setAttribute("taxonId", taxonId);
 			refId = item.getIdentifier();
 			organismMap.put(taxonId, refId);

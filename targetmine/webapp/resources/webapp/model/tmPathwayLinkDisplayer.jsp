@@ -4,14 +4,14 @@
 <!-- Modified from pathwayLinkDisplayer.jsp -->
 
 <c:forEach items="${object.dataSets}" var="dataset">
-	<c:set var="datasetTitle" value="${dataset.title}"/>
+	<c:set var="datasetTitle" value="${dataset.name}"/>
 </c:forEach>
 
 <c:choose>        
 <c:when test="${datasetTitle == 'KEGG pathways data set'}">
 	<%-- KEGG --%>
 	<c:set var="imageName" value="KEGG_logo_small.gif"/>
-	<c:set var="text" value="KEGG"/>
+	<c:set var="text" value="KEGG: ${object.name}"/>
 	<c:set var="href" value="http://www.genome.jp/dbget-bin/show_pathway?map${object.identifier}"/>
 </c:when>
 <c:otherwise>

@@ -60,8 +60,8 @@
       <!-- fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" /-->
       <!-- fieldconfig fieldExpr="chromosomeLocation" displayer="/model/chromosomeLocDisplayer.jsp" showInResults="false" /-->
       <!-- fieldconfig fieldExpr="chromosome.primaryIdentifier" showInInlineCollection="false" showInSummary="false" /-->
-      <fieldconfig fieldExpr="chromosomeLocation.start" showInInlineCollection="false" showInSummary="false" />
-      <fieldconfig fieldExpr="chromosomeLocation.end" showInInlineCollection="false" showInSummary="false" />
+      <!-- fieldconfig fieldExpr="chromosomeLocation.start" showInInlineCollection="false" showInSummary="false" /-->
+      <!-- fieldconfig fieldExpr="chromosomeLocation.end" showInInlineCollection="false" showInSummary="false" /-->
       <fieldconfig fieldExpr="organism.shortName" />
     </fields>
     <longdisplayers>
@@ -269,17 +269,6 @@
     </longdisplayers>
   </class>
 
-  <class className="org.intermine.model.bio.PdbOrganism">
-    <fields>
-      <fieldconfig fieldExpr="name"/>
-      <fieldconfig fieldExpr="taxonId" />
-      <fieldconfig fieldExpr="shortName" />
-    </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
-  </class>
-
   <class className="org.intermine.model.bio.DrugProteinInteraction">
     <fields>
       <fieldconfig fieldExpr="protein.primaryAccession"/>
@@ -312,6 +301,9 @@
       <fieldconfig fieldExpr="pdbId" />
       <fieldconfig fieldExpr="chain" />
     </fields>
+    <longdisplayers>
+      <displayer src="attributeLinkDisplayer.tile"/>
+    </longdisplayers>
   </class>
 
   <class className="org.intermine.model.bio.ProteinRegion">
@@ -377,18 +369,6 @@
   
 <!-- widgets -->
 <widgets>
-<!--
-      <graphdisplayer id="chromosome_distribution" title="Chromosome Distribution"
-        domainLabel="Chromosome"
-        rangeLabel="Count"
-        dataSetLoader="org.intermine.bio.web.widget.ChromosomeDistributionDataSetLdr"
-        link="org.intermine.bio.web.widget.ChromosomeDistributionGraphURLGenerator"
-        description="Actual: number of items in this list found on each chromosome.  Expected: given the total number of items on the chromosome and the number of items in this list, the number of items expected to be found on each chromosome."
-        graphType="BarChart"
-        extraAttributeClass="org.intermine.bio.web.logic.BioUtil"
-        typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.SequenceFeature"
-       />
--->
       <enrichmentwidgetdisplayer id="pathway_enrichment" title="KEGG Pathway Enrichment"
                                  link="org.intermine.bio.web.widget.TmPathwayURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.PathwayDataLoader"
@@ -397,7 +377,16 @@
                                  externalLink="http://www.genome.jp/kegg-bin/show_pathway?map"
                                  typeClass="org.intermine.model.bio.Gene"
                                  externalLinkLabel="KEGG:" />
-
+<!--
+      <graphdisplayer id="pathway_distribution" title="Pathway Distribution"
+								link="org.intermine.bio.web.widget.PathwayGraphURLGenerator"
+								domainLabel="Pathway"
+								rangeLabel="Percentage(%)"
+								dataSetLoader="org.intermine.bio.web.widget.PathwayDataSetLoader"
+								description="Bar chart for pathway enrichment. Only top 10 pathway are shown."
+								graphType="BarChart"
+								typeClass="org.intermine.model.bio.Gene"  />
+-->
       <enrichmentwidgetdisplayer id="protein_pathway_enrichment" title="KEGG Pathway Enrichment"
                                  link="org.intermine.bio.web.widget.TmPathwayURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.ProteinPathwayDataLoader"
@@ -417,14 +406,6 @@
                                  typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term-details.cgi?term=" />
 
-      <enrichmentwidgetdisplayer id="drug_enrichment" title="Drug Enrichment"
-                                 link="org.intermine.bio.web.widget.DrugURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.DrugDataLoader"
-                                 label="Drug"
-                                 description="Drugs enriched for proteins in this list."
-                                 externalLink="http://www.drugbank.ca/drugs/"
-                                 typeClass="org.intermine.model.bio.Protein"
-                                 externalLinkLabel="DrugBank:" />
 <!-- chenyian: diable for external server 
 -->
       <enrichmentwidgetdisplayer id="omim_enrichment" title="OMIM Enrichment"
@@ -435,6 +416,15 @@
                                  externalLink="http://www.ncbi.nlm.nih.gov/omim/"
                                  typeClass="org.intermine.model.bio.Gene"
                                  externalLinkLabel="OMIM:" />
+<!-- 
+      <graphdisplayer id="omim_distribution" title="OMIM disease Distribution"
+								domainLabel="OMIM disease"
+								rangeLabel="Percentage(%)"
+								dataSetLoader="org.intermine.bio.web.widget.OmimDataSetLoader"
+								description="Bar chart for OMIM disease enrichment. Only top 10 diseases are shown."
+								graphType="BarChart"
+								typeClass="org.intermine.model.bio.Gene"  />
+-->
 
       <enrichmentwidgetdisplayer id="protein_omim_enrichment" title="OMIM Enrichment"
                                  link="org.intermine.bio.web.widget.OmimURLQuery"
@@ -453,16 +443,15 @@
                                  typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein" 
                                  externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/" />
 
+       <enrichmentwidgetdisplayer id="drug_enrichment" title="Drug Enrichment"
+                                 link="org.intermine.bio.web.widget.DrugURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.DrugDataLoader"
+                                 label="Drug"
+                                 description="Drugs enriched for proteins in this list."
+                                 externalLink="http://www.drugbank.ca/drugs/"
+                                 typeClass="org.intermine.model.bio.Protein"
+                                 externalLinkLabel="DrugBank:" />
  
-      <bagtabledisplayer id="table_ppis" title="Protein-Protein Interactions"
-                         link="org.intermine.bio.web.widget.PpiURLQuery"
-                         pathStrings="Protein.proteinInteractions.representativePartner"
-                         description="Proteins that interact with proteins in this list."
-                         displayFields="primaryAccession"
-                         exportField="primaryAccession"
-                         typeClass="org.intermine.model.bio.Protein"
-                         columnTitle="PPIs"/>
-
       <bagtabledisplayer id="table_drugs_protein" title="Associated Drugs"
                          link="org.intermine.bio.web.widget.DrugURLQuery"
                          pathStrings="Protein.drugs.drug"
@@ -482,6 +471,15 @@
                          externalLinkLabel="DrugBank:"
                          externalLink="http://www.drugbank.ca/drugs/"
                          columnTitle="Targeted Genes"/>
+
+      <bagtabledisplayer id="table_ppis" title="Protein-Protein Interactions"
+                         link="org.intermine.bio.web.widget.PpiURLQuery"
+                         pathStrings="Protein.proteinInteractions.representativePartner"
+                         description="Proteins that interact with proteins in this list."
+                         displayFields="primaryAccession"
+                         exportField="primaryAccession"
+                         typeClass="org.intermine.model.bio.Protein"
+                         columnTitle="PPIs"/>
 
 </widgets>
 </webconfig>

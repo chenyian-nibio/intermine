@@ -231,6 +231,12 @@ public final class ErrorCorrection
             // p-value*(n-rank)
             BigDecimal adjustedP = p.multiply(m, MathContext.DECIMAL128);
 
+            // chenyian: forget the following point
+            // p-value can't be over 1
+            if (adjustedP.compareTo(ONE) > 0) {
+                adjustedP = ONE;
+            }
+
             // only report if value > maximum
             if (adjustedP.doubleValue() <= max.doubleValue()) {
                 adjustedResults.put(entry.getKey(), adjustedP);

@@ -193,9 +193,12 @@ public class GraphWidget extends Widget
             categoryPlot.setRenderer(categoryRenderer);
 
             // rotate the category labels
+//            categoryPlot.getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions
+//                    .createUpRotationLabelPositions(Math.PI / 6.0));
             categoryPlot.getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions
-                    .createUpRotationLabelPositions(Math.PI / 6.0));
+            		.createUpRotationLabelPositions(Math.PI / 4.0));
 
+            ((GraphWidgetConfig) config).setHeight(450);
             setURLGen(categoryRenderer);
 
             ((BarRenderer) categoryRenderer).setNegativeItemLabelPositionFallback(
@@ -224,6 +227,7 @@ public class GraphWidget extends Widget
         }
 
         imageMap = ImageMapUtilities.getImageMap("chart" + fileName, info);
+        
     }
 
     private void setURLGen(CategoryItemRenderer categoryRenderer) {

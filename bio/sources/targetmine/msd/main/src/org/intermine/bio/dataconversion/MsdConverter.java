@@ -127,6 +127,7 @@ public class MsdConverter extends FileConverter {
 			
 			Item oProtein = createItem("Protein");
 			oProtein.setAttribute("primaryAccession", strPrimaryAcc);
+			oProtein.setAttribute("uniprotAccession", strPrimaryAcc);
 			store(oProtein);
 			m_oProteinMap.put(strPrimaryAcc, oProtein);
 			

@@ -145,17 +145,14 @@
 		<property name="src.data.dir" location="/data/bio/db/Targetmine/irefindex"/>
 		<property name="src.data.dir.includes" value="*.txt"/>
 	</source>
+  	<source name="fill-missing-proteins" type="fill-missing-proteins">
+      <property name="src.data.file" location="build/proteins.txt"/>
+    </source>
   	<source name="organism" type="organism">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/taxonomy"/>
       <property name="src.data.dir.includes" value="taxno.name"/>
       <property name="osAlias" value="os.production"/>
       <property name="processClass" value="Organism"/>
-    </source>
-  	<source name="pdb-organism" type="organism">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/taxonomy"/>
-      <property name="src.data.dir.includes" value="taxno.name"/>
-      <property name="osAlias" value="os.production"/>
-      <property name="processClass" value="PdbOrganism"/>
     </source>
   	<source name="gene-pubmed" type="gene-pubmed">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/publication"/>

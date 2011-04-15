@@ -375,6 +375,7 @@ public class DrugBankConverter extends FileConverter {
 			
 			Item oDrugTarget = createItem("Protein");
 			oDrugTarget.setAttribute("primaryAccession", strPrimaryAccession);
+			oDrugTarget.setAttribute("uniprotAccession", strPrimaryAccession);
 			store(oDrugTarget);
 			m_oProteinMap.put(strPrimaryAccession, oDrugTarget);
 			

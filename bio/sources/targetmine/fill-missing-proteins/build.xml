@@ -1,0 +1,20 @@
+<project name="fill-missing-proteins" default="default" basedir=".">
+  <description>fill-missing-proteins retrieve and load tasks</description>
+  <import file="../../../../imbuild/source.xml"/> 
+
+  <!-- special case to create a ${src.data.file} (in InterMine XML format) by
+       finding the primary accession in the objectstore, then retrieving the details
+       from EBI Dbfetch into the file -->
+  <target name="-pre-retrieve" depends="source.-pre-retrieve">
+    <property name="cp" refid="task.class.path"/>
+
+    <taskdef name="retrieve-proteins" 
+             classname="org.intermine.bio.dataconversion.MissingProteinRetriever">
+      <classpath refid="task.class.path"/>
+    </taskdef>
+    
+    <echo message="retrieving from ${src.data.file}"/>
+
+    <retrieve-proteins osAlias="os.production" outputFile="${src.data.file}"/>
+  </target>
+</project>
