@@ -32,6 +32,8 @@ import org.biopax.paxtools.model.BioPAXElement;
 import org.biopax.paxtools.model.BioPAXLevel;
 import org.biopax.paxtools.model.Model;
 import org.biopax.paxtools.model.level2.pathway;
+import org.biopax.paxtools.model.level2.pathwayStep;
+import org.biopax.paxtools.model.level2.process;
 import org.intermine.bio.util.OrganismData;
 import org.intermine.bio.util.OrganismRepository;
 import org.intermine.dataconversion.ItemWriter;
@@ -41,6 +43,12 @@ import org.intermine.xml.full.Item;
  * Converts BioPAX files into InterMine objects.
  *
  * @author Julie Sullivan
+ * 
+ * @author chenyian
+ * Note: This parser may be only suitable for Reactome data set, not a general biopax parser
+ * 2011/05/13 
+ * Some unexpect pathway-protein associations are integrated to database, there should be a bug!
+ * 
  */
 public class BioPAXConverter extends BioFileConverter implements Visitor
 {
@@ -125,7 +133,8 @@ public class BioPAXConverter extends BioFileConverter implements Visitor
             return;
         }
         setDataset();
-        setOrganism(taxonId);
+        // chenyian: here is a little bit risky because sometimes there are other organisms
+//        setOrganism(taxonId);
         setConfig(taxonId);
 
         // navigate through the owl file
@@ -207,64 +216,60 @@ public class BioPAXConverter extends BioFileConverter implements Visitor
      */
     public void visit(BioPAXElement bpe, Model model, PropertyEditor editor) {
         if (bpe != null) {
-            if (bpe instanceof org.biopax.paxtools.model.level2.entity) {
-                org.biopax.paxtools.model.level2.entity entity
-                    = (org.biopax.paxtools.model.level2.entity) bpe;
+//        	LOG.info(String.format("bpe: %s; dep: %d; pid: %s.", 
+//        			StringUtils.substringAfter(bpe.getRDFId(), "#"), depth, pathwayRefId));
+            if (bpe instanceof org.biopax.paxtools.model.level2.protein) {
+                org.biopax.paxtools.model.level2.protein entity
+                    = (org.biopax.paxtools.model.level2.protein) bpe;
                 String className = entity.getModelInterface().getSimpleName();
                 if (className.equalsIgnoreCase("protein") && StringUtils.isNotEmpty(pathwayRefId)) {
                     processProteinEntry(entity);
                 }
             }
             if (!visited.contains(bpe)) {
-                visited.add(bpe);
-                depth++;
-                traverser.traverse(bpe, model);
-                depth--;
-            }
-        }
-    }
-
-    private void processProteinEntry(org.biopax.paxtools.model.level2.entity entity) {
-        String identifier = entity.getRDFId();
-
-        // there is only one gene
-        if (identifier.contains(DEFAULT_DB_NAME)) {
-            processBioentity(identifier, pathwayRefId);
-
-        // there are multiple genes
-        } else {
-            Set<org.biopax.paxtools.model.level2.xref> xrefs = entity.getXREF();
-            for (org.biopax.paxtools.model.level2.xref xref : xrefs) {
-                identifier = xref.getRDFId();
-                if (identifier.contains(DEFAULT_DB_NAME)) {
-                    processBioentity(identifier, pathwayRefId);
+            	// chenyian: prevent to traverse the NEXT-STEP of a pathwayStep
+                if (bpe instanceof pathwayStep) {
+                	pathwayStep ps = (pathwayStep) bpe;
+                		Set<process> step_interactions = ps.getSTEP_INTERACTIONS();
+                		for (process process : step_interactions) {
+                        	visited.add(bpe);
+                        	depth++;
+                        	traverser.traverse(process, model);
+                        	depth--;
+						}
+                } else {
+                	visited.add(bpe);
+                	depth++;
+                	traverser.traverse(bpe, model);
+                	depth--;
                 }
             }
         }
     }
 
-    private void processBioentity(String xref, String pathway) {
+    private void processProteinEntry(org.biopax.paxtools.model.level2.protein entity) {
+        // chenyian: the format is different; re-implement
+            Set<org.biopax.paxtools.model.level2.xref> xrefs = entity.getXREF();
+            for (org.biopax.paxtools.model.level2.xref xref : xrefs) {
+                if (xref.getDB().equals(DEFAULT_DB_NAME)) {
+                	String taxonId = entity.getORGANISM().getTAXON_XREF().getID();
+                    processBioentity(xref.getID(), taxonId, pathwayRefId);
+                }
+            }
+    }
 
-        // db source for this identifier, eg. UniProt, FlyBase
-        String identifierSource = (xref.contains(dbName) ? dbName : DEFAULT_DB_NAME);
+    // chenyian: format is different; re-implement
+    private void processBioentity(String identifier, String taxonId, String pathway) {
+        if (identifier.contains("-")) {
+        	identifier = identifier.split("-")[0];
+        }
 
-        if (StringUtils.isEmpty(identifierSource)) {
+        if (identifier == null || identifier.length() < 2) {
+            LOG.warn(bioentityType + " not stored:" + identifier);
             return;
         }
 
-        // remove prefix, eg. UniProt or ENSEMBL
-        String accession = StringUtils.substringAfter(xref, identifierSource + "_");
-
-        if (accession.contains("_")) {
-            accession = accession.split("_")[0];
-        }
-
-        if (accession == null || accession.length() < 2) {
-            LOG.warn(bioentityType + " not stored:" + xref);
-            return;
-        }
-
-        Item item = getBioentity(accession);
+        Item item = getBioentity(identifier, taxonId);
         item.addToCollection("pathways", pathway);
         return;
     }
@@ -273,47 +278,53 @@ public class BioPAXConverter extends BioFileConverter implements Visitor
         throws ObjectStoreException {
         Item item = createItem("Pathway");
         item.setAttribute("name", pathway.getNAME());
+        if (StringUtils.isNotEmpty(pathway.getSHORT_NAME())) {
+        	item.setAttribute("shortName", pathway.getSHORT_NAME());
+        }
         item.setAttribute("curated", curated);
         item.addToCollection("dataSets", dataset);
         for (org.biopax.paxtools.model.level2.xref xref : pathway.getXREF()) {
-            String xrefId = xref.getRDFId();
-            // xrefIds look like:  Reactome12345
-            if (xrefId.contains(dataSourceName)) {
-                String identifier = StringUtils.substringAfter(xrefId, dataSourceName);
-                item.setAttribute("identifier", identifier);
-                try {
-                    store(item);
-                } catch (ObjectStoreException e) {
-                    throw new ObjectStoreException(e);
-                }
-                return item.getIdentifier();
-            }
+        	// chenyian: the file got from Reactome has different format!
+        	if (xref.getRDFId().contains("#unification")) {
+        		String xrefId = xref.getID();
+        		if (xref.getDB().equals(dataSourceName) && !xrefId.startsWith("REACT_")) {
+        			item.setAttribute("identifier", xrefId);
+        			try {
+        				store(item);
+        			} catch (ObjectStoreException e) {
+        				throw new ObjectStoreException(e);
+        			}
+        			LOG.info(String.format("name: %s (id:%s)...", 
+        					pathway.getNAME(),item.getIdentifier()));
+        			return item.getIdentifier();
+        		}
+        	}
         }
         return null;
     }
 
-    private Item getBioentity(String identifier) {
+    private Item getBioentity(String identifier, String taxonId) {
         Item item = bioentities.get(identifier);
         if (item == null) {
             item = createItem(bioentityType);
             item.setAttribute(identifierField, identifier);
-            item.setReference("organism", organism);
+            item.setReference("organism", getOrganism(taxonId));
             item.addToCollection("dataSets", dataset);
             bioentities.put(identifier, item);
         }
         return item;
     }
 
-    private void setOrganism(String taxonId)
-        throws ObjectStoreException {
-        organism = createItem("Organism");
-        organism.setAttribute("taxonId", taxonId);
-        try {
-            store(organism);
-        } catch (ObjectStoreException e) {
-            throw new ObjectStoreException(e);
-        }
-    }
+//    private void setOrganism(String taxonId)
+//        throws ObjectStoreException {
+//        organism = createItem("Organism");
+//        organism.setAttribute("taxonId", taxonId);
+//        try {
+//            store(organism);
+//        } catch (ObjectStoreException e) {
+//            throw new ObjectStoreException(e);
+//        }
+//    }
 
     private void setDataset()
         throws ObjectStoreException {

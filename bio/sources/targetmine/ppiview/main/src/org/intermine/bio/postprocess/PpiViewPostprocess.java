@@ -9,7 +9,9 @@ import java.util.Set;
 
 import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.log4j.Logger;
+import org.intermine.bio.dataconversion.PpiViewConverter;
 import org.intermine.bio.util.Constants;
+import org.intermine.model.bio.DataSet;
 import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.Interaction;
 import org.intermine.model.bio.InteractionExperiment;
@@ -45,9 +47,8 @@ public class PpiViewPostprocess extends PostProcessor {
 	private static final Logger LOG = Logger.getLogger(PpiViewPostprocess.class);
 	protected ObjectStore os;
 
-	private static final String DATA_SET_NAME = "PPIView";
-
 	private Map<MultiKey, InteractionExperiment> expMap = new HashMap<MultiKey, InteractionExperiment>();
+	private DataSet dataSet;
 
 	public PpiViewPostprocess(ObjectStoreWriter osw) {
 		super(osw);
@@ -62,7 +63,17 @@ public class PpiViewPostprocess extends PostProcessor {
 
 		System.out.println("Start PPIView post process......");
 
-		Iterator<?> resIter = findProteinInteractions(DATA_SET_NAME);
+		dataSet = (DataSet) DynamicUtil.createObject(Collections.singleton(DataSet.class));
+		dataSet.setName(PpiViewConverter.DATASET_TITLE);
+		dataSet = (DataSet) osw.getObjectByExample(dataSet, Collections.singleton("name"));
+
+		if (dataSet == null) {
+			LOG.error(String.format("Failed to find %s DataSet object",
+					PpiViewConverter.DATASET_TITLE));
+			return;
+		}
+
+		Iterator<?> resIter = findProteinInteractions();
 
 		System.out.println("Start iteration......");
 
@@ -115,6 +126,7 @@ public class PpiViewPostprocess extends PostProcessor {
 			interaction.setInteractionType("physical");
 			interaction.setExperiment(getExperiment(thisSource.getDbName(), thisSource
 					.getIdentifier()));
+			interaction.addDataSets(dataSet);
 
 			osw.store(interaction);
 			interactions.add(interaction);
@@ -137,10 +149,8 @@ public class PpiViewPostprocess extends PostProcessor {
 	 * Query Gene->Protein->ProteinInteraction->Protein->Gene and return an iterator over the Gene,
 	 * Protein.
 	 * 
-	 * @param dataset
-	 *            data set name (PPIView).
 	 */
-	private Iterator<?> findProteinInteractions(String dataset) throws ObjectStoreException {
+	private Iterator<?> findProteinInteractions() throws ObjectStoreException {
 		Query q = new Query();
 
 		QueryClass qcGene = new QueryClass(Gene.class);
@@ -193,7 +203,7 @@ public class PpiViewPostprocess extends PostProcessor {
 
 		q.setConstraint(cs);
 
-		System.out.println("Query complied.");
+		System.out.println("Query compiled.");
 
 		((ObjectStoreInterMineImpl) os).precompute(q, Constants.PRECOMPUTE_CATEGORY);
 		Results results = os.execute(q, 5000, true, true, true);

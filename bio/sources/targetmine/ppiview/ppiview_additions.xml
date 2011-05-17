@@ -11,6 +11,7 @@
 		<reference name="representativePartner" referenced-type="Protein" />
 		<collection name="allPartners" referenced-type="Protein"/>
 		<collection name="piSources" referenced-type="ProteinInteractionSource" reverse-reference="integratedPPIs"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
 
 	<class name="ProteinInteractionSource" is-interface="true">

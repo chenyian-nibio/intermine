@@ -1,0 +1,4 @@
+<project name="nci-pathway-tasks" default="default" basedir=".">
+  <description>build nci-pathway tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

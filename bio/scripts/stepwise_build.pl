@@ -16,6 +16,10 @@
 # 1. Back up when the integration has been done.
 # 2. Run post processing
 # 3. Back up the complete production database  
+#
+# !Following arguments are not test yet! (2010/4/20)
+# step=n; n = 1: dump after the sources integrated;
+# n = 2: do post processing; n = 3: dump after post processing 
 
 use XML::DOM;
 use Data::Dumper;
@@ -35,15 +39,15 @@ my $databaseUser = "intermine";
 my $backupPath = "/scratch/targetmine";
 my $dumpCmd = "pg_dump -U $databaseUser $databaseName > $backupPath";
 
-if ($#ARGV > 1) {
-	die "Invalid arguments; too may arguments.";
-}
+#if ($#ARGV > 1) {
+#	die "Invalid arguments; too may arguments.";
+#}
 my %argvs;
 foreach (@ARGV) {
 	my ($key, $value) = split /=/,$_;
-	if ($key ne "from" && $key ne "to") {
-		die "Invalid arguments; $_";
-	}
+#	if ($key ne "from" && $key ne "to") {
+#		die "Invalid arguments; $_";
+#	}
 	$argv{$key} = $value;
 }
 
@@ -68,19 +72,22 @@ executeCommand($result);
 #print "end of script.\n";
 sendNoticeMail("Build finished","The production database has been successfully built.");
 
-print "Start dumping production database...\n";
-dumpDatabase("all.src");
-print "Finish dumping production database...\n";
-
-print "Run postprocessing...\n";
-chdir("../$postprocessDir");
-executePostprocessing();
-sendNoticeMail("Post processing finished","The post processing has been successfully done.");
-
-print "Start dumping production database...\n";
-dumpDatabase("complete");
-print "Finish dumping production database...\n";
-
+if ($argv{'step'} > 0) {
+	print "Start dumping production database...\n";
+	dumpDatabase("all.src");
+	print "Finish dumping production database...\n";
+}
+if ($argv{'step'} > 1) {
+	print "Run postprocessing...\n";
+	chdir("../$postprocessDir");
+	executePostprocessing();
+	sendNoticeMail("Post processing finished","The post processing has been successfully done.");
+}
+if ($argv{'step'} > 2) {
+	print "Start dumping production database...\n";
+	dumpDatabase("complete");
+	print "Finish dumping production database...\n";
+}
 exit;
 
 sub executePostprocessing {

@@ -139,6 +139,18 @@
     <source name="so" type="so">
       <property name="src.data.file" location="../../bio/sources/so/so.obo"/>
     </source>
+    <source name="reactome" type="biopax">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/reactome"/>
+      <property name="src.data.dir.includes" value="Homo sapiens.owl"/>
+      <property name="biopax.organisms" value="7227 9606 10090 10116"/>
+      <property name="biopax.datasourcename" value="Reactome"/>
+      <property name="biopax.datasetname" value="Reactome data set"/>
+      <property name="biopax.curated" value="false"/>
+    </source>
+    <source name="nci-pathway" type="nci-pathway">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/nci-pathway"/>
+      <property name="src.data.dir.includes" value="*.tab"/>
+    </source>
   	<!--Intermine default : End-->
 
     <source name="irefindex" type="irefindex">
@@ -152,6 +164,7 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/taxonomy"/>
       <property name="src.data.dir.includes" value="taxno.name"/>
       <property name="osAlias" value="os.production"/>
+      <property name="hasShortName" value="7227 9606 10090 10116"/>
       <property name="processClass" value="Organism"/>
     </source>
   	<source name="gene-pubmed" type="gene-pubmed">

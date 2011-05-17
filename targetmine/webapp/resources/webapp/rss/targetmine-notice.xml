@@ -6,6 +6,18 @@
   <description>Data mining system to find drug target proteins</description>
 
   <item>
+    <title>News</title>
+    <link>news/index.html</link>
+    <description>New data sources added.</description>
+    <pubDate>Fri, 13 May 2011 12:00:00 +0900</pubDate>
+  </item>
+  <item>
+    <title>Update</title>
+    <link>news/2011/05/</link>
+    <description>build 20110513 released</description>
+    <pubDate>Fri, 13 May 2011 12:00:00 +0900</pubDate>
+  </item>
+  <item>
     <title>Update</title>
     <link>news/2011/04/</link>
     <description>build 20110415 released</description>

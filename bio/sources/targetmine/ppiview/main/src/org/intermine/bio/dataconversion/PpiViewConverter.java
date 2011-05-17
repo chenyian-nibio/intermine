@@ -15,15 +15,17 @@ import java.util.TreeSet;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
-import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.xml.full.Item;
 import org.intermine.xml.full.ItemHelper;
 
-public class PpiViewConverter extends FileConverter {
+public class PpiViewConverter extends BioFileConverter {
 	
+	public static final String DATASET_TITLE = "PPIView";
+	private static final String DATA_SOURCE_NAME = "PPIView";
+
 	private static Logger m_oLogger = Logger.getLogger(PpiViewConverter.class);
 	
 	private ItemWriter m_oWriter;
@@ -55,7 +57,7 @@ public class PpiViewConverter extends FileConverter {
 	private TreeMap<String, Item> m_oPISourceMap = new TreeMap<String, Item>();
 	
 	public PpiViewConverter(ItemWriter writer, Model model) {
-		super(writer, model);
+		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
 		m_oWriter = writer;
 	}
 	

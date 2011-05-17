@@ -58,7 +58,6 @@ public class CytoscapeNetworkAjaxAction extends Action {
 
 		// === Create network data ===
 		CytoscapeNetworkService networkSrv = new CytoscapeNetworkService();
-		// chenyian:
 		String network = networkSrv.getNetwork(fullInteractingGeneSet, session);
 
 		// === Print out network data ===

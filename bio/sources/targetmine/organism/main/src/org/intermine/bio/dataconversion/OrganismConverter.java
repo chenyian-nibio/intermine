@@ -13,11 +13,13 @@ package org.intermine.bio.dataconversion;
 import java.io.BufferedReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
@@ -33,8 +35,7 @@ import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
 /**
- * Parse Organism information. Data sources were download from NCBI taxonomy
- * using following script
+ * Parse Organism information. Data sources were download from NCBI taxonomy using following script
  * 
  * <pre>
  * wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz 
@@ -52,6 +53,8 @@ public class OrganismConverter extends FileConverter {
 
 	private String processClass;
 
+	private List<String> hasShortName;
+
 	private List<String> allTaxonIds;
 
 	private Map<String, String> organismMap = new HashMap<String, String>();
@@ -62,6 +65,12 @@ public class OrganismConverter extends FileConverter {
 
 	public void setProcessClass(String processClass) {
 		this.processClass = processClass;
+	}
+
+	public void setHasShortName(String taxonIds) {
+		this.hasShortName = Arrays.asList(taxonIds.split(" "));
+		LOG.info("Only the following organisms contain 'shortName': "
+				+ StringUtils.join(hasShortName, ","));
 	}
 
 	/**
@@ -118,12 +127,14 @@ public class OrganismConverter extends FileConverter {
 		} else {
 			item.setAttribute("genus", sciName.substring(0, spaceIndex));
 			item.setAttribute("species", sciName.substring(spaceIndex + 1));
-			item.setAttribute("shortName", sciName.charAt(0) + ". "
-					+ sciName.substring(spaceIndex + 1));
+			if (hasShortName.contains(taxonId)) {
+				item.setAttribute("shortName", sciName.charAt(0) + ". "
+						+ sciName.substring(spaceIndex + 1));
+			}
 		}
 		store(item);
-		LOG.info(String.format("taxonId: %s; shortName: %s; created.", taxonId, sciName.charAt(0)
-				+ ". " + sciName.substring(spaceIndex + 1)));
+//		LOG.info(String.format("taxonId: %s; shortName: %s; created.", taxonId, sciName.charAt(0)
+//				+ ". " + sciName.substring(spaceIndex + 1)));
 		return item.getIdentifier();
 	}
 
