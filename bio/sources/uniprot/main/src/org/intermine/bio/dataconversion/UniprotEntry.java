@@ -66,6 +66,14 @@ public class UniprotEntry
     public List<String> getIpiIds() {
     	return ipiIds;
     }
+    // chenyian: for Ensembl protein ids
+    private List<String> ensemblProteinIds = new ArrayList<String>();
+    public void addEnsemblProteinId(String ensemblProteinId) {
+    	ensemblProteinIds.add(ensemblProteinId);
+    }
+    public List<String> getEnsemblProteinIds() {
+    	return ensemblProteinIds;
+    }
     
     
     /**

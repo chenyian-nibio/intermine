@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
@@ -97,20 +98,11 @@ public class DrugBankConverter extends FileConverter {
 		NONE
 	}
 	
-	// key is het id, value is corresponding ChemicalCompound Item
-	private Map<String, Item> m_oChemicalCompoundMap = new TreeMap<String, Item>();
-	
 	// key is SwissProt primary accession, value is corresponding Protein Item
 	private Map<String, Item> m_oProteinMap = new TreeMap<String, Item>();
 	
 	// key is PubMed ID, value is curresponding Publication Item.
 	private Map<String, Item> m_oPublicationMap = new TreeMap<String, Item>();
-	
-	// key is brand name, value is curresponding Synonym Item.
-//	private Map<String, Item> m_oSynonymMap = new TreeMap<String, Item>();
-	
-	// key is hetid, value is list of pdb ids
-//	private Map<String, String> m_oHetIdPdbMap = new TreeMap<String, String>();
 	
 	// key is header string, value is HEADER enum
 	private Map<String, HEADER> oMap = createHeaderMap();
@@ -136,6 +128,12 @@ public class DrugBankConverter extends FileConverter {
 	private String m_oHetId;
 	
 	private String m_oKeggDrugId;
+
+	private String m_oPubChemCid;
+
+	private String m_oChebiId;
+	
+	private String m_oProteinId;
 	
 	private String m_oPrimaryAccNo;
 	
@@ -147,7 +145,9 @@ public class DrugBankConverter extends FileConverter {
 
 	private List<String> m_oDrugType;
 
-	private Map<String, Item> drugTypeMap = new HashMap<String, Item>();
+	private Map<String, String> drugTypeMap = new HashMap<String, String>();
+
+	private Map<String, String> hetGroupMap = new HashMap<String, String>();
 	
 	public DrugBankConverter(ItemWriter writer, Model model) {
 		super(writer, model);
@@ -188,6 +188,9 @@ public class DrugBankConverter extends FileConverter {
 		m_oGenericName = null;
 		m_oHetId = null;
 		m_oKeggDrugId = null;
+		m_oPubChemCid = null;
+		m_oChebiId = null;
+		m_oProteinId = null;
 		m_oPrimaryAccNo = null;
 		m_strTargetNum = null;
 		m_oTargetMap = new TreeMap<String, TargetContainer>();
@@ -227,21 +230,43 @@ public class DrugBankConverter extends FileConverter {
 			for( String strBrandName : m_oBrandNames ) {
 				oDrug.addToCollection( "brandNames", getSynonym(strBrandName) );
 			}
-			oDrug.setAttribute( "casRegistryNumber", m_oCasRegNo );
 			oDrug.setAttribute( "drugBankId", m_oPrimaryAccNo );
 			if( m_oFdaLabel != null){
 				oDrug.setAttribute( "fdaLabelIssuedDate", m_oFdaLabel );
 			}
-			oDrug.setAttribute( "genericName", m_oGenericName );
-			if( m_oHetId != null && !"Not Available".equals(m_oHetId) ){
-				
-				oDrug.setAttribute("hetId", m_oHetId );
-				Item oChemicalCompound = getChemicalCompound(m_oHetId);
-				oDrug.addToCollection( "chemicalCompounds", oChemicalCompound );
-				
-			}
 			oDrug.setAttribute("keggDrugId", m_oKeggDrugId);
 			oDrug.setAttribute("description", m_oDescription.toString());
+			oDrug.setAttribute( "genericName", m_oGenericName );
+
+			// chenyian: create the Compound object
+			Item compound = createItem("Compound");
+			boolean compoundHasAnyId = false;
+			if (notEmpty(m_oHetId)){
+				compound.setReference("hetGroup", getHetGroup(m_oHetId));
+				compoundHasAnyId = true;
+			}
+			if (notEmpty(m_oChebiId)){
+				compound.setAttribute("chebiId", m_oChebiId);
+				compoundHasAnyId = true;
+			}
+			if (notEmpty(m_oPubChemCid)){
+				String cid = "CID" + StringUtils.leftPad(m_oPubChemCid, 9, "0");
+				compound.setAttribute("pubChemCid", cid);
+			}
+			if (notEmpty(m_oCasRegNo)){
+				compound.setAttribute( "casRegistryNumber", m_oCasRegNo );
+				compoundHasAnyId = true;
+			}
+			if (compoundHasAnyId) {
+				compound.setReference("drug", oDrug);
+				store(compound);
+				oDrug.setReference("compound", compound);
+			}
+			
+			
+			if (notEmpty(m_oProteinId)){
+				oDrug.setReference("protein", getProtein(m_oProteinId));
+			}
 						
 			for(Map.Entry<String, TargetContainer> oTarget : m_oTargetMap.entrySet()) {
 				
@@ -286,19 +311,35 @@ public class DrugBankConverter extends FileConverter {
 			}
 		}
 	}
+
+	private boolean notEmpty(String string) {
+		return string != null && !string.equals("Not Available");
+	}
 	
-	private Item getDrugType(String type) throws ObjectStoreException {
-		Item ret = drugTypeMap.get(type);
+	private String getDrugType(String type) throws ObjectStoreException {
+		String ret = drugTypeMap.get(type);
 		if (ret == null) {
-			ret = createItem("DrugType");
-			ret.setAttribute("name", type);
-			store(ret);
-			
+			Item item = createItem("DrugType");
+			item.setAttribute("name", type);
+			store(item);
+			ret = item.getIdentifier();
 			drugTypeMap.put(type, ret);
 		}
 		return ret;
 	}
 
+	private String getHetGroup(String hetId) throws ObjectStoreException {
+		String ret = hetGroupMap.get(hetId);
+		if (ret == null) {
+			Item item = createItem("HetGroup");
+			item.setAttribute("hetId", hetId);
+			store(item);
+			ret = item.getIdentifier();
+			hetGroupMap.put(hetId, ret);
+		}
+		return ret;
+	}
+	
 	private void processData(String strLine) throws ParseException {
 		
 		switch(m_eCurrent) {
@@ -332,6 +373,17 @@ public class DrugBankConverter extends FileConverter {
 			case KEGG_Drug_ID:
 				m_oKeggDrugId = strLine;
 				break;
+
+			// chenyian: add pubmed cid (for the integration of stitch data)
+			case PubChem_Compound_ID:
+				m_oPubChemCid = strLine;
+				break;
+			case ChEBI_ID:
+				m_oChebiId = strLine;
+				break;
+			case SwissProt_ID:
+				m_oProteinId = strLine;
+				break;
 				
 			case Primary_Accession_No:
 				m_oPrimaryAccNo = strLine;
@@ -354,20 +406,20 @@ public class DrugBankConverter extends FileConverter {
 		
 	}
 	
-	private Item getChemicalCompound(String strHetId) throws ObjectStoreException {
-		
-		if( ! m_oChemicalCompoundMap.containsKey( strHetId ) ) {
-			
-			Item oChemicalCompound = createItem( "ChemicalCompound" );
-			oChemicalCompound.setAttribute( "compId", strHetId );
-			store( oChemicalCompound );
-			m_oChemicalCompoundMap.put( strHetId, oChemicalCompound );
-			
-		}
-		
-		return m_oChemicalCompoundMap.get( strHetId );
-		
-	}
+//	private Item getChemicalCompound(String strHetId) throws ObjectStoreException {
+//		
+//		if( ! m_oChemicalCompoundMap.containsKey( strHetId ) ) {
+//			
+//			Item oChemicalCompound = createItem( "ChemicalCompound" );
+//			oChemicalCompound.setAttribute( "compId", strHetId );
+//			store( oChemicalCompound );
+//			m_oChemicalCompoundMap.put( strHetId, oChemicalCompound );
+//			
+//		}
+//		
+//		return m_oChemicalCompoundMap.get( strHetId );
+//		
+//	}
 	
 	private Item getProtein(String strPrimaryAccession) throws ObjectStoreException {
 		

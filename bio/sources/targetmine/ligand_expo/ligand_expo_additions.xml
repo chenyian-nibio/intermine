@@ -2,11 +2,11 @@
 <!-- This file details any extensions needed to the data model to store data from this source, everything else is automatically generated from the model description so this is all we need to do to add to the model. -->
 <classes>
    <class name="ProteinStructure" is-interface="true">
-        <collection name="compounds" referenced-type="ChemicalCompound" reverse-reference="structures"/>
+        <collection name="hetGroups" referenced-type="HetGroup" reverse-reference="structures"/>
    </class>
-   <class name="ChemicalCompound" is-interface="true">
-     <attribute name="compId" type="java.lang.String"/>
-     <collection name="structures" referenced-type="ProteinStructure" reverse-reference="compounds"/>
+   <class name="HetGroup" is-interface="true">
+     <attribute name="hetId" type="java.lang.String"/>
+     <collection name="structures" referenced-type="ProteinStructure" reverse-reference="hetGroups"/>
      <!-- To be extended -->
    </class>
 

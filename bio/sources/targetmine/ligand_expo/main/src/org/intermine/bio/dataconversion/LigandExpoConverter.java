@@ -61,8 +61,8 @@ public class LigandExpoConverter extends BioFileConverter {
 				.parseTabDelimitedReader(reader);
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
-			Item compound = createItem("ChemicalCompound");
-			compound.setAttribute("compId", cols[0]);
+			Item het = createItem("HetGroup");
+			het.setAttribute("hetId", cols[0]);
 
 			String allPdbId = cols[1];
 			StringUtils.chomp(allPdbId);
@@ -74,10 +74,10 @@ public class LigandExpoConverter extends BioFileConverter {
 					continue;
 				}
 				Item structure = getProteinStructure(pdbId);
-				compound.addToCollection("structures", structure);
+				het.addToCollection("structures", structure);
 			}
 
-			store(compound);
+			store(het);
 		}
 
 	}
