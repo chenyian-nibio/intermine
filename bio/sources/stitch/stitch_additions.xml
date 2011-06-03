@@ -14,10 +14,7 @@
     </class>
 
 	<class name="Compound" is-interface="true">
-		<attribute name="pubChemCid" type="java.lang.String"/>
 		<attribute name="chebiId" type="java.lang.String"/>
-		<attribute name="name" type="java.lang.String"/>
-		<attribute name="molecularWeight" type="java.lang.String"/>
 		<collection name="interactProteins" referenced-type="ProteinCompoundInteraction" reverse-reference="compound" />
     </class>
 

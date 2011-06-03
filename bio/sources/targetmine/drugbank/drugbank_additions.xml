@@ -21,7 +21,9 @@
 		<attribute name="keggDrugId" type="java.lang.String"/>
 		<attribute name="description" type="java.lang.String"/>
 		<attribute name="fdaLabelIssuedDate" type="java.util.Date"/>
-		<reference name="compound" referenced-type="Compound" reverse-reference="drug"/>
+		<attribute name="casRegistryNumber" type="java.lang.String"/>
+		<reference name="hetGroup" referenced-type="HetGroup"/>
+		<reference name="compound" referenced-type="Compound" reverse-reference="drugs"/>
 		<reference name="protein" referenced-type="Protein" />
 		<collection name="drugTypes" referenced-type="DrugType"/>		
 		<collection name="brandNames" referenced-type="Synonym"/>
@@ -29,13 +31,8 @@
     </class>
 
     <class name="Compound" is-interface="true">
-		<attribute name="casRegistryNumber" type="java.lang.String"/>
-		<attribute name="pubChemCid" type="java.lang.String"/>
 		<attribute name="chebiId" type="java.lang.String"/>
-		<attribute name="name" type="java.lang.String"/>
-		<attribute name="molecularWeight" type="java.lang.String"/>
-		<reference name="hetGroup" referenced-type="HetGroup"/>
-		<reference name="drug" referenced-type="Drug" reverse-reference="compound"/>
+		<collection name="drugs" referenced-type="Drug" reverse-reference="compound"/>
     </class>
     
     <class name="HetGroup" is-interface="true">

@@ -148,6 +148,8 @@ public class DrugBankConverter extends FileConverter {
 	private Map<String, String> drugTypeMap = new HashMap<String, String>();
 
 	private Map<String, String> hetGroupMap = new HashMap<String, String>();
+
+	private Map<String, String> compoundMap = new HashMap<String, String>();
 	
 	public DrugBankConverter(ItemWriter writer, Model model) {
 		super(writer, model);
@@ -234,35 +236,22 @@ public class DrugBankConverter extends FileConverter {
 			if( m_oFdaLabel != null){
 				oDrug.setAttribute( "fdaLabelIssuedDate", m_oFdaLabel );
 			}
-			oDrug.setAttribute("keggDrugId", m_oKeggDrugId);
 			oDrug.setAttribute("description", m_oDescription.toString());
 			oDrug.setAttribute( "genericName", m_oGenericName );
-
-			// chenyian: create the Compound object
-			Item compound = createItem("Compound");
-			boolean compoundHasAnyId = false;
-			if (notEmpty(m_oHetId)){
-				compound.setReference("hetGroup", getHetGroup(m_oHetId));
-				compoundHasAnyId = true;
-			}
-			if (notEmpty(m_oChebiId)){
-				compound.setAttribute("chebiId", m_oChebiId);
-				compoundHasAnyId = true;
-			}
-			if (notEmpty(m_oPubChemCid)){
-				String cid = "CID" + StringUtils.leftPad(m_oPubChemCid, 9, "0");
-				compound.setAttribute("pubChemCid", cid);
+			if (notEmpty(m_oKeggDrugId)){
+				oDrug.setAttribute("keggDrugId", m_oKeggDrugId);
 			}
 			if (notEmpty(m_oCasRegNo)){
-				compound.setAttribute( "casRegistryNumber", m_oCasRegNo );
-				compoundHasAnyId = true;
+				oDrug.setAttribute( "casRegistryNumber", m_oCasRegNo );
 			}
-			if (compoundHasAnyId) {
-				compound.setReference("drug", oDrug);
-				store(compound);
-				oDrug.setReference("compound", compound);
+			if (notEmpty(m_oHetId)){
+				oDrug.setReference("hetGroup", getHetGroup(m_oHetId));
 			}
-			
+
+			// chenyian: create the Compound object only when chebiId exist
+			if (notEmpty(m_oChebiId)){
+				oDrug.setReference("compound", getCompound(m_oChebiId));
+			}
 			
 			if (notEmpty(m_oProteinId)){
 				oDrug.setReference("protein", getProtein(m_oProteinId));
@@ -336,6 +325,18 @@ public class DrugBankConverter extends FileConverter {
 			store(item);
 			ret = item.getIdentifier();
 			hetGroupMap.put(hetId, ret);
+		}
+		return ret;
+	}
+	
+	private String getCompound(String chebiId) throws ObjectStoreException {
+		String ret = compoundMap.get(chebiId);
+		if (ret == null) {
+			Item item = createItem("Compound");
+			item.setAttribute("chebiId", chebiId);
+			store(item);
+			ret = item.getIdentifier();
+			compoundMap.put(chebiId, ret);
 		}
 		return ret;
 	}
