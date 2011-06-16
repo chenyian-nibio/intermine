@@ -1,21 +1,25 @@
 <?xml version="1.0"?>
 <classes>
-	<class name="ProteinCompoundInteraction" is-interface="true">
-		<attribute name="name" type="java.lang.String"/>
+	<class name="StitchInteraction" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="pubChemCid" type="java.lang.String"/>
 		<attribute name="evidence" type="java.lang.String"/>
 		<attribute name="score" type="java.lang.Integer"/>
-		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
-		<reference name="compound" referenced-type="Compound" reverse-reference="interactProteins"/>
+		<collection name="proteins" referenced-type="Protein" reverse-reference="chemicalInteractions"/>
+		<collection name="compounds" referenced-type="Compound" reverse-reference="proteinInteractions"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
+		<!-- temporary -->
+		<attribute name="name" type="java.lang.String"/>
+		<attribute name="molecularWeight" type="java.lang.Float"/>
     </class>
 
 	<class name="Protein" is-interface="true">
-		<collection name="compounds" referenced-type="ProteinCompoundInteraction" reverse-reference="protein"/>
+		<collection name="chemicalInteractions" referenced-type="StitchInteraction" reverse-reference="proteins"/>
     </class>
 
 	<class name="Compound" is-interface="true">
 		<attribute name="chebiId" type="java.lang.String"/>
-		<collection name="interactProteins" referenced-type="ProteinCompoundInteraction" reverse-reference="compound" />
+		<collection name="proteinInteractions" referenced-type="StitchInteraction" reverse-reference="compounds" />
     </class>
 
 </classes>

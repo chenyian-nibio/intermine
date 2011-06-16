@@ -23,7 +23,7 @@
 		<attribute name="fdaLabelIssuedDate" type="java.util.Date"/>
 		<attribute name="casRegistryNumber" type="java.lang.String"/>
 		<reference name="hetGroup" referenced-type="HetGroup"/>
-		<reference name="compound" referenced-type="Compound" reverse-reference="drugs"/>
+		<reference name="compound" referenced-type="Compound" reverse-reference="drug"/>
 		<reference name="protein" referenced-type="Protein" />
 		<collection name="drugTypes" referenced-type="DrugType"/>		
 		<collection name="brandNames" referenced-type="Synonym"/>
@@ -32,11 +32,16 @@
 
     <class name="Compound" is-interface="true">
 		<attribute name="chebiId" type="java.lang.String"/>
-		<collection name="drugs" referenced-type="Drug" reverse-reference="compound"/>
+		<reference name="drug" referenced-type="Drug" reverse-reference="compound"/>
     </class>
     
     <class name="HetGroup" is-interface="true">
 		<attribute name="hetId" type="java.lang.String"/>
+    </class>
+
+	<class name="StitchInteraction" is-interface="true">
+		<attribute name="pubChemCid" type="java.lang.String"/>
+		<reference name="drug" referenced-type="Drug"/>
     </class>
 
 </classes>

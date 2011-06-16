@@ -1,0 +1,4 @@
+<project name="biopax3-tasks" default="default" basedir=".">
+  <description>build biopax3 tasks</description>
+  <import file="../../../../imbuild/library.xml"/> 
+</project>

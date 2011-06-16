@@ -252,6 +252,10 @@ public class DrugBankConverter extends FileConverter {
 			if (notEmpty(m_oChebiId)){
 				oDrug.setReference("compound", getCompound(m_oChebiId));
 			}
+			if (notEmpty(m_oPubChemCid)){
+				// DNF...
+//				oDrug.setReference("compound", getCompound(m_oPubChemCid));
+			}
 			
 			if (notEmpty(m_oProteinId)){
 				oDrug.setReference("protein", getProtein(m_oProteinId));

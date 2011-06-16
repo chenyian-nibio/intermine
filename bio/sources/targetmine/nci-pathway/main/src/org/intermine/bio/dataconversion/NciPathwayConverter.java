@@ -97,7 +97,7 @@ public class NciPathwayConverter extends BioFileConverter {
 			Item pathway = createItem("Pathway");
 			pathway.setAttribute("name", name);
 			pathway.setAttribute("identifier", pid);
-			pathway.setAttribute("curated", "true");
+//			pathway.setAttribute("curated", "true");
 
 			store(pathway);
 
