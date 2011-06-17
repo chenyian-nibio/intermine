@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
@@ -150,6 +149,8 @@ public class DrugBankConverter extends FileConverter {
 	private Map<String, String> hetGroupMap = new HashMap<String, String>();
 
 	private Map<String, String> compoundMap = new HashMap<String, String>();
+
+	private Map<String, Item> pubChemMap = new HashMap<String, Item>();
 	
 	public DrugBankConverter(ItemWriter writer, Model model) {
 		super(writer, model);
@@ -248,13 +249,13 @@ public class DrugBankConverter extends FileConverter {
 				oDrug.setReference("hetGroup", getHetGroup(m_oHetId));
 			}
 
-			// chenyian: create the Compound object only when chebiId exist
+			// chenyian: 
 			if (notEmpty(m_oChebiId)){
 				oDrug.setReference("compound", getCompound(m_oChebiId));
 			}
+			// chenyian: 
 			if (notEmpty(m_oPubChemCid)){
-				// DNF...
-//				oDrug.setReference("compound", getCompound(m_oPubChemCid));
+				addSitichInteractioni(m_oPubChemCid, oDrug);
 			}
 			
 			if (notEmpty(m_oProteinId)){
@@ -344,6 +345,16 @@ public class DrugBankConverter extends FileConverter {
 		}
 		return ret;
 	}
+
+	private void addSitichInteractioni(String pubChemCid, Item drug) throws ObjectStoreException {
+		Item item = pubChemMap.get(pubChemCid);
+		if (item == null) {
+			item = createItem("StitchInteraction");
+			item.setAttribute("pubChemCid", pubChemCid);
+			pubChemMap.put(pubChemCid, item);
+		}
+		item.addToCollection("drugs", drug);
+	}
 	
 	private void processData(String strLine) throws ParseException {
 		
@@ -411,21 +422,6 @@ public class DrugBankConverter extends FileConverter {
 		
 	}
 	
-//	private Item getChemicalCompound(String strHetId) throws ObjectStoreException {
-//		
-//		if( ! m_oChemicalCompoundMap.containsKey( strHetId ) ) {
-//			
-//			Item oChemicalCompound = createItem( "ChemicalCompound" );
-//			oChemicalCompound.setAttribute( "compId", strHetId );
-//			store( oChemicalCompound );
-//			m_oChemicalCompoundMap.put( strHetId, oChemicalCompound );
-//			
-//		}
-//		
-//		return m_oChemicalCompoundMap.get( strHetId );
-//		
-//	}
-	
 	private Item getProtein(String strPrimaryAccession) throws ObjectStoreException {
 		
 		if(!m_oProteinMap.containsKey(strPrimaryAccession)) {
@@ -466,6 +462,11 @@ public class DrugBankConverter extends FileConverter {
 		
 		return oSynonym;
 						
+	}
+	
+	@Override
+	public void close() throws Exception {
+		store(pubChemMap.values());
 	}
 	
 	private Map<String, HEADER> createHeaderMap() {

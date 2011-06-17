@@ -50,6 +50,9 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class StitchConverter extends BioFileConverter {
+	// Threshold of evidence score (experimental) , 700 means 0.7
+	private static int THRESHOLD = 700;
+
 	private static final Logger LOG = Logger.getLogger(StitchConverter.class);
 	//
 	private static final String DATASET_TITLE = "STITCH";
@@ -96,7 +99,7 @@ public class StitchConverter extends BioFileConverter {
 			getPrimaryIdMap();
 			// readUniprotIdMap();
 		}
-		
+
 		if (chebiIdMap == null) {
 			readChebiMap();
 		}
@@ -104,31 +107,27 @@ public class StitchConverter extends BioFileConverter {
 		Iterator<String[]> iterator = FormattedTextParser
 				.parseTabDelimitedReader(new BufferedReader(reader));
 
+		int count = 0;
+
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
-			String cid = cols[0];
-//			String ensemblId = cols[1].substring(cols[1].indexOf(".") + 1);
+			String cid = cols[0].substring(3).replaceAll("^0*", "");
+			// String ensemblId = cols[1].substring(cols[1].indexOf(".") + 1);
 			String ensemblId = StringUtils.substringAfter(cols[1], ".");
 			Set<String> uniprotIds = primaryIdMap.get(ensemblId);
 
 			if (uniprotIds != null) {
-				// get evidence
-				String evidence;
-				if (!cols[2].equals("0")) {
-					evidence = "experimental";
-				} else if (!cols[3].equals("0")) {
-					evidence = "database";
-				} else if (!cols[4].equals("0")) {
-					evidence = "textmining";
-				} else {
-					throw new RuntimeException("Unexpected evidence record, " + "check the entry: "
-							+ cid + "_" + cols[1]);
+				// only experiment data will be integrated
+				String evidence = "experimental";
+				if (Integer.valueOf(cols[2]).intValue() < THRESHOLD) {
+					count++;
+					continue;
 				}
 
 				Item si = createItem("StitchInteraction");
-				si.setAttribute("identifier", cid + "_" + cols[1]);
+				si.setAttribute("identifier", cols[0] + "_" + cols[1]);
 				si.setAttribute("pubChemCid", cid);
-				si.setAttribute("score", cols[5]);
+				si.setAttribute("score", cols[2]);
 				si.setAttribute("evidence", evidence);
 				for (String primaryIdentifier : uniprotIds) {
 					si.addToCollection("proteins", getProtein(primaryIdentifier));
@@ -140,14 +139,15 @@ public class StitchConverter extends BioFileConverter {
 						si.addToCollection("compounds", getCompound(chebiId));
 					}
 				} else {
-//					LOG.info(String.format("compound: %s cannot map to a ChEBI id.", cid));
+					// LOG.info(String.format("compound: %s cannot map to a ChEBI id.", cid));
 				}
 				store(si);
 			} else {
-//				LOG.info(String.format("Uniprot ID for '%s' was not found.", ensemblId));
+				count++;
+				// LOG.info(String.format("Uniprot ID for '%s' was not found.", ensemblId));
 			}
 		}
-
+		LOG.info(String.format("%d interactions were skipped.", count));
 	}
 
 	private String getProtein(String primaryIdentifier) throws ObjectStoreException {
@@ -223,10 +223,11 @@ public class StitchConverter extends BioFileConverter {
 
 	/**
 	 * Read pubchem mapping file
+	 * 
 	 * <pre>
 	 * example:
 	 * 3       CHEBI:15941
-	 * </pre> 
+	 * </pre>
 	 */
 	private void readChebiMap() {
 		if (compoundMapFile == null) {
@@ -242,7 +243,8 @@ public class StitchConverter extends BioFileConverter {
 
 			while (iterator.hasNext()) {
 				String[] cols = iterator.next();
-				String cid = "CID" + StringUtils.leftPad(cols[0], 9, "0");
+				// String cid = "CID" + StringUtils.leftPad(cols[0], 9, "0");
+				String cid = cols[0];
 				if (chebiIdMap.get(cid) == null) {
 					chebiIdMap.put(cid, new HashSet<String>());
 				}
