@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="StitchInteraction" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="evidence" type="java.lang.String"/>
+		<attribute name="score" type="java.lang.Integer"/>
+		<reference name="compound" referenced-type="PubChemCompound" reverse-reference="proteinInteractions"/>
+		<collection name="proteins" referenced-type="Protein" reverse-reference="chemicalInteractions"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
+    </class>
+
+	<class name="Protein" is-interface="true">
+		<collection name="chemicalInteractions" referenced-type="StitchInteraction" reverse-reference="proteins"/>
+    </class>
+
+	<class name="Compound" is-interface="true">
+		<attribute name="chebiId" type="java.lang.String"/>
+		<collection name="proteinInteractions" referenced-type="PubChemCompound" reverse-reference="compounds" />
+    </class>
+
+	<class name="PubChemCompound" is-interface="true">
+		<attribute name="pubChemCid" type="java.lang.String"/>
+		<collection name="compounds" referenced-type="Compound" reverse-reference="proteinInteractions"/>
+		<collection name="proteinInteractions" referenced-type="StitchInteraction" reverse-reference="compound" />
+		<attribute name="name" type="java.lang.String"/>
+		<attribute name="molecularWeight" type="java.lang.Float"/>
+    </class>
+
+	
+</classes>

@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -29,7 +28,7 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class NciPathwayConverter extends BioFileConverter {
-	private static final Logger LOG = Logger.getLogger(NciPathwayConverter.class);
+//	private static final Logger LOG = Logger.getLogger(NciPathwayConverter.class);
 	//
 	private static final String DATASET_TITLE = "NCI-Nature data set";
 	private static final String DATA_SOURCE_NAME = "NCI-Nature Pathway Interaction Database";
