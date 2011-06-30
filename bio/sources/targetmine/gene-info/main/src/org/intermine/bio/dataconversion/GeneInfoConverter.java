@@ -48,11 +48,13 @@ public class GeneInfoConverter extends BioFileConverter {
 	private static final String DATA_SOURCE_NAME = "NCBI";
 
 	private Set<String> taxonIds;
-	// private Map<String, String> organismMap = new HashMap<String, String>();
 
 	private Map<String, String> chromosomeMap = new HashMap<String, String>();
 	private Map<String, Set<String>> transcriptMap;
 	private Map<String, Set<String>> translationMap;
+
+	private Map<String, Set<String>> unigeneMap;
+	private List<String> uniGeneSpecies;
 
 	private Map<String, Map<String, String>> idMap;
 	private Map<String, String> synonyms = new HashMap<String, String>();
@@ -60,10 +62,16 @@ public class GeneInfoConverter extends BioFileConverter {
 	private Set<String> primaryIds = new HashSet<String>();
 
 	private File gene2ensemblFile;
+	private File gene2unigeneFile;
 
 	public void setGeneinfoOrganisms(String taxonIds) {
 		this.taxonIds = new HashSet<String>(Arrays.asList(StringUtil.split(taxonIds, " ")));
 		LOG.info("Setting list of organisms to " + this.taxonIds);
+	}
+
+	public void setUnigeneOrganisms(String species) {
+		this.uniGeneSpecies = Arrays.asList(StringUtil.split(species, " "));
+		LOG.info("Only extract UniGene mapping for following species: " + this.uniGeneSpecies);
 	}
 
 	/**
@@ -124,6 +132,9 @@ public class GeneInfoConverter extends BioFileConverter {
 		}
 		if (transcriptMap == null) {
 			readGene2ensembl();
+		}
+		if (unigeneMap == null) {
+			processGene2unigene();
 		}
 
 		Iterator<String[]> iterator = FormattedTextParser
@@ -201,51 +212,49 @@ public class GeneInfoConverter extends BioFileConverter {
 				}
 			}
 
-			if (!allSynonyms.isEmpty()) {
-				gene.setCollection("synonyms", allSynonyms);
-			}
-
 			gene.setReference("chromosome", getChromosome(taxId, chromosome));
 
+			// 2011/6/20
+			// Transcript and Translation classes are not really useful ...
+			// These identifiers (Ensembl, RefSeq) are set as synonyms
 			if (transcriptMap.get(geneId) != null) {
 				for (String pairs : transcriptMap.get(geneId)) {
-					String[] ids = pairs.split("\\|");
-					Item item = createItem("Transcript");
-					item.setAttribute("primaryIdentifier", ids[1]);
-					item.setAttribute("refSeqId", ids[0]);
-					item.setReference("organism", getOrganism(taxId));
-					item.setReference("gene", gene);
-					store(item);
+					for (String s : pairs.split("\\|")) {
+						String synId = getSynonym(geneRefId, s, "");
+						if (synId != null) {
+							allSynonyms.add(synId);
+						}
+					}
 				}
 			}
 			if (translationMap.get(geneId) != null) {
 				for (String pairs : translationMap.get(geneId)) {
-					String[] ids = pairs.split("\\|");
-					Item item = createItem("Translation");
-					item.setAttribute("primaryIdentifier", ids[1]);
-					item.setAttribute("refSeqId", ids[0]);
-					item.setReference("organism", getOrganism(taxId));
-					item.setReference("gene", gene);
-					store(item);
+					for (String s : pairs.split("\\|")) {
+						String synId = getSynonym(geneRefId, s, "");
+						if (synId != null) {
+							allSynonyms.add(synId);
+						}
+					}
 				}
+			}
+
+			// 2011/6/20
+			// Include UniGene id as synonyms
+			if (unigeneMap.get(geneId) != null) {
+				for (String string : unigeneMap.get(geneId)) {
+					String synId = getSynonym(geneRefId, string, "");
+					allSynonyms.add(synId);
+				}
+			}
+
+			if (!allSynonyms.isEmpty()) {
+				gene.setCollection("synonyms", allSynonyms);
 			}
 
 			store(gene);
 
 		}
 	}
-
-	// private String getOrganism(String taxId) throws ObjectStoreException {
-	// String ret = organismMap.get(taxId);
-	// if (ret == null) {
-	// Item organism = createItem("Organism");
-	// organism.setAttribute("taxonId", taxId);
-	// store(organism);
-	// ret = organism.getIdentifier();
-	// organismMap.put(taxId, ret);
-	// }
-	// return ret;
-	// }
 
 	private String getChromosome(String taxId, String no) throws ObjectStoreException {
 		String ret = chromosomeMap.get(taxId + "-" + no);
@@ -302,11 +311,10 @@ public class GeneInfoConverter extends BioFileConverter {
 		transcriptMap = new HashMap<String, Set<String>>();
 		translationMap = new HashMap<String, Set<String>>();
 
+		// #Format: tax_id GeneID Ensembl_gene_identifier RNA_nucleotide_accession.version
+		// Ensembl_rna_identifier protein_accession.version Ensembl_protein_identifier (tab is used
+		// as a separator, pound sign - start of a comment)
 		try {
-			// #Format: tax_id GeneID Ensembl_gene_identifier RNA_nucleotide_accession.version
-			// Ensembl_rna_identifier protein_accession.version Ensembl_protein_identifier (tab is
-			// used
-			// as a separator, pound sign - start of a comment)
 
 			Reader reader = new BufferedReader(new FileReader(gene2ensemblFile));
 			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
@@ -343,12 +351,37 @@ public class GeneInfoConverter extends BioFileConverter {
 
 	}
 
-	public File getGene2ensemblFile() {
-		return gene2ensemblFile;
-	}
-
 	public void setGene2ensemblFile(File gene2ensemblFile) {
 		this.gene2ensemblFile = gene2ensemblFile;
 	}
 
+	public void setGene2unigeneFile(File gene2unigeneFile) {
+		this.gene2unigeneFile = gene2unigeneFile;
+	}
+
+	private void processGene2unigene() {
+		unigeneMap = new HashMap<String, Set<String>>();
+		// #Format: GeneID UniGene_cluster (tab is used as a separator, pound sign - start of a comment)
+		try {
+			Iterator<String[]> iterator = FormattedTextParser
+					.parseTabDelimitedReader(new BufferedReader(new FileReader(gene2unigeneFile)));
+			// skip header
+			iterator.next();
+			while (iterator.hasNext()) {
+				String[] cols = iterator.next();
+				if (uniGeneSpecies.contains(cols[1].split("\\.")[0])) {
+					if (unigeneMap.get(cols[0]) == null) {
+						unigeneMap.put(cols[0], new HashSet<String>());
+					}
+					unigeneMap.get(cols[0]).add(cols[1]);
+				}
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			throw new RuntimeException("The file 'gene2unigene' not found.");
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
 }

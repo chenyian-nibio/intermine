@@ -10,17 +10,6 @@
 	<attribute name="description" type="java.lang.String"/>
 	<attribute name="type" type="java.lang.String"/>
 	<attribute name="symbol" type="java.lang.String"/>
-	<collection name="translations" referenced-type="Translation" reverse-reference="gene"/>
-	<collection name="transcripts" referenced-type="Transcript" reverse-reference="gene"/>
   </class>
-  <class name="Translation" extends="BioEntity" is-interface="true">
-	<attribute name="refSeqId" type="java.lang.String"/>
-	<reference name="gene" referenced-type="Gene"/>
-  </class>
-  <class name="Transcript" extends="BioEntity" is-interface="true">
-	<attribute name="refSeqId" type="java.lang.String"/>
-	<reference name="gene" referenced-type="Gene" reverse-reference="transcripts"/>
-  </class>
-
 
 </classes>

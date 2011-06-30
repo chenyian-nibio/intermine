@@ -9,6 +9,18 @@
     <title>News</title>
     <link>news/index.html</link>
     <description>New data sources added.</description>
+    <pubDate>Fri, 24 Jun 2011 12:00:00 +0900</pubDate>
+  </item>
+  <item>
+    <title>Update</title>
+    <link>news/2011/06/</link>
+    <description>build 20110623 released</description>
+    <pubDate>Fri, 24 Jun 2011 12:00:00 +0900</pubDate>
+  </item>
+  <item>
+    <title>News</title>
+    <link>news/index.html</link>
+    <description>New data sources added.</description>
     <pubDate>Fri, 13 May 2011 12:00:00 +0900</pubDate>
   </item>
   <item>

@@ -255,7 +255,7 @@ public class DrugBankConverter extends FileConverter {
 			}
 			// chenyian: 
 			if (notEmpty(m_oPubChemCid)){
-				addSitichInteractioni(m_oPubChemCid, oDrug);
+				addPubChemCompound(m_oPubChemCid, oDrug);
 			}
 			
 			if (notEmpty(m_oProteinId)){
@@ -346,10 +346,10 @@ public class DrugBankConverter extends FileConverter {
 		return ret;
 	}
 
-	private void addSitichInteractioni(String pubChemCid, Item drug) throws ObjectStoreException {
+	private void addPubChemCompound(String pubChemCid, Item drug) throws ObjectStoreException {
 		Item item = pubChemMap.get(pubChemCid);
 		if (item == null) {
-			item = createItem("StitchInteraction");
+			item = createItem("PubChemCompound");
 			item.setAttribute("pubChemCid", pubChemCid);
 			pubChemMap.put(pubChemCid, item);
 		}

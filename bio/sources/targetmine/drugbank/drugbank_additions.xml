@@ -39,7 +39,7 @@
 		<attribute name="hetId" type="java.lang.String"/>
     </class>
 
-	<class name="StitchInteraction" is-interface="true">
+	<class name="PubChemCompound" is-interface="true">
 		<attribute name="pubChemCid" type="java.lang.String"/>
 		<collection name="drugs" referenced-type="Drug"/>
     </class>

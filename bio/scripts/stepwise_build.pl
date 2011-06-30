@@ -130,7 +130,7 @@ sub executeCommand {
 	    close PIPE;
 	    if ($? != 0) {
 	    # build failed? send a mail...
-	    	sendNoticeMail("Build Failed","Building the production database encounter some errors.");
+	    	sendNoticeMail("Build Failed","Building the production database encounter some errors, while integrating the data source: $source->{'tag'} .");
 	    	die "failed with exit code $?: @_\n";
 	    }
 	}

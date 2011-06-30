@@ -14,16 +14,19 @@
 	<c:set var="text" value="KEGG: ${object.name}"/>
 	<c:set var="href" value="http://www.genome.jp/dbget-bin/show_pathway?map${object.identifier}"/>
 </c:when>
-<c:otherwise>
+<c:when test="${datasetTitle == 'Reactome data set'}">
 	<%-- reactome --%>
 	<c:set var="imageName" value="reactome_logo.png"/>
 	<c:set var="text" value="Reactome"/>
 	<c:set var="href" value="http://www.reactome.org"/>
+</c:when>
+<c:when test="${datasetTitle == 'NCI-Nature data set'}">
+	<%-- reactome --%>
+	<c:set var="imageName" value="nci_logo.png"/>
+	<c:set var="text" value="Pathway Interaction Database"/>
+	<c:set var="href" value="http://pid.nci.nih.gov"/>
+</c:when>
 	
-	<c:if test="${object.curated}">
-       	<c:set var="href" value="http://fly.reactome.org/cgi-bin/eventbrowser?DB=test_fly_reactome_release_1_myisam&ID=${object.identifier}"/>
-    </c:if>
-</c:otherwise>
 </c:choose>
           
 <table class="lookupReport" cellspacing="5" cellpadding="0">
