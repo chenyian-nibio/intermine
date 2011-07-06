@@ -131,6 +131,8 @@ public class DrugBankConverter extends FileConverter {
 	private String m_oPubChemCid;
 
 	private String m_oChebiId;
+
+	private String m_oInchiKey;
 	
 	private String m_oProteinId;
 	
@@ -148,9 +150,11 @@ public class DrugBankConverter extends FileConverter {
 
 	private Map<String, String> hetGroupMap = new HashMap<String, String>();
 
-	private Map<String, String> compoundMap = new HashMap<String, String>();
+	private Map<String, String> chebiCompoundMap = new HashMap<String, String>();
 
-	private Map<String, Item> pubChemMap = new HashMap<String, Item>();
+	private Map<String, String> pubChemMap = new HashMap<String, String>();
+
+	private Map<String, String> compoundGroupMap = new HashMap<String, String>();
 	
 	public DrugBankConverter(ItemWriter writer, Model model) {
 		super(writer, model);
@@ -193,6 +197,7 @@ public class DrugBankConverter extends FileConverter {
 		m_oKeggDrugId = null;
 		m_oPubChemCid = null;
 		m_oChebiId = null;
+		m_oInchiKey = null;
 		m_oProteinId = null;
 		m_oPrimaryAccNo = null;
 		m_strTargetNum = null;
@@ -234,6 +239,10 @@ public class DrugBankConverter extends FileConverter {
 				oDrug.addToCollection( "brandNames", getSynonym(strBrandName) );
 			}
 			oDrug.setAttribute( "drugBankId", m_oPrimaryAccNo );
+
+			// chenyian: set the compound identifier
+			oDrug.setAttribute("identifier", String.format("DrugBank: %s", m_oPrimaryAccNo));
+			
 			if( m_oFdaLabel != null){
 				oDrug.setAttribute( "fdaLabelIssuedDate", m_oFdaLabel );
 			}
@@ -251,11 +260,20 @@ public class DrugBankConverter extends FileConverter {
 
 			// chenyian: 
 			if (notEmpty(m_oChebiId)){
-				oDrug.setReference("compound", getCompound(m_oChebiId));
+				oDrug.setReference("chebiCompound", getChebiCompound(m_oChebiId));
 			}
 			// chenyian: 
 			if (notEmpty(m_oPubChemCid)){
-				addPubChemCompound(m_oPubChemCid, oDrug);
+				oDrug.setReference("pubChemCompound", getPubChemCompound(m_oPubChemCid));
+			}
+			// chenyian: 
+			if (notEmpty(m_oInchiKey)){
+				String inchiKey = m_oInchiKey.substring(m_oInchiKey.indexOf("=")+1, m_oInchiKey.indexOf("-"));
+				if (inchiKey.length() != 14) {
+					m_oLogger.info(String.format("Bad InChIKey value: %s, %s .", m_oPrimaryAccNo, m_oInchiKey));
+				} else {
+					oDrug.setReference("compoundGroup", getCompoundGroup(inchiKey));
+				}
 			}
 			
 			if (notEmpty(m_oProteinId)){
@@ -334,28 +352,42 @@ public class DrugBankConverter extends FileConverter {
 		return ret;
 	}
 	
-	private String getCompound(String chebiId) throws ObjectStoreException {
-		String ret = compoundMap.get(chebiId);
+	private String getChebiCompound(String chebiId) throws ObjectStoreException {
+		String ret = chebiCompoundMap.get(chebiId);
 		if (ret == null) {
-			Item item = createItem("Compound");
+			Item item = createItem("ChebiCompound");
 			item.setAttribute("chebiId", chebiId);
 			store(item);
 			ret = item.getIdentifier();
-			compoundMap.put(chebiId, ret);
+			chebiCompoundMap.put(chebiId, ret);
 		}
 		return ret;
 	}
 
-	private void addPubChemCompound(String pubChemCid, Item drug) throws ObjectStoreException {
-		Item item = pubChemMap.get(pubChemCid);
-		if (item == null) {
-			item = createItem("PubChemCompound");
+	private String getPubChemCompound(String pubChemCid) throws ObjectStoreException {
+		String ret = pubChemMap.get(pubChemCid);
+		if (ret == null) {
+			Item item = createItem("PubChemCompound");
 			item.setAttribute("pubChemCid", pubChemCid);
-			pubChemMap.put(pubChemCid, item);
+			store(item);
+			ret = item.getIdentifier();
+			pubChemMap.put(pubChemCid, ret);
 		}
-		item.addToCollection("drugs", drug);
+		return ret;
 	}
 	
+	private String getCompoundGroup(String inchiKey) throws ObjectStoreException {
+		String ret = compoundGroupMap.get(inchiKey);
+		if (ret == null) {
+			Item item = createItem("CompoundGroup");
+			item.setAttribute("inchiKey", inchiKey);
+			store(item);
+			ret = item.getIdentifier();
+			compoundGroupMap.put(inchiKey, ret);
+		}
+		return ret;
+	}
+
 	private void processData(String strLine) throws ParseException {
 		
 		switch(m_eCurrent) {
@@ -396,6 +428,9 @@ public class DrugBankConverter extends FileConverter {
 				break;
 			case ChEBI_ID:
 				m_oChebiId = strLine;
+				break;
+			case InChI_Key:
+				m_oInchiKey = strLine;
 				break;
 			case SwissProt_ID:
 				m_oProteinId = strLine;
@@ -462,11 +497,6 @@ public class DrugBankConverter extends FileConverter {
 		
 		return oSynonym;
 						
-	}
-	
-	@Override
-	public void close() throws Exception {
-		store(pubChemMap.values());
 	}
 	
 	private Map<String, HEADER> createHeaderMap() {

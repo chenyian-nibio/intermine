@@ -2,10 +2,16 @@
 <classes>
 	<class name="PubChemCompound" extends="Compound" is-interface="true">
 		<attribute name="pubChemCid" type="java.lang.String"/>
-		<collection name="compounds" referenced-type="Compound" reverse-reference="proteinInteractions"/>
-		<collection name="proteinInteractions" referenced-type="StitchInteraction" reverse-reference="compound" />
 		<attribute name="name" type="java.lang.String"/>
-		<attribute name="molecularWeight" type="java.lang.Float"/>
+    </class>
+    <class name="Compound" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
+    </class>
+
+    <class name="CompoundGroup" is-interface="true">
+		<attribute name="inchiKey" type="java.lang.String"/>
+		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
     </class>
 
 </classes>

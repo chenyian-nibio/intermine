@@ -112,6 +112,7 @@
     <source name="ligand_expo" type="ligand_expo">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ligand_expo" />
       <property name="src.data.dir.includes" value="cc-to-pdb.tdd" />
+      <property name="inchiKeyFile" value="/data/bio/db/Targetmine/ligand_expo/Components-inchikey.ich" />
     </source>
     <source name="amadeus" type="metazoan" dump="true">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/metazoan" />
@@ -156,6 +157,10 @@
       <property name="chemicalsFile" value="/data/bio/db/Targetmine/stitch/chemicals.v2.0.tsv" />
       <property name="compoundMapFile" value="/data/bio/db/Targetmine/stitch/pubchem_mapping" />
       <property name="osAlias" value="os.production"/>
+    </source>
+    <source name="pubchem" type="pubchem">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/pubchem" />
+      <property name="src.data.dir.includes" value="cid-inchikey-ext" />
     </source>
     <source name="chebi-db" type="chebi-db">
       <property name="source.db.name" value="chebi-db"/>

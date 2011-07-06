@@ -10,9 +10,11 @@ package org.intermine.bio.dataconversion;
  *
  */
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
+import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.sql.Database;
 import org.intermine.xml.full.Item;
 
@@ -20,59 +22,106 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 
  * @author
  */
-public class ChebiDbConverter extends BioDBConverter
-{
+public class ChebiDbConverter extends BioDBConverter {
 	private static final Logger LOG = Logger.getLogger(ChebiDbConverter.class);
-	
+
 	// 
-    private static final String DATASET_TITLE = "ChEBI";
-    private static final String DATA_SOURCE_NAME = "ChEBI";
+	private static final String DATASET_TITLE = "ChEBI";
+	private static final String DATA_SOURCE_NAME = "ChEBI";
+
+	private Map<String, String> compoundGroupMap = new HashMap<String, String>();
+
+	/**
+	 * Construct a new ChebiDbConverter.
+	 * 
+	 * @param database
+	 *            the database to read from
+	 * @param model
+	 *            the Model used by the object store we will write to with the ItemWriter
+	 * @param writer
+	 *            an ItemWriter used to handle Items created
+	 */
+	public ChebiDbConverter(Database database, Model model, ItemWriter writer) {
+		super(database, model, writer, DATA_SOURCE_NAME, DATASET_TITLE);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void process() throws Exception {
+		// a database has been initialised from properties starting with db.chebi-db
+
+		Connection connection = getDatabase().getConnection();
+
+		// process data with direct SQL queries on the source database, for example:
+
+		// Statement stmt = connection.createStatement();
+		// String query = "select column from table;";
+		// ResultSet res = stmt.executeQuery(query);
+		// while (res.next()) {
+		// }
+		Statement stmt = connection.createStatement();
+		// String query = "SELECT compound_id, structure FROM structures WHERE type = 'InChIKey';";
+		String query = " select c1.name, c1.id, c1.parent_id, c2.name, s1.structure "
+				+ " from compounds as c1 "
+				+ " left join structures as s1 on c1.id = s1.compound_id "
+				+ " left join compounds as c2 on c1.parent_id = c2.id "
+				+ " where s1.type='InChIKey' ";
+		ResultSet res = stmt.executeQuery(query);
+		while (res.next()) {
+			LOG.info(String
+					.format("id: %s, %s", res.getInt("c1.id"), res.getString("s1.structure")));
+
+			String chebiId = String.valueOf(res.getInt("c1.id"));
+			String name = res.getString("c1.name");
+			
+			String structure = res.getString("s1.structure");
+			String inchiKey = structure.substring(structure.indexOf("=")+1, structure.indexOf("-"));
+			if (inchiKey.length() != 14) {
+				LOG.info(String.format("Bad InChIKey value: %s, %s .", chebiId, structure));
+				continue;
+			}
+
+			if (StringUtils.isEmpty(name)) {
+				name = res.getString("c2.name");
+				chebiId = String.valueOf(res.getInt("c1.parent_id"));
+			}
 
 
-    /**
-     * Construct a new ChebiDbConverter.
-     * @param database the database to read from
-     * @param model the Model used by the object store we will write to with the ItemWriter
-     * @param writer an ItemWriter used to handle Items created
-     */
-    public ChebiDbConverter(Database database, Model model, ItemWriter writer) {
-        super(database, model, writer, DATA_SOURCE_NAME, DATASET_TITLE);
-    }
+			Item item = createItem("ChebiCompound");
+			item.setAttribute("identifier", String.format("CHEBI: %s", chebiId));
+			item.setAttribute("chebiId", chebiId);
+			item.setAttribute("name", name);
+			item.setReference("compoundGroup", getCompoundGroup(inchiKey));
+			store(item);
 
+		}
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    public void process() throws Exception {
-        // a database has been initialised from properties starting with db.chebi-db
+	private String getCompoundGroup(String inchiKey) throws ObjectStoreException {
+		String ret = compoundGroupMap.get(inchiKey);
+		if (ret == null) {
+			Item item = createItem("CompoundGroup");
+			item.setAttribute("inchiKey", inchiKey);
+			store(item);
+			ret = item.getIdentifier();
+			compoundGroupMap.put(inchiKey, ret);
+		}
+		return ret;
+	}
 
-        Connection connection = getDatabase().getConnection();
-
-        // process data with direct SQL queries on the source database, for example:
-        
-        // Statement stmt = connection.createStatement();
-        // String query = "select column from table;";
-        // ResultSet res = stmt.executeQuery(query);
-        // while (res.next()) {
-        // }   
-         Statement stmt = connection.createStatement();
-         String query = "SELECT compound_id, structure FROM structures WHERE type = 'InChIKey';";
-         ResultSet res = stmt.executeQuery(query);
-         while (res.next()) {
-        	 LOG.info(String.format("id: %s, %s", res.getInt("compound_id"), res.getString("structure")));
-         }   
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getDataSetTitle(int taxonId) {
-        return DATASET_TITLE;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getDataSetTitle(int taxonId) {
+		return DATASET_TITLE;
+	}
 }

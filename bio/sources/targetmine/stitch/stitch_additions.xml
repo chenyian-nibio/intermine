@@ -13,18 +13,20 @@
 		<collection name="chemicalInteractions" referenced-type="StitchInteraction" reverse-reference="proteins"/>
     </class>
 
-	<class name="Compound" is-interface="true">
+    <class name="ChebiCompound" extends="Compound" is-interface="true">
 		<attribute name="chebiId" type="java.lang.String"/>
-		<collection name="proteinInteractions" referenced-type="PubChemCompound" reverse-reference="compounds" />
+		<collection name="pubChemCompounds" referenced-type="PubChemCompound" reverse-reference="chebiCompounds" />
     </class>
 
-	<class name="PubChemCompound" is-interface="true">
+	<class name="PubChemCompound" extends="Compound" is-interface="true">
 		<attribute name="pubChemCid" type="java.lang.String"/>
-		<collection name="compounds" referenced-type="Compound" reverse-reference="proteinInteractions"/>
+		<collection name="chebiCompounds" referenced-type="ChebiCompound" reverse-reference="pubChemCompounds"/>
 		<collection name="proteinInteractions" referenced-type="StitchInteraction" reverse-reference="compound" />
 		<attribute name="name" type="java.lang.String"/>
 		<attribute name="molecularWeight" type="java.lang.Float"/>
     </class>
 
+    <class name="Compound" is-interface="true">
+    </class>
 	
 </classes>
