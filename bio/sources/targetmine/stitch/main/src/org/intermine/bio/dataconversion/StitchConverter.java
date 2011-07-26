@@ -145,10 +145,10 @@ public class StitchConverter extends BioFileConverter {
 		return ret;
 	}
 
-	private String getCompound(String chebiId) throws ObjectStoreException {
+	private String getChebiCompound(String chebiId) throws ObjectStoreException {
 		String ret = compoundMap.get(chebiId);
 		if (ret == null) {
-			Item item = createItem("Compound");
+			Item item = createItem("ChebiCompound");
 			item.setAttribute("chebiId", chebiId);
 			store(item);
 			ret = item.getIdentifier();
@@ -166,7 +166,7 @@ public class StitchConverter extends BioFileConverter {
 			Set<String> chebiIds = chebiIdMap.get(cid);
 			if (chebiIds != null) {
 				for (String chebiId : chebiIds) {
-					ret.addToCollection("compounds", getCompound(chebiId));
+					ret.addToCollection("chebiCompounds", getChebiCompound(chebiId));
 				}
 			}
 
@@ -216,7 +216,7 @@ public class StitchConverter extends BioFileConverter {
 
 	// read in chebi id mapping file
 	private File compoundMapFile;
-	private Map<String, Set<String>> chebiIdMap = new HashMap<String, Set<String>>();
+	private Map<String, Set<String>> chebiIdMap;
 
 	public void setCompoundMapFile(File file) {
 		this.compoundMapFile = file;
@@ -234,6 +234,8 @@ public class StitchConverter extends BioFileConverter {
 		if (compoundMapFile == null) {
 			throw new NullPointerException("compoundMapFile property not set");
 		}
+		
+		chebiIdMap = new HashMap<String, Set<String>>();
 
 		try {
 			Reader reader = new BufferedReader(new FileReader(compoundMapFile));

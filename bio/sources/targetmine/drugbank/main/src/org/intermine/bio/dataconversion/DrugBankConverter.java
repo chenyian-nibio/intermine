@@ -10,15 +10,17 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
-import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.xml.full.Item;
 
-public class DrugBankConverter extends FileConverter {
+public class DrugBankConverter extends BioFileConverter {
 	
 	private static Logger m_oLogger = Logger.getLogger(DrugBankConverter.class);
+
+	private static final String DATASET_TITLE = "DrugBank";
+	private static final String DATA_SOURCE_NAME = "DrugBank";
 	
 	private enum HEADER {
 		AHFS_Codes,
@@ -157,7 +159,7 @@ public class DrugBankConverter extends FileConverter {
 	private Map<String, String> compoundGroupMap = new HashMap<String, String>();
 	
 	public DrugBankConverter(ItemWriter writer, Model model) {
-		super(writer, model);
+		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
 	}
 	
 	@Override

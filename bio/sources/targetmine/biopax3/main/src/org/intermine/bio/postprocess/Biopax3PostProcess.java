@@ -1,7 +1,6 @@
 package org.intermine.bio.postprocess;
 
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -29,7 +28,6 @@ import org.intermine.objectstore.query.Results;
 import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.postprocess.PostProcessor;
 import org.intermine.sql.DatabaseUtil;
-import org.intermine.util.DynamicUtil;
 
 /** 
  * Copy from biopax biosource
@@ -37,7 +35,7 @@ import org.intermine.util.DynamicUtil;
 public class Biopax3PostProcess extends PostProcessor {
 
     private static final Logger LOG = Logger.getLogger(Biopax3PostProcess.class);
-    private DataSet reactomeDataSet = null;
+//    private DataSet reactomeDataSet = null;
     private Model model;
 
     /**

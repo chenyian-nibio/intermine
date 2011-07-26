@@ -44,6 +44,8 @@
     </intro-text>
     <tile-name>model/pathways.jsp</tile-name>
     <aspect-source name="Kegg pathway database" url="http://www.genome.jp/kegg/pathway.html"/>
+    <aspect-source name="Reactome" url="http://www.reactome.org/"/>
+    <aspect-source name="NCI Pathway" url="http://pid.nci.nih.gov/"/>
   </aspect>
 
   <aspect name="Protein Structure">
@@ -123,16 +125,19 @@
     <aspect-source name="NCBI" url="http://www.ncbi.nlm.nih.gov/"/>
   </aspect>
 
-  <aspect name="Drugs">
+  <aspect name="Compounds">
     <subtitle></subtitle>
     <icon-image>model/images/drug.png</icon-image>
     <large-image>model/images/drug.png</large-image>
     <tile-name></tile-name>
     <intro-text>
-      Drug data with comprehensive drug target information.
+      Compound protein interactions including the drug target information.
     </intro-text>
-    <tile-name>model/drug.jsp</tile-name>
+    <tile-name>model/compound.jsp</tile-name>
     <aspect-source name="DrugBank" url="http://www.drugbank.ca/"/>
+    <aspect-source name="STITCH" url="http://stitch.embl.de/"/>
+    <aspect-source name="ChEBI" url="http://www.ebi.ac.uk/chebi/"/>
+    <aspect-source name="PubChem" url="http://pubchem.ncbi.nlm.nih.gov/"/>
   </aspect>
 
   <aspect name="Enzymes">

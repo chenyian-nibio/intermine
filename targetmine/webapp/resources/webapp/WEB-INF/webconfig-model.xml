@@ -191,9 +191,9 @@
     </longdisplayers>
   </class>
 
-  <class className="org.intermine.model.bio.HetGroup">
+  <class className="org.intermine.model.bio.Compound">
     <fields>
-      <fieldconfig fieldExpr="hetId"/>
+      <fieldconfig fieldExpr="identifier"/>
     </fields>
     <longdisplayers>
       <displayer src="attributeLinkDisplayer.tile"/>
@@ -253,11 +253,9 @@
 
   <class className="org.intermine.model.bio.Drug">
     <fields>
+      <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="drugBankId"/>
       <fieldconfig fieldExpr="genericName" />
-      <fieldconfig fieldExpr="description" showInSummary="false"/>
-      <fieldconfig fieldExpr="casRegistryNumber" showInSummary="false"/>
-      <fieldconfig fieldExpr="keggDrugId" showInSummary="false"/>
     </fields>
     <longdisplayers>
       <displayer src="attributeLinkDisplayer.tile"/>
@@ -338,20 +336,35 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.CompoundGroupInteraction">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.CompoundGroup">
+    <fields>
+      <fieldconfig fieldExpr="inchiKey"/>
+    </fields>
+    <longdisplayers>
+      <displayer src="attributeLinkDisplayer.tile"/>
+    </longdisplayers>
+  </class>
+
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
   <tableExportConfig id="gff3" className="org.intermine.bio.web.export.GFF3HttpExporter"/>
   
 <!-- widgets -->
 <widgets>
-      <enrichmentwidgetdisplayer id="pathway_enrichment" title="KEGG Pathway Enrichment"
+      <enrichmentwidgetdisplayer id="pathway_enrichment" title="Pathway Enrichment"
                                  link="org.intermine.bio.web.widget.TmPathwayURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.PathwayDataLoader"
                                  label="Pathway"
                                  description="Pathways enriched for genes in this list."
-                                 externalLink="http://www.genome.jp/kegg-bin/show_pathway?map"
-                                 typeClass="org.intermine.model.bio.Gene"
-                                 externalLinkLabel="KEGG:" />
+                                 filters="All datasets,KEGG,Reactome,NCI" 
+                                 filterLabel="DataSet" 
+                                 typeClass="org.intermine.model.bio.Gene" />
 <!--
       <graphdisplayer id="pathway_distribution" title="Pathway Distribution"
 								link="org.intermine.bio.web.widget.PathwayGraphURLGenerator"
@@ -362,14 +375,14 @@
 								graphType="BarChart"
 								typeClass="org.intermine.model.bio.Gene"  />
 -->
-      <enrichmentwidgetdisplayer id="protein_pathway_enrichment" title="KEGG Pathway Enrichment"
+      <enrichmentwidgetdisplayer id="protein_pathway_enrichment" title="Pathway Enrichment"
                                  link="org.intermine.bio.web.widget.TmPathwayURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.ProteinPathwayDataLoader"
-                                 label="Pathway"
+                                 label="Pathways"
                                  description="Pathways enriched for proteins in this list."
-                                 externalLink="http://www.genome.jp/kegg-bin/show_pathway?map"
-                                 typeClass="org.intermine.model.bio.Protein"
-                                 externalLinkLabel="KEGG:" />
+                                 filters="All datasets,KEGG,Reactome,NCI"
+                                 filterLabel="DataSet" 
+                                 typeClass="org.intermine.model.bio.Protein" />
  
       <enrichmentwidgetdisplayer id="go_enrichment" title="Gene Ontology Enrichment"
                                  link="org.intermine.bio.web.widget.TmGoStatURLQuery"
@@ -377,7 +390,7 @@
                                  description="GO terms enriched for items in this list."
                                  label="GO Term"
                                  filters="biological_process,cellular_component,molecular_function"
-                                 filterLabel="Ontology"
+                                 filterLabel="NS"
                                  typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term-details.cgi?term=" />
 
@@ -426,7 +439,7 @@
                                  externalLink="http://www.drugbank.ca/drugs/"
                                  typeClass="org.intermine.model.bio.Protein"
                                  externalLinkLabel="DrugBank:" />
- 
+ <!--
       <bagtabledisplayer id="table_drugs_protein" title="Associated Drugs"
                          link="org.intermine.bio.web.widget.DrugURLQuery"
                          pathStrings="Protein.drugs.drug"
@@ -435,7 +448,7 @@
                          exportField="primaryAccession"
                          typeClass="org.intermine.model.bio.Protein"
                          columnTitle="Targeted Proteins"/>
-
+-->
       <bagtabledisplayer id="table_drugs_gene" title="Associated Drugs"
                          link="org.intermine.bio.web.widget.DrugURLQuery"
                          pathStrings="Gene.proteins.drugs.drug"
@@ -446,7 +459,7 @@
                          externalLinkLabel="DrugBank:"
                          externalLink="http://www.drugbank.ca/drugs/"
                          columnTitle="Targeted Genes"/>
-
+<!--
       <bagtabledisplayer id="table_ppis" title="Protein-Protein Interactions"
                          link="org.intermine.bio.web.widget.PpiURLQuery"
                          pathStrings="Protein.proteinInteractions.representativePartner"
@@ -455,6 +468,7 @@
                          exportField="primaryAccession"
                          typeClass="org.intermine.model.bio.Protein"
                          columnTitle="PPIs"/>
+-->
 
 </widgets>
 </webconfig>

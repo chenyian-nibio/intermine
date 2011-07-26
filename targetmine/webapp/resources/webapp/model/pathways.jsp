@@ -9,10 +9,18 @@
       </div>
       <div class="body">
 
-        <dt>The pathway data in the KEGG database have been manually
+		<p><b>KEGG pathway</b>
+        <div>The pathway data in the KEGG database have been manually
         entered from published materials. Current KEGG data in TargetMine only
         include Human, Rat, Mouse, and Drosophila KEGG pathway names with their IDs and
-        the genes involved.</dt>
+        the genes involved.</div>
+        </p>
+        <p><b>Reactome pathway</b>
+        <div>TargetMine integrate Reactome pathways for Human, Rat, Mouse, and Drosophila.</div>
+        </p>
+        <p><b>NCI pathway</b>
+        <div>NCI pathways are only available for Human.</div>
+        </p>
 
        </div>
     </td>

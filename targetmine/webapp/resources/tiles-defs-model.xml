@@ -15,3 +15,4 @@
 
 <!-- TargetMine -->
 <definition name="pathwayLinkDisplayer.tile" path="/model/tmPathwayLinkDisplayer.jsp" />
+<definition name="compoundLinkDisplayer.tile" path="/model/compoundLinkDisplayer.jsp" />

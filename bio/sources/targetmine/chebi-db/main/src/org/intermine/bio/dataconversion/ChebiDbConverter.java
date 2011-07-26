@@ -27,7 +27,7 @@ import java.util.Map;
 
 /**
  * 
- * @author
+ * @author chenyian
  */
 public class ChebiDbConverter extends BioDBConverter {
 	private static final Logger LOG = Logger.getLogger(ChebiDbConverter.class);

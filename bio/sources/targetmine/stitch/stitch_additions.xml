@@ -11,6 +11,7 @@
 
 	<class name="Protein" is-interface="true">
 		<collection name="chemicalInteractions" referenced-type="StitchInteraction" reverse-reference="proteins"/>
+		<collection name="compoundGroups" referenced-type="CompoundGroupInteraction" reverse-reference="protein"/>
     </class>
 
     <class name="ChebiCompound" extends="Compound" is-interface="true">
@@ -27,6 +28,23 @@
     </class>
 
     <class name="Compound" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
     </class>
-	
+
+
+	<!-- For post processing; need the source pubchem to integrate CompoundGroup info -->	
+    <class name="CompoundGroup" is-interface="true">
+		<attribute name="inchiKey" type="java.lang.String"/>
+		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
+		<collection name="proteins" referenced-type="CompoundGroupInteraction" reverse-reference="compoundGroup" />
+    </class>
+
+	<class name="CompoundGroupInteraction" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="proteins"/>
+		<reference name="protein" referenced-type="Protein" reverse-reference="compoundGroups"/>
+		<reference name="dataSet" referenced-type="DataSet"/>
+    </class>
+
 </classes>

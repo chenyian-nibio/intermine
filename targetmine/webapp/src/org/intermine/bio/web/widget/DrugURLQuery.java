@@ -33,8 +33,7 @@ public class DrugURLQuery implements WidgetURLQuery {
 		PathQuery q = new PathQuery(os.getModel());
 		if (bagType.equals("Gene")) {
 			q.addViews("Gene.ncbiGeneNumber", "Gene.symbol", "Gene.name",
-					"Gene.proteins.drugs.drug.drugBankId", "Gene.proteins.drugs.drug.hetId",
-					"Gene.proteins.drugs.drug.genericName");
+					"Gene.proteins.drugs.drug.drugBankId", "Gene.proteins.drugs.drug.genericName");
 			q.addConstraint(Constraints.in(bag.getType(), bag.getName()));
 			if (!showAll) {
 				String[] keys = key.split(",");
@@ -45,8 +44,7 @@ public class DrugURLQuery implements WidgetURLQuery {
 
 		} else if (bagType.equals("Protein")) {
 			q.addViews("Protein.primaryAccession", "Protein.name", "Protein.organism.name",
-					"Protein.drugs.drug.drugBankId", "Protein.drugs.drug.hetId",
-					"Protein.drugs.drug.genericName");
+					"Protein.drugs.drug.drugBankId", "Protein.drugs.drug.genericName");
 			q.addConstraint(Constraints.in(bag.getType(), bag.getName()));
 			if (!showAll) {
 				String[] keys = key.split(",");

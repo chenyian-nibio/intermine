@@ -39,7 +39,7 @@ import org.intermine.xml.full.Item;
 
 /**
  * 
- * @author
+ * @author chenyian
  */
 public class Biopax3Converter extends BioFileConverter {
 
