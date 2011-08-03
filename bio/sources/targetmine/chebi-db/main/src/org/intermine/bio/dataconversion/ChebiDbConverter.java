@@ -10,6 +10,12 @@ package org.intermine.bio.dataconversion;
  *
  */
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
@@ -17,13 +23,6 @@ import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.sql.Database;
 import org.intermine.xml.full.Item;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 
@@ -36,7 +35,9 @@ public class ChebiDbConverter extends BioDBConverter {
 	private static final String DATASET_TITLE = "ChEBI";
 	private static final String DATA_SOURCE_NAME = "ChEBI";
 
-	private Map<String, String> compoundGroupMap = new HashMap<String, String>();
+	private Map<String, Item> compoundGroupMap = new HashMap<String, Item>();
+
+	private Map<String, String> nameMap = new HashMap<String, String>();
 
 	/**
 	 * Construct a new ChebiDbConverter.
@@ -81,9 +82,10 @@ public class ChebiDbConverter extends BioDBConverter {
 
 			String chebiId = String.valueOf(res.getInt("c1.id"));
 			String name = res.getString("c1.name");
-			
+
 			String structure = res.getString("s1.structure");
-			String inchiKey = structure.substring(structure.indexOf("=")+1, structure.indexOf("-"));
+			String inchiKey = structure.substring(structure.indexOf("=") + 1, structure
+					.indexOf("-"));
 			if (inchiKey.length() != 14) {
 				LOG.info(String.format("Bad InChIKey value: %s, %s .", chebiId, structure));
 				continue;
@@ -94,27 +96,34 @@ public class ChebiDbConverter extends BioDBConverter {
 				chebiId = String.valueOf(res.getInt("c1.parent_id"));
 			}
 
-
 			Item item = createItem("ChebiCompound");
 			item.setAttribute("identifier", String.format("CHEBI: %s", chebiId));
 			item.setAttribute("chebiId", chebiId);
 			item.setAttribute("name", name);
-			item.setReference("compoundGroup", getCompoundGroup(inchiKey));
+
+			item.setReference("compoundGroup", getCompoundGroup(inchiKey, name));
 			store(item);
 
 		}
 	}
 
-	private String getCompoundGroup(String inchiKey) throws ObjectStoreException {
-		String ret = compoundGroupMap.get(inchiKey);
+	private Item getCompoundGroup(String inchiKey, String name) throws ObjectStoreException {
+		Item ret = compoundGroupMap.get(inchiKey);
 		if (ret == null) {
-			Item item = createItem("CompoundGroup");
-			item.setAttribute("inchiKey", inchiKey);
-			store(item);
-			ret = item.getIdentifier();
+			ret = createItem("CompoundGroup");
+			ret.setAttribute("inchiKey", inchiKey);
 			compoundGroupMap.put(inchiKey, ret);
 		}
+		if (nameMap.get(inchiKey) == null || nameMap.get(inchiKey).length() > name.length()) {
+			nameMap.put(inchiKey, name);
+			ret.setAttribute("name", name);
+		}
 		return ret;
+	}
+	
+	@Override
+	public void close() throws Exception {
+		store(compoundGroupMap.values());
 	}
 
 	/**

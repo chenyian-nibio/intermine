@@ -194,6 +194,7 @@
   <class className="org.intermine.model.bio.Compound">
     <fields>
       <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="name"/>
     </fields>
     <longdisplayers>
       <displayer src="attributeLinkDisplayer.tile"/>
@@ -250,7 +251,7 @@
       <fieldconfig fieldExpr="drug.drugBankId" />
     </fields>
   </class>
-
+<!--
   <class className="org.intermine.model.bio.Drug">
     <fields>
       <fieldconfig fieldExpr="identifier"/>
@@ -261,7 +262,7 @@
       <displayer src="attributeLinkDisplayer.tile"/>
     </longdisplayers>
   </class>
-
+-->
   <class className="org.intermine.model.bio.Enzyme">
     <fields>
       <fieldconfig fieldExpr="ecNumber"/>
@@ -345,6 +346,7 @@
   <class className="org.intermine.model.bio.CompoundGroup">
     <fields>
       <fieldconfig fieldExpr="inchiKey"/>
+      <fieldconfig fieldExpr="name"/>
     </fields>
     <longdisplayers>
       <displayer src="attributeLinkDisplayer.tile"/>
@@ -404,6 +406,15 @@
                                  externalLink="http://www.ncbi.nlm.nih.gov/omim/"
                                  typeClass="org.intermine.model.bio.Gene"
                                  externalLinkLabel="OMIM:" />
+      <enrichmentwidgetdisplayer id="protein_omim_enrichment" title="OMIM Enrichment"
+                                 link="org.intermine.bio.web.widget.OmimURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.ProteinOmimDataLoader"
+                                 label="Disease"
+                                 description="Disease enriched for proteins in this list."
+                                 externalLink="http://www.ncbi.nlm.nih.gov/omim/"
+                                 typeClass="org.intermine.model.bio.Protein"
+                                 externalLinkLabel="OMIM:" />
+
 <!-- 
       <graphdisplayer id="omim_distribution" title="OMIM disease Distribution"
 								domainLabel="OMIM disease"
@@ -413,15 +424,6 @@
 								graphType="BarChart"
 								typeClass="org.intermine.model.bio.Gene"  />
 -->
-
-      <enrichmentwidgetdisplayer id="protein_omim_enrichment" title="OMIM Enrichment"
-                                 link="org.intermine.bio.web.widget.OmimURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.ProteinOmimDataLoader"
-                                 label="Disease"
-                                 description="Disease enriched for proteins in this list."
-                                 externalLink="http://www.ncbi.nlm.nih.gov/omim/"
-                                 typeClass="org.intermine.model.bio.Protein"
-                                 externalLinkLabel="OMIM:" />
 
       <enrichmentwidgetdisplayer id="do_enrichment" title="Disease Ontology Enrichment"
                                  link="org.intermine.bio.web.widget.DoURLQuery"

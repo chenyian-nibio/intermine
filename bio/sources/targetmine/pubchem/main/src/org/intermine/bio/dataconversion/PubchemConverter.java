@@ -11,6 +11,8 @@ package org.intermine.bio.dataconversion;
  */
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,7 +36,7 @@ public class PubchemConverter extends BioFileConverter {
 	private static final String DATASET_TITLE = "PubChem";
 	private static final String DATA_SOURCE_NAME = "PubChem";
 
-	private Map<String, String> compoundGroupMap = new HashMap<String, String>();
+	private Map<String, Item> compoundGroupMap = new HashMap<String, Item>();
 
 	/**
 	 * Constructor
@@ -48,19 +50,37 @@ public class PubchemConverter extends BioFileConverter {
 		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
 	}
 
+	private File meshFile;
+
+	public void setMeshFile(File file) {
+		this.meshFile = file;
+	}
+
+	private Map<String, String> meshNameMap = new HashMap<String, String>();
+
+	private void getMeshName() throws Exception {
+		Iterator<String[]> iterator = FormattedTextParser
+				.parseTabDelimitedReader(new BufferedReader(new FileReader(meshFile)));
+		while (iterator.hasNext()) {
+			String[] cols = iterator.next();
+			meshNameMap.put(cols[0], cols[1]);
+		}
+	}
+
 	/**
 	 * 
 	 * 
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
+		getMeshName();
 		Iterator<String[]> iterator = FormattedTextParser
 				.parseTabDelimitedReader(new BufferedReader(reader));
 
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
 			String cid = cols[0];
-			if (StringUtils.isEmpty(cols[1])){
+			if (StringUtils.isEmpty(cols[1])) {
 				LOG.info("Empty InChIKey for id :" + cid);
 				continue;
 			}
@@ -72,21 +92,36 @@ public class PubchemConverter extends BioFileConverter {
 			Item item = createItem("PubChemCompound");
 			item.setAttribute("identifier", String.format("PubChem: %s", cid));
 			item.setAttribute("pubChemCid", cid);
-			item.setReference("compoundGroup", getCompoundGroup(inchiKey));
+			String name = meshNameMap.get(cid);
+			if (name != null) {
+//				item.setAttribute("name", name + " (MeSH)");
+				item.setAttribute("name", name);
+			}
+			item.setReference("compoundGroup", getCompoundGroup(inchiKey, name));
 			store(item);
 		}
 	}
 
-	private String getCompoundGroup(String inchiKey) throws ObjectStoreException {
-		String ret = compoundGroupMap.get(inchiKey);
+	private Map<String, String> nameMap = new HashMap<String, String>();
+
+	private Item getCompoundGroup(String inchiKey, String name) throws ObjectStoreException {
+		Item ret = compoundGroupMap.get(inchiKey);
 		if (ret == null) {
-			Item item = createItem("CompoundGroup");
-			item.setAttribute("inchiKey", inchiKey);
-			store(item);
-			ret = item.getIdentifier();
+			ret = createItem("CompoundGroup");
+			ret.setAttribute("inchiKey", inchiKey);
 			compoundGroupMap.put(inchiKey, ret);
 		}
+		// randomly pick one name
+		if (nameMap.get(inchiKey) == null && name != null) {
+			nameMap.put(inchiKey, name);
+			ret.setAttribute("name", name);
+		}
 		return ret;
+	}
+
+	@Override
+	public void close() throws Exception {
+		store(compoundGroupMap.values());
 	}
 
 }

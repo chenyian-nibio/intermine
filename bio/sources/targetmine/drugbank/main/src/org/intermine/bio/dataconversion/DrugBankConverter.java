@@ -250,6 +250,8 @@ public class DrugBankConverter extends BioFileConverter {
 			}
 			oDrug.setAttribute("description", m_oDescription.toString());
 			oDrug.setAttribute( "genericName", m_oGenericName );
+			// chenyian: Compound's attribute
+			oDrug.setAttribute( "name", m_oGenericName );
 			if (notEmpty(m_oKeggDrugId)){
 				oDrug.setAttribute("keggDrugId", m_oKeggDrugId);
 			}
@@ -274,7 +276,7 @@ public class DrugBankConverter extends BioFileConverter {
 				if (inchiKey.length() != 14) {
 					m_oLogger.info(String.format("Bad InChIKey value: %s, %s .", m_oPrimaryAccNo, m_oInchiKey));
 				} else {
-					oDrug.setReference("compoundGroup", getCompoundGroup(inchiKey));
+					oDrug.setReference("compoundGroup", getCompoundGroup(inchiKey, m_oGenericName));
 				}
 			}
 			
@@ -347,6 +349,7 @@ public class DrugBankConverter extends BioFileConverter {
 		if (ret == null) {
 			Item item = createItem("HetGroup");
 			item.setAttribute("hetId", hetId);
+			item.setAttribute("identifier", String.format("HetGroup: %s", hetId));
 			store(item);
 			ret = item.getIdentifier();
 			hetGroupMap.put(hetId, ret);
@@ -359,6 +362,7 @@ public class DrugBankConverter extends BioFileConverter {
 		if (ret == null) {
 			Item item = createItem("ChebiCompound");
 			item.setAttribute("chebiId", chebiId);
+			item.setAttribute("identifier", String.format("CHEBI: %s", chebiId));
 			store(item);
 			ret = item.getIdentifier();
 			chebiCompoundMap.put(chebiId, ret);
@@ -371,6 +375,7 @@ public class DrugBankConverter extends BioFileConverter {
 		if (ret == null) {
 			Item item = createItem("PubChemCompound");
 			item.setAttribute("pubChemCid", pubChemCid);
+			item.setAttribute("identifier", String.format("PubChem: %s", pubChemCid));
 			store(item);
 			ret = item.getIdentifier();
 			pubChemMap.put(pubChemCid, ret);
@@ -378,11 +383,13 @@ public class DrugBankConverter extends BioFileConverter {
 		return ret;
 	}
 	
-	private String getCompoundGroup(String inchiKey) throws ObjectStoreException {
+	private String getCompoundGroup(String inchiKey, String name) throws ObjectStoreException {
 		String ret = compoundGroupMap.get(inchiKey);
 		if (ret == null) {
 			Item item = createItem("CompoundGroup");
 			item.setAttribute("inchiKey", inchiKey);
+			// chenyian: randomly pick one name 
+			item.setAttribute("name", name);
 			store(item);
 			ret = item.getIdentifier();
 			compoundGroupMap.put(inchiKey, ret);

@@ -23,12 +23,11 @@
 		<attribute name="pubChemCid" type="java.lang.String"/>
 		<collection name="chebiCompounds" referenced-type="ChebiCompound" reverse-reference="pubChemCompounds"/>
 		<collection name="proteinInteractions" referenced-type="StitchInteraction" reverse-reference="compound" />
-		<attribute name="name" type="java.lang.String"/>
-		<attribute name="molecularWeight" type="java.lang.Float"/>
     </class>
 
     <class name="Compound" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
 		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
     </class>
 
@@ -36,6 +35,7 @@
 	<!-- For post processing; need the source pubchem to integrate CompoundGroup info -->	
     <class name="CompoundGroup" is-interface="true">
 		<attribute name="inchiKey" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
 		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
 		<collection name="proteins" referenced-type="CompoundGroupInteraction" reverse-reference="compoundGroup" />
     </class>

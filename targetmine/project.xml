@@ -48,16 +48,6 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ipi-ipc"/>
       <property name="src.data.dir.includes" value="ipi.*.IPC"/>
     </source>
- <!-- chenyian: disabled for external version 
- --> 
-    <source name="protein-analysis" type="protein-analysis">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis"/>
-      <property name="src.data.dir.includes" value="result.out"/>
-    </source>
-    <source name="fugue" type="fugue">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis/fugue_result"/>
-      <property name="src.data.dir.includes" value="*"/>
-    </source>
     <source name="integr8" type="integr8">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/integr8"/>
       <property name="src.data.dir.includes" value="*.IPC"/>
@@ -85,15 +75,24 @@
       <property name="src.data.dir.includes" value="drugbank.txt"/>
     </source>
   	
-<!--Added by Chen: Start -->
     <source name="kegg-pathway" type="kegg-pathway">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg"/>
       <property name="src.data.dir.includes" value="*.tab"/>
       <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg/pathway_class"/>
       <property name="kegg.organisms" value="7227 9606 10090 10116"	/>
     </source>
-<!-- chenyian: disabled for external version 
--->
+    
+ <!-- chenyian: disabled for external version 
+ --> 
+    <source name="protein-analysis" type="protein-analysis">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis"/>
+      <property name="src.data.dir.includes" value="result.out"/>
+    </source>
+    <source name="fugue" type="fugue">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis/fugue_result"/>
+      <property name="src.data.dir.includes" value="*"/>
+    </source>
+<!--Added by Chen: Start -->
     <source name="omim-gene" type="omim-gene">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/omim"/>
       <property name="src.data.dir.includes" value="omim_phenotype_title"/>
@@ -154,13 +153,13 @@
     <source name="stitch" type="stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
       <property name="src.data.dir.includes" value="*.detailed.tsv" />
-      <property name="chemicalsFile" value="/data/bio/db/Targetmine/stitch/chemicals.v2.0.tsv" />
       <property name="compoundMapFile" value="/data/bio/db/Targetmine/stitch/pubchem_mapping" />
       <property name="osAlias" value="os.production"/>
     </source>
     <source name="pubchem" type="pubchem">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pubchem" />
       <property name="src.data.dir.includes" value="cid-inchikey-ext" />
+      <property name="meshFile" value="/data/bio/db/Targetmine/pubchem/CID-MeSH" />
     </source>
     <source name="chebi-db" type="chebi-db">
       <property name="source.db.name" value="chebi-db"/>

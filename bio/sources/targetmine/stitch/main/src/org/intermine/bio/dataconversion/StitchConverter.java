@@ -50,7 +50,7 @@ public class StitchConverter extends BioFileConverter {
 
 	private Map<String, String> proteinMap = new HashMap<String, String>();
 	private Map<String, String> compoundMap = new HashMap<String, String>();
-	private Map<String, Item> pubChemCompoundMap = new HashMap<String, Item>();
+	private Map<String, String> pubChemCompoundMap = new HashMap<String, String>();
 
 	// get id map from integrated data
 	private Map<String, Set<String>> primaryIdMap;
@@ -157,19 +157,20 @@ public class StitchConverter extends BioFileConverter {
 		return ret;
 	}
 
-	private Item getPubChemCompound(String cid) throws ObjectStoreException {
-		Item ret = pubChemCompoundMap.get(cid);
+	private String getPubChemCompound(String cid) throws ObjectStoreException {
+		String ret = pubChemCompoundMap.get(cid);
 		if (ret == null) {
-			ret = createItem("PubChemCompound");
-			ret.setAttribute("pubChemCid", cid);
+			Item item = createItem("PubChemCompound");
+			item.setAttribute("pubChemCid", cid);
 
 			Set<String> chebiIds = chebiIdMap.get(cid);
 			if (chebiIds != null) {
 				for (String chebiId : chebiIds) {
-					ret.addToCollection("chebiCompounds", getChebiCompound(chebiId));
+					item.addToCollection("chebiCompounds", getChebiCompound(chebiId));
 				}
 			}
-
+			store(item);
+			ret = item.getIdentifier();
 			pubChemCompoundMap.put(cid, ret);
 		}
 		return ret;
@@ -262,31 +263,6 @@ public class StitchConverter extends BioFileConverter {
 			e.printStackTrace();
 		}
 
-	}
-
-	private File chemicalsFile;
-
-	public void setChemicalsFile(File file) {
-		this.chemicalsFile = file;
-	}
-
-	@Override
-	public void close() throws Exception {
-		// read cheimicals file to fill the name and molecular weight
-		Iterator<String[]> iterator = FormattedTextParser
-				.parseTabDelimitedReader(new BufferedReader(new FileReader(chemicalsFile)));
-		// skip the header
-		iterator.next();
-		while (iterator.hasNext()) {
-			String[] cols = iterator.next();
-			String cid = cols[0].substring(3).replaceAll("^0*", "");
-			Item item = pubChemCompoundMap.get(cid);
-			if (item != null) {
-				item.setAttribute("name", cols[1]);
-				item.setAttribute("molecularWeight", cols[2]);
-			}
-		}
-		store(pubChemCompoundMap.values());
 	}
 
 }
