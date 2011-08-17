@@ -345,7 +345,7 @@
 
   <class className="org.intermine.model.bio.CompoundGroup">
     <fields>
-      <fieldconfig fieldExpr="inchiKey"/>
+      <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="name"/>
     </fields>
     <longdisplayers>

@@ -387,7 +387,7 @@ public class DrugBankConverter extends BioFileConverter {
 		String ret = compoundGroupMap.get(inchiKey);
 		if (ret == null) {
 			Item item = createItem("CompoundGroup");
-			item.setAttribute("inchiKey", inchiKey);
+			item.setAttribute("identifier", inchiKey);
 			// chenyian: randomly pick one name 
 			item.setAttribute("name", name);
 			store(item);

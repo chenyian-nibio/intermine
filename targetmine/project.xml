@@ -83,7 +83,6 @@
     </source>
     
  <!-- chenyian: disabled for external version 
- --> 
     <source name="protein-analysis" type="protein-analysis">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis"/>
       <property name="src.data.dir.includes" value="result.out"/>
@@ -92,12 +91,13 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis/fugue_result"/>
       <property name="src.data.dir.includes" value="*"/>
     </source>
-<!--Added by Chen: Start -->
     <source name="omim-gene" type="omim-gene">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/omim"/>
       <property name="src.data.dir.includes" value="omim_phenotype_title"/>
       <property name="mim2geneFile" value="/data/bio/db/Targetmine/omim/mim2gene" />
     </source>
+ --> 
+<!--Added by Chen: Start -->
 
     <source name="pdb_ext" type="pdb_ext">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pdb/derived_data/index" />
@@ -112,6 +112,7 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ligand_expo" />
       <property name="src.data.dir.includes" value="cc-to-pdb.tdd" />
       <property name="inchiKeyFile" value="/data/bio/db/Targetmine/ligand_expo/Components-inchikey.ich" />
+      <property name="hetNameFile" value="/data/bio/db/Targetmine/ligand_expo/het_name.txt" />
     </source>
     <source name="amadeus" type="metazoan" dump="true">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/metazoan" />

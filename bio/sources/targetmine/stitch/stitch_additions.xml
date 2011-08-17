@@ -34,7 +34,7 @@
 
 	<!-- For post processing; need the source pubchem to integrate CompoundGroup info -->	
     <class name="CompoundGroup" is-interface="true">
-		<attribute name="inchiKey" type="java.lang.String"/>
+		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
 		<collection name="proteins" referenced-type="CompoundGroupInteraction" reverse-reference="compoundGroup" />

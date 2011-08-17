@@ -80,7 +80,7 @@ public class DrugBankPostProcess extends PostProcessor {
 			cgi.setFieldValue("dataSet", dataSet);
 			try {
 				String primaryAcc = (String) protein.getFieldValue("primaryAccession");
-				String inchiKey = (String) compoundGroup.getFieldValue("inchiKey");
+				String inchiKey = (String) compoundGroup.getFieldValue("identifier");
 				cgi.setFieldValue("identifier", String.format("%s_%s", primaryAcc, inchiKey));
 			} catch (IllegalAccessException e) {
 				throw new RuntimeException(e);

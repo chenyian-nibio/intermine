@@ -111,7 +111,7 @@ public class ChebiDbConverter extends BioDBConverter {
 		Item ret = compoundGroupMap.get(inchiKey);
 		if (ret == null) {
 			ret = createItem("CompoundGroup");
-			ret.setAttribute("inchiKey", inchiKey);
+			ret.setAttribute("identifier", inchiKey);
 			compoundGroupMap.put(inchiKey, ret);
 		}
 		if (nameMap.get(inchiKey) == null || nameMap.get(inchiKey).length() > name.length()) {

@@ -108,7 +108,7 @@ public class PubchemConverter extends BioFileConverter {
 		Item ret = compoundGroupMap.get(inchiKey);
 		if (ret == null) {
 			ret = createItem("CompoundGroup");
-			ret.setAttribute("inchiKey", inchiKey);
+			ret.setAttribute("identifier", inchiKey);
 			compoundGroupMap.put(inchiKey, ret);
 		}
 		// randomly pick one name

@@ -63,6 +63,8 @@ public class LigandExpoConverter extends BioFileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
+		readHetNameFile();
+
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
@@ -88,6 +90,10 @@ public class LigandExpoConverter extends BioFileConverter {
 		if (ret == null) {
 			ret = createItem("HetGroup");
 			ret.setAttribute("hetId", hetId);
+			String name = hetNameMap.get(hetId);
+			if (name != null) {
+				ret.setAttribute("name", name);
+			}
 			ret.setAttribute("identifier", String.format("HetGroup: %s", hetId));
 			hetGroupMap.put(hetId, ret);
 		}
@@ -106,16 +112,48 @@ public class LigandExpoConverter extends BioFileConverter {
 		return ret;
 	}
 
-	private String getCompoundGroup(String inchiKey) throws ObjectStoreException {
+	private String getCompoundGroup(String inchiKey, String name) throws ObjectStoreException {
 		String ret = compoundGroupMap.get(inchiKey);
 		if (ret == null) {
 			Item item = createItem("CompoundGroup");
-			item.setAttribute("inchiKey", inchiKey);
+			item.setAttribute("identifier", inchiKey);
+			if (name != null) {
+				item.setAttribute("name", name);
+			}
 			store(item);
 			ret = item.getIdentifier();
 			compoundGroupMap.put(inchiKey, ret);
 		}
 		return ret;
+	}
+
+	private Map<String, String> hetNameMap = new HashMap<String, String>();
+
+	private File hetNameFile;
+
+	public void setHetNameFile(File hetNameFile) {
+		this.hetNameFile = hetNameFile;
+	}
+
+	private void readHetNameFile() throws Exception {
+		LOG.info("Start to read hetNameFile......");
+
+		Iterator<String[]> iterator = FormattedTextParser
+				.parseTabDelimitedReader(new BufferedReader(new FileReader(hetNameFile)));
+
+		while (iterator.hasNext()) {
+			String[] cols = iterator.next();
+
+			if (StringUtils.isEmpty(cols[0])) {
+				LOG.info("Empty het id :" + cols[0]);
+				continue;
+			}
+			String name = cols[1].trim();
+			name = name.replaceAll("^[;|\"]", "");
+			name = name.replaceAll("[;|\"]$", "");
+
+			hetNameMap.put(cols[0].trim(), name);
+		}
 	}
 
 	private File inchiKeyFile;
@@ -130,8 +168,8 @@ public class LigandExpoConverter extends BioFileConverter {
 
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
-			
-			LOG.info(cols[0]);
+
+			// LOG.info(cols[0]);
 			if (StringUtils.isEmpty(cols[0])) {
 				LOG.info("Empty InChIKey for id :" + cols[1]);
 				continue;
@@ -142,10 +180,11 @@ public class LigandExpoConverter extends BioFileConverter {
 				LOG.info(String.format("Bad InChIKey value: %s, %s .", cols[1], cols[0]));
 				continue;
 			}
-			hetGroup.setReference("compoundGroup", getCompoundGroup(inchiKey));
+			hetGroup.setReference("compoundGroup", getCompoundGroup(inchiKey, hetNameMap
+					.get(cols[1])));
 		}
 	}
-	
+
 	@Override
 	public void close() throws Exception {
 		store(hetGroupMap.values());
