@@ -10,8 +10,8 @@ package org.intermine.bio.dataconversion;
  *
  */
 
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.File;
+import java.io.StringReader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
@@ -20,38 +20,38 @@ import org.intermine.dataconversion.ItemsTestCase;
 import org.intermine.dataconversion.MockItemWriter;
 import org.intermine.metadata.Model;
 
-public class PsiConverterTest extends ItemsTestCase
+public class ReactomeConverterTest extends ItemsTestCase
 {
-
-    PsiConverter converter;
+    Model model = Model.getInstanceByName("genomic");
+    ReactomeConverter converter;
     MockItemWriter itemWriter;
 
-    public PsiConverterTest(String arg) {
+    public ReactomeConverterTest(String arg) {
         super(arg);
     }
 
     public void setUp() throws Exception {
+        super.setUp();
         itemWriter = new MockItemWriter(new HashMap());
-        converter = new PsiConverter(itemWriter,  Model.getInstanceByName("genomic"));
-        converter.setIntactOrganisms("7227");
+        converter = new ReactomeConverter(itemWriter, model);
         MockIdResolverFactory resolverFactory = new MockIdResolverFactory("Gene");
         resolverFactory.addResolverEntry("7227", "FBgn001", Collections.singleton("FBgn001"));
-        resolverFactory.addResolverEntry("7227", "FBgn002", Collections.singleton("FBgn002"));
-        converter.flyResolverFactory = resolverFactory;
-        super.setUp();
+        resolverFactory.addResolverEntry("7227", "FBgn003", Collections.singleton("FBgn002"));
+        converter.resolverFactory = resolverFactory;
     }
 
     public void testProcess() throws Exception {
 
-        Reader reader = new InputStreamReader(getClass().getClassLoader()
-                                            .getResourceAsStream("PsiConverterTest_src.xml"));
-        converter.process(reader);
+        String input = "pathway\tgene" + ENDL + "pathway1\tFBgn001" + ENDL;
+        converter.setReactomeOrganisms("7227");
+        converter.setCurrentFile(new File("7227.tsv"));
+        converter.process(new StringReader(input));
         converter.close();
 
         // uncomment to write out a new target items file
-        //writeItemsFile(itemWriter.getItems(), "psi-tgt-items.xml");
+        //writeItemsFile(itemWriter.getItems(), "reactome-tgt-items.xml");
 
-        Set expected = readItemSet("PsiConverterTest_tgt.xml");
+        Set expected = readItemSet("ReactomeConverterTest_tgt.xml");
 
         assertEquals(expected, itemWriter.getItems());
     }
