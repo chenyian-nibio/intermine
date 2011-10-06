@@ -5,6 +5,7 @@
 <%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="im"%>
+<%@ taglib uri="/WEB-INF/functions.tld" prefix="imf" %>
 
 <!-- begin.jsp -->
 <html:xhtml/>
@@ -39,9 +40,29 @@
                 <form name="buildBagForm" method="post" action="<c:url value="/buildBag.do" />">
                     <select name="type">
                       <c:forEach var="bag" items="${preferredBags}">
-                        <option value="<c:out value="${bag}" />"><c:out value="${bag}" /></option>
+                        <option value="<c:out value="${bag}" />"><c:out value="${imf:formatPathStr(bag, INTERMINE_API, WEBCONFIG)}" /></option>
                       </c:forEach>
                     </select>
+
+            <c:if test="${!empty WEB_PROPERTIES['begin.listUpload.values']}">
+            <tr>
+                <td align="right" class="label">
+                       <label>
+                         <fmt:message key="bagBuild.extraConstraint">
+                               <fmt:param value="${extraBagQueryClass}"/>
+                         </fmt:message>
+                       </label>
+                   </td>
+                   <td>
+                     <select name="extraFieldValue">
+                      <c:forEach var="value" items="${WEB_PROPERTIES['begin.listUpload.values']}">
+                        <option value="<c:out value="${value}" />"><c:out value="${value}" /></option>
+                      </c:forEach>
+                    </select>
+                 </td>
+            </tr>
+        </c:if>
+
                     <div class="textarea">
                       <textarea id="listInput" name="text"><c:out value="${WEB_PROPERTIES['bag.example.identifiers']}" /></textarea>
                     </div>
@@ -142,7 +163,7 @@
                           <c:set var="aspectTitle" value="${row.value}"/>
                         </c:when>
                         <c:when test="${row.key == 'description'}">
-                          <p><c:out value="${row.value}" /> <a href="dataCategories.do">Read more</a></p><br/>
+                          <p><c:out value="${row.value}" />&nbsp;<a href="dataCategories.do">Read more</a></p><br/>
                         </c:when>
                         <c:when test="${row.key == 'name'}">
                           <p>Query for <c:out value="${fn:toLowerCase(row.value)}" />:</p>
@@ -150,7 +171,7 @@
                         <c:when test="${row.key == 'templates'}">
                           <ul>
                             <c:forEach var="template" items="${row.value}">
-                              <li><a href="template.do?name=${template.name}"><c:out value="${fn:replace(template.title,'-->','&nbsp;<img src=\"images/icons/green-arrow-16.png\" style=\"vertical-align:bottom\">&nbsp;')}" escapeXml="false" /></a></li>
+                              <li><a href="template.do?name=${template.name}&scope=global"><c:out value="${fn:replace(template.title,'-->','&nbsp;<img src=\"images/icons/green-arrow-16.png\" style=\"vertical-align:bottom\">&nbsp;')}" escapeXml="false" /></a></li>
                             </c:forEach>
                           </ul>
                           <p class="more"><a href="templates.do?filter=${aspectTitle}">More queries</a></p>
@@ -163,6 +184,28 @@
         </div>
       </c:if>
 
+  <c:if test="${fn:length(frontpageBags) > 0}">
+    <div id="lists">
+      <h4>Lists</h4>
+      <p><c:out value="${WEB_PROPERTIES['begin.listsBox.description']}" /></p>
+      <ul>
+        <c:forEach var="bag" items="${frontpageBags}">
+        <li>
+          <h5><a href="bagDetails.do?scope=all&bagName=<c:out value="${fn:replace(bag.value.title, ' ', '+')}"/>">${bag.value.title}</a></h5>
+          <span>(${bag.value.size}&nbsp;<b>${bag.value.type}<c:if test="${bag.value.size > 1}">s</c:if></b>)</span>
+          <c:if test="${!empty(bag.value.description)}">
+            <p>${bag.value.description}</p>
+          </c:if>
+        </li>
+        </c:forEach>
+      </ul>
+
+      <p class="more">
+        <a href="bag.do?subtab=view">More lists</a>
+      </p>
+    </div>
+  </c:if>
+
         <div id="low">
             <div id="rss" style="display:none;">
                 <h4>News<span>&nbsp;&amp;&nbsp;</span>Updates</h4>
@@ -173,12 +216,17 @@
             </div>
 
             <div id="api">
-                <h4>Perl<span>&nbsp;&amp;&nbsp;</span>Java API</h4>
-                <img src="themes/metabolic/icons/perl-java-ico.gif" alt="perl java" />
-                <p>We support programatic access to our data through Application Programming Interface too! Choose from options below:</p>
+                <h4>Perl, Python<span>&nbsp;&amp;&nbsp;</span>Java API</h4>
+                <img src="images/begin/perl-java-python-ico.png" alt="perl java" />
+                <p>
+                    Access our <c:out value="${WEB_PROPERTIES['project.title']}"/> data via
+                    our Application Programming Interface (API) too!
+                    We provide client libraries in the following languages:
+                </p>
                 <ul>
-                    <li><a href="<c:out value="${WEB_PROPERTIES['path']}" />api.do">Perl API</a>
-                    <li><a href="<c:out value="${WEB_PROPERTIES['path']}" />api.do?subtab=java">Java API</a>
+                    <li><a href="<c:out value="${WEB_PROPERTIES['path']}" />api.do?subtab=perl">Perl</a>
+                    <li><a href="<c:out value="${WEB_PROPERTIES['path']}" />api.do?subtab=python">Python</a>
+                    <li><a href="<c:out value="${WEB_PROPERTIES['path']}" />api.do?subtab=java">Java</a>
                 </ul>
             </div>
 
@@ -221,7 +269,7 @@
     // feed URL
     var feedURL = "${WEB_PROPERTIES['project.rss']}";
     // limit number of entries displayed
-    var maxEntries = 2;
+    var maxEntries = 3;
     // where are we appending entries? (jQuery syntax)
     var target = 'table#articles';
 
@@ -301,7 +349,7 @@
         var tmp = document.createElement("DIV"); tmp.innerHTML = html; return tmp.textContent || tmp.innerText;
     }
 
-    var placeholder = '<c:out value="${WEB_PROPERTIES['quickSearch.identifiers']}" />';
+    var placeholder = '<c:out value="${WEB_PROPERTIES['begin.searchBox.example']}" />';
     var placeholderTextarea = '<c:out value="${WEB_PROPERTIES['textarea.identifiers']}" />';
     var inputToggleClass = 'eg';
 

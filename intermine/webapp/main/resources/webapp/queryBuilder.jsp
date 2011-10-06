@@ -4,12 +4,20 @@
 <%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="im" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
 <tiles:importAttribute/>
 
 <!-- queryBuilder.jsp -->
 
 <html:xhtml/>
+
+<div style="display:none">
+<%-- cache --%>
+<img src="images/progress/green-btn-center-hover.png" />
+<img src="images/progress/green-btn-left-hover.png" />
+<img src="images/progress/green-btn-right-hover.png" />
+</div>
 
 <script type="text/javascript" src="js/queryBuilder.js" ></script>
 <%-- Javascript files must be included there because they are not processed when queryBuilderConstraint
@@ -60,7 +68,27 @@
       }
   });
 </script>
-
+<div id="sidebar">
+   <c:if test="${fn:length(viewStrings) <= 0}">
+   <div id="bigGreen" class='button inactive'>
+   <div class="left"></div>
+   <input id="showResult" type="submit" name="showResult"
+          value='<fmt:message key="view.showresults"/>'/>
+          <div class="right"></div>
+   </div>
+   </c:if>
+   <c:if test="${fn:length(viewStrings) > 0}">
+   <div id="bigGreen" class='button'/>
+      <div class="left"></div>
+          <html:form action="/queryBuilderViewAction">
+          <input id="showResult" type="submit" name="showResult"
+          value='<fmt:message key="view.showresults"/>'/>
+          </html:form><div class="right"></div>
+  </div>
+  </c:if>
+  <div style="clear:both;"></div>
+</div>
+<div id="queryBuilderContainer">
 <div id="queryBuilderBrowser" class="modelbrowse" ><tiles:insert page="/queryBuilderBrowser.jsp"/></div>
 
 <div id="rightColumn" >
@@ -68,6 +96,7 @@
     <tiles:insert name="queryBuilderSummary.tile"/>
   </div>
   <a name="constraint-editor"></a>
+</div>
 </div>
 <div style="clear:both;">
   <tiles:get name="queryBuilderView.tile"/>

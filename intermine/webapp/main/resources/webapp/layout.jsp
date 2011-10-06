@@ -7,11 +7,12 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="im"%>
+<%@ taglib uri="/WEB-INF/functions.tld" prefix="imf" %>
 
 <!-- layout.jsp -->
 <html:xhtml/>
 
-<html:html locale="true" xhtml="true">
+<html:html lang="true" xhtml="true">
 
 <c:set var="iePre7" value='<%= new Boolean(request.getHeader("user-agent").matches(".*MSIE [123456].*")) %>' scope="request"/>
 
@@ -28,7 +29,10 @@
 <!-- for microsoft -->
 <meta name="msvalidate.01" content="${WEB_PROPERTIES['searchengines.msn']}" />
 
-<html:base/>
+<c:if test="${pageName == 'begin'}">
+  <html:base/>
+  <%-- <base href="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/${pageName}.do" /> --%>
+</c:if>
 
 <fmt:message key="${pageName}.noFollow" var="noFollow" />
 
@@ -47,7 +51,6 @@
       <tiles:put name="scope" value="${scope}"/>
     </tiles:insert>
   </head>
-  <body>
 
   <!-- Check if the current page has fixed layout -->
   <c:forTokens items="${WEB_PROPERTIES['layout.fixed']}" delims="," var="currentPage">
@@ -56,12 +59,21 @@
     </c:if>
   </c:forTokens>
 
+  <c:choose>
+    <c:when test="${!empty fixedLayout}">
+      <body class="fixed">
+    </c:when>
+    <c:otherwise>
+      <body class="stretched">
+    </c:otherwise>
+  </c:choose>
+
   <!-- Page header -->
   <tiles:insert name="headMenu.tile">
     <tiles:put name="fixedLayout" value="${fixedLayout}"/>
   </tiles:insert>
 
-  <div id="pagecontentcontainer" align="center">
+  <div id="pagecontentcontainer" align="center" class="${pageName}${subtabs[subtabName]}-page">
     <c:choose>
     <c:when test="${!empty fixedLayout}">
       <div id="pagecontent">
@@ -70,43 +82,6 @@
       <div id="pagecontentmax">
     </c:otherwise>
     </c:choose>
-
-  <div id="navtrail">
-
-  <!-- contact us -->
-
-<script type="text/javascript">
-jQuery(document).ready(function() {
-  jQuery("p#contactUsLink").toggle();
-});
-</script>
-
-    <p id="contactUsLink" style="display:none;" class="alignleft">
-    <a href="#" onclick="showContactForm();return false;"><fmt:message key="feedback.link"/></a>
-    </p>
-
-    <p id="takeATourLink" style="display:none;" class="alignleft">
-    <im:popupHelp pageName="tour/start">Take a tour</im:popupHelp>
-    </p>
-
-    <!-- Nav trail -->
-  <fmt:message key="${pageName}.tab" var="tab" />
-  <c:if test="${tab != '???.tab???' && tab != '???tip.tab???'}">
-    <p class="alignright">
-    <html:link href="${WEB_PROPERTIES['project.sitePrefix']}"><c:out value="${WEB_PROPERTIES['project.title']}" escapeXml="false"/></html:link>
-    <c:if test="${! empty tab }">
-      &nbsp;&gt;&nbsp;<html:link action="${tab}"><fmt:message key="menu.${tab}" /></html:link>
-      <c:if test="${pageName != tab}">
-        <fmt:message key="${pageName}.title" var="pageTitle">
-          <fmt:param value="${param.name}"/>
-        </fmt:message>
-        &nbsp;&gt;&nbsp;<c:out value="${pageTitle}" />
-      </c:if>
-    </c:if>
-    <im:contextHelp/>
-</p>
-  </c:if>
- </div>
 
 <div style="clear: both;"></div>
 
@@ -122,6 +97,27 @@ jQuery(document).ready(function() {
       </tiles:insert>
 
       <tiles:get name="body"/>
+
+<script type="text/javascript">
+jQuery(document).ready(function() {
+  jQuery("p#contactUsLink").toggle();
+  });
+
+$MODEL_TRANSLATION_TABLE = {
+    <c:forEach var="cd" items="${INTERMINE_API.model.classDescriptors}" varStatus="cdStat">
+        "${cd.unqualifiedName}": {
+            displayName: "${imf:formatPathStr(cd.unqualifiedName, INTERMINE_API, WEBCONFIG)}",
+            fields: {
+                <c:forEach var="fd" items="${cd.allFieldDescriptors}" varStatus="fdStat">
+                    <c:set var="fdPath" value="${cd.unqualifiedName}.${fd.name}"/>
+                    "${fd.name}": "${imf:formatFieldStr(fdPath, INTERMINE_API, WEBCONFIG)}"<c:if test="${!fdStat.last}">,</c:if>
+                </c:forEach>
+            }
+        }<c:if test="${!cdStat.last}">,</c:if>
+    </c:forEach>
+};
+
+</script>
 
       <%-- Render messages --%>
       <tiles:get name="errorMessages"/>

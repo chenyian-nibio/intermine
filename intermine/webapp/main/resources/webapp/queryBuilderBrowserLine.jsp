@@ -5,103 +5,12 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="im" %>
+<%@ taglib uri="/WEB-INF/functions.tld" prefix="imf" %>
 
 <!-- queryBuilderBrowserLine.jsp -->
 
 <html:xhtml/>
 
-    <style type="text/css">
-
-    span.tree_tee .ver
-    {
-        border:1px solid black;
-        border-right-style:none;
-        border-top-style:none;
-        border-bottom-style:none;
-        padding-top:1px;
-        padding-bottom:8px;
-        position: relative;
-        left: 10px;
-    }
-
-    .tree_tee .hor
-    {
-        border:1px solid black;
-        border-right-style:none;
-        border-left-style:none;
-        border-top-style:none;
-        margin-right:12px;
-        color: white;
-        position: relative;
-        left: 10px;
-        top: -7px
-    }
-
-    .tree_straight .ver
-    {
-        border:1px solid black;
-        border-right-style:none;
-        border-top-style:none;
-        border-bottom-style:none;
-        margin-right:6px;
-        padding-top:1px;
-        padding-bottom:8px;
-        position: relative;
-        left: 10px;
-     }
-
-    .tree_straight .hor
-    {
-         color: #ffffff;
-    }
-
-    .tree_ell .ver
-    {
-        border:1px solid black;
-        border-right-style:none;
-        border-top-style:none;
-        border-bottom-style:none;
-        position: relative;
-        left: 10px;
-        top: -6px
-     }
-
-    .tree_ell .hor
-    {
-        border:1px solid black;
-        border-right-style:none;
-        border-left-style:none;
-        border-top-style:none;
-        margin-right:12px;
-        color: white;
-        position: relative;
-        left: 10px;
-        top: -7px
-     }
-
-    .tree_blank .ver
-    {
-        background-color: #ffffff;
-        font-size: 1px;
-        color: #ffffff;
-    }
-
-    .tree_blank .hor
-    {
-         background-color: #ffffff;
-         font-size: 1px;
-         color: #ffffff;
-         padding-right:13px;
-     }
-
-     .toggle
-     {
-        position: relative;
-        top: 2px;
-     }
-
-    </style>
-    <div class="browserline">
       <c:if test="${node.indentation > 0}">
         &nbsp;&nbsp;&nbsp;&nbsp;
         <c:forEach var="structure" items="${node.structure}">
@@ -113,7 +22,7 @@
 
         </c:forEach>
       </c:if>
-      <a name="${node.pathString}"></a>
+      <a name="${node.pathString}">&nbsp;</a>
       <c:set var="isNull" value="${EMPTY_FIELD_MAP[node.parentType][node.fieldName]}"/>
       <c:if test="${isNull}">
         <span class="nullStrike">
@@ -128,12 +37,14 @@
         </c:when>
         <c:when test="${node.button == '+'}">
           <html:link action="/queryBuilderChange?method=changePath&amp;path=${node.pathString}"
+            title="${node.pathString}"
             onclick="return toggleNode('${node.pathString}', '${node.pathString}')">
             <img class="toggle" id="img_${node.pathString}" border="0" src="images/plus.gif" width="11" height="11" title="+"/>
           </html:link>
         </c:when>
         <c:when test="${node.button == '-'}">
           <html:link action="/queryBuilderChange?method=changePath&amp;path=${node.prefix}"
+            title="${node.pathString}"
             onclick="return toggleNode('${node.pathString}', '${node.pathString}');">
             <img class="toggle" id="img_${node.pathString}" border="0" src="images/minus.gif" width="11" height="11" title="-"/>
           </html:link>
@@ -166,7 +77,7 @@
             <c:set var="fieldNameClass" value="${fieldNameClass} nullReferenceField"/>
           </c:if>
           <span class="${fieldNameClass}" id="drag_${node.pathString}">
-            <c:out value="${node.fieldName}"/>
+              <im:displayfield path="${node.minimalPath}"/>
           </span>
           <im:typehelp type="${node.parentType}.${node.fieldName}"/>
         </c:if>
@@ -182,26 +93,26 @@
           <c:if test="${node.type != 'String'}">
             <c:choose>
               <c:when test="${node.reverseReference && node.reference}">
-                <span class="reverseReference"><c:out value="${node.type}"/></span>
+                <span class="reverseReference"><c:out value="${imf:formatPathStr(node.type, INTERMINE_API, WEBCONFIG)}"/></span>
               </c:when>
               <c:when test="${node.origType != null}">
-                <span class="${type}"><c:out value="${node.origType}"/></span>
+                <span class="${type}"><c:out value="${imf:formatPathStr(node.origType, INTERMINE_API, WEBCONFIG)}"/></span>
                 <fmt:message key="query.usingSubclasses" var="tooltipSubclasses">
                   <fmt:param value="${node.origType}"/>
                   <fmt:param value="${node.type}"/>
                 </fmt:message>
                 <img class="arrow" src="images/usingSubclasses.png" title="${tooltipSubclasses}"/>
-                <span class="subclass"><c:out value="${node.type}"/></span><c:if test="${!isNull}"><im:typehelp type="${node.type}"/></c:if>
+                <span class="subclass"><c:out value="${imf:formatPathStr(node.type, INTERMINE_API, WEBCONFIG)}"/></span><c:if test="${!isNull}">&nbsp;<im:typehelp type="${node.type}"/></c:if>
               </c:when>
               <c:when test="${node.hasSubclasses}">
-                <span class="${type}"">${node.type}</span><c:if test="${!isNull}"><im:typehelp type="${node.type}"/></c:if>
+                <span class="${type}">${imf:formatPathStr(node.type, INTERMINE_API, WEBCONFIG)}</span><c:if test="${!isNull}">&nbsp;<im:typehelp type="${node.type}"/></c:if>
                 <fmt:message key="query.hasSubclasses" var="tooltipSubclasses">
                   <fmt:param value="${node.type}"/>
                 </fmt:message>
                 <img class="arrow" src="images/hasSubclasses.png" title="${tooltipSubclasses}"/>
               </c:when>
               <c:otherwise>
-                <span class="${type}"">${node.type}</span><c:if test="${!isNull}"><im:typehelp type="${node.type}"/></c:if>
+              <span class="${type}"">${imf:formatPathStr(node.type, INTERMINE_API, WEBCONFIG)}</span><c:if test="${!isNull}">&nbsp;<im:typehelp type="${node.type}"/></c:if>
               </c:otherwise>
             </c:choose>
           </c:if>
@@ -230,20 +141,16 @@
         <c:choose>
           <c:when test="${!node.selected && !isNull && summary && KEYLESS_CLASSES_MAP[node.type] == null}">
             <html:link action="/queryBuilderChange?method=addToView&amp;path=${node.pathString}#anchor=${node.pathString}" title="${selectNodeTitle}">
-              <img class="arrow" src="images/show-ref.gif" width="60" height="13" title="show" style="margin-right:-0.5ex"/>
+              <img class="arrow" src="images/show-ref.gif" width="60" height="13"/>
             </html:link>
           </c:when>
-          <c:when test="${summary}">
-              <img class="arrow" src="images/show-ref-disabled.gif" width="60" height="13" title="show" style="margin-right:-0.5ex"/>
-          </c:when>
+          <c:when test="${summary}"><img class="arrow" src="images/show-ref-disabled.gif" width="60" height="13" title="show"/></c:when>
           <c:when test="${!node.selected && !isNull}">
             <html:link action="/queryBuilderChange?method=addToView&amp;path=${node.pathString}#anchor=${node.pathString}" title="${selectNodeTitle}">
-              <img class="arrow" src="images/show.gif" width="43" height="13" title="show" style="margin-right:-0.5ex"/>
+              <img class="arrow" src="images/show.gif" width="43" height="13"/>
             </html:link>
           </c:when>
-          <c:otherwise>
-            <img class="arrow" src="images/show-disabled.gif" width="43" height="13" title="show" style="margin-right:-0.5ex"/>
-          </c:otherwise>
+          <c:otherwise><img class="arrow" src="images/show-disabled.gif" width="43" height="13" title="show"/></c:otherwise>
         </c:choose>
         <c:choose>
           <c:when test="${isNull || !node.canCreateConstraint}">
@@ -252,8 +159,8 @@
           </c:when>
           <c:otherwise>
             <html:link action="/queryBuilderChange?method=newConstraint&path=${node.pathString}#${node.pathString}" title="${addConstraintToTitle}"
-              onclick="return addConstraint('${node.pathString}');" >
-              <img class="arrow" src="images/constrain.gif" width="70" height="13" title="constrain"/>
+                onclick="return addConstraint('${node.pathString}', '${imf:formatPathStr(node.pathString, INTERMINE_API, WEBCONFIG)}');" >
+              <img class="arrow" src="images/constrain.gif" width="70" height="13"/>
             </html:link>
           </c:otherwise>
         </c:choose>
@@ -279,9 +186,5 @@
           <im:helplink text="${strikeThruHelp}"/>
         </c:if>
       </c:if>
-    </div>
-    <%-- this if preserves correct interaction with statically rendered tree --%>
-    <c:if test="${node.button == '+'}">
-      <div id="${node.pathString}"></div><!-- div+ ${node.pathString} -->
-    </c:if>
+
 <!-- /queryBuilderBrowserLine.jsp -->

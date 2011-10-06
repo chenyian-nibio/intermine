@@ -181,7 +181,7 @@ function getColumnSummary(tableName, columnName, columnDisplayName) {
                       <div id="summary_row_count"></div>                      \
                       <div id="summary_unique_count"></div>                   \
                       <br/>                                                   \
-                      <table class="results" cellpadding="0" cellspacing="0"> \
+                      <table class="results summary" cellpadding="0" cellspacing="0"> \
                         <thead id="summary_head">' + headerText +'</thead>    \
                         <tbody id="summary_table">' + bodyText + '</tbody>    \
                       </table>';
@@ -566,7 +566,7 @@ function filterFavourites(type, wsListId) {
         document.getElementById('filter_favourites_'+wsListId+'_'+type).src = 'images/filter_favourites_active.png';
         tags['favourites_' + wsListId] = 'im:favourite';
     }
-    var filterTextElement = document.getElementById(wsListId+'_'+type+'_filter_text');
+    var filterTextElement = document.getElementById('filterText');
     return filterWebSearchablesHandler(null, filterTextElement, type, wsListId);
 }
 
@@ -583,7 +583,7 @@ function filterAspect(type, wsListId) {
         delete tags['aspects_' + wsListId]
     }
 
-    var filterTextElement = document.getElementById(wsListId+'_'+type+'_filter_text');
+    var filterTextElement = document.getElementById('filterText');
     return filterWebSearchablesHandler(null, filterTextElement, type, wsListId);
 }
 
@@ -592,7 +592,7 @@ function filterByUserTag(type, wsListId, tag) {
     selectedUserTag = tag;
 
     // boring stuff to reload new filtered web searchables from server
-    var filterTextElement = document.getElementById(wsListId+'_'+type+'_filter_text');
+    var filterTextElement = document.getElementById('filterText');
     return filterWebSearchablesHandler(null, filterTextElement, type, wsListId);
 }
 
@@ -608,7 +608,7 @@ function changeScope(type, wsListId) {
         document.getElementById(id).value = 'all';
         document.getElementById('filter_scope_'+wsListId+'_'+type).src = 'images/filter_all.png';
     }
-    var filterTextElement = document.getElementById(wsListId+'_'+type+'_filter_text');
+    var filterTextElement = document.getElementById('filterText');
     return filterWebSearchablesHandler(null, filterTextElement, type, wsListId);
 }
 
@@ -636,7 +636,7 @@ function clearFilter(type, wsListId) {
     if ($(aspectId) != null) {
         $(aspectId).value = '';
     }
-    var filterTextElement = document.getElementById(wsListId+'_'+type+'_filter_text');
+    var filterTextElement = document.getElementById('filterText');
     filterTextElement.value = '';
 
     showAll(wsListId, type);
@@ -742,13 +742,19 @@ function validateBagName(formName) {
                   || Event.keyCode ==  40)) {
         return;
     }
+
     var frm = document.forms[formName];
 
     var bagName = frm.newBagName.value;
     AjaxServices.validateBagName(bagName, function(errMsg) {
         if (errMsg != '') {
-            new Insertion.Bottom('error_msg',errMsg + '<br/>');
-            jQuery('#error_msg').fadeIn(2000);
+            jQuery('#bigGreen').removeClass('clicked');
+            var newError = jQuery('<div class="error-message">' + errMsg + "</div>");
+            var errorContainer = jQuery('#error_msg');
+            errorContainer.fadeOut('fast', function() {
+                errorContainer.find('.error-message').remove();
+                errorContainer.append(newError).fadeIn('fast');
+            });
         } else {
             if (frm.operationButton) {
                 frm.operationButton.value="saveNewBag";
@@ -792,92 +798,43 @@ function reDrawConstraintLogic() {
   });
 }
 
-
-function submitOrthologueLinkForm(bagType, bagName, index) {
-    var selectedIndex = document.getElementById("orthologueDatasets" + index).selectedIndex;
-    var selectedOrganism =  document.getElementById("orthologueDatasets" + index).options[selectedIndex].text;
-    document.orthologueLinkForm.action=document.getElementById("formAction" + index).value;
-    document.orthologueLinkForm.method="post";
-
-    // use remote mapping, just post the original list
-    if (document.getElementById("orthologueMapping" + index + "Local").checked) {
-        document.getElementById("externalids").value = document.getElementById("originalExternalids").value;
-        document.getElementById("orthologue" + index).disabled = false;
-        document.getElementById("orthologue" + index).value = selectedOrganism;
-        document.getElementById("orthologueLinkForm").submit();
-        return;
-    }
-
-    // LOCAL intermine
-    // convert orthologues then post
-    if (document.getElementById("orthologueMapping" + index + "Remote")) {
-        // convert orthologues
-        AjaxServices.convertObjects(bagType, bagName, 'orthologue', selectedOrganism, function(identifiers) {
-            if (identifiers != null && identifiers != '') {
-                document.getElementById("externalids").value = identifiers;
-                document.getElementById("orthologue" + index).disabled = true;
-                document.getElementById("orthologueLinkForm").submit();
-            } else {
-                alert("Error.  No orthologues found.");
-                return;
+/** @deprecated */
+function refreshSavedBagStatus() {
+    AjaxServices.getSavedBagStatus(function(savedBagStatus) {
+        var allCurrent = true;
+        if (savedBagStatus) {
+            var jSONObject = jQuery.parseJSON(savedBagStatus);
+            jQuery.each(jSONObject, function(key, entry) {
+                var bagName = entry['bagName'];
+                var status = entry['status'];
+                if (status == 'NOT_CURRENT' || status == 'UPGRADING')
+                    allCurrent = false;
+                document.getElementById("status_" + bagName).innerHTML = getHTML(status, bagName);
+                document.getElementById("size_" + bagName).innerHTML = entry['size'];
+                if (status == 'CURRENT') {
+                    document.getElementById("linkBag_" + bagName).innerHTML = '<a href="bagDetails.do?bagName=' + bagName + '">' + bagName + '</html:link>';
+                    hrefEdit='<a href="javascript:editName(\'' + bagName + '\');"><img border="0" src="images/edit.gif" width="13" height="13" title="Click here to rename this item"/></a>';
+                    document.getElementById("editName_" + bagName).innerHTML = hrefEdit;
+                }
+                if (status == 'TO_UPGRADE') {
+                    document.getElementById("linkBag_" + bagName).innerHTML = '<a href="bagUpgrade.do?bagName=' + bagName + '" class="bagToUpgrade">' + bagName + '</html:link>';
+                }
+            })
+            if (!allCurrent) {
+                setTimeout('refreshSavedBagStatus()', 1000);
             }
-        });
-    }
-}
-
-function checkOrthologueMapping(index, remoteMine, localMine) {
-
-    var myForm = document.getElementById("orthologueLinkForm");
-
-    var selectedIndex = document.getElementById("orthologueDatasets" + index).selectedIndex;
-    var datasets =  document.getElementById("orthologueDatasets" + index).options[selectedIndex].value;
-    var bits = datasets.split("|");
-    var localMapping = bits[0];
-    var remoteMapping = bits[1];
-
-    var selectedIndex = document.getElementById("orthologueDatasets" + index).selectedIndex;
-    var selectedOrganism =  document.getElementById("orthologueDatasets" + index).options[selectedIndex].text;
-
-    var selectLocal = false;
-
-    // hide/show the radio button and name of intermine if they do/don't have orthologues
-    if (localMapping != null && localMapping != "") {
-        display('orthologueMappingLocalLabel' + index, true);
-        if (remoteMapping != null && remoteMapping != "") {
-            display('orthologueMappingRemoteLabel' + index, true);
-            display('orthologueMappingRemoteRadio' + index, true);
-            display('orthologueMappingLocalRadio' + index, true);
-        } else {
-            display('orthologueMappingRemoteLabel' + index, false);
-            display('orthologueMappingRemoteRadio' + index, false);
-            display('orthologueMappingLocalRadio' + index, false);
-            // check hidden radio button so that `local` mine is selected
-            // radio button is hidden but script needs this value to be checked
-            document.getElementById("orthologueMapping" + index + "Local").checked = false;
-            document.getElementById("orthologueMapping" + index + "Remote").checked = true;
         }
-    } else {
-        // don't show radio button, there's only one option
-        display('orthologueMappingRemoteLabel' + index, true);
-        display('orthologueMappingLocalLabel' + index, false);
-        display('orthologueMappingRemoteRadio' + index, false);
-        display('orthologueMappingLocalRadio' + index, false);
-        //check hidden radio button so that `remote` mine is selected
-        // radio button is hidden but script needs this value to be checked
-        document.getElementById("orthologueMapping" + index + "Local").checked = true;
-        document.getElementById("orthologueMapping" + index + "Remote").checked = false;
-    }
-
-    // if there is only one option, don't show a dropdown
-//    if (orthologueSelect.length == 1) {
-//        display('orthologueSelectDisplay' + index, true);
-//        display('orthologueSelect' + index, false);
-//        // update text to be selected value
-//        document.getElementById('orthologueSelect' + index).innerHtml
-//            = orthologueSelect.options[0].text;
-//    } else {
-//        // show dropdown
-//        display('orthologueSelectDisplay' + index, false);
-//        display('orthologueSelect' + index, true);
-//    }
+    });
 }
+
+function getHTML(status, bagName) {
+    if (status == 'CURRENT')
+      return "Current";
+    else if (status == 'NOT_CURRENT')
+      return "Not current";
+    else if (status == 'UPGRADING')
+      return "Upgrading...";
+    else if (status == 'TO_UPGRADE')
+      return "<a href='bagUpgrade.do?bagName=" + bagName + "' class='bagToUpgrade'>Upgrade</html:link>";
+}
+

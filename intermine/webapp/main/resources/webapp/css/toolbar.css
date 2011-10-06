@@ -1,6 +1,8 @@
 div#tool_bar_div{
     float:left;
     margin:0;
+	width:100%;
+	padding-bottom:4px;
 }
 
 ul#button_bar, ul#button_bar li {
@@ -31,6 +33,7 @@ ul#button_bar li img {
 .tb_button:hover {
   margin-right:0;
 }
+.tb_button.inactive { cursor:pointer; }
 .tb_button_active {
 }
 .tool_bar_item {
@@ -49,7 +52,7 @@ ul#button_bar li img {
     /*color:#FFF;*/
 }
 .tool_bar_item hr {
-	border:0;
+  border:0;
     height:1px;
     background-color:#CCC;
     width:100%;

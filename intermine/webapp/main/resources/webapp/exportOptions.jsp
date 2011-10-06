@@ -5,7 +5,8 @@
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
 <%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="im"%>
-<%@ taglib uri="http://flymine.org/imutil" prefix="imutil" %>
+<%@ taglib uri="/WEB-INF/imutil.tld" prefix="imutil" %>
+<%@ taglib uri="/WEB-INF/functions.tld" prefix="imf" %>
 
 <!-- exportOptions.jsp -->
 <html:xhtml/>
@@ -47,25 +48,16 @@
 <div style="clear:both;width:60%" class="body" align="left">
 
 <c:choose>
-  <c:when test="${type == 'galaxy'}">
-    <c:set var="tileName" value="${type}ExportOptions.tile"/>
-    <tiles:insert name="${tileName}"/>
+  <c:when test="${type == 'bed'}">
+    <tiles:insert name="${type}ExportOptions.tile"/>
   </c:when>
   <c:otherwise>
     <html:form action="/${type}ExportAction" onsubmit="updatePathsString();">
     <fieldset>
-    <legend><c:choose>
-      <c:when test="${type == 'csv' || type == 'excel'}">
-        <fmt:message key="exporter.${type}.description">
-          <fmt:param value="${WEB_PROPERTIES['max.excel.export.size']}"/>
-        </fmt:message>
-        <fmt:message var="exportReorderMessage" key="export.reorder.columns"/>
-      </c:when>
-      <c:otherwise>
+    <legend>
         <fmt:message var="exportReorderMessage" key="export.reorder"/>
         <fmt:message key="exporter.${type}.description"/>
-      </c:otherwise>
-    </c:choose></legend>
+     </legend>
 
     <!-- exporting type: ${type} -->
     <ol>
@@ -78,9 +70,6 @@
             <li><html:radio property="format" value="tab"/><label>Tab separated values</label></li>
           </ol>
 
-        </c:when>
-        <c:when test="${type == 'excel'}">
-          <%-- no extra options --%>
         </c:when>
         <c:otherwise>
           <c:set var="tileName" value="${type}ExportOptions.tile"/>
@@ -119,7 +108,16 @@
           pathIndex = 1;
 
         <c:forEach var="path" items="${pathsMap}">
-           addPathElement("${path.key}", "${path.value}");
+            <c:choose>
+                <c:when test="${empty QUERY}">
+                    <im:debug message="QUERY is empty"/>
+                    <c:set var="displayPath" value="${imf:formatPathStr(path.key, INTERMINE_API, WEBCONFIG)}"/>
+                </c:when>
+                <c:otherwise>
+                    <c:set var="displayPath" value="${imf:formatViewElementStr(path.key, QUERY, WEBCONFIG)}"/>
+                </c:otherwise>
+            </c:choose>
+            addPathElement("${path.key}", "${displayPath}");
         </c:forEach>
 
         if (document.getElementById('columnToAdd')[0].value == '') {

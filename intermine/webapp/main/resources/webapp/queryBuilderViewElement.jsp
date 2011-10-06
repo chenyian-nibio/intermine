@@ -5,6 +5,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="im"%>
+<%@ taglib uri="/WEB-INF/functions.tld" prefix="imf" %>
 
 <tiles:importAttribute/>
 
@@ -17,15 +18,13 @@
 
   <%-- class name --%>
   <div>
-    <c:out value="${fn:replace(pathString, '.', ' > ')}" /> 
+    <c:out value="${imf:formatPathStr(pathString, INTERMINE_API, WEBCONFIG)}" />
 
     <%-- (x) img --%>
     <fmt:message key="view.removeFromViewHelp" var="removeFromViewTitle">
       <fmt:param value="${pathString}"/>
     </fmt:message>
-    <fmt:message key="view.removeFromViewSymbol" var="removeFromViewString"/>
-
-    <html:link action="/queryBuilderViewChange?method=removeFromView&amp;path=${pathString}"
+    <fmt:message key="view.removeFromViewSymbol" var="removeFromViewString"/>&nbsp;<html:link action="/queryBuilderViewChange?method=removeFromView&amp;path=${pathString}"
                title="${removeFromViewTitle}">
       <img border="0" align="top"
            src="images/cross.gif" width="13" height="13"
@@ -40,8 +39,7 @@
       <tiles:put name="pathString" value="${pathString}"/>
       <tiles:put name="description" value="${QUERY.descriptions[pathPrefix]}"/>
     </tiles:insert>
-  </c:if>
-
+    </c:if>
 
   <div style="white-space:nowrap;">
     <c:if test="${!iePre7}">

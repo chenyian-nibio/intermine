@@ -18,7 +18,7 @@
 <c:set var="type" value="${split[fn:length(split)-1]}"/>
 
 <html:xhtml/>
-<html:form action="/widgetAction" styleId="widgetaction${widget.id}">
+<form action="widgetAction.do" id="widgetaction${widget.id}">
 <html:hidden property="link" value="${widget.link}"/>
 <html:hidden property="bagType" value="${bag.type}"/>
 <html:hidden property="bagName" value="${bag.name}" />
@@ -32,7 +32,7 @@
 <div id="widgetcontainer${widget.id}" class="widgetcontainer">
 
   <span id="closewidget${widget.id}" class="widgetcloser"><a href="javascript:toggleWidget('widgetcontainer${widget.id}','togglelink${widget.id}');">close</a></span>
-  <h3>${widget.title}</h3>
+  <h3 class="goog">${widget.title}</h3>
   <p>${widget.description}
   <c:if test="${type == 'EnrichmentWidgetConfig'}">
     For more information about the math used in these calculations, see <a href="http://www.intermine.org/wiki/EnrichmentWidgets">here</a>.
@@ -54,38 +54,38 @@
    <html:hidden property="externalLinkLabel${widget.id}" styleId="externalLinkLabel${widget.id}" value="${widget.externalLinkLabel}"/>
     <li>
     <label>Multiple Hypothesis Test Correction</label>
-    <html:select property="errorCorrection" styleId="errorCorrection${widget.id}" onchange="getProcessEnrichmentWidgetConfig('${widget.id}','${bag.name}');">
-      <html:option value="Holm-Bonferroni">Holm-Bonferroni</html:option>
-      <html:option value="Benjamini Hochberg">Benjamini and Hochberg</html:option>
-      <html:option value="Bonferroni">Bonferroni</html:option>
-      <html:option value="None">None</html:option>
-    </html:select>
+    <select id="errorCorrection${widget.id}" onchange="getProcessEnrichmentWidgetConfig('${widget.id}','${bag.name}');">
+      <option value="Holm-Bonferroni">Holm-Bonferroni</option>
+      <option value="Benjamini Hochberg">Benjamini and Hochberg</option>
+      <option value="Bonferroni">Bonferroni</option>
+      <option value="None">None</option>
+    </select>
     </li>
     <li style="float:right">
     <label>Maximum value to display</label>
-    <html:select property="max" styleId="max${widget.id}" onchange="getProcessEnrichmentWidgetConfig('${widget.id}','${bag.name}')">
-      <html:option value="0.05">0.05</html:option>
-      <html:option value="0.10">0.10</html:option>
-      <html:option value="1.00">1.00</html:option>
-    </html:select>
+    <select name="max" id="max${widget.id}" onchange="getProcessEnrichmentWidgetConfig('${widget.id}','${bag.name}')">
+      <option value="0.05">0.05</option>
+      <option value="0.10">0.10</option>
+      <option value="1.00">1.00</option>
+    </select>
     </li>
    </c:if>
     <c:forEach items="${extraAttrMap}" var="entry">
     <c:if test="${! empty entry.key && entry.key != 'Editable'}">
       <li>
         <label>${entry.key}:</label>
-        <html:select property="selectedExtraAttribute" styleId="widgetselect${widget.id}" onchange="getProcess${type}('${widget.id}','${bag.name}');">
+        <select name="selectedExtraAttribute" id="widgetselect${widget.id}" onchange="getProcess${type}('${widget.id}','${bag.name}');">
         <c:forEach items="${entry.value}" var="extraParams">
           <%--<c:choose>
             <c:when test="${widget.selectedExtraAttribute == extraParams}">
               <option value="${extraParams}" selected>${extraParams}</option>
             </c:when>
             <c:otherwise>--%>
-              <html:option value="${extraParams}">${extraParams}</html:option>
+              <option value="${extraParams}">${extraParams}</option>
             <%--</c:otherwise>
           </c:choose>--%>
         </c:forEach>
-        </html:select>
+        </select>
       </li>
     </c:if>
   </c:forEach>
@@ -98,29 +98,15 @@
         <!-- View in results table button -->
         <li id="tool_bar_li_display_widget_${widget.id}" class="tb_button">
           <span id="tool_bar_button_display_${widget.id}" class="widget_tool_bar_button"
-          onclick="jQuery('#tool_bar_item_display_widget_${widget.id}').toggle();return false;"
-          >View in results table</span>
+          onclick="javascript:submitWidgetForm('${widget.id}','display','null');return false;"
+          >View</span>
         </li>
         <li id="tool_bar_li_export_widget_${widget.id}" class="tb_button">
           <span id="tool_bar_button_export_${widget.id}" class="widget_tool_bar_button"
-          onclick="jQuery('#tool_bar_item_export_widget_${widget.id}').toggle();return false;"
+          onclick="javascript:submitWidgetForm('${widget.id}','export','tab');return false;"
           >Download</span>
         </li>
     </ul>
-  </div>
-  <!-- View in results table table -->
-  <div id="tool_bar_item_display_widget_${widget.id}" style="display:none;width:200px;text-align:left" class="tool_bar_item">
-    <a href="javascript:submitWidgetForm('${widget.id}','display',null)">Display checked items in results table</a><br/>
-    <a href="javascript:submitWidgetForm('${widget.id}','displayAll',null)">Display all items in results table</a>
-    <hr/>
-    <a href="#" onclick="jQuery('#tool_bar_item_display_widget_${widget.id}').toggle();return false;">Cancel</a>
-  </div>
-
-  <div id="tool_bar_item_export_widget_${widget.id}" style="display:none;width:230px;text-align:left" class="tool_bar_item">
-    <a href="javascript:submitWidgetForm('${widget.id}','export','csv')">Export selected as comma separated values</a><br/>
-    <a href="javascript:submitWidgetForm('${widget.id}','export','tab')">Export selected as tab separated values</a>
-    <hr/>
-  <a href="#" onclick="jQuery('#tool_bar_item_export_widget_${widget.id}').toggle();return false;">Cancel</a>
   </div>
  </c:if>
 
@@ -173,5 +159,5 @@
 
   </script>
 </div>
-</html:form>
+</form>
 <!-- /widget.jsp -->

@@ -13,20 +13,13 @@
 
 <html:xhtml/>
 
-<table cellpadding="0" cellspacing="0" >
-<tr>
   <%-- Paging controls --%>
-  <td class="resBar">
-    <span style="padding-top:15px">
     <tiles:insert page="/tablePageLinks.jsp">
       <tiles:put name="resultsTable" beanName="resultsTable" />
       <tiles:put name="currentPage" value="${currentPage}" />
       <tiles:put name="bagName" value="${bag.name}" />
     </tiles:insert>
-    </span>
-  </td>
-  <td class="resBar">&nbsp;|&nbsp;</td>
-  <td class="resBar">
+    &nbsp;|&nbsp;
     <fmt:message key="results.pageinfo.estimate" var="estimateMessage"/>
     <fmt:message key="results.pageinfo.exact" var="exactMessage"/>
     <%-- "Displaying xxx to xxx of xxx rows" messages --%>
@@ -76,8 +69,5 @@
         </script>
       </c:otherwise>
     </c:choose>
-  </td>
-</tr>
-</table>
 
 <!-- /paging.jsp -->

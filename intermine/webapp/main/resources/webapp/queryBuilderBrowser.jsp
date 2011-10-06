@@ -11,48 +11,47 @@
 
 <html:xhtml/>
 <script type="text/javascript">
-  <!--
   function toggleNode(id, path) {
-    /*if (isExplorer()) {
-      return true;
-    }*/
-    if ($(id).innerHTML=='') {
-      new Ajax.Updater(id, '<html:rewrite action="/queryBuilderChange"/>',
-        {parameters:'method=ajaxExpand&path='+path, asynchronous:true});
-      $('img_'+path).src='images/minus.gif';
+	var image = jQuery("#img_" + path.replace(/\./g, "\\.")),
+		qbURL = '<html:rewrite action="/queryBuilderChange"/>',
+		id    = id.replace(/\./g, "\\.");
+    
+	if (image.attr('src') == 'images/plus.gif') {
+      <%-- expanding --%>
+      jQuery.get(qbURL + '?method=ajaxExpand&path=' + (path),
+    	  function(data) {
+	          image.attr('src', 'images/minus.gif');
+	          jQuery("div#" + id).after(data);
+    	  }
+      );
     } else {
-      // still need to call queryBuilderChange
-      $('img_'+path).src='images/plus.gif';
-      path = path.substring(0, path.lastIndexOf('.'));
-      new Ajax.Request('<html:rewrite action="/queryBuilderChange"/>',
-        {parameters:'method=ajaxCollapse&path='+path, asynchronous:true});
-      $(id).innerHTML='';
+      <%-- collapsing --%>
+      jQuery.get(qbURL + '?method=ajaxCollapse&path=' +
+    		  ((path.split(".").length > 2) ? path.substring(0, path.lastIndexOf('.')) : path),
+    	  function() {
+	          image.attr('src', 'images/plus.gif');
+	          jQuery('[id^="' + id + '\\."]').remove();
+    	  }
+      );
     }
+
     return false;
   }
 
-  function addConstraint(path) {
-    /*if (isExplorer()) {
-      return true;
-    }*/
+  function addConstraint(path, displayPath) {
+    displayPath = displayPath || path;
     new Ajax.Updater('queryBuilderConstraint', '<html:rewrite action="/queryBuilderChange"/>',
       {parameters:'method=ajaxNewConstraint&path='+path, asynchronous:true, evalScripts:true,
       onSuccess: function() {
         new Ajax.Updater('query-build-summary', '<html:rewrite action="/queryBuilderChange"/>',
           {parameters:'method=ajaxRenderPaths', asynchronous:true, evalScripts:true, onSuccess: function() {
-             new Boxy(jQuery('#constraint'), {title: "Constraint for " + path, modal:true, unloadOnHide: true})
+             new Boxy(jQuery('#constraint'), {title: "Constraint for " + displayPath, modal:true, unloadOnHide: true})
           }
         });
       }
     });
     return false;
   }
-
-  function isExplorer() {
-    return (navigator.appVersion.toLowerCase().indexOf('msie') >= 0);
-  }
-
-  //-->
 </script>
 
   <div class="heading">

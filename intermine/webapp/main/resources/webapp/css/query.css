@@ -67,6 +67,7 @@ div.modelbrowse {
   float:left;
   width:500px;
   /*margin-right:10px;*/
+  position:relative;
 }
 
 #browserbody {
@@ -79,6 +80,9 @@ div.modelbrowse {
   width:495px;
 }
 
+#queryBuilderContainer {
+  margin-top:10px;
+}
 /* Outer Joins diagram */
 li.block {
   list-style:none;
@@ -181,3 +185,118 @@ img.tinyQuestionMark {
 #ctxHelpDiv {
   margin-bottom:10px;
 }
+
+.queryActions {
+  margin: 15px 8px;
+}
+
+.queryActions table {
+  width: 100%;
+  border-spacing: 0px;
+  border-top: 1px solid gray;
+  border-left: 1px solid gray;
+
+}
+
+.queryActions td {
+  border-right: 1px solid gray;
+  border-bottom: 1px solid gray;
+  padding: 1px 0px 1px 0px;
+  width: 25%;
+  font-size: 11px;
+  text-align: center;
+}
+
+#sidebar { margin-left:830px;height:35px;
+  width:495px;}
+
+span.tree_tee .ver
+{
+    border:1px solid black;
+    border-right-style:none;
+    border-top-style:none;
+    border-bottom-style:none;
+    padding-top:1px;
+    padding-bottom:8px;
+    position: relative;
+    left: 10px;
+}
+
+.tree_tee .hor
+{
+    border:1px solid black;
+    border-right-style:none;
+    border-left-style:none;
+    border-top-style:none;
+    margin-right:12px;
+    color: white;
+    position: relative;
+    left: 10px;
+    top: -7px
+}
+
+.tree_straight .ver
+{
+    border:1px solid black;
+    border-right-style:none;
+    border-top-style:none;
+    border-bottom-style:none;
+    margin-right:6px;
+    padding-top:1px;
+    padding-bottom:8px;
+    position: relative;
+    left: 10px;
+ }
+
+.tree_straight .hor
+{
+     color: #ffffff;
+}
+
+.tree_ell .ver
+{
+    border:1px solid black;
+    border-right-style:none;
+    border-top-style:none;
+    border-bottom-style:none;
+    position: relative;
+    left: 10px;
+    top: -6px
+ }
+
+.tree_ell .hor
+{
+    border:1px solid black;
+    border-right-style:none;
+    border-left-style:none;
+    border-top-style:none;
+    margin-right:12px;
+    color: white;
+    position: relative;
+    left: 10px;
+    top: -7px
+ }
+
+.tree_blank .ver
+{
+    background-color: #ffffff;
+    font-size: 1px;
+    color: #ffffff;
+}
+
+.tree_blank .hor
+{
+     background-color: #ffffff;
+     font-size: 1px;
+     color: #ffffff;
+     padding-right:13px;
+ }
+
+ .toggle
+ {
+    position: relative;
+    top: 2px;
+ }
+ 
+#queryBuilderBrowser div.loading { display:block; width:500px; height:400px; top:43px; left:0; position:absolute;
+	background:rgba(255, 255, 255, 0.90) url('../images/icons/ajax-loader.gif') no-repeat center; }

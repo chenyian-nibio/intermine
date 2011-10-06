@@ -6,6 +6,7 @@
 <%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
 <%@ taglib uri="http://jakarta.apache.org/taglibs/string-1.1" prefix="str" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ taglib uri="/WEB-INF/functions.tld" prefix="imf" %>
 
 <tiles:importAttribute name="wsName"/>
 <tiles:importAttribute name="scope"/>
@@ -42,7 +43,7 @@
     <c:otherwise>
         <c:set var="nameForURL"/>
         <str:encodeUrl var="nameForURL">${webSearchable.name}</str:encodeUrl>
-       <html:link styleClass="listTitle" action="/bagDetails?scope=${scope}&amp;bagName=${nameForURL}">
+        &nbsp;<html:link styleClass="listTitle" action="/bagDetails?scope=${scope}&amp;bagName=${nameForURL}">
          <%--  <img src="images/bag_ico.png" width="13" height="13" alt="View Bag"> --%>
           <c:out value="${webSearchable.name}"/>
         </html:link>
@@ -58,14 +59,14 @@
   <tiles:put name="type" value="bag"/>
 </tiles:insert>
 
+<c:set var="typeDisplayName" value="${imf:formatPathStr(webSearchable.type, INTERMINE_API, WEBCONFIG)}"/>
 
-<c:out value="${webSearchable.size}"/>
-<b><c:choose>
+<c:out value="${webSearchable.size}"/>&nbsp;<b><c:choose>
 <c:when test="${webSearchable.size != 1}">
-  <c:out value="${webSearchable.type}s" />
+  <c:out value="${typeDisplayName}s" />
 </c:when>
 <c:otherwise>
-  <c:out value="${webSearchable.type}" />
+  <c:out value="${typeDisplayName}" />
 </c:otherwise>
 </c:choose></b>
 <!-- <em><c:if test="${!empty webSearchable.dateCreated}">

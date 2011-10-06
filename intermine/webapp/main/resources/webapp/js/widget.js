@@ -4,7 +4,7 @@ function getProcessGraphWidgetConfig(widgetId, bagName) {
   var extraAttr;
   var extraAttrForm = document.getElementById("widgetselect" + widgetId);
   if(extraAttrForm != null) {
-	  extraAttr = extraAttrForm.value;
+      extraAttr = extraAttrForm.value;
   }
   var pValue = document.getElementById("pValue" + widgetId);
   if(pValue != null) {
@@ -29,11 +29,11 @@ function handleGraphWidget(widget) {
 }
 
 function getProcessHTMLWidgetConfig(widgetId, bagName) {
-	AjaxServices.getProcessHTMLWidget(widgetId, bagName, handleHTMLWidget);
+    AjaxServices.getProcessHTMLWidget(widgetId, bagName, handleHTMLWidget);
 }
 
 function handleHTMLWidget(widget) {
-	var widgetdataname = document.getElementById('widgetdata' + widget.configId);
+    var widgetdataname = document.getElementById('widgetdata' + widget.configId);
     var widgetdatawait = document.getElementById('widgetdatawait' + widget.configId);
     var widgetdatacontent = document.getElementById('widgetdatacontent' + widget.configId);
     Element.hide($(widgetdatawait));
@@ -147,16 +147,20 @@ function checkSelected(formName) {
      return true;
     }
   }
-  alert("Please select some items")
   return false;
 }
 
 function submitWidgetForm(widgetId,type,extra) {
-  if(type == 'displayAll' || checkSelected('widgetaction'+widgetId)) {
-    $('action'+widgetId).value=type;
-    $('export' + widgetId).value=extra;
-    $('widgetaction' + widgetId).submit();
-  }
+    if (document.getElementById('selected_all' + widgetId) != null) {
+        var formName = 'widgetaction'+widgetId;
+        if(formName && !checkSelected(formName)) {
+            document.getElementById('selected_all' + widgetId).checked = true;
+            toggleAllChecks(formName, widgetId);
+        }
+        $('action'+widgetId).value=type;
+        $('export' + widgetId).value=extra;
+        $('widgetaction' + widgetId).submit();
+    }
 }
 
 function displayNotAnalysed(widgetId,type,extra) {

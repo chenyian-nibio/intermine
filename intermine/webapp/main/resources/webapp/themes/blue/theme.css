@@ -129,11 +129,10 @@ div#filter_tool_bar {
     padding:5px 5px 10px 5px; border-top:solid 1px #888; border-bottom:solid 1px #888; height:1.2em;
     font-size:0.8em; background:#000; color:white;}
 
-
 /* =RESULTS TABLES
 -----------------------*/
 table.results tr th {
-    background-color: #192F39;font-size: 12px;color:#FFF;
+    background-color: #E2F5FE;font-size: 12px;color:#000;
 }
 table.results tr td.highlightCell, table.results tr.even td.highlightCell {
    border-right:1px solid #FFF;background-color: #63BBDF;}
@@ -179,7 +178,6 @@ table.results tr.stepOeven TD{
 table.results tr td.highlightObject {
   background-color: #ee6;
 }
-
 
 /* =TOOLBOX RESULTS GREEN
 
@@ -317,7 +315,7 @@ table.internal td {
   .keywordSearchResults .resultTableContainer table.dbsources th { background:#192F39; color:#FFF; font-size:13px; padding:2px 8px;
     text-transform:none; }
   .keywordSearchResults .resultTableContainer table.dbsources tr.keywordSearchResult { color:#192F39; }
-    .keywordSearchResults .resultTableContainer table.dbsources tr.keywordSearchResult td { line-height:12px; }
+    .keywordSearchResults .resultTableContainer table.dbsources tr.keywordSearchResult td { line-height:16px; }
     .keywordSearchResults .resultTableContainer table.dbsources tr.keywordSearchResult div { margin:0; }
     .keywordSearchResults .resultTableContainer table.dbsources tr.keywordSearchResult.odd td { border-bottom:1px solid #63B7DE;
   border-top:1px solid #63B7DE; background:#E0F5FF; }
@@ -364,3 +362,111 @@ ul#button_bar li.tool_bar_link form span { color:#FFF !important; }
   color:#FFFFFF; padding:2px 36px; }
 #templates div.content p.more a, #low #rss p.more a { background: url("homepage/more-pitchurka.png") no-repeat scroll
   left center transparent; }
+
+/* bagUploadConfirm */
+#pagecontentcontainer.bagUploadConfirm-page table.inlineResultsTable a { color:#002575; }
+#pagecontentcontainer.bagUploadConfirm-page table.inlineResultsTable thead td { background:#EEF0F7;  }
+#pagecontentcontainer.bagUploadConfirm-page table.inlineResultsTable tbody tr.even td { background:#FBFDFE; }
+#pagecontentcontainer.bagUploadConfirm-page table.inlineResultsTable tbody tr td { border-top-color:#E2F5FE; border-bottom-color:#E2F5FE; }
+#pagecontentcontainer.bagUploadConfirm-page table.inlineResultsTable td.identifier { color:#886644; }
+#pagecontentcontainer.bagUploadConfirm-page h3 { color:#002575; background:#EEF0F7; border-top-color:#002575; }
+#pagecontentcontainer.bagUploadConfirm-page div.description { background:#EEF0F7; }
+#pagecontentcontainer.bagUploadConfirm-page #chooseName,
+#pagecontentcontainer.bagUploadConfirm-page #additionalMatches { background:#FFF; }
+
+/* report page */
+#pagecontentcontainer.report-page #header_wrap { background-color:#EEF0F7; background-image:url("report/header-bg.png"); }
+#pagecontentcontainer.report-page #object_header h1.title span { color:#002575; }
+#pagecontentcontainer.report-page #object_header div.box h3 { background:#F0E3F7; }
+#pagecontentcontainer.report-page #object_header div.list.box span { color:#002575; }
+#pagecontentcontainer.report-page #fixed-menu { background:#3B8F60; }
+#pagecontentcontainer.report-page #toc-menu-wrap { background:#EEF0F7; }
+#pagecontentcontainer.report-page #fixed-menu div.wrap,
+#pagecontentcontainer.report-page #toc-menu-wrap div.wrap { background:#3B8F60; border-color:#3B8F60; }
+#pagecontentcontainer.report-page #fixed-menu span,
+#pagecontentcontainer.report-page #toc-menu-wrap span { color:#E2F5FE; }
+#pagecontentcontainer.report-page #menu-target { background:#EEF0F7; }
+#pagecontentcontainer.report-page #toc-menu-wrap div.wrap a,
+#pagecontentcontainer.report-page #fixed-menu div.wrap a { color:#FFF; }
+#pagecontentcontainer.report-page #toc-menu-wrap div.links a.current,
+#pagecontentcontainer.report-page #fixed-menu div.links a.current { background:#FFF; color:#3B8F60; border-color:#3B8F60; }
+#pagecontentcontainer.report-page #in-lists div.heading { background:#EEF0F7 !important; border-color:#002575; color:#002575 !important; text-shadow:1px 1px 1px #FFF; }
+#pagecontentcontainer.report-page .container_12 .highlight { background-color: #FFF3D3; }
+#pagecontentcontainer.report-page #object_header #headerLink a { color:#002575; }
+#pagecontentcontainer.report-page #object_header p.share a { color:#002575; }
+#pagecontentcontainer.report-page h2 { color:#000; }
+#pagecontentcontainer.report-page #cwtabsbyside a { color:#002575; }
+#pagecontentcontainer.report-page #cwtabsbyside fieldset,
+#pagecontentcontainer.report-page #cwtabsbyside ul li { border-color:#E2F5FE; }
+#pagecontentcontainer.report-page #cwtabsbyside ul,
+#pagecontentcontainer.report-page #cwtabsbyside fieldset.alt { background:#FBFDFE; border-color:#E2F5FE; }
+#pagecontentcontainer.report-page form#fly-atlas-options table tr td { border-color:#E2F5FE; }
+#pagecontentcontainer.report-page form#fly-atlas-options table tr.even td { background:#FBFDFE; }
+
+/* ############ tables, lists & misc configuration ############ */
+/* inline lists */
+div.inline-list ul .name { color:#002575; }
+div.inline-list a,
+div.inline-list a:hover,
+div.inline-list a:visited { color:#002575; }
+div.inline-list h3 { background:#EEF0F7; border-top-color:#002575; color:#002575; text-shadow:1px 1px 1px #FFF; }
+div.inline-list.gray h3,
+div.inline-list.grey h3 { background:#F6F5F7; border-top-color:#6E6E6E; color:#ABABAB; }
+div.inline-list div.right a,
+div.inline-list div.right a:hover,
+div.inline-list div.right a:visited { color:#002575; }
+/* collection tables */
+div.collection-table h3 { background:#EEF0F7; border-top-color:#002575; color:#002575; text-shadow:1px 1px 1px #FFF; }
+div.collection-table div.right a,
+div.collection-table div.right a:hover,
+div.collection-table div.right a:visited { color:#002575; }
+div.collection-table thead th,
+div.collection-table thead td { background:#EEF0F7; border-color:#E2F5FE; }
+div.collection-table table tr.odd td { background:#FBFDFE; border-top-color:#E2F5FE; border-bottom-color:#E2F5FE; }
+div.collection-table table tbody tr:nth-child(2n) td { background:#FBFDFE; border-top-color:#E2F5FE; border-bottom-color:#E2F5FE; }
+div.collection-table table td.class { color:#886644; }
+div.collection-table table a,
+div.collection-table table a:hover,
+div.collection-table table a:visited { color:#002575; }
+div.collection-table.gray h3,
+div.collection-table.grey h3 { background:#F6F5F7; border-top-color:#6E6E6E; color:#ABABAB; }
+div.collection-table.column-border table tbody tr td.left-column-border { border-left-color:#E2F5FE; }
+div.collection-table.column-border table tbody tr td:nth-child(n+2) { border-left-color:#E2F5FE; }
+div.collection-table.column-border-by-2 table tbody tr td.left-column-border { border-left-color:#E2F5FE; }
+div.collection-table.column-border-by-2 table tbody tr td:nth-child(2n+3) { border-left-color:#E2F5FE; }
+/* collection table on results pages */
+div.collection-table.results table { border-top-color:#002575; }
+/* basic tables (on displayers etc.) */
+div.basic-table h3 { background:#EEF0F7; border-top-color:#002575; color:#002575; text-shadow:1px 1px 1px #FFF; }
+div.basic-table table a,
+div.basic-table table a:hover,
+div.basic-table table a:visited,
+div.basic-table a.link { color:#002575; }
+div.basic-table.gray h3,
+div.basic-table.grey h3 { background:#F6F5F7; border-top-color:#6E6E6E; color:#ABABAB; }
+/* collection of collection tables */
+div.collection-of-collections div.header { background:#EEF0F7; border-top-color:#002575; }
+div.collection-of-collections div.header h3 { text-shadow: 1px 1px 1px #FFFFFF; }
+div.collection-of-collections div.header a,
+div.collection-of-collections div.header a:hover,
+div.collection-of-collections div.header a:visited { color:#002575; }
+div.collection-of-collections div.collection-table h3 { border-top-color:#E2F5FE; }
+/* templates */
+div.template h3 { background:#EEF0F7; border-top-color:#002575; color:#002575; text-shadow:1px 1px 1px #FFF; }
+div.template.gray h3,
+div.template.grey h3 { background:#F6F5F7; border-top-color:#6E6E6E; color:#ABABAB; }
+/* togglers */
+div.collection-table div.toggle a,
+div.collection-table div.toggle a:hover,
+div.collection-table div.toggle a:visited,
+div.collection-of-collections div.toggle a,
+div.collection-of-collections div.toggle a:hover,
+div.collection-of-collections div.toggle a:visited,
+div.collection-table div.show-in-table a,
+div.collection-table div.show-in-table a:hover,
+div.collection-table div.show-in-table a:visited,
+div.collection-of-collections div.show-in-table a,
+div.collection-of-collections div.show-in-table a:hover,
+div.collection-of-collections div.show-in-table a:visited { color:#002575; }
+/* header, the same as table header */
+h3.goog { background:#EEF0F7; border-top-color:#002575; color:#002575; text-shadow:1px 1px 1px #FFF; }

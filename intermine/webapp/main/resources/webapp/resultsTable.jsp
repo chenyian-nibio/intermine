@@ -5,6 +5,7 @@
 <%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="im" %>
+<%@ taglib uri="/WEB-INF/functions.tld" prefix="imf" %>
 
 <html:xhtml/>
 
@@ -13,12 +14,13 @@
 <tiles:importAttribute name="bagName" ignore="true"/>
 <tiles:importAttribute name="inlineTable" ignore="true"/>
 <tiles:importAttribute name="highlightId" ignore="true"/>
+<tiles:importAttribute name="tableIdentifier" ignore="true"/>
 
 <script type="text/javascript">
   function changePageSize() {
     var url = '${requestScope['javax.servlet.include.context_path']}/results.do?';
-    var pagesize = document.changeTableSizeForm.pageSize.options[document.changeTableSizeForm.pageSize.selectedIndex].value;
-    var page = ${pagedResults.startRow}/pagesize;
+    var pagesize = jQuery("form#changeTableSizeForm select[name='pageSize'] option:selected").text();
+    var page = parseInt(${pagedResults.startRow})/pagesize;
     url += 'table=${param.table}' + '&page=' + Math.floor(page) + '&size=' + pagesize;
     if ('${param.trail}' != '') {
         url += '&trail=${param.trail}';
@@ -28,100 +30,53 @@
 </script>
 
 <c:set var="colcount" value="0" />
-<table class="results" cellspacing="0" width="100%">
-
+<table>
   <%-- The headers --%>
+  <c:if test="${pagedResults.exactSize > 0}">
   <thead>
   <tr>
     <c:forEach var="column" items="${pagedResults.columns}" varStatus="status">
       <c:set var="colcount" value="${colcount+1}"/>
-      <im:formatColumnName outVar="displayPath" str="${column.name}" />
+      <c:set var="displayPath" value="${imf:formatPath(column.path, WEBCONFIG)}" />
       <im:unqualify className="${column.name}" var="pathEnd"/>
 
       <im:prefixSubstring str="${column.name}" outVar="columnPathPrefix" delimiter="."/>
       <c:choose>
-        <c:when test="${!empty QUERY
-                      && !empty QUERY.descriptions[columnPathPrefix] && empty notUseQuery}">
+        <c:when test="${!empty QUERY}">
           <c:set var="columnDisplayName"
-                 value="<span class='viewPathDescription' title='${displayPath}'>${QUERY.descriptions[columnPathPrefix]}</span> &gt; ${pathEnd}"/>
+                 value="${imf:formatViewElement(column.path, QUERY, WEBCONFIG)}"/>
         </c:when>
         <c:otherwise>
           <c:set var="columnDisplayName" value="${displayPath}"/>
         </c:otherwise>
       </c:choose>
 
-      <th align="center" class="columnHeader">
+      <th id="header_${fn:replace(pagedResults.tableid,'.','_')}_${status.count}" title="${column.columnIdentifier}">
         <%-- summary --%>
         <c:if test="${!empty column.path.noConstraintsString && empty inlineTable}">
           <fmt:message key="columnsummary.getsummary" var="summaryTitle" />
+          <div class="right">
           <a href="javascript:getColumnSummary('${pagedResults.tableid}','${column.path.noConstraintsString}', &quot;${columnDisplayName}&quot;)"
                title="${summaryTitle}" class="summary_link"><img src="images/summary_maths.png" title="${summaryTitle}"/></a>
+		  </div>
         </c:if>
-        <!-- <div class="column-header-content"> -->
-            <table border="0" cellspacing="0" cellpadding="0" class="column-header-content">
-                <tr>
-            <c:if test="${column.selectable && empty inlineTable}">
-              <c:set var="disabled" value="false"/>
-              <c:if test="${(!empty pagedResults.selectedClass) && (pagedResults.selectedClass != column.typeClsString)}">
-                <c:set var="disabled" value="true"/>
-              </c:if>
-              <td><html:multibox property="currentSelectedIdStrings" name="pagedResults" styleId="selectedObjects_${status.index}"
-                             styleClass="selectable"
-                             onclick="selectAll(${status.index}, '${column.typeClsString}','${pagedResults.tableid}')"
-                             disabled="${disabled}">
-                <c:out value="${column.columnId}"/>
-              </html:multibox></td>
+        <c:if test="${column.selectable && empty inlineTable}">
+			<c:set var="disabled" value="false"/>
+            <c:if test="${(!empty pagedResults.selectedClass) && (pagedResults.selectedClass != column.typeClsString)}">
+            	<c:set var="disabled" value="true"/>
             </c:if>
-            <td>
-            <!-- Display actual column name -->
-            <c:set var="columnDisplayNameList" value="${fn:split(column.name,'>')}"/>
-            <c:set var="begin" value="0"/>
-            <c:if test="${fn:length(columnDisplayNameList) > 3}">...
-                <c:set var="begin" value="${fn:length(columnDisplayNameList)-3}"/>
-            </c:if>
-            <span id="header_${fn:replace(pagedResults.tableid,'.','_')}_${status.count}" style="cursor:default;">
-            <script type="text/javascript" charset="utf-8">
-                jQuery(document).ready(function(){
-                    jQuery('#header_${fn:replace(pagedResults.tableid,'.','_')}_${status.count}').qtip({
-                       content: '${displayPath}',
-                       show: 'mouseover',
-                       hide: 'mouseout',
-                       position: {
-                           corner: {
-                              target: 'topLeft',
-                              tooltip: 'bottomLeft'
-                           }
-                       },
-                       style: {
-                          tip: 'bottomLeft',
-                          fontSize: '12px',
-                          name: 'cream',
-                          whiteSpace: 'nowrap'
-                       }
-                    });
-                });
-            </script>
-            <em style="font-size:9px;">
-            <c:forEach items="${columnDisplayNameList}" var="columnNameItem" varStatus="status2" begin="${begin}">
-              <c:choose>
-                <c:when test="${status2.last}">
-                    </em><br/>${columnNameItem}
-                    <c:set var="fieldName" value="${columnNameItem}"/>
-                </c:when>
-                <c:otherwise>
-                    ${columnNameItem} &gt;
-              </c:otherwise>
-              </c:choose>
-            </c:forEach>
-            <!-- ${fn:length(columnDisplayNameList)}:${columnDisplayName} -->
-            <im:typehelp type="${column.path}" fullPath="true"/>
-            </span>
-            </td></tr></table>
-        <!-- </div> -->
+            <html:multibox property="currentSelectedIdStrings" name="pagedResults" styleId="selectedObjects_${status.index}"
+            styleClass="selectable" onclick="selectAll(${status.index}, '${column.typeClsString}','${pagedResults.tableid}')" disabled="${disabled}">
+            	<c:out value="${column.columnId}"/>
+            </html:multibox>
+        </c:if>
+        <im:columnName onHover="${displayPath}" columnName="${columnDisplayName}" tableId="${pagedResults.tableid}" colNo="${status.count}"/>
+
       </th>
     </c:forEach>
   </tr>
   </thead>
+  </c:if>
 
   <%-- The data --%>
 
@@ -132,8 +87,8 @@
 
       <c:set var="rowClass">
         <c:choose>
-          <c:when test="${status.count % 2 == 1}">odd</c:when>
-          <c:otherwise>even</c:otherwise>
+          <c:when test="${status.count % 2 == 1}">even</c:when>
+          <c:otherwise>odd</c:otherwise>
         </c:choose>
       </c:set>
 
@@ -186,15 +141,21 @@
                       <c:if test="${!empty pagedResults.selectionIds[resultElement.id] && pagedResults.allSelected == -1}">
                         <c:set var="checkboxClass" value="${checkboxClass} highlightCell"/>
                       </c:if>
-                      <%--<td align="center" class="checkbox ${highlightObjectClass} id_${resultElement.id} class_${subRow[column.index].value.type} ${ischecked}" id="cell_checkbox,${status2.index},${(status.index + 1) * 1000 + multiRowStatus.index},${subRow[column.index].value.type}" rowspan="${subRow[column.index].rowspan}">--%>
                       <c:if test="${resultElement.id != null}">
                         <html:multibox property="currentSelectedIdStrings" name="pagedResults"
                            styleId="selectedObjects_${status2.index}_${status.index}_${subRow[column.index].value.type}"
                            styleClass="selectable id_${resultElement.id} index_${column.index} class_${subRow[column.index].value.type} class_${column.typeClsString}"
-                           onclick="itemChecked(${status.index},${status2.index}, '${pagedResults.tableid}', this)"
                            disabled="${disabled}">
                           <c:out value="${resultElement.id}"/>
-                        </html:multibox>
+                        </html:multibox>&nbsp;
+                        <script type=text/javascript>
+                        	<%-- individual checkbox handler --%>
+                        	(function() {
+                            	jQuery("input#selectedObjects_${status2.index}_${status.index}_${subRow[column.index].value.type}").click(function() {
+                            		itemChecked(${status.index},${status2.index}, '${pagedResults.tableid}', this);
+                            	});
+                        	})();
+                        </script>
                       </c:if>
                     </c:if>
                     <c:set var="columnType" value="${column.typeClsString}" scope="request"/>
@@ -207,7 +168,7 @@
               </c:when>
               <c:otherwise>
                 <%-- add a space so that IE renders the borders --%>
-                <td style="background:#eee;">&nbsp;</td>
+                <td>&nbsp;</td>
               </c:otherwise>
             </c:choose>
           </c:forEach>
@@ -215,52 +176,70 @@
         </c:forEach>
     </c:forEach>
     </tbody>
+
+    <c:if test="${tableIdentifier != null}">
+      <script type=text/javascript>
+      (function() {
+	      	var exactSize = ${pagedResults.exactSize};
+	      	var tableId = '${tableIdentifier}';
+	        if (${pagedResults.exactSize} > 1) {
+	        	jQuery('#' + tableId).find("h3 div.right").text(exactSize + ' results');
+	        	jQuery('#' + tableId + ' table tbody tr').hide();
+	        	jQuery('#' + tableId + ' div.collection-table div.toggle')
+	        	.append(
+	                	jQuery('<a/>', {
+	        		    'title': 'Collapse/Hide',
+	        		    'class': 'less',
+	        		    'text': 'Collapse',
+	        		    'style': 'float:right;display:none;margin-left:20px;',
+	        		    'click': function(e) {
+	        		    	jQuery('#' + tableId + ' div.show-in-table').hide();
+	        		    	jQuery('#' + tableId + ' table tbody tr').hide();
+	        		    	jQuery('#' + tableId + ' table').parent().hide();
+	        		    	jQuery('#' + tableId).scrollTo('fast', 'swing', -30);
+	        		    	jQuery('#' + tableId + ' div.toggle a.more').text(function() {
+	        		    		return 'Show ' + ((exactSize < 11) ? 'all ' + exactSize : 'first ' + 10) + ' rows';
+	        		    	});
+	        		    	jQuery(this).hide();
+	        		    }
+	        		})
+		        ).append(
+		            	jQuery('<a/>', {
+		    		    'title': 'Show more items',
+		    		    'class': 'more',
+		    		    'style': 'float:right;',
+		    		    'text': function() {
+		    		    	return 'Show ' + ((exactSize < 11) ? 'all ' + exactSize : 'first ' + 10) + ' rows';
+		    		    },
+		    		    'click': function(e) {
+		    		    	jQuery('#' + tableId + ' div.show-in-table').show();
+		    		    	jQuery('#' + tableId + ' table').parent().show();
+		    		    	jQuery('#' + tableId + ' table tbody tr:hidden').each(function(index) {
+		    		    	    if (index < 10) {
+		        		    	    jQuery(this).show();
+		    		    	    }
+		    		    	});
+		    		    	var remaining = jQuery('#' + tableId + ' table tbody tr:hidden').length;
+		    		    	if (remaining > 0) {
+		        		    	jQuery(this).text(function() {
+		            		    	return 'Show ' + ((remaining < 11) ? 'last ' + remaining : 'further ' + 10) + ' rows';
+		        		    	});
+		        		    	jQuery('#' + tableId + ' div.toggle a.less').show();
+		    		    	} else {
+		        		    	jQuery(this).parent().remove();
+		    		    	}
+		    		    }
+		    		})
+		    	);
+	        } else {
+	        	jQuery('#' + tableId).find("h3 div.right").text('1 result');
+				jQuery('#' + tableId + ' table').parent().show();
+	        }
+      	})();
+      </script>
+    </c:if>
   </c:if>
 
-  <tfoot>
-  <tr>
-  <td colspan="${colcount}">
-  <html:hidden property="tableid" value="${pagedResults.tableid}" />
-  <c:choose>
-    <c:when test="${empty inlineTable}">
-      <b>Selected:</b><span id="selectedIdFields">
-      <c:choose>
-       <c:when test="${pagedResults.allSelected != -1}">All selected on all pages</c:when>
-       <c:otherwise>
-         <c:set var="selectedIds">
-           <c:forEach items="${pagedResults.currentSelectedIdStrings}" var="selected" varStatus="status"><c:if test="${status.count > 1}">${selectedIds}, </c:if><c:out value="${selected}"/></c:forEach>
-         </c:set>
-         <c:set var="selectedIdFields">
-           <c:forEach items="${firstSelectedFields}" var="selected" varStatus="status"><c:if test="${status.count > 1}">${selectedIdFields}, </c:if><c:out value="${selected}"/></c:forEach>
-         </c:set>
-         ${selectedIdFields}</c:otherwise>
-      </c:choose>
-      </span>
-    </c:when>
-    <c:otherwise>
-      <c:set var="numRows" value="${pagedResults.exactSize}"/>
-
-      <c:choose>
-        <c:when test="${pagedResults.pageSize >= numRows}">
-          <c:choose>
-            <c:when test="${numRows == 1}">
-              <b>Showing all <span><c:out value="${numRows}"/></span> row.</b>
-            </c:when>
-            <c:otherwise>
-              <b>Showing all <span><c:out value="${numRows}"/></span> rows.</b>
-            </c:otherwise>
-          </c:choose>
-        </c:when>
-        <c:otherwise>
-          <b>Showing first <span><c:out value="${pagedResults.pageSize}"/></span> of <span><c:out value="${numRows}"/></span> rows.</b>
-        </c:otherwise>
-      </c:choose>
-    </c:otherwise>
-  </c:choose>
-
-  </td>
-  </tr>
-  </tfoot>
     <c:if test="${! pagedResults.emptySelection}">
     <script type="text/javascript" charset="utf-8">
     if (jQuery('#newBagName')) {
@@ -281,11 +260,34 @@
 </table>
 
 <c:if test="${empty bagName && empty inlineTable}">
-   <div style="margin-top: 10px;">
+   <div style="margin-top:10px;">
    <tiles:insert name="paging.tile">
      <tiles:put name="resultsTable" beanName="pagedResults" />
      <tiles:put name="currentPage" value="results" />
    </tiles:insert>
    </div>
 </c:if>
-<%--</html:form>--%>
+
+  <div class="selected-fields">
+  <html:hidden property="tableid" value="${pagedResults.tableid}" />
+  <c:choose>
+    <c:when test="${empty inlineTable}">
+      <b>Selected:</b>&nbsp;<span id="selectedIdFields">
+      <c:choose>
+       <c:when test="${pagedResults.allSelected != -1}">All selected on all pages</c:when>
+       <c:otherwise>
+         <c:set var="selectedIds">
+           <c:forEach items="${pagedResults.currentSelectedIdStrings}" var="selected" varStatus="status"><c:if test="${status.count > 1}">${selectedIds}, </c:if><c:out value="${selected}"/></c:forEach>
+         </c:set>
+         <c:set var="selectedIdFields">
+           <c:forEach items="${firstSelectedFields}" var="selected" varStatus="status"><c:if test="${status.count > 1}">${selectedIdFields}, </c:if><c:out value="${selected}"/></c:forEach>
+         </c:set>
+         ${selectedIdFields}</c:otherwise>
+      </c:choose>
+      </span>
+    </c:when>
+    <c:otherwise>
+      <c:set var="numRows" value="${pagedResults.exactSize}"/>
+    </c:otherwise>
+  </c:choose>
+  </div>

@@ -6,6 +6,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="im" %>
 <%@ taglib uri="http://jakarta.apache.org/taglibs/string-1.1" prefix="str" %>
+<%@ taglib uri="/WEB-INF/functions.tld" prefix="imf" %>
 
 <!-- bagDetails.jsp -->
 
@@ -20,6 +21,14 @@
   var detailsType = 'bag';
 //]]>-->
 </script>
+
+<script type="text/javascript">
+  <%-- the number of entries to show in References & Collections before switching to "show all" --%>
+  var numberOfTableRowsToShow = '${object.numberOfTableRowsToShow}'; <%-- required on report.js --%>
+  numberOfTableRowsToShow = (numberOfTableRowsToShow == '') ? 30 : parseInt(numberOfTableRowsToShow);
+</script>
+<script type="text/javascript" src="<html:rewrite page='/js/report.js'/>"></script>
+
 <script type="text/javascript" src="<html:rewrite page='/js/inlinetemplate.js'/>"></script>
 <script type="text/javascript" src="<html:rewrite page='/js/widget.js'/>"></script>
 <div class="body">
@@ -28,7 +37,11 @@
 <div class="heading results">
   <img src="images/icons/lists-64.png" alt="lists icon"/>
   <h1>
-    <fmt:message key="bagDetails.title"/> <span style="font-size:0.9em;font-weight:normal">for <b>${bag.name}</b> (${bag.size} ${bag.type}s)</span>
+      <fmt:message key="bagDetails.title"/> 
+      <span style="font-size:0.9em;font-weight:normal">
+          for <b>${bag.name}</b> 
+          (${bag.size}&nbsp;<c:out value="${imf:formatPathStr(bag.type, INTERMINE_API, WEBCONFIG)}s"/>)
+      </span>
   </h1>
   <div id="tool_bar_div">
       <ul id="button_bar">
@@ -37,7 +50,7 @@
             <li id="tool_bar_li_edit"class="tb_button"><img src="images/edit.png" width="13" height="13" alt="Edit my list"><html:link linkName="#">Edit</html:link></li>
       </c:if>
       </ul>
-    <html:form styleId="findInListForm" action="/findInList">
+    <html:form action="/findInList">
         <input type="text" name="textToFind" id="textToFind"/>
           <input type="hidden" name="bagName" value="${bag.name}"/>
           <html:submit>
@@ -77,7 +90,7 @@
     });
 </script>
 
-<html:form action="/modifyBagDetailsAction" styleId="bagDetailsForm">
+<html:form action="/modifyBagDetailsAction">
 <html:hidden property="bagName" value="${bag.name}"/>
 
 <div id="tool_bar_item_display" style="display:none;width:100px" class="tool_bar_item">
@@ -136,8 +149,7 @@
 <TR>
 
 <TD valign="top" class="tableleftcol">
-<div>
-
+<div class="results collection-table nowrap nomargin">
 <%-- Table displaying bag elements --%>
 <tiles:insert name="resultsTable.tile">
      <tiles:put name="pagedResults" beanName="pagedResults" />
@@ -224,10 +236,8 @@
 <!-- closing toolbar div -->
 
 <div id="convertList" class="listtoolbox" align="left">
-<h3><img src="images/icons/convert.png" title="Convert objects in this bag to different type"/>&nbsp;Convert</h3>
+<h3 class="goog"><img src="images/icons/convert.png" title="Convert objects in this bag to different type"/>&nbsp;Convert</h3>
 <p>
-
-
 <tiles:insert name="convertBag.tile">
      <tiles:put name="bag" beanName="bag" />
      <tiles:put name="idname" value="cp" />
@@ -247,10 +257,9 @@
 
 <!-- link outs -->
 <div id="linkOuts" class="listtoolbox" align="left">
-  <h3>Link outs</h3>
      <p>
-  <tiles:insert name="attributeLinkDisplayer.tile">
-       <tiles:put name="bag" beanName="bag" />
+  <tiles:insert name="attributeLinks.tile">
+    <tiles:put name="bag" beanName="bag" />
   </tiles:insert>
   </p>
 </div>
@@ -299,29 +308,25 @@
 <c:set var="templateIdPrefix" value="bagDetailsTemplate${bag.type}"/>
 <c:set value="${fn:length(CATEGORIES)}" var="aspectCount"/>
 <div class="heading">
-   <a id="relatedTemplates">Template results for '${bag.name}' &nbsp;</a>&nbsp;&nbsp;<span style="font-size:0.8em;">
-  (<a href="javascript:toggleAll(${aspectCount}, '${templateIdPrefix}', 'expand', null, true);">expand all <img src="images/disclosed.gif"/></a> / <a href="javascript:toggleAll(${aspectCount}, '${templateIdPrefix}', 'collapse', null, true);">collapse all <img src="images/undisclosed.gif"/></a>)</span>
+   <a id="relatedTemplates">Template results for '${bag.name}' &nbsp;</a>
   </div>
 
 
   <div class="body">
-  <fmt:message key="bagDetails.templatesHelp">
-    <fmt:param>
-              <img src="images/disclosed.gif"/> / <img src="images/undisclosed.gif"/>
-      </fmt:param>
-  </fmt:message>
+  <fmt:message key="bagDetails.templatesHelp"/>
 
   <%-- Each aspect --%>
   <c:forEach items="${CATEGORIES}" var="aspect" varStatus="status">
-    <tiles:insert name="objectDetailsAspect.tile">
+  <div id="${fn:replace(aspect, " ", "_")}Category" class="aspectBlock">
+    <tiles:insert name="reportAspect.tile">
       <tiles:put name="placement" value="im:aspect:${aspect}"/>
       <tiles:put name="trail" value="|bag.${bag.name}"/>
       <tiles:put name="interMineIdBag" beanName="bag"/>
       <tiles:put name="aspectId" value="${templateIdPrefix}${status.index}" />
       <tiles:put name="opened" value="${status.index == 0}" />
     </tiles:insert>
+  </div>
   </c:forEach>
-
 </div>  <!-- templates body -->
 
 <!-- /templates -->

@@ -10,7 +10,7 @@ a {
     color: #00e;}
 
 h1, h2, h3, h1 a, h1 a:visited, label {
-    color:#192F39;
+    color:#362923;
 }
 h1 a:hover,h1 a:visited:hover  {
     color:#192F39;
@@ -131,59 +131,6 @@ div#filter_tool_bar {
     font-size:0.8em; background:#362923; color:white;}
 
 
-/* =RESULTS TABLES
------------------------*/
-table.results tr th {
-    background-color: #362923;font-size: 12px;color:#FFF;
-}
-table.results tr td.highlightCell, table.results tr.even td.highlightCell {
-   border-right:1px solid #FFF;background-color: #63BBDF;}
-
-table.results tfoot tr td {
-  color:#FFF;
-  background-color: #362923;
-}
-
-table.results tr.even TD{
-  background-color: #FFF5B2;}
-
-table.results tr.odd TD{
-  border-right:1px solid #FFF5B2;
-  border-bottom:1px solid #FFF5B2;}
-
-table.results tr.stepE TD{
-  background-color: #FFF5B2;}
-
-table.results tr.stepO TD{
-  border-right:1px solid #FFF5B2;
-  border-bottom:1px solid #FFF5B2;}
-
-
-table.results tr.stepOeven TD{
-  background-color: #FFF;
-  border-right:1px solid #F0F8FF;
-  border-bottom:1px solid #F0F8FF;}
-
-table.results tr.stepOodd TD{
-  background-color: #F0F8FF;
-  border-right:1px solid #FFF;
-  border-bottom:1px solid #FFF;}
-
-table.results tr.stepEodd TD{
-  background-color: #FFF5B2;}
-
-table.results tr.stepEeven TD{
-  background-color: #63B7DE;
-  border-right:1px solid #FFF5B2;
-  border-bottom:1px solid #FFF5B2;}
-
-
-
-table.results tr td.highlightObject {
-  background-color: #ee6;
-}
-
-
 /* =TOOLBOX RESULTS
 --------------------------*/
 
@@ -296,6 +243,8 @@ table.internal td {
   margin:5px 6px 5x 6px;
   font-size: 12px; color: #333;}
 
+ul#button_bar span { color:#FFF; }
+
 #listTags { background-color: #F5F0FF; margin-left: 10px; padding: 3px 10px; }
 
 /* keyword search results */
@@ -340,3 +289,99 @@ div.heading.results #tool_bar_div li { border:1px solid #D2D2D2; background:#EEE
 #templates #tab-content #ribbon { background: url("../../themes/purple/homepage/ribbon-gray.png") no-repeat scroll right top transparent; }
 
 div.heading.results #tool_bar_div ul#button_bar li a { background:none !important; }
+
+/* report page */
+#pagecontentcontainer.report-page #header_wrap { background-color:#F7F1EE; background-image:url("report/header-bg.png"); }
+#pagecontentcontainer.report-page #object_header h1.title span { color:#662F2E; }
+#pagecontentcontainer.report-page #object_header div.box h3 { background:#F0E3F7; }
+#pagecontentcontainer.report-page #object_header div.list.box span { color:#662F2E; }
+#pagecontentcontainer.report-page #fixed-menu { background:#A32220; }
+#pagecontentcontainer.report-page #toc-menu-wrap { background:#F7F1EE; }
+#pagecontentcontainer.report-page #toc-menu-wrap div.wrap,
+#pagecontentcontainer.report-page #fixed-menu div.wrap { background:#A32220; border-color:#A32220; }
+#pagecontentcontainer.report-page #fixed-menu span, #toc-menu-wrap span { color:#FFF; }
+#pagecontentcontainer.report-page #menu-target { background:#F7F1EE; }
+#pagecontentcontainer.report-page #toc-menu-wrap div.wrap a,
+#pagecontentcontainer.report-page #fixed-menu div.wrap a { color:#FFF; }
+#pagecontentcontainer.report-page #toc-menu-wrap div.wrap a.current,
+#pagecontentcontainer.report-page #fixed-menu div.wrap a.current { color:#A32220; border-color:#A32220; background:#FFF; }
+#pagecontentcontainer.report-page #in-lists div.heading { background:#F7F1EE !important; border-color:#662F2E; color:#662F2E !important; text-shadow:1px 1px 1px #FFF; }
+#pagecontentcontainer.report-page .container_12 .highlight { background-color: #FFF3D3; }
+#pagecontentcontainer.report-page #object_header #headerLink a { color:#662F2E; }
+#pagecontentcontainer.report-page #object_header p.share a { color:#662F2E; }
+#pagecontentcontainer.report-page h2 { color:#000; }
+#pagecontentcontainer.report-page #cwtabsbyside a { color:#662F2E; }
+#pagecontentcontainer.report-page #cwtabsbyside fieldset,
+#pagecontentcontainer.report-page #cwtabsbyside ul li { border-color:#F7F5DA; }
+#pagecontentcontainer.report-page #cwtabsbyside ul,
+#pagecontentcontainer.report-page #cwtabsbyside fieldset.alt { background:#FEFEF6; border-color:#F7F5DA; }
+#pagecontentcontainer.report-page form#fly-atlas-options table tr td { border-color:#F7F5DA; }
+#pagecontentcontainer.report-page form#fly-atlas-options table tr.even td { background:#FEFEF6; }
+
+/* ############ tables, lists & misc configuration ############ */
+/* inline lists */
+div.inline-list ul .name { color:#662F2E; }
+div.inline-list a,
+div.inline-list a:hover,
+div.inline-list a:visited { color:#662F2E; }
+div.inline-list h3 { background:#F7F1EE; border-top-color:#662F2E; color:#662F2E; text-shadow:1px 1px 1px #FFF; }
+div.inline-list.gray h3,
+div.inline-list.grey h3 { background:#F6F5F7; border-top-color:#6E6E6E; color:#ABABAB; }
+div.inline-list div.right a,
+div.inline-list div.right a:hover,
+div.inline-list div.right a:visited { color:#662F2E; }
+/* collection tables */
+div.collection-table h3 { background:#F7F1EE; border-top-color:#662F2E; color:#662F2E; text-shadow:1px 1px 1px #FFF; }
+div.collection-table div.right a,
+div.collection-table div.right a:hover,
+div.collection-table div.right a:visited { color:#662F2E; }
+div.collection-table thead th,
+div.collection-table thead td { background:#F7F1EE; border-color:#F7F5DA; }
+div.collection-table table tr.odd td { background:#FEFEF6; border-top-color:#F7F5DA; border-bottom-color:#F7F5DA; }
+div.collection-table table tbody tr:nth-child(2n) td { background:#FEFEF6; border-top-color:#F7F5DA; border-bottom-color:#F7F5DA; }
+div.collection-table table td.class { color:#886644; }
+div.collection-table table a,
+div.collection-table table a:hover,
+div.collection-table table a:visited { color:#662F2E; }
+div.collection-table.gray h3,
+div.collection-table.grey h3 { background:#F6F5F7; border-top-color:#6E6E6E; color:#ABABAB; }
+div.collection-table.column-border table tbody tr td.left-column-border { border-left-color:#F7F5DA; }
+div.collection-table.column-border table tbody tr td:nth-child(n+2) { border-left-color:#F7F5DA; }
+div.collection-table.column-border-by-2 table tbody tr td.left-column-border { border-left-color:#F7F5DA; }
+div.collection-table.column-border-by-2 table tbody tr td:nth-child(2n+3) { border-left-color:#F7F5DA; }
+/* collection table on results pages */
+div.collection-table.results table { border-top-color:#662F2E; }
+/* basic tables (on displayers etc.) */
+div.basic-table h3 { background:#F7F1EE; border-top-color:#662F2E; color:#662F2E; text-shadow:1px 1px 1px #FFF; }
+div.basic-table table a,
+div.basic-table table a:hover,
+div.basic-table table a:visited,
+div.basic-table a.link { color:#662F2E; }
+div.basic-table.gray h3,
+div.basic-table.grey h3 { background:#F6F5F7; border-top-color:#6E6E6E; color:#ABABAB; }
+/* collection of collection tables */
+div.collection-of-collections div.header { background:#F7F1EE; border-top-color:#662F2E; }
+div.collection-of-collections div.header h3 { text-shadow: 1px 1px 1px #FFFFFF; }
+div.collection-of-collections div.header a,
+div.collection-of-collections div.header a:hover,
+div.collection-of-collections div.header a:visited { color:#662F2E; }
+div.collection-of-collections div.collection-table h3 { border-top-color:#F7F5DA; }
+/* templates */
+div.template h3 { background:#F7F1EE; border-top-color:#662F2E; color:#662F2E; text-shadow:1px 1px 1px #FFF; }
+div.template.gray h3,
+div.template.grey h3 { background:#F6F5F7; border-top-color:#6E6E6E; color:#ABABAB; }
+/* togglers */
+div.collection-table div.toggle a,
+div.collection-table div.toggle a:hover,
+div.collection-table div.toggle a:visited,
+div.collection-of-collections div.toggle a,
+div.collection-of-collections div.toggle a:hover,
+div.collection-of-collections div.toggle a:visited,
+div.collection-table div.show-in-table a,
+div.collection-table div.show-in-table a:hover,
+div.collection-table div.show-in-table a:visited,
+div.collection-of-collections div.show-in-table a,
+div.collection-of-collections div.show-in-table a:hover,
+div.collection-of-collections div.show-in-table a:visited { color:#662F2E; }
+/* header, the same as table header */
+h3.goog { background:#F7F1EE; border-top-color:#662F2E; color:#662F2E; text-shadow:1px 1px 1px #FFF; }
