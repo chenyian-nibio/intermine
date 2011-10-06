@@ -5,16 +5,16 @@
 # sc
 
 ARKDIR=/micklem/releases/modmine
-DBHOST=modprod1
+DBHOST=modfast
 DBUSER=modmine
 DATADIR=/micklem/data/modmine/subs/chado
 LOADDIR="$DATADIR/load"
 INTERACT=y
 DOIT=y
 
-#PRO="celniker waterston"
-#PRO="lai lieb henikoff macalpine oliver snyder karpen piano white celniker waterston"
+#PRO="oliver snyder"
 PRO="lieb henikoff macalpine oliver snyder karpen white celnikerlai waterstonpiano"
+#PRO="lieb macalpine snyder karpen celnikerlai waterstonpiano"
 
 progname=$0
 
@@ -91,6 +91,34 @@ echo
 fi
 }
 
+function prepare_production {
+#mv dump to archive
+echo
+# use the build dump (from modfast)
+mv $ARKDIR/build/mod-final.dmp $ARKDIR/r$REL/modmine-r$REL
+
+#alt
+#echo "Dumping current release $REL ..."
+#pg_dump -F c -i -h modprod0 -f $ARKDIR/r$REL/modmine-r$REL modmine-r$REL -U modmine
+
+#echo "Dumping modmine-build in modfast..."
+#pg_dump -F c -i -h modfast -f $ARKDIR/r$REL/modmine-r$REL modmine-build -U modminebuild
+
+#create release on production server
+echo
+echo "Creating new production modmine-r$REL on modprod0..."
+createdb -E SQL_ASCII -h modprod0 -U modmine modmine-r$REL
+echo
+echo "Restoring build modmine-r$REL on modprod0..."
+pg_restore -h modprod0 -U modmine -d modmine-r$REL $ARKDIR/r$REL/modmine-r$REL
+
+echo "done"
+echo
+}
+
+
+
+
 function dump_chadoes {
 echo "========================================================"
 echo "       DUMPING modchado INTO ARCHIVE DIRECTORY "
@@ -141,12 +169,14 @@ echo
 }
 
 function archive_mine {
-#dump release
-echo
+#dump release: this is obsolete now
 #echo "Dumping current release $REL ..."
 #pg_dump -F c -i -h modprod0 -f $ARKDIR/r$REL/modmine-r$REL modmine-r$REL -U modmine
-echo "Dumping modmine-build in modfast..."
-pg_dump -F c -i -h modfast -f $ARKDIR/r$REL/modmine-build modmine-build -U modminebuild
+# use the build dump (from modfast)
+# mv $ARKDIR/build/mod-final.dmp $ARKDIR/r$REL/modmine-r$REL
+#echo "Dumping modmine-build in modfast..."
+#pg_dump -F c -i -h modfast -f $ARKDIR/r$REL/modmine-r$REL modmine-build -U modminebuild
+
 #create release on archive server
 echo
 echo "Creating empty archive modmine-r$REL on modalone..."
@@ -165,8 +195,8 @@ echo
 function do_branch {
 # do branch 
 RETURNDIR=$PWD
-svn copy svn://svn.flymine.org/flymine/trunk svn://svn.flymine.org/flymine/branches/modmine/modmine-$REL
-cd /home/modmine/svn
+svn copy svn://svn.flymine.org/flymine/trunk svn://svn.flymine.org/flymine/branches/modmine/modmine-$REL -m "modmine $REL branch"
+cd /data/code/modmine/
 svn co svn://svn.flymine.org/flymine/branches/modmine/modmine-$REL modmine-$REL
 cd $RETURNDIR
 echo "done"
@@ -177,7 +207,7 @@ function start_archive_webapp {
 RETURNDIR=$PWD
 echo
 echo "Dumping $PREL userprofile..."
-pg_dump -c -i -h modprod0 -U modmine -f $ARKDIR/userprofiles/modmine-r$PREL-userprofile modmine-r$PREL-userprofile
+pg_dump -c -i -h modprod0 -U modmine -f $ARKDIR/userprofiles/modmine-r$PREL-userprofile modmine-prod-userprofile
 
 echo; echo "Creating userprofile on modalone.."
 createdb -h modalone -U modmine  modmine-r$PREL-userprofile
@@ -195,7 +225,8 @@ gzip $ARKDIR/userprofiles/osbag_int-r$PREL.sql
 
 echo; echo "Creating properties file for archived webapp r$PREL..."
 cd /home/modmine/.intermine
-sed 's/modprod0/modalone/g' modmine.properties.r$PREL | grep -v 'google.analytics' > modmine.properties.modmine-$PREL
+#sed 's/modprod0/modalone/g' modmine.properties.r$PREL | grep -v 'google.analytics' > modmine.properties.modmine-$PREL
+sed 's/modprod0/modalone/g' modmine.properties.r$PREL | sed 's/modmine-prod-userprofile/modmine-r'"$PREL"'-userprofile/g' | grep -v 'google.analytics' > modmine.properties.modmine-$PREL
 
 echo; echo "Starting archived webapp r$PREL..."
 cd /home/modmine/svn/modmine-$PREL/modmine/webapp
@@ -233,16 +264,10 @@ fi
 
 check_user
 
-interact "Archiving xml files for all the projects:"
+interact "Preparing production database modmine-r$REL on modprod0"
 if [ "$DOIT" != "n" ]
 then
-tar_xml
-fi
-
-interact "Dumping chadoes for all the projects:"
-if [ "$DOIT" != "n" ]
-then
-dump_chadoes
+prepare_production
 fi
 
 interact "Archiving new (current) mine modmine-r$REL:"
@@ -261,5 +286,17 @@ interact "Start archived webapp modmine $PREL:"
 if [ "$DOIT" != "n" ]
 then
 start_archive_webapp
+fi
+
+interact "Archiving xml files for all the projects:"
+if [ "$DOIT" != "n" ]
+then
+tar_xml
+fi
+
+interact "Dumping chadoes for all the projects:"
+if [ "$DOIT" != "n" ]
+then
+dump_chadoes
 fi
 

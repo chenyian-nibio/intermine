@@ -31,6 +31,7 @@ FTPURL=http://submit.modencode.org/submit/public
 PROPDIR=$HOME/.intermine
 SCRIPTDIR=../bio/scripts/flymine/modmine/
 
+ARKDIR=/micklem/releases/modmine
 
 RECIPIENTS=contrino@flymine.org,rns@flymine.org
 
@@ -213,7 +214,7 @@ IFS=$'\t\n'
 else
 #SOURCES=entrez-organism,modmine-static,modencode-metadata,fly-expression-score
 SOURCES=modmine-static,modencode-metadata
-#SOURCES=flyrnai-screens
+#SOURCES=modencode-metadata,worm-network
 fi
 
 
@@ -310,7 +311,7 @@ fi
 
 if [ "$CHADOAPPEND" = "n" ]
 then 
-dropdb -e $CHADODB -h $DBHOST -U $DBUSER;
+dropdb -e "$CHADODB" -h "$DBHOST" -U "$DBUSER";
 createdb -e $CHADODB -h $DBHOST -U $DBUSER || { printf "%b" "\nMine building FAILED. Please check previous error message.\n\n" ; exit 1 ; }
 # initialise it
 cd $MINEDIR
@@ -320,13 +321,16 @@ psql -q -o /dev/null -d  $CHADODB -h $DBHOST -U $DBUSER < $SCRIPTDIR/build_empty
 
 if [ "$CHADODB" = "modchado-white" ]
 then
-echo "Dropping constraint attribute_name_key in modchado-white.."
+echo
+echo "WARNING: dropping constraint attribute_name_key in modchado-white and substituting with a unique index for record with char_length(value) < 2700.."
 # there are white submissions that give an error in the row size of the index because of the very
 # long string in the value of the attribute (a seq). Here postgres suggestions.
 # ERROR:  index row size 3376 exceeds btree maximum, 2712
 # HINT:  Values larger than 1/3 of a buffer page cannot be indexed.
 # Consider a function index of an MD5 hash of the value, or use full text indexing
 psql -h $DBHOST -d $CHADODB -U $DBUSER -c "alter table attribute drop constraint attribute_name_key;"
+psql -h $DBHOST -d $CHADODB -U $DBUSER -c "CREATE UNIQUE INDEX att_value_idx ON  attribute (name, heading, rank, value, type_id)
+    where char_length(value) < 2700;"
 fi
 
 fi
@@ -387,7 +391,13 @@ do
     gzip -S .chadoxml -d $sub
     mv $DCCID $MIRROR/$1/$sub
   	FOUND=y
+    
+    if [ "$sub" = "2745.chadoxml" ]
+    then
+    changeFeatType $MIRROR/$1/$sub > $LOADDIR/$sub
+    else
     dewiggle $MIRROR/$1/$sub > $LOADDIR/$sub
+    fi
 
     if [ -n "$2" ]
     then
@@ -449,10 +459,18 @@ function fillChado {
 DCCID=`echo $1 | cut -f 8 -d/ |cut -f 1 -d.`
 EDATE=`grep -w ^$DCCID $DATADIR/ftplist | grep -v true | sed -n 's/.*\t//;p'`
 
+# check if the sub is already in chado: in case skip!
+ISIN=`psql -h $DBHOST -d $CHADODB -U $DBUSER -q -t -c "select experiment_id from experiment_prop where name = 'dcc_id' and  value='$DCCID';"`
+if [ -n "$ISIN" ]
+then
+echo "Submission $DCCID is already in chado: skipping it.."
+echo "`date "+%y%m%d.%H%M"` $DCCID already loaded, skipping it.." >> $LOG
+else
+
 echo -n "filling $CHADODB db with $DCCID (eDate: $EDATE) -- "
 date "+%d%b%Y %H:%M"
 echo >> $LOG
-echo -n "`date "+%y%m%d.%H%M"` $DCCID" >> $LOG
+echo -n "`date "+%y%m%d.%H%M"`  $DCCID " >> $LOG
 
 ## we should test more the use with this option (according to profiler is cheaper)
 #stag-storenode.pl -D "Pg:$CHADODB@$DBHOST" -user $DBUSER -password \
@@ -492,18 +510,19 @@ then
 echo -n "  ** ERROR loading patch file **" >> $LOG
 fi
 else
-echo -n " no patch file " >> $LOG
+echo -n "  no patch file " >> $LOG
 echo "$DCCID: no patch file."
 fi
 
 else
 echo
-echo -n "  ERROR: stag-storenode FAILED, skipping submission." >> $LOG
+echo -n "  ERROR: stag-storenode FAILED." >> $LOG
 echo "$DCCID  stag-storenode FAILED. SKIPPING SUBMISSION."
 echo
 STAGFAIL=y
 fi
 
+fi
 }
 
 function processOneChadoSub {
@@ -601,6 +620,12 @@ function dewiggle {
 sed '/<wiggle_data id/,/<\/wiggle_data>/d' $1 | sed '/<data_wiggle_data/,/<\/data_wiggle_data>/d'
 }
 
+function changeFeatType {
+# needed to deal with piano 2745 (mRNA->transcript)    
+sed 's/<name>mRNA</<name>transcript</g' $1 | sed 's/<accession>0000234</<accession>0000673</g'   
+}
+
+
 function doProjectList {
 #--------------------------------------------------
 # building the list of live dccid for each project 
@@ -621,6 +646,9 @@ grep released $DATADIR/ftplist | grep false | grep -vw true | grep -i snyder, | 
 grep released $DATADIR/ftplist | grep false | grep -vw true | grep -i waterston, | awk '{print $1}' > $DATADIR/waterston.live
 grep released $DATADIR/ftplist | grep false | grep -vw true | grep -i white, | awk '{print $1}' > $DATADIR/white.live
 grep released $DATADIR/ftplist | grep false | grep -vw true | grep -i oliver, | awk '{print $1}' > $DATADIR/oliver.live
+
+cat $DATADIR/celniker.live $DATADIR/lai.live > $DATADIR/celnikerlai.live
+cat $DATADIR/waterston.live $DATADIR/piano.live > $DATADIR/waterstonpiano.live
 
 }
 
@@ -665,17 +693,29 @@ else
 wget -O - $FTPURL/list.txt | sort > $FTPARK/`date "+%y%m%d"`.list
 rm $DATADIR/ftplist
 ln -s $FTPARK/`date "+%y%m%d"`.list $DATADIR/ftplist
+
 # get the list of live dccid and use it as loop variable
 grep released $DATADIR/ftplist | grep false | grep -vw true | awk '{print $1}' > $DATADIR/all.live
 LOOPVAR=`cat $DATADIR/all.live`
 doProjectList
+
 # get also the list of deprecated entries with their replacement
-#grep released $DATADIR/ftplist | grep true | awk '{print $1, " -> ", $3 }' > $DATADIR/deprecation.table
+# this is now obsolete, still useful for doc?
 grep released $DATADIR/ftplist | grep true | awk '$2 == "true" {print $1, " -> ", $3 }' > $DATADIR/deprecation.table
 # true of superseded can be on 3 or 4 position, and the superseding sub in 4 or 5
 grep released $DATADIR/ftplist | grep true | awk '$3 == "true" {print $1, " -> ", $4 }' > $DATADIR/superseded.table
 grep released $DATADIR/ftplist | grep true | awk '$4 == "true" {print $1, " -> ", $5 }' >> $DATADIR/superseded.table
 awk '{print $1}' $DATADIR/deprecation.table > $DATADIR/all.dead
+awk '{print $1}' $DATADIR/superseded.table >> $DATADIR/all.dead
+
+# do the deprecations file
+grep released $DATADIR/ftplist | grep true | awk '$2 == "true" {print $3","$1 }' | grep -v unknown > $DATADIR/depr
+grep released $DATADIR/ftplist | grep true | awk '$3 == "true" {print $4","$1 }' >> $DATADIR/depr
+grep released $DATADIR/ftplist | grep true | awk '$4 == "true" {print $5","$1 }' >> $DATADIR/depr
+
+mv $DATADIR/deprecations $FTPARK/dep.`date "+%y%m%d"`
+sort -u $DATADIR/depr > $DATADIR/deprecations
+
 fi
 
 cd $MIRROR/new
@@ -684,6 +724,7 @@ interact "START WGET NOW"
 
 for sub in $LOOPVAR
 do
+
  wget -t3 -N --header="accept-encoding: gzip" $FTPURL/get_file/$sub/extracted/$sub.chadoxml  --progress=dot:mega 2>&1 | tee -a $LOGDIR/wget.log$WLOGDATE
 
 cd $PATCHDIR
@@ -875,34 +916,40 @@ then
 
 if [ "$FULL" = "y" ]
 then
+interact "Reloading all chadoes. All existing databases in $DBHOST will be rebuilt."
+#loadChadoSubs lai
+#loadChadoSubs piano
 loadChadoSubs henikoff
-loadChadoSubs karpen
-loadChadoSubs lai
 loadChadoSubs lieb
-loadChadoSubs macalpine
-loadChadoSubs piano
 loadChadoSubs oliver
+loadChadoSubs macalpine
 loadChadoSubs snyder
+loadChadoSubs karpen
 loadChadoSubs white
-loadChadoSubs celniker
-loadChadoSubs waterston
+loadChadoSubs celnikerlai
+loadChadoSubs waterstonpiano
+
+interact "Updating chado DBs: adding deletion flag and deprecations."
+
+$SCRIPTDIR/flag_deleted.sh
+$SCRIPTDIR/add_deprecations.sh
+
 elif [ -n "$P" ]
 then
 loadChadoSubs $P
 elif [ -n "$L" ]
 then
-echo "*********$IFS**"
 IFS=$','
-echo "*********$IFS**"
 for p in $L
 do 
 echo "---> $p"
 IFS=$'\t\n'
 loadChadoSubs $p
 IFS=$','
+echo " " >> $LOG
+echo " " >> $LOG
 done
 IFS=$'\t\n'
-echo "*********$IFS**"
 else
 loadChadoSubs
 fi
@@ -911,7 +958,6 @@ interact
 else
 echo "Using previously loaded chado..."
 fi # if $STAG=y
-
 
 
 #---------------------------------------
@@ -935,14 +981,14 @@ elif [ $RESTART = "y" ]
 then
 # restart build after failure
 echo; echo "Restarting build using last available back-up db.."
-../bio/scripts/project_build -V $REL $V -l localhost /tmp/mod-all\
+../bio/scripts/project_build -V $REL $V -l localhost $ARKDIR/build/mod-final.dmp\
 || { printf "%b" "\n modMine build (restart) FAILED.\n" ; exit 1 ; }
 elif [ $QRESTART = "y" ]
 then
 # restart build without recovering last dumped db
 echo; echo "Quick restart of the build (using current db).."
-../bio/scripts/project_build -V $REL $V -r localhost /tmp/mod-all\
-|| { printf "%b" "\n modMine build (restart) FAILED.\n" ; exit 1 ; }
+../bio/scripts/project_build -V $REL $V -r localhost $ARKDIR/build/mod-final.dmp\
+|| { printf "%b" "\n modMine build (quick restart) FAILED.\n" ; exit 1 ; }
 elif [ $META = "y" ]
 then
 # new build. static, metadata, organism
@@ -964,7 +1010,7 @@ cd ../bio/scripts
 fi
 # .. and build modmine
 cd $MINEDIR
-../bio/scripts/project_build -V $REL $V -b localhost /tmp/mod-all\
+../bio/scripts/project_build -V $REL $V -b localhost $ARKDIR/build/mod-final.dmp\
 || { printf "%b" "\n modMine build FAILED.\n" ; exit 1 ; }
 fi
 
@@ -995,7 +1041,7 @@ interact
 #---------------------------------------
 # and run acceptance tests
 #---------------------------------------
-if [ "$TEST" = "y" ] && [ $VALIDATING = "n" ]
+if [ "$TEST" = "y" ] && [ "$VALIDATING" = "n" ]
 then
 if [ -n "$P" ]
 then

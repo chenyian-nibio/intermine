@@ -153,9 +153,6 @@ public class FlyBaseProcessor extends SequenceProcessor
     private static final Pattern PB_INSERTION_PATTERN =
         Pattern.compile(".*\\{.*\\}(?:.*\\[)?([def]\\d+)(?:\\])?");
 
-    // pattern to match GLEANR gene symbols from FlyBase chado
-    private static final Pattern GLEANR_PATTERN = Pattern.compile(".*GLEANR.*");
-
     private static final Map<String, String> CHROMOSOME_STRUCTURE_VARIATION_SO_MAP
         = new HashMap<String, String>();
     private final Map<String, FeatureData> proteinFeatureDataMap
@@ -534,9 +531,7 @@ public class FlyBaseProcessor extends SequenceProcessor
                     Arrays.asList(new SetFieldConfigAction("symbol")));
             map.put(new MultiKey("synonym", "Gene", "symbol", Boolean.FALSE),
                     Arrays.asList(CREATE_SYNONYM_ACTION));
-            map.put(new MultiKey("synonym", "Gene", "symbol", Boolean.FALSE),
-                    Arrays.asList(new SetFieldConfigAction("GLEANRsymbol", GLEANR_PATTERN),
-                                  CREATE_SYNONYM_ACTION));
+
 
             // dbxref table configuration example: for features of class "Gene", where the
             // db.name is "FlyBase Annotation IDs" and "is_current" is true, set the
@@ -585,8 +580,6 @@ public class FlyBaseProcessor extends SequenceProcessor
             // set the Allele.gene when there is an alleleof relationship between Allele and Gene
             map.put(new MultiKey("relationship", "Allele", "alleleof", "Gene"),
                     Arrays.asList(new SetFieldConfigAction("gene")));
-
-
 
             // Set the protein reference in the MRNA - "rev_relationship" means that the
             // relationship table actually has Protein, producedby, MRNA.  We configure like

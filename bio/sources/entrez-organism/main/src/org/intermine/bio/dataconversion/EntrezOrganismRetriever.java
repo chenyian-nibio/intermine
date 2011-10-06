@@ -113,13 +113,13 @@ public class EntrezOrganismRetriever extends Task
             ItemFactory itemFactory = new ItemFactory(os.getModel(), "-1_");
             writer.write(FullRenderer.getHeader() + "\n");
             for (Iterator<Integer> i = orgMap.keySet().iterator(); i.hasNext();) {
-                Integer taxonId = (Integer) i.next();
+                Integer taxonId = i.next();
                 taxonIds.add(taxonId);
                 if (taxonIds.size() == BATCH_SIZE || !i.hasNext()) {
                     SAXParser.parse(new InputSource(getReader(taxonIds)),
                                     new Handler(toStore, itemFactory), false);
                     for (Iterator<Item> j = toStore.iterator(); j.hasNext();) {
-                        Item item = (Item) j.next();
+                        Item item = j.next();
                         writer.write(FullRenderer.render(item));
                     }
                     taxonIds.clear();
@@ -225,7 +225,8 @@ Example
         /**
          * {@inheritDoc}
          */
-        public void startElement(String uri, String localName, String qName, Attributes attrs) {
+        public void startElement(@SuppressWarnings("unused") String uri,
+                @SuppressWarnings("unused") String localName, String qName, Attributes attrs) {
             if ("ERROR".equals(qName)) {
                 name = qName;
             } else if ("Id".equals(qName)) {
@@ -246,7 +247,9 @@ Example
         /**
          * {@inheritDoc}
          */
-        public void endElement(String uri, String localName, String qName) {
+        public void endElement(@SuppressWarnings("unused") String uri,
+                @SuppressWarnings("unused") String localName,
+                @SuppressWarnings("unused") String qName) {
             if ("ERROR".equals(name)) {
                 LOG.error("Unable to retrieve taxonomy record: " + characters);
             } else if ("Id".equals(name)) {

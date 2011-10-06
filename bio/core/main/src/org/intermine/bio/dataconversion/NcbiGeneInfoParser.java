@@ -58,8 +58,10 @@ public class NcbiGeneInfoParser
                     defaultSymbol, officialName, defaultName, mapLocation);
             record.ensemblIds.addAll(parseXrefs(xrefs, "Ensembl"));
 
-            for (String synonym : synonyms.split("\\|")) {
-                record.synonyms.add(synonym);
+            if (!"-".equals(synonyms)) {
+                for (String synonym : synonyms.split("\\|")) {
+                    record.synonyms.add(synonym);
+                }
             }
 
             Set<GeneInfoRecord> taxonRecords = recordMap.get(taxonId);
@@ -128,6 +130,10 @@ public class NcbiGeneInfoParser
         return !taxonDuplicates.contains(symbol);
     }
 
+    /**
+     * @param taxonId taxon ID for organism of interest
+     * @return set of symbols that are duplicated
+     */
     public Set<String> findDuplicateSymbols(String taxonId) {
         Set<String> duplicates = new HashSet<String>();
         if (recordMap.containsKey(taxonId)) {
@@ -146,13 +152,14 @@ public class NcbiGeneInfoParser
     }
 
     private Set<String> parseXrefs(String xrefs, String prefix) {
+        String newPrefix = prefix;
         if (!prefix.endsWith(":")) {
-            prefix = prefix + ":";
+            newPrefix = prefix + ":";
         }
         Set<String> matched = new HashSet<String>();
         for (String xref : xrefs.split("\\|")) {
             if (xref.startsWith(prefix)) {
-                matched.add(xref.substring(prefix.length()));
+                matched.add(xref.substring(newPrefix.length()));
             }
         }
         return matched;
