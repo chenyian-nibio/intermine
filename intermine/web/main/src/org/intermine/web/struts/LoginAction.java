@@ -49,16 +49,20 @@ public class LoginAction extends LoginHandler
         HttpSession session = request.getSession();
         final InterMineAPI im = SessionMethods.getInterMineAPI(session);
         ProfileManager pm = im.getProfileManager();
+
         LoginForm lf = (LoginForm) form;
 
         ActionErrors errors = lf.validate(mapping, request);
         if (!errors.isEmpty()) {
-            saveErrors(request, (ActionMessages) errors);
+            saveErrors(request, errors);
             return mapping.findForward("login");
         }
-        Map<String, String> renamedBags = doLogin(request, response, session, pm, lf.getUsername(),
-                lf.getPassword());
+
+        Map<String, String> renamedBags = doLogin(request, lf.getUsername(), lf.getPassword());
         recordMessage(new ActionMessage("login.loggedin", lf.getUsername()), request);
+        //track the user login
+        im.getTrackerDelegate().trackLogin(lf.getUsername());
+
         if (renamedBags.size() > 0) {
             for (String initName : renamedBags.keySet()) {
                 recordMessage(new ActionMessage("login.renamedbags", initName,

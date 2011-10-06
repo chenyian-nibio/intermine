@@ -19,15 +19,17 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.api.bag.UnknownBagTypeException;
+import org.intermine.api.config.ClassKeyHelper;
 import org.intermine.api.template.TemplateQuery;
 import org.intermine.api.xml.SavedQueryBinding;
 import org.intermine.api.xml.TemplateQueryBinding;
+import org.intermine.metadata.FieldDescriptor;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.userprofile.SavedBag;
 import org.intermine.model.userprofile.SavedQuery;
@@ -68,6 +70,9 @@ public class ProfileManager
     private String superuser = null;
     /** Number determining format of queries in the database */
     protected int version;
+
+    private final Map<String, SingleAccessToken> singleUseTokens
+        = new HashMap<String, SingleAccessToken>();
     /**
      * Construct a ProfileManager for the webapp
      * @param os the ObjectStore to which the webapp is providing an interface
@@ -201,14 +206,34 @@ public class ProfileManager
     }
 
     /**
+     * Get a user's Profile using a username, password and the classKeys.
+     * @param username the username
+     * @param password the password
+     * @param classKeys the classkeys
+     * @return the Profile, or null if one doesn't exist
+     */
+    public synchronized Profile getProfile(String username, String password,
+                        Map<String, List<FieldDescriptor>> classKeys) {
+        if (hasProfile(username) && validPassword(username, password)) {
+            return getProfile(username, classKeys);
+        }
+        return null;
+    }
+    /**
      * Get a user's Profile using a username and password.
      * @param username the username
      * @param password the password
      * @return the Profile, or null if one doesn't exist
      */
     public synchronized Profile getProfile(String username, String password) {
-        if (hasProfile(username) && validPassword(username, password)) {
-            return getProfile(username);
+        if (hasProfile(username)) {
+        	if (getUserProfile(username).getLocalAccount()) {
+        		if (validPassword(username, password)) {
+                    return getProfile(username);
+        		}
+        	} else {
+        		return getProfile(username);
+        	}
         }
         return null;
     }
@@ -219,6 +244,17 @@ public class ProfileManager
      * @return the Profile, or null if one doesn't exist
      */
     public synchronized Profile getProfile(String username) {
+        return getProfile(username, new HashMap<String, List<FieldDescriptor>>());
+    }
+
+    /**
+     * Get a user's Profile using a username
+     * @param username the username
+     * @param classKeys the classkeys
+     * @return the Profile, or null if one doesn't exist
+     */
+    public synchronized Profile getProfile(String username, Map<String,
+                        List<FieldDescriptor>> classKeys) {
         if (username == null) {
             return null;
         }
@@ -254,6 +290,8 @@ public class ProfileManager
                 } else {
                     try {
                         InterMineBag bag = new InterMineBag(os, bagId, uosw);
+                        bag.setKeyFieldNames(ClassKeyHelper.getKeyFieldNames(
+                                             classKeys, bag.getType()));
                         savedBags.put(bag.getName(), bag);
                     } catch (UnknownBagTypeException e) {
                         LOG.warn("Ignoring a bag '" + savedBag.getName() + " for user '"
@@ -310,7 +348,8 @@ public class ProfileManager
             }
         }
         profile = new Profile(this, username, userProfile.getId(), userProfile.getPassword(),
-                savedQueries, savedBags, savedTemplates);
+                savedQueries, savedBags, savedTemplates, userProfile.getApiKey(),
+                userProfile.getLocalAccount());
         profileCache.put(username, profile);
         return profile;
     }
@@ -333,7 +372,9 @@ public class ProfileManager
         Integer userId = profile.getUserId();
         try {
             UserProfile userProfile = getUserProfile(userId);
+
             if (userProfile != null) {
+            	userProfile.setApiKey(profile.getApiKey());
                 for (Iterator i = userProfile.getSavedQuerys().iterator(); i.hasNext();) {
                     uosw.delete((InterMineObject) i.next());
                 }
@@ -400,8 +441,11 @@ public class ProfileManager
     public synchronized void createProfile(Profile profile) {
         UserProfile userProfile = new UserProfile();
         userProfile.setUsername(profile.getUsername());
-        userProfile.setPassword(PasswordHasher.hashPassword(profile.getPassword()));
-        //userProfile.setId(userId);
+        userProfile.setLocalAccount(profile.isLocal());
+
+        if (profile.isLocal()) {
+        	userProfile.setPassword(PasswordHasher.hashPassword(profile.getPassword()));
+        }
 
         try {
             uosw.store(userProfile);
@@ -409,6 +453,75 @@ public class ProfileManager
             for (InterMineBag bag : profile.getSavedBags().values()) {
                 bag.setProfileId(userProfile.getId());
             }
+        } catch (ObjectStoreException e) {
+            throw new RuntimeException(e);
+        }
+        saveProfile(profile);
+    }
+
+    /**
+     * Generate a new API access key for this profile and return it.
+     * @param profile The profile to generate the new API key for.
+     * @return A new API access key
+     */
+    public synchronized String generateApiKey(Profile profile) {
+        String newApiKey = generateApiKey();
+        profile.setApiKey(newApiKey);
+        return newApiKey;
+    }
+
+    /**
+     * Generate a single use API key and store it in memory, before returning it.
+     * @param profile
+     * @return
+     */
+    public synchronized String generateSingleUseKey(Profile profile) {
+        String key = generateApiKey();
+        SingleAccessToken token = new SingleAccessToken(profile.getUsername());
+        singleUseTokens.put(key, token);
+        return key;
+    }
+
+    private static String generateApiKey() {
+        String timePrefix = Long.toHexString(new Date().getTime());
+        String randomSuffix = RandomStringUtils.randomAlphanumeric(16);
+
+        StringBuilder sb = new StringBuilder();
+
+        // Interleave the random and predictable portions so that
+        // the time string isn't so obvious.
+        int tpl = timePrefix.length();
+        int rsl = randomSuffix.length();
+        for (int i = 0; i < tpl || i < rsl; i++) {
+            if (i < randomSuffix.length()) {
+                sb.append(randomSuffix.charAt(i));
+            }
+            if (i < timePrefix.length()) {
+                sb.append(timePrefix.charAt(i));
+            }
+        }
+
+        return sb.toString();
+    }
+
+    public String generateReadOnlyAccessToken(Profile profile) {
+        return null;
+    }
+
+    /**
+     * Creates a profile in the userprofile database withou adding bag.
+     * Method used by the ProfielReadXml.
+     *
+     * @param profile a Profile object
+     */
+    public synchronized void createProfileWithoutBags(Profile profile) {
+        UserProfile userProfile = new UserProfile();
+        userProfile.setUsername(profile.getUsername());
+        userProfile.setPassword(PasswordHasher.hashPassword(profile.getPassword()));
+
+        try {
+            uosw.store(userProfile);
+            profile.setUserId(userProfile.getId());
         } catch (ObjectStoreException e) {
             throw new RuntimeException(e);
         }
@@ -494,7 +607,14 @@ public class ProfileManager
         return getProfile(superuser);
     }
 
-    private Map<String, PasswordChangeToken> passwordChangeTokens
+    /**
+     * @return the superuser profile
+     */
+    public Profile getSuperuserProfile(Map<String, List<FieldDescriptor>> classKeys) {
+        return getProfile(superuser, classKeys);
+    }
+
+    private final Map<String, PasswordChangeToken> passwordChangeTokens
         = new HashMap<String, PasswordChangeToken>();
 
     /**
@@ -507,12 +627,7 @@ public class ProfileManager
     public synchronized String createPasswordChangeToken(String username) {
         if (hasProfile(username)) {
             Date expiry = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
-            Random random = new Random();
-            char[] tokenArray = new char[10];
-            for (int i = 0; i < 10; i++) {
-                tokenArray[i] = (char) (random.nextInt(26) + 'a');
-            }
-            String token = new String(tokenArray);
+            String token = generateApiKey();
             passwordChangeTokens.put(token, new PasswordChangeToken(username, expiry));
             return token;
         } else {
@@ -567,8 +682,8 @@ public class ProfileManager
      */
     private static class PasswordChangeToken
     {
-        private String username;
-        private Date expiry;
+        private final String username;
+        private final Date expiry;
 
         public PasswordChangeToken(String username, Date expiry) {
             this.username = username;
@@ -582,5 +697,146 @@ public class ProfileManager
         public boolean isValid() {
             return System.currentTimeMillis() < expiry.getTime();
         }
+    }
+
+    /**
+     * Transient API access keys for automated API access. These tokens are only valid for a single use.
+     * @author Alex Kalderimis
+     *
+     */
+    private static class SingleAccessToken
+    {
+        private final String username;
+        private final int maxUses = 1;
+        private int uses = 0;
+
+        public SingleAccessToken(String username) {
+            this.username = username;
+        }
+
+        public boolean isValid() {
+            return uses < maxUses;
+        }
+
+        public String getUserName() {
+            return username;
+        }
+
+        public void use() {
+            uses++;
+        }
+    }
+
+    public static class ApiPermission
+    {
+        public enum Level {RO, RW};
+
+        private final Level level;
+        private final Profile profile;
+
+        /*
+         * Only the ProfileManager has permission to grant API permissions.
+         */
+        private ApiPermission(Profile profile, Level level) {
+            this.level = level;
+            this.profile = profile;
+        }
+
+        public Profile getProfile() {
+            return profile;
+        }
+
+        public Level getLevel() {
+            return level;
+        }
+
+        public boolean isRW() {
+            return level == Level.RW;
+        }
+
+        public boolean isRO() {
+            return level == Level.RO;
+        }
+    }
+
+    /**
+     * Get the level of permission granted by an access token.
+     * @param token
+     * @return
+     */
+    public ApiPermission getPermission(String token, Map<String, List<FieldDescriptor>> classKeys) {
+        ApiPermission permission;
+        if (singleUseTokens.containsKey(token)) {
+            SingleAccessToken t = singleUseTokens.get(token);
+            if (!t.isValid()) {
+                throw new AuthenticationException("This token (" + token + ")is invalid.");
+            }
+            Profile p = getProfile(t.getUserName(), classKeys);
+            t.use();
+            if (!t.isValid()) {
+                singleUseTokens.remove(token);
+            }
+            // Grant RO permission to user data
+            permission = new ApiPermission(p, ApiPermission.Level.RO);
+        } else {
+            Profile p = getProfileByApiKey(token, classKeys);
+            if (p == null) {
+                throw new AuthenticationException("This token is not a valid access key: "
+                        + token);
+            } else {
+                // Grant RW permission to user data
+                permission = new ApiPermission(p, ApiPermission.Level.RW);
+            }
+        }
+        return permission;
+    }
+
+    public ApiPermission getPermission(String username, String password, Map<String, List<FieldDescriptor>> classKeys) {
+        if (StringUtils.isEmpty(username)) {
+            throw new AuthenticationException("Empty user name.");
+        }
+        if (StringUtils.isEmpty(password)) {
+            throw new AuthenticationException("Empty password.");
+        }
+        if (hasProfile(username)) {
+            if (!validPassword(username, password)) {
+                throw new AuthenticationException("Invalid password supplied: " + password);
+            } else {
+                Profile p = getProfile(username, classKeys);
+                ApiPermission permission = new ApiPermission(p, ApiPermission.Level.RW);
+                return permission;
+            }
+        } else {
+            throw new AuthenticationException("Unknown username: " + username);
+        }
+    }
+
+    private Profile getProfileByApiKey(String token, Map<String, List<FieldDescriptor>> classKeys) {
+        UserProfile profile = new UserProfile();
+        profile.setApiKey(token);
+        Set<String> fieldNames = new HashSet<String>();
+        fieldNames.add("apiKey");
+        try {
+            profile = (UserProfile) uosw.getObjectByExample(profile, fieldNames);
+        } catch (ObjectStoreException e) {
+            return null; // Could not be found.
+        }
+        if (profile == null) {
+            throw new AuthenticationException("'" + token + "' is not a valid API access key");
+        }
+        return getProfile(profile.getUsername(), classKeys);
+    }
+
+    public static class AuthenticationException extends RuntimeException {
+
+        /**
+         * Default serial UID
+         */
+        private static final long serialVersionUID = 1L;
+
+        public AuthenticationException(String message) {
+            super(message);
+        }
+
     }
 }

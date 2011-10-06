@@ -11,10 +11,13 @@ package org.intermine.web.struts;
  */
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
@@ -22,10 +25,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
+import org.apache.struts.action.ActionMessage;
 import org.intermine.api.InterMineAPI;
+import org.intermine.api.bag.BagManager;
+import org.intermine.api.bag.BagQueryConfig;
+import org.intermine.api.mines.FriendlyMineManager;
+import org.intermine.api.mines.Mine;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.TagManager;
 import org.intermine.api.tag.TagNames;
@@ -34,6 +43,7 @@ import org.intermine.api.template.TemplateQuery;
 import org.intermine.model.userprofile.Tag;
 import org.intermine.util.PropertiesUtil;
 import org.intermine.util.TypeUtil;
+import org.intermine.web.logic.Constants;
 import org.intermine.web.logic.session.SessionMethods;
 
 /**
@@ -67,10 +77,20 @@ public class BeginAction extends InterMineAction
         throws Exception {
 
         HttpSession session = request.getSession();
-        final InterMineAPI im = SessionMethods.getInterMineAPI(session);
         ServletContext servletContext = session.getServletContext();
+        Set<String> errorKeys = SessionMethods.getErrorOnInitialiser(servletContext);
+        if (errorKeys != null && !errorKeys.isEmpty()) {
+            for (String errorKey : errorKeys) {
+                recordError(new ActionMessage(errorKey), request);
+            }
+            return mapping.findForward("blockingError");
+        }
 
+        final InterMineAPI im = SessionMethods.getInterMineAPI(session);
         Properties properties = SessionMethods.getWebProperties(servletContext);
+
+        // if user was just building a template, remove.  See #2619
+        session.removeAttribute(Constants.NEW_TEMPLATE);
 
         // If GALAXY_URL is sent from a Galaxy server, then save it in the session; if not, read
         // the default value from web.properties and save it in the session
@@ -107,28 +127,31 @@ public class BeginAction extends InterMineAction
                         tab.put("identifier", identifier);
                         // (optional) description
                         tab.put("description", props.containsKey(i + ".description")
-                                              ? (String) props.get(i + ".description") : "");
+                                ? (String) props.get(i + ".description") : "");
+                        tab.put("description", props.containsKey(i + ".description")
+                                ? (String) props.get(i + ".description") : "");
                         // (optional) custom name, otherwise use identifier
-                        tab.put("name", props.containsKey(i + ".name")
-                                        ? (String) props.get(i + ".name") : identifier);
 
+                        tab.put("name", props.containsKey(i + ".name")
+                                ? (String) props.get(i + ".name") : identifier);
                         // fetch the actual template queries
-                        /*TrackerDelegate trackerDelegate = im.getTrackerDelegate();
-                        if (trackerDelegate != null) {
-                            trackerDelegate.setTemplateManager(im.getTemplateManager());
-                        }*/
                         TemplateManager tm = im.getTemplateManager();
                         Profile profile = SessionMethods.getProfile(session);
                         if (profile.isLoggedIn()) {
                             templates = tm.getPopularTemplatesByAspect(
-                                        TagNames.IM_ASPECT_PREFIX + identifier,
-                                        MAX_TEMPLATES, profile.getUsername(),
-                                        session.getId());
+                                    TagNames.IM_ASPECT_PREFIX + identifier,
+                                    MAX_TEMPLATES, profile.getUsername(),
+                                    session.getId());
                         } else {
                             templates = tm.getPopularTemplatesByAspect(
-                                                        TagNames.IM_ASPECT_PREFIX + identifier,
-                                                        MAX_TEMPLATES);
+                                    TagNames.IM_ASPECT_PREFIX + identifier,
+                                    MAX_TEMPLATES);
                         }
+
+                        if (templates.size() > MAX_TEMPLATES) {
+                            templates = templates.subList(0, MAX_TEMPLATES);
+                        }
+
                         tab.put("templates", templates);
 
                         bagOfTabs.put(Integer.toString(i), tab);
@@ -142,14 +165,22 @@ public class BeginAction extends InterMineAction
         request.setAttribute("tabs", bagOfTabs);
 
         // preferred bags (Gucci)
-        ArrayList<String> preferredBags = new ArrayList<String>();
+        List<String> preferredBags = new LinkedList<String>();
         TagManager tagManager = im.getTagManager();
-        List<Tag> preferredBagTypeTags = tagManager.getTags("im:preferredBagType", null, "class",
-                                                            im.getProfileManager().getSuperuser());
+        List<Tag> preferredBagTypeTags = tagManager.getTags(
+                "im:preferredBagType", null, "class", im.getProfileManager().getSuperuser());
         for (Tag tag : preferredBagTypeTags) {
             preferredBags.add(TypeUtil.unqualifiedName(tag.getObjectIdentifier()));
         }
+        Collections.sort(preferredBags);
         request.setAttribute("preferredBags", preferredBags);
+
+        // frontpage bags/lists
+        BagManager bm = im.getBagManager();
+        List<String> requiredTags = new ArrayList<String>();
+        requiredTags.add("im:frontpage");
+        requiredTags.add("im:public");
+        request.setAttribute("frontpageBags", bm.orderBags(bm.getGlobalBagsWithTags(requiredTags)));
 
         // cookie business
         if (!hasUserVisited(request)) {
@@ -195,5 +226,4 @@ public class BeginAction extends InterMineAction
         response.addCookie(cookie);
         return response;
     }
-
 }

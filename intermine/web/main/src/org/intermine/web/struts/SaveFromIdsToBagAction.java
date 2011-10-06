@@ -22,6 +22,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
+import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.util.NameUtil;
@@ -56,7 +57,7 @@ public class SaveFromIdsToBagAction extends InterMineAction
 
             Set<Integer> idSet = new LinkedHashSet<Integer>();
             for (String id : idArray) {
-                idSet.add(Integer.valueOf(id));
+                idSet.add(Integer.valueOf(id.trim()));
             }
 
             String bagName = request.getParameter("newBagName");
@@ -66,7 +67,8 @@ public class SaveFromIdsToBagAction extends InterMineAction
             bagName = NameUtil.generateNewName(profile.getSavedBags().keySet(),
                     bagName);
 
-            InterMineBag bag = profile.createBag(bagName, type, "");
+            InterMineAPI im = SessionMethods.getInterMineAPI(session);
+            InterMineBag bag = profile.createBag(bagName, type, "", im.getClassKeys());
             bag.addIdsToBag(idSet, type);
 
             profile.saveBag(bag.getName(), bag);
@@ -82,8 +84,11 @@ public class SaveFromIdsToBagAction extends InterMineAction
                 ActionForward actionForward = mapping.findForward("bagDetails");
                 ActionForward newActionForward = new ActionForward(
                         actionForward);
-                newActionForward.setPath("/" + source + ".do?"
-                        + request.getQueryString());
+                if (request.getQueryString() == null) {
+                    newActionForward.setPath("/" + source + ".do");
+                } else {
+                    newActionForward.setPath("/" + source + ".do?" + request.getQueryString());
+                }
 
                 return newActionForward;
             } catch (Exception ex) {

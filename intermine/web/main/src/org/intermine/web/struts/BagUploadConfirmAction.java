@@ -21,8 +21,11 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
+import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.InterMineBag;
+import org.intermine.api.profile.BagState;
 import org.intermine.api.profile.Profile;
+import org.intermine.api.tracker.util.ListBuildMode;
 import org.intermine.util.StringUtil;
 import org.intermine.web.logic.session.SessionMethods;
 
@@ -50,9 +53,12 @@ public class BagUploadConfirmAction extends InterMineAction
         }
         HttpSession session = request.getSession();
         Profile profile = SessionMethods.getProfile(session);
+        InterMineAPI im = SessionMethods.getInterMineAPI(session);
 
         BagUploadConfirmForm confirmForm = (BagUploadConfirmForm) form;
-        String bagName = confirmForm.getNewBagName();
+        String bagName = (! "".equals(confirmForm.getNewBagName()))
+                         ? confirmForm.getNewBagName()
+                         : request.getParameter("upgradeBagName");
 
         String idsString = confirmForm.getMatchIDs().trim();
         String[] ids = StringUtil.split(idsString, " ");
@@ -79,12 +85,25 @@ public class BagUploadConfirmAction extends InterMineAction
             return mapping.findForward("error");
         }
 
-        InterMineBag bag = profile.createBag(bagName, bagType, "");
-        bag.addIdsToBag(contents, bagType);
+        //if upgradeBagName is null we are creating a new bag, otherwise we are upgrading an existing bag
+        if (request.getParameter("upgradeBagName") == null) {
+            InterMineBag bag = profile.createBag(bagName, bagType, "", im.getClassKeys());
+            bag.addIdsToBag(contents, bagType);
+            //track the list creation
+            im.getTrackerDelegate().trackListCreation(bagType, bag.getSize(),
+                                   ListBuildMode.IDENTIFIERS, profile, session.getId());
+            session.removeAttribute("bagQueryResult");
+        } else {
+            InterMineBag bagToUpgrade = profile.getSavedBags().get(bagName);
+            bagToUpgrade.upgradeOsb(contents, true);
+            session.removeAttribute("bagQueryResult_" + bagName);
+            SessionMethods.getNotCurrentSavedBagsStatus(session).put(bagName, BagState.CURRENT.toString());
+        }
 
-        session.removeAttribute("bagQueryResult");
         ForwardParameters forwardParameters
             = new ForwardParameters(mapping.findForward("bagDetails"));
-        return forwardParameters.addParameter("bagName", bagName).forward();
+        forwardParameters.addParameter("bagName", bagName);
+        forwardParameters.addParameter("trackExecution", "false");
+        return forwardParameters.forward();
     }
 }

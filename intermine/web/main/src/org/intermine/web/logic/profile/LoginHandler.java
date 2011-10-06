@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.struts.action.ActionMessage;
+import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.ProfileManager;
@@ -47,23 +49,31 @@ public abstract class LoginHandler extends InterMineAction
      * @param password The password
      * @return the map containing the renamed bags the user created before they were logged in
      */
-    public Map<String, String> doLogin(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, ProfileManager pm, String username,
-            String password) {
-        // Merge current history into loaded profile
-        Profile currentProfile = SessionMethods.getProfile(request.getSession());
+    public Map<String, String> doLogin(HttpServletRequest request, String username, String password) {
+        Map<String, String> renamedBags = doStaticLogin(request, username, password);
+        HttpSession session = request.getSession();
+        ProfileManager pm = SessionMethods.getInterMineAPI(session).getProfileManager();
+        Profile profile = pm.getProfile(username);
+        InterMineAPI im = SessionMethods.getInterMineAPI(session);
+        if (im.getBagManager().isAnyBagNotCurrent(profile)) {
+        		recordError(new ActionMessage("login.upgradeListStarted"), request);
+        } else if (im.getBagManager().isAnyBagToUpgrade(profile)) {
+                recordError(new ActionMessage("login.upgradeListManually"), request);
+        }
+        return renamedBags;
+    }
+
+    public static Map<String, String> mergeProfiles(Profile fromProfile, Profile toProfile) {
         Map<String, SavedQuery> mergeQueries = Collections.emptyMap();
         Map<String, InterMineBag> mergeBags = Collections.emptyMap();
-        if (currentProfile != null && StringUtils.isEmpty(currentProfile.getUsername())) {
-            mergeQueries = currentProfile.getHistory();
-            mergeBags = currentProfile.getSavedBags();
+        if (fromProfile != null) {
+            mergeQueries = fromProfile.getHistory();
+            mergeBags = fromProfile.getSavedBags();
         }
-
-        Profile profile = setUpProfile(session, pm, username, password);
 
         // Merge in anonymous query history
         for (SavedQuery savedQuery : mergeQueries.values()) {
-            profile.saveHistory(savedQuery);
+            toProfile.saveHistory(savedQuery);
         }
         // Merge anonymous bags
         Map<String, String> renamedBags = new HashMap<String, String>();
@@ -71,18 +81,35 @@ public abstract class LoginHandler extends InterMineAction
             InterMineBag bag = entry.getValue();
             // Make sure the userId gets set to be the profile one
             try {
-                bag.setProfileId(profile.getUserId());
-                String name = NameUtil.validateName(profile.getSavedBags().keySet(),
+                bag.setProfileId(toProfile.getUserId());
+                String name = NameUtil.validateName(toProfile.getSavedBags().keySet(),
                         entry.getKey());
                 if (!entry.getKey().equals(name)) {
                     renamedBags.put(entry.getKey(), name);
                 }
                 bag.setName(name);
-                profile.saveBag(name, bag);
+                toProfile.saveBag(name, bag);
             } catch (ObjectStoreException iex) {
                 throw new RuntimeException(iex.getMessage());
             }
         }
+        return renamedBags;
+    }
+
+    public static Map<String, String> doStaticLogin(HttpServletRequest request, String username, String password) {
+        // Merge current history into loaded profile
+
+        Profile currentProfile = SessionMethods.getProfile(request.getSession());
+        HttpSession session = request.getSession();
+        ProfileManager pm = SessionMethods.getInterMineAPI(session).getProfileManager();
+        Profile profile = setUpProfile(session, username, password);
+        Map<String, String> renamedBags = new HashMap<String, String>();
+
+        if (currentProfile != null && StringUtils.isEmpty(currentProfile.getUsername())) {
+            // The current profile was for an anonymous guest.
+            renamedBags = mergeProfiles(currentProfile, profile);
+        }
+
         return renamedBags;
     }
 
@@ -95,21 +122,45 @@ public abstract class LoginHandler extends InterMineAction
      * @param password password
      * @return profile
      */
-    public static Profile setUpProfile(HttpSession session, ProfileManager pm,
-            String username, String password) {
+    public static Profile setUpProfile(HttpSession session, String username, String password) {
+        final InterMineAPI im = SessionMethods.getInterMineAPI(session);
         Profile profile;
+        ProfileManager pm = SessionMethods.getInterMineAPI(session).getProfileManager();
         if (pm.hasProfile(username)) {
-            profile = pm.getProfile(username, password);
+            profile = pm.getProfile(username, password, im.getClassKeys());
         } else {
-            profile = new Profile(pm, username, null, password, new HashMap(), new HashMap(),
-                    new HashMap());
-            pm.saveProfile(profile);
+            throw new LoginException("There is no profile for " + username);
         }
-        SessionMethods.setProfile(session, profile);
+        return setUpProfile(session, profile);
+    }
 
+    public static Profile setUpProfile(HttpSession session, Profile profile) {
+        SessionMethods.setProfile(session, profile);
+        ProfileManager pm = SessionMethods.getInterMineAPI(session).getProfileManager();
         if (profile.getUsername().equals(pm.getSuperuser())) {
             session.setAttribute(Constants.IS_SUPERUSER, Boolean.TRUE);
         }
+        SessionMethods.setNotCurrentSavedBagsStatus(session, profile);
+        InterMineAPI im = SessionMethods.getInterMineAPI(session);
+        if (im.getBagManager().isAnyBagNotCurrent(profile)) {
+            new Thread(new UpgradeBagList(profile, im.getBagQueryRunner(), session)).start();
+        }
         return profile;
+    }
+
+    private static class LoginException extends RuntimeException {
+
+    	/**
+		 * Default serial id.
+		 */
+		private static final long serialVersionUID = 1L;
+
+		private LoginException() {
+    		super();
+    	}
+
+    	private LoginException(String message) {
+    		super(message);
+    	}
     }
 }

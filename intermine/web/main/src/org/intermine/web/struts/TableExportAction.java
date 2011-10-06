@@ -14,6 +14,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,8 +30,11 @@ import org.apache.struts.action.ActionMessage;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.query.WebResultsExecutor;
+import org.intermine.api.template.SwitchOffAbility;
+import org.intermine.api.template.TemplateQuery;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.pathquery.OrderElement;
+import org.intermine.pathquery.PathConstraint;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.util.StringUtil;
 import org.intermine.web.logic.config.WebConfig;
@@ -108,12 +114,27 @@ public class TableExportAction extends InterMineAction
             HttpServletRequest request) throws ObjectStoreException {
         HttpSession session = request.getSession();
         final InterMineAPI im = SessionMethods.getInterMineAPI(session);
-
-        PathQuery newPathQuery = new PathQuery(pt.getWebTable().getPathQuery());
+        PathQuery pathQuery = pt.getWebTable().getPathQuery();
+        PathQuery newPathQuery = new PathQuery(pathQuery);
+        if (pathQuery instanceof TemplateQuery) {
+            TemplateQuery templateQuery = (TemplateQuery) pathQuery.clone();
+            Map<PathConstraint, SwitchOffAbility>  constraintSwitchOffAbilityMap =
+                                                   templateQuery.getConstraintSwitchOffAbility();
+            for (Map.Entry<PathConstraint, SwitchOffAbility> entry
+                : constraintSwitchOffAbilityMap.entrySet()) {
+                if (entry.getValue().compareTo(SwitchOffAbility.OFF) == 0) {
+                    newPathQuery.removeConstraint(entry.getKey());
+                }
+            }
+        }
         newPathQuery.clearView();
         try {
-            newPathQuery.addViews(new ArrayList<String>(StringUtil
-                    .serializedSortOrderToMap(pathsString).keySet()));
+            if (!pathsString.contains("[]=")) { // BED format case
+                newPathQuery.addViews(Arrays.asList(pathsString.split(" ")));
+            } else {
+                newPathQuery.addViews(new ArrayList<String>(StringUtil
+                        .serializedSortOrderToMap(pathsString).keySet()));
+            }
         } catch (RuntimeException e) {
             throw new RuntimeException("Error while converting " + pathsString, e);
         }
@@ -123,7 +144,21 @@ public class TableExportAction extends InterMineAction
                 newPathQuery.removeOrderBy(orderElement.getOrderPath());
             }
         }
-
+        for (Entry<String, Boolean> outerEntry : newPathQuery.getOuterMap().entrySet()) {
+            if (outerEntry.getValue().equals(Boolean.TRUE)) {
+               String joinPath = outerEntry.getKey();
+               boolean outherJoinStatusRelevant = false;
+               for (String viewPath : newPathQuery.getView()) {
+                   if (viewPath.startsWith(joinPath)) {
+                       outherJoinStatusRelevant = true;
+                       break;
+                   }
+               }
+               if (!outherJoinStatusRelevant) {
+                   newPathQuery.setOuterJoinStatus(joinPath, null);
+               }
+            }
+        }
         Profile profile = SessionMethods.getProfile(session);
         WebResultsExecutor executor = im.getWebResultsExecutor(profile);
         return new PagedTable(executor.execute(newPathQuery));

@@ -10,13 +10,15 @@ package org.intermine.bio.web.struts;
  *
  */
 
-import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,6 +33,11 @@ import org.apache.struts.tiles.actions.TilesAction;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.results.Column;
+import org.intermine.api.template.SwitchOffAbility;
+import org.intermine.api.template.TemplateQuery;
+import org.intermine.bio.web.export.BEDHttpExporter;
+import org.intermine.bio.web.logic.OrganismGenomeBuildLookup;
+import org.intermine.bio.web.logic.SequenceFeatureExportUtil;
 import org.intermine.metadata.ClassDescriptor;
 import org.intermine.metadata.Model;
 import org.intermine.model.FastPathObject;
@@ -45,6 +52,8 @@ import org.intermine.pathquery.PathConstraintLookup;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.pathquery.PathQueryBinding;
 import org.intermine.util.DynamicUtil;
+import org.intermine.util.StringUtil;
+import org.intermine.web.logic.export.http.TableHttpExporter;
 import org.intermine.web.logic.results.PagedTable;
 import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.web.util.URLGenerator;
@@ -57,7 +66,6 @@ import org.intermine.web.util.URLGenerator;
 
 public class GalaxyExportOptionsController extends TilesAction
 {
-    @SuppressWarnings("unused")
     private static final Logger LOG = Logger.getLogger(GalaxyExportOptionsController.class);
 
     /**
@@ -71,15 +79,27 @@ public class GalaxyExportOptionsController extends TilesAction
                                  HttpServletResponse response)
         throws Exception {
 
+        boolean canExportAsBED = false;
+
         HttpSession session = request.getSession();
         final InterMineAPI im = SessionMethods.getInterMineAPI(session);
         Model model = im.getModel();
         PathQuery query = new PathQuery(model);
 
-        // Build Span pathquery
-        if (request.getParameter("value") != null) {
-            String value = request.getParameter("value");
+        // org and dbkey for galaxy use
+        Set<String> orgSet = new HashSet<String>();
+        Set<String> genomeBuildSet = new HashSet<String>();
 
+        // Build GenomicRegion pathquery, the request is from GenomicRegionSearch "export to Galaxy"
+        if (request.getParameter("featureIds") != null) {
+            String featureIds = request.getParameter("featureIds").trim();
+            String orgName = request.getParameter("orgName");
+
+            if (orgName != null && !"".equals(orgName)) {
+                orgSet.add(orgName);
+            }
+
+            // Refer to GenomicRegionSearchService.getExportFeaturesQuery method
             String path = "SequenceFeature";
             query.addView(path + ".primaryIdentifier");
             query.addView(path + ".chromosomeLocation.locatedOn.primaryIdentifier");
@@ -87,11 +107,42 @@ public class GalaxyExportOptionsController extends TilesAction
             query.addView(path + ".chromosomeLocation.end");
             query.addView(path + ".organism.name");
 
+            // use ids or pids
+            String[] idsInStr = featureIds.split(",");
+            Set<Integer> ids = new HashSet<Integer>();
+            boolean isIds = true;
+            for (String id : idsInStr) {
+                id = id.trim();
+                if (!Pattern.matches("^\\d+$", id)) {
+                    isIds = false;
+                    break;
+                }
+                ids.add(Integer.valueOf(id));
+            }
 
-            query.addConstraint(Constraints.lookup(path, value, null));
-        } else {
+            if (isIds) {
+                query.addConstraint(Constraints.inIds(path, ids));
+            } else {
+                if (featureIds.contains("'")) {
+                    featureIds = featureIds.replaceAll("'", "\\\\'");
+                }
+                query.addConstraint(Constraints.lookup(path, featureIds, null));
+            }
+
+            canExportAsBED = true;
+
+        } else { // request from normal result table
             String tableName = request.getParameter("table");
             PagedTable pt = SessionMethods.getResultsTable(session, tableName);
+
+            // Check if can export as BED
+            TableHttpExporter tableExporter = new BEDHttpExporter();
+
+            try {
+                canExportAsBED = tableExporter.canExport(pt);
+            } catch (Exception e) {
+                LOG.error("Caught an error running canExport() for: BEDHttpExporter. " + e);
+            }
 
             LinkedHashMap<Path, Integer> exportClassPathsMap = getExportClassPaths(pt);
             List<Path> exportClassPaths = new ArrayList<Path>(exportClassPathsMap.keySet());
@@ -112,15 +163,6 @@ public class GalaxyExportOptionsController extends TilesAction
 
             request.setAttribute("exportClassPaths", pathMap);
             request.setAttribute("pathIndexMap", pathIndexMap);
-
-            // If can export feature
-            if (request.getParameter("exportAsBED") != null) {
-                request.setAttribute("exportAsBED", request.getParameter("exportAsBED"));
-            } else {
-                request.setAttribute("exportAsBED", false);
-            }
-
-            // Build webservice URL
 
             // Support export public and private lists to Galaxy
             query = pt.getWebTable().getPathQuery();
@@ -149,17 +191,58 @@ public class GalaxyExportOptionsController extends TilesAction
                     query.replaceConstraint(constraint, newConstraint);
                 }
             }
+
+            orgSet = SequenceFeatureExportUtil.getOrganisms(query, session);
         }
 
-        String queryXML = PathQueryBinding.marshal(query, "tmpName", model.getName(),
-                                                   PathQuery.USERPROFILE_VERSION);
-        String encodedQueryXML = URLEncoder.encode(queryXML, "UTF-8");
-        StringBuffer stringUrl = new StringBuffer(
-                new URLGenerator(request).getPermanentBaseURL()
-                        + "/service/query/results?query=" + encodedQueryXML
-                        + "&size=1000000");
+        if (query instanceof TemplateQuery) {
+            TemplateQuery templateQuery = (TemplateQuery) query;
+            Map<PathConstraint, SwitchOffAbility>  constraintSwitchOffAbilityMap =
+                                                   templateQuery.getConstraintSwitchOffAbility();
+            for (Map.Entry<PathConstraint, SwitchOffAbility> entry
+                : constraintSwitchOffAbilityMap.entrySet()) {
+                if (entry.getValue().compareTo(SwitchOffAbility.OFF) == 0) {
+                    templateQuery.removeConstraint(entry.getKey());
+                }
+            }
+        }
 
-        request.setAttribute("viewURL", stringUrl.toString());
+        String queryXML = PathQueryBinding.marshal(query, "", model.getName(),
+                                                   PathQuery.USERPROFILE_VERSION);
+
+//        String encodedQueryXML = URLEncoder.encode(queryXML, "UTF-8");
+
+        String tableURL = new URLGenerator(request).getPermanentBaseURL()
+            + "/service/query/results";
+
+        request.setAttribute("tableURL", tableURL);
+        request.setAttribute("query", queryXML);
+        request.setAttribute("size", 1000000);
+
+        // If can export as BED
+        request.setAttribute("canExportAsBED", canExportAsBED);
+        if (canExportAsBED) {
+            String bedURL = new URLGenerator(request).getPermanentBaseURL()
+                + "/service/query/results/bed";
+
+            request.setAttribute("bedURL", bedURL);
+
+            genomeBuildSet = (Set<String>) OrganismGenomeBuildLookup
+            .getGenomeBuildByOrgansimCollection(orgSet);
+
+            String org = (orgSet.size() < 1)
+                    ? "Organism information not available"
+                    : StringUtil.join(orgSet, ",");
+
+            // possible scenario: [null, ce3, null], should remove all null element and then join
+            genomeBuildSet.removeAll(Collections.singleton(null));
+            String dbkey = (genomeBuildSet.size() < 1)
+                    ? "Genome Build information not available"
+                    : StringUtil.join(genomeBuildSet, ",");
+
+            request.setAttribute("org", org);
+            request.setAttribute("dbkey", dbkey);
+        }
 
         return null;
     }
@@ -192,7 +275,6 @@ public class GalaxyExportOptionsController extends TilesAction
                 }
             }
         }
-
         return retPaths;
     }
 

@@ -14,10 +14,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import junit.framework.TestCase;
+
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.ProfileManager;
 import org.intermine.api.template.TemplateManager;
 import org.intermine.api.template.TemplateQuery;
+import org.intermine.api.tracker.track.TemplateTrack;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.userprofile.UserProfile;
@@ -34,8 +37,6 @@ import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.objectstore.query.SingletonResults;
 import org.intermine.pathquery.PathQuery;
 
-import junit.framework.TestCase;
-
 /**
  * Test the TemplateExecutionMap class
  * @author dbutano
@@ -51,6 +52,7 @@ public class TemplateExecutionMapTest extends TestCase
      * Create some template track objects
      * @see junit.framework.TestCase#setUp()
      */
+    @Override
     public void setUp() throws Exception {
         super.setUp();
         templateExecutionsMap = new MokaTemplatesExecutionMap();
@@ -99,7 +101,7 @@ public class TemplateExecutionMapTest extends TestCase
                                                            "osw.userprofile-test");
         ProfileManager pm = new ProfileManager(os, uosw);
         Profile profile = new Profile(pm, "user", null, "password", new HashMap(),
-                new HashMap(), new HashMap());
+                new HashMap(), new HashMap(), null, true);
         pm.createProfile(profile);
         return profile;
     }
@@ -131,6 +133,7 @@ public class TemplateExecutionMapTest extends TestCase
         public MokaTemplateManager() throws Exception{
             super(setUpProfile(), null);
         }
+        @Override
         public Map<String, TemplateQuery> getValidGlobalTemplates() {
             Model model = Model.getInstanceByName("testmodel");
             TemplateQuery tq1 = new TemplateQuery("template1", "template1", "",

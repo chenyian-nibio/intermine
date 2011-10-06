@@ -34,6 +34,7 @@ import org.intermine.api.bag.BagOperations;
 import org.intermine.api.bag.IncompatibleTypesException;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
+import org.intermine.api.tracker.util.ListBuildMode;
 import org.intermine.api.util.NameUtil;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.util.StringUtil;
@@ -95,7 +96,7 @@ public class ModifyBagAction extends InterMineAction
         Properties properties = SessionMethods.getWebProperties(request.getSession()
                 .getServletContext());
         String exampleName = properties.getProperty("lists.input.example");
-        if (StringUtils.isEmpty(newBagName) && newBagName.equalsIgnoreCase(exampleName)) {
+        if (StringUtils.isEmpty(newBagName) || newBagName.equalsIgnoreCase(exampleName)) {
             return null;
         }
         return newBagName;
@@ -131,6 +132,9 @@ public class ModifyBagAction extends InterMineAction
 
             if (createBag(origBag, newBagName, profile)) {
                 recordMessage(new ActionMessage("bag.createdlists", newBagName), request);
+                //track the list creation
+                im.getTrackerDelegate().trackListCreation(origBag.getType(), origBag.getSize(),
+                                        ListBuildMode.OPERATION, profile, session.getId());
             }
         } else {
             if (newNameTextBox != null) {
@@ -169,6 +173,7 @@ public class ModifyBagAction extends InterMineAction
         newBag.setDate(new Date());
         newBag.setName(newBagName);
         profile.saveBag(newBagName, newBag);
+        newBag.addBagValues();
         return true;
     }
 
@@ -190,11 +195,14 @@ public class ModifyBagAction extends InterMineAction
         int newBagSize = 0;
         try {
             if (opText.equals(BagOperations.UNION)) {
-                newBagSize = BagOperations.union(selectedBags, newBagName, profile);
+                newBagSize = BagOperations.union(selectedBags, newBagName, profile,
+                                           im.getClassKeys());
             } else if (opText.equals(BagOperations.INTERSECT)) {
-                newBagSize = BagOperations.intersect(selectedBags, newBagName, profile);
+                newBagSize = BagOperations.intersect(selectedBags, newBagName, profile,
+                                          im.getClassKeys());
             } else if (opText.equals(BagOperations.SUBTRACT)) {
-                newBagSize = BagOperations.subtract(selectedBags, newBagName, profile);
+                newBagSize = BagOperations.subtract(selectedBags, newBagName, profile,
+                                          im.getClassKeys());
             }
         } catch (IncompatibleTypesException e) {
             SessionMethods.recordError(
@@ -215,6 +223,10 @@ public class ModifyBagAction extends InterMineAction
                     + "\" as " + opText + " of  "
                     + StringUtil.prettyList(Arrays.asList(selectedBagNames)) + ".",
                     session);
+            //track the list creation
+            im.getTrackerDelegate().trackListCreation(BagOperations.getCommonBagType(
+                                    selectedBags), newBagSize, ListBuildMode.OPERATION,
+                                    profile, session.getId());
         } else {
             SessionMethods.recordError(opText + " operation on lists "
                     + StringUtil.prettyList(Arrays.asList(selectedBagNames))

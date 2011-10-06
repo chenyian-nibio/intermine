@@ -37,20 +37,19 @@ import org.intermine.pathquery.PathQuery;
  *
  * @author Matthew Wakeling
  */
-public class ExportResultsIterator extends QueryExecutor implements Iterator<List<ResultElement>>
+public class ExportResultsIterator implements Iterator<List<ResultElement>>
 {
     private static final Logger LOG = Logger.getLogger(ExportResultsIterator.class);
 
     private Iterator<List> osIter;
-    private Iterator<List<ResultElement>> subIter;
+    protected Iterator<List<ResultElement>> subIter;
     // This object contains a description of the collections in the input.
     private List columns;
-    private List<Path> paths = new ArrayList<Path>();
+    private final List<Path> paths = new ArrayList<Path>();
     private int columnCount;
-    private Results results;
+    protected final Results results;
     private boolean isGoingFaster = false;
-    private PathQuery originatingQuery;
-
+    protected final PathQuery originatingQuery;
 
      /**
      * Constructor for ExportResultsIterator. This creates a new instance from the given
@@ -79,6 +78,7 @@ public class ExportResultsIterator extends QueryExecutor implements Iterator<Lis
 
     private void init(PathQuery pq, Map<String, QuerySelectable> pathToQueryNode) {
         osIter = ((List) results).iterator();
+      
         List<List<ResultElement>> empty = Collections.emptyList();
         subIter = empty.iterator();
         for (String pathString : pq.getView()) {
@@ -100,6 +100,7 @@ public class ExportResultsIterator extends QueryExecutor implements Iterator<Lis
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean hasNext() {
         while ((!subIter.hasNext()) && osIter.hasNext()) {
             subIter = decodeRow(osIter.next()).iterator();
@@ -110,6 +111,7 @@ public class ExportResultsIterator extends QueryExecutor implements Iterator<Lis
     /**
      * {@inheritDoc}
      */
+    @Override
     public List<ResultElement> next() {
         while ((!subIter.hasNext()) && osIter.hasNext()) {
             subIter = decodeRow(osIter.next()).iterator();
@@ -121,6 +123,7 @@ public class ExportResultsIterator extends QueryExecutor implements Iterator<Lis
      * This method is not supported.
      * {@inheritDoc}
      */
+    @Override
     public void remove() {
         throw new UnsupportedOperationException();
     }
@@ -273,12 +276,16 @@ public class ExportResultsIterator extends QueryExecutor implements Iterator<Lis
         for (Object column : cols) {
             if (column instanceof List) {
                 List<List> collection = (List<List>) row.get(columnNo);
-                for (List subRow : collection) {
-                    if (multiRow) {
-                        hasCollections = true;
-                        expandCollections(subRow, retval, templateResults, (List) column);
-                    } else {
-                        expandCollectionsJustOneRow(subRow, retval, templateResults, (List) column);
+                if (collection != null) {
+                    for (List subRow : collection) {
+                        if (multiRow) {
+                            hasCollections = true;
+                            expandCollections(subRow,
+                                    retval, templateResults, (List) column);
+                        } else {
+                            expandCollectionsJustOneRow(subRow,
+                                    retval, templateResults, (List) column);
+                        }
                     }
                 }
             }

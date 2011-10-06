@@ -56,24 +56,6 @@
     <merge-additions file="bio/sources/treefam/treefam_additions.xml"/>
     <merge-additions file="bio/sources/interpro-go/interpro-go_additions.xml"/>
     <merge-additions file="bio/sources/protein-atlas/protein-atlas_additions.xml"/>
-
-	<!--chenyian: for targetmine-->
-    <merge-additions file="bio/sources/targetmine/do/do_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/do-annotation/do-annotation_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/drugbank/drugbank_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/enzyme/enzyme_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/enzyme-pathway/enzyme-pathway_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/gene-info/gene-info_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/ipi-ipc/ipi-ipc_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/irefindex/irefindex_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/ligand_expo/ligand_expo_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/metazoan/metazoan_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/msd/msd_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/omim-gene/omim-gene_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/ppiview/ppiview_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/scop/scop_additions.xml"/>
-    <merge-additions file="bio/sources/targetmine/tfactor/tfactor_additions.xml"/>
-
   </target>
 
 </project>

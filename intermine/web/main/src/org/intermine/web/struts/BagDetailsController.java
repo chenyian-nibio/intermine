@@ -10,11 +10,13 @@ package org.intermine.web.struts;
  *
  */
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,6 +44,7 @@ import org.intermine.metadata.FieldDescriptor;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.query.ResultsRow;
+import org.intermine.web.logic.config.FieldConfig;
 import org.intermine.web.logic.config.Type;
 import org.intermine.web.logic.config.WebConfig;
 import org.intermine.web.logic.results.PagedTable;
@@ -67,7 +70,7 @@ public class BagDetailsController extends TilesAction
 
         HttpSession session = request.getSession();
         final InterMineAPI im = SessionMethods.getInterMineAPI(session);
-
+        Profile profile = SessionMethods.getProfile(session);
         ObjectStore os = im.getObjectStore();
         Map<String, List<FieldDescriptor>> classKeys = im.getClassKeys();
         BagManager bagManager = im.getBagManager();
@@ -86,7 +89,6 @@ public class BagDetailsController extends TilesAction
         }
 
         if (scope.equals(Scope.USER) || scope.equals(Scope.ALL)) {
-            Profile profile = SessionMethods.getProfile(session);
             imBag = bagManager.getUserBag(profile, bagName);
             if (imBag != null) {
                 myBag = Boolean.TRUE;
@@ -122,8 +124,16 @@ public class BagDetailsController extends TilesAction
 
         PagedTable pagedResults = SessionMethods.getResultsTable(session, "bag." + imBag.getName());
 
-        if (pagedResults == null || pagedResults.getExactSize() != imBag.getSize()) {
+        int bagSize = imBag.getSize();
+        if (pagedResults == null || pagedResults.getExactSize() != bagSize) {
             pagedResults = SessionMethods.doQueryGetPagedTable(request, imBag);
+        }
+
+        //tracks the list execution only if the list has'n just been created
+        if (request.getParameter("trackExecution") == null
+            || "true".equals(request.getParameter("trackExecution"))) {
+            im.getTrackerDelegate().trackListExecution(imBag.getType(), bagSize, profile,
+                                                       session.getId());
         }
 
         // TODO this needs to be removed when InterMineBag can store the initial ids of when the
@@ -191,6 +201,15 @@ public class BagDetailsController extends TilesAction
             }
         }
 
+        // which fields shall we show in preview?
+        List<String> showInPreviewTable = new ArrayList<String>();
+        for (Entry<String, FieldConfig> entry : type.getFieldConfigMap().entrySet()) {
+        	if (entry.getValue().getShowInListAnalysisPreviewTable()) {
+        		showInPreviewTable.add(type.getDisplayName() + "." + entry.getKey());
+        	}
+        }
+        request.setAttribute("showInPreviewTable", showInPreviewTable);
+        
         request.setAttribute("firstSelectedFields",
                              pagedResults.getFirstSelectedFields(os, classKeys));
         if (page == -1) {

@@ -16,7 +16,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.intermine.api.profile.InterMineBag;
-import org.intermine.bio.web.logic.BioUtil;
+import org.intermine.bio.util.BioUtil;
 import org.intermine.metadata.Model;
 import org.intermine.model.bio.DataSet;
 import org.intermine.model.bio.Gene;
@@ -48,7 +48,7 @@ public class PathwayLdr extends EnrichmentWidgetLdr
     private String namespace;
     private Model model;
     private String dataset;
-    private static final String KEGG = "KEGG PATHWAY";
+    private static final String KEGG = "KEGG pathways data set";
     private static final String REACTOME = "Reactome data set";
 
     /**

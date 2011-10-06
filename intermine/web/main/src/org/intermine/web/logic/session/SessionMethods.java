@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.collections.map.LRUMap;
 import org.apache.log4j.Logger;
 import org.apache.struts.Globals;
@@ -59,8 +60,8 @@ import org.intermine.web.logic.pathqueryresult.PathQueryResultHelper;
 import org.intermine.web.logic.query.PageTableQueryMonitor;
 import org.intermine.web.logic.query.QueryMonitor;
 import org.intermine.web.logic.query.QueryMonitorTimeout;
-import org.intermine.web.logic.results.DisplayObjectFactory;
 import org.intermine.web.logic.results.PagedTable;
+import org.intermine.web.logic.results.ReportObjectFactory;
 import org.intermine.web.logic.results.WebState;
 import org.intermine.web.struts.LoadQueryAction;
 import org.intermine.web.struts.TemplateAction;
@@ -142,6 +143,7 @@ public final class SessionMethods
         // a cancelling the running query
 
         RunQueryThread runnable = new RunQueryThread() {
+            @Override
             public void run () {
                 try {
 
@@ -423,22 +425,26 @@ public final class SessionMethods
     }
 
     /**
-     * Return the displayObjects Map from the session or create and return it if it doesn't exist.
+     * Return the ReportObjects Map from the session or create and return it if it doesn't exist.
      *
-     * @param session the HttpSession to get the displayObjects Map from
-     * @return the (possibly new) displayObjects Map
+     * @param session the HttpSession to get the ReportObjects Map from
+     * @return the (possibly new) ReportObjects Map
      */
-    public static DisplayObjectFactory getDisplayObjects(HttpSession session) {
-        DisplayObjectFactory displayObjects =
-            (DisplayObjectFactory) session.getAttribute(Constants.DISPLAY_OBJECT_CACHE);
+    public static ReportObjectFactory getReportObjects(HttpSession session) {
+        ServletContext servletContext = session.getServletContext();
+        ReportObjectFactory reportObjects =
+            (ReportObjectFactory) servletContext.getAttribute(Constants.REPORT_OBJECT_CACHE);
 
-        // Build map from object id to DisplayObject
-        if (displayObjects == null) {
-            displayObjects = new DisplayObjectFactory(session);
-            session.setAttribute(Constants.DISPLAY_OBJECT_CACHE, displayObjects);
+        // Build map from object id to ReportObject
+        if (reportObjects == null) {
+            InterMineAPI im = getInterMineAPI(session);
+            WebConfig webConfig = getWebConfig(servletContext);
+            Properties webProperties = getWebProperties(servletContext);
+            reportObjects = new ReportObjectFactory(im, webConfig, webProperties);
+            servletContext.setAttribute(Constants.REPORT_OBJECT_CACHE, reportObjects);
         }
 
-        return displayObjects;
+        return reportObjects;
     }
 
     /**
@@ -451,8 +457,7 @@ public final class SessionMethods
         ProfileManager pm = im.getProfileManager();
         session.setAttribute(Constants.PROFILE, new Profile(pm, null, null, null,
                     new HashMap<String, SavedQuery>(), new HashMap<String, InterMineBag>(),
-                    new HashMap<String, TemplateQuery>()));
-        session.setAttribute(Constants.DISPLAY_OBJECT_CACHE, new DisplayObjectFactory(session));
+                    new HashMap<String, TemplateQuery>(), null, true));
         session.setAttribute(Constants.RESULTS_TABLE_SIZE, Constants.DEFAULT_TABLE_SIZE);
     }
 
@@ -497,6 +502,7 @@ public final class SessionMethods
             queries.put(qid, monitor);
 
             new Thread(new Runnable() {
+                @Override
                 public void run () {
                     final Profile profile = (Profile) session.getAttribute(Constants.PROFILE);
                     final InterMineAPI im = getInterMineAPI(session);
@@ -504,11 +510,13 @@ public final class SessionMethods
                         WebResultsExecutor executor = im.getWebResultsExecutor(profile);
                         final PagedTable pr = new PagedTable((executor.execute(pathQuery)));
                         Action action = new Action() {
+                            @Override
                             public void process() {
                                 pr.getRows();
                             }
                         };
                         CompletionCallBack completionCallBack = new CompletionCallBack() {
+                            @Override
                             public void complete() {
                                 SessionMethods.setResultsTable(session, "results." + qid, pr);
                             }
@@ -570,12 +578,14 @@ public final class SessionMethods
             queries.put(qid, monitor);
 
             new Thread(new Runnable() {
+                @Override
                 public void run () {
                     try {
                         LOG.debug("startQuery qid " + qid + " thread started");
 
                         class CountAction implements Action
                         {
+                            @Override
                             public void process() {
                                 monitor.getPagedTable().getExactSize();
                             }
@@ -644,10 +654,12 @@ public final class SessionMethods
             final ObjectStore os = im.getObjectStore();
 
             new Thread(new Runnable() {
+                @Override
                 public void run () {
                     try {
                         LOG.debug("startQuery qid " + qid + " thread started");
                         Action action = new Action() {
+                            @Override
                             public void process() {
                                 try {
                                     monitor.setCount(os.count(query, ObjectStore.SEQUENCE_IGNORE));
@@ -993,6 +1005,15 @@ public final class SessionMethods
     }
 
     /**
+     * Get the InterMineAPI which provides the core features of an InterMine application.
+     * @param request A Http Request
+     * @return The API
+     */
+    public static InterMineAPI getInterMineAPI(HttpServletRequest request) {
+        return getInterMineAPI(request.getSession());
+    }
+
+    /**
      * Get the InterMineAPI which provides access to core features of an InterMine application.
      * @param servletContext the webapp servletContext
      * @return the InterMine core object
@@ -1051,4 +1072,79 @@ public final class SessionMethods
     public static void setCategories(ServletContext servletContext, Set<String> categories) {
         servletContext.setAttribute(Constants.CATEGORIES, categories);
     }
+
+    /**
+     * Sets the blocking error codes into the servlet context.
+     *
+     * @param servletContext the ServletContext
+     * @param errorKey the Set of error codes
+     */
+    public static void setErrorOnInitialiser(ServletContext servletContext, Set<String> errorKey) {
+        servletContext.setAttribute(Constants.INITIALISER_KEY_ERROR, errorKey);
+    }
+
+    /**
+     * Gets the blocking error codes from the servlet context.
+     *
+     * @param servletContext the ServletContext
+     * @return a Set of blocking error codes
+     */
+    public static Set<String> getErrorOnInitialiser(ServletContext servletContext) {
+        return (servletContext.getAttribute(Constants.INITIALISER_KEY_ERROR) != null)
+               ? (Set<String>) servletContext.getAttribute(Constants.INITIALISER_KEY_ERROR) : null;
+    }
+
+    /**
+     * Return true if exists blocking errors
+     * @param servletContext the ServletContext
+     * @return
+     */
+    public static boolean isErrorOnInitialiser(ServletContext servletContext) {
+        Set<String> errorKeys = SessionMethods.getErrorOnInitialiser(servletContext);
+        if (errorKeys != null && !errorKeys.isEmpty()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns SavedBagsStatus saved in session.
+     * @param session session
+     * @return SavedBagsStatus
+     */
+    public static Map<String, String> getNotCurrentSavedBagsStatus(HttpSession session) {
+        return (Map<String, String>) session.getAttribute(Constants.SAVED_BAG_STATUS);
+    }
+
+    /**
+     * Sets in the session the map containing the status of the bags not current.
+     * A bag not current could be:
+     * not current (= the upgrading process has not started upgrading it yet),
+     * upgrading...(= the upgrading process is upgrading it),
+     * to upgrade (= the upgrading process has not been able to upgrade it because there are some
+     * conflicts that the user has to resolve manually ).
+     * @param session the session
+     * @param profile the profile used to retrieve the savedbags
+     * object to put in the session
+     */
+    public static void setNotCurrentSavedBagsStatus(HttpSession session, Profile profile) {
+        Map<String, String> savedBagsStatus = new HashedMap();
+        Map<String, InterMineBag> savedBags = profile.getSavedBags();
+        for (InterMineBag bag : savedBags.values()) {
+            if (!bag.isCurrent()) {
+                savedBagsStatus.put(bag.getName(), bag.getState());
+            }
+        }
+        session.setAttribute(Constants.SAVED_BAG_STATUS, savedBagsStatus);
+    }
+
+	public static void setOpenIdProviders(ServletContext ctx, Set<String> providers) {
+		ctx.setAttribute(Constants.OPENID_PROVIDERS, providers);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static Set<String> getOpenIdProviders(HttpSession session) {
+		ServletContext ctx = session.getServletContext();
+		return (Set<String>) ctx.getAttribute(Constants.OPENID_PROVIDERS);
+	}
 }

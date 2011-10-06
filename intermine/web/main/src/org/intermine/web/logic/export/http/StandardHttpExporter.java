@@ -19,13 +19,18 @@ import java.util.zip.GZIPOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.intermine.api.results.Column;
 import org.intermine.api.results.ExportResultsIterator;
 import org.intermine.pathquery.Path;
+import org.intermine.pathquery.PathQuery;
 import org.intermine.web.logic.RequestUtil;
+import org.intermine.web.logic.WebUtil;
+import org.intermine.web.logic.config.WebConfig;
 import org.intermine.web.logic.export.ExportException;
 import org.intermine.web.logic.export.ExportHelper;
 import org.intermine.web.logic.export.Exporter;
 import org.intermine.web.logic.results.PagedTable;
+import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.web.struts.TableExportForm;
 
 /**
@@ -47,7 +52,8 @@ public abstract class StandardHttpExporter extends HttpExporterBase implements T
      * @param pt PagedTable
      * @return true if given PagedTable can be exported with this exporter
      */
-    public boolean canExport(@SuppressWarnings("unused") PagedTable pt) {
+    @Override
+    public boolean canExport(final PagedTable pt) {
         return true;
     }
 
@@ -58,16 +64,17 @@ public abstract class StandardHttpExporter extends HttpExporterBase implements T
      * @param response response
      * @param form the form
      */
-    public void export(PagedTable pt, HttpServletRequest request,
-                       HttpServletResponse response, TableExportForm form) {
-        boolean doGzip = (form != null) && form.getDoGzip();
+    @Override
+    public void export(final PagedTable pt, final HttpServletRequest request,
+                       final HttpServletResponse response, final TableExportForm form) {
+        final boolean doGzip = form != null && form.getDoGzip();
         OutputStream out = null;
         try {
             out = response.getOutputStream();
             if (doGzip) {
                 out = new GZIPOutputStream(out);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ExportException("Export failed.", e);
         }
         setResponseHeader(response, doGzip);
@@ -79,9 +86,9 @@ public abstract class StandardHttpExporter extends HttpExporterBase implements T
         }
         List<String> headers = null;
         if (form != null && form.getIncludeHeaders()) {
-            headers = getHeaders(pt);
+            headers = getHeaders(pt, SessionMethods.getWebConfig(request));
         }
-        Exporter exporter = getExporter(out, separator, headers);
+        final Exporter exporter = getExporter(out, separator, headers);
         ExportResultsIterator iter = null;
         try {
             iter = getResultRows(pt, request);
@@ -90,7 +97,7 @@ public abstract class StandardHttpExporter extends HttpExporterBase implements T
             if (out instanceof GZIPOutputStream) {
                 try {
                     ((GZIPOutputStream) out).finish();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -104,11 +111,24 @@ public abstract class StandardHttpExporter extends HttpExporterBase implements T
         }
     }
 
-    private List<String> getHeaders(PagedTable pt) {
-        List<String> headers;
-        headers = new ArrayList<String>();
-        for (String columnName: pt.getColumnNames()) {
-            headers.add(columnName);
+    /**
+     * Get headers for the export table. If there is a pathquery, try and use its path descriptions,
+     * otherwise format the columns we do have with the labels configured in the web applications
+     * configurations.
+     * @param pt The paged table we are trying to export
+     * @param webConfig The web application's display configuration.
+     * @return A list of headers.
+     */
+    private List<String> getHeaders(final PagedTable pt, final WebConfig webConfig) {
+
+        final PathQuery pq = pt.getPathQuery();
+        if (pq != null) {
+            return WebUtil.formatPathQueryView(pq, webConfig);
+        }
+
+        final List<String> headers = new ArrayList<String>();
+        for (final Column col: pt.getColumns()) {
+            headers.add(WebUtil.formatPath(col.getPath(), webConfig));
         }
         return headers;
     }
@@ -117,7 +137,8 @@ public abstract class StandardHttpExporter extends HttpExporterBase implements T
      * The initial export path list is just the paths from the columns of the PagedTable.
      * {@inheritDoc}
      */
-    public List<Path> getInitialExportPaths(PagedTable pt) {
+    @Override
+    public List<Path> getInitialExportPaths(final PagedTable pt) {
         return ExportHelper.getColumnPaths(pt);
     }
 

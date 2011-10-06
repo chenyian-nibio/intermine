@@ -19,15 +19,23 @@ qq{$0: Compare templates from two versions of the same webservice
 
 usage: $0 "www.flymine.org/query/service" "beta.flymine.org/beta/service" "email\@to.send.results.to" "email\@to.set.as.reply.to"
 
+OR 
+
+usage: $0 "www.flymine.org/query/service" "beta.flymine.org/beta/service" "email\@to.use.as.to.and.from"
+
+OR
+
+usage: $0 "www.flymine.org/query/service" "email\@to.use.as.to.and.from"
+
 };
     die $message;
 }
 
-usage() unless (@ARGV == 4);
+usage() unless (@ARGV == 4 or @ARGV == 3 or @ARGV == 2);
 
-my @urls = @ARGV[0, 1];
-my $to   = $ARGV[2];
-my $from = $ARGV[3];
+my @urls = (@ARGV > 2) ? @ARGV[0, 1] : @ARGV[0, 0] ;
+my $to   = (@ARGV == 4) ? $ARGV[-2] : $ARGV[-1];
+my $from = $ARGV[-1];
 
 for ($to, $from) {
     usage() unless ($validator->("Email::Valid", $_));
@@ -41,8 +49,9 @@ $sendmail =~ s/\n?$/ -t\n/; # add on the -t flag
 my $reply_to = "Reply-to: $from\n";
 my $send_to  = "To: $to\n";
 my (%rows_from, %failure_from);
+my $char = "A";
 my %services = map {
-    (Webservice::InterMine->get_service($_)->release() 
+    (Webservice::InterMine->get_service($_)->release() . $char++ 
         => Webservice::InterMine->get_service($_))} @urls;
 
 # Get the results, and store them by template name and service
@@ -51,12 +60,12 @@ while (my ($release, $service) = each %services) {
         printf "Querying %s for results for %s\n",
             $service->release,
             $_->name;
-        my $results = eval{ $_->results(as => 'strings') };
-        if ($@) {
-            $failure_from{$_->name}{$release} = $@;
+        my $count = eval{ $_->get_count };
+        if (my $e = $@) {
+            $failure_from{$_->name}{$release} = $e;
         }
-        if ($results) {
-            $rows_from{$_->name}{$release} = scalar(@$results);
+        if (defined $count) {
+            $rows_from{$_->name}{$release} = $count;
         }
     }
 }
@@ -104,7 +113,7 @@ for my $template (sort($icmp keys %rows_from)) {
 my %failures_in;
 for my $failure (sort($icmp keys %failure_from)) {
     my @errs = map {$failure_from{$failure}{$_}} @services;
-    my $c;
+    my $c = 0;
     for (@errs) {
         if (defined) {
             my $line = sprintf(
@@ -122,7 +131,7 @@ for my $failure (sort($icmp keys %failure_from)) {
 # email the data structures
 
 my $subject  = sprintf(
-    "Subject: Results of comparision between flymine releases %s and %s on %s",
+    "Subject: Results of comparision between releases %s and %s on %s",
     @services,
     qx/date/, # <== this will add a new-line
 );

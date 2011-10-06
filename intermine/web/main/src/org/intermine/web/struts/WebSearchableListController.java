@@ -28,9 +28,12 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
+import org.apache.struts.action.ActionMessage;
+import org.apache.struts.action.ActionMessages;
 import org.apache.struts.tiles.ComponentContext;
 import org.apache.struts.tiles.actions.TilesAction;
 import org.intermine.api.InterMineAPI;
+import org.intermine.api.bag.BagManager.CaseInsensitiveComparator;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.TagManager;
@@ -38,7 +41,9 @@ import org.intermine.api.search.Scope;
 import org.intermine.api.search.SearchFilterEngine;
 import org.intermine.api.search.SearchRepository;
 import org.intermine.api.search.WebSearchable;
+import org.intermine.api.tag.TagTypes;
 import org.intermine.api.template.TemplateManager;
+import org.intermine.model.userprofile.Tag;
 import org.intermine.objectstore.query.ObjectStoreBag;
 import org.intermine.util.StringUtil;
 import org.intermine.web.logic.WebUtil;
@@ -55,6 +60,9 @@ public class WebSearchableListController extends TilesAction
 
     private static final Logger LOG = Logger.getLogger(WebSearchableListController.class);
 
+    private InterMineAPI im;
+    private static TagManager tagManager;
+    
     /**
      * Set up the attributes for webSearchableList.tile
      * {@inheritDoc}
@@ -72,7 +80,13 @@ public class WebSearchableListController extends TilesAction
         String templatesPublicPage = (String) context.getAttribute("templatesPublicPage");
         Map filteredWebSearchables;
         HttpSession session = request.getSession();
-
+        im = SessionMethods.getInterMineAPI(session);
+        tagManager = im.getTagManager();
+        if (type.equals(TagTypes.BAG) && im.getBagManager().isAnyBagToUpgrade(SessionMethods.getProfile(session))) {
+            ActionMessages actionErrors = getErrors(request);
+            actionErrors.add(ActionMessages.GLOBAL_MESSAGE, new ActionMessage("login.upgradeListManually"));
+            saveErrors(request, actionErrors);
+        }
         if (session.getAttribute("IS_SUPERUSER") != null
                         && session.getAttribute("IS_SUPERUSER").equals(Boolean.TRUE)) {
             filteredWebSearchables = getFilterWebSearchables(request, type,
@@ -92,6 +106,10 @@ public class WebSearchableListController extends TilesAction
 
         if (list != null) {
             filteredWebSearchables = filterByList(filteredWebSearchables, list);
+        }
+        
+        if (type.equals(TagTypes.BAG)) {
+            filteredWebSearchables = filterByCurrent(filteredWebSearchables);
         }
 
         // shorten list to be < limit
@@ -136,9 +154,24 @@ public class WebSearchableListController extends TilesAction
      */
     private Map<String, WebSearchable> sortList(final Map<String, WebSearchable>
         filteredWebSearchables) {
-
+    	
         Comparator<String> comparator = new Comparator<String>() {
 
+        	private List<Tag> resolveTagsInBag(InterMineBag bag) {
+        		List<Tag> tags = tagManager.getTags(null, bag.getName(), TagTypes.BAG, null);
+        		return tags;
+        	}
+        	
+        	private Integer resolveOrderFromTagsList(List<Tag> tags) {
+        		for (Tag t : tags) {
+            		String name = t.getTagName();
+            		if (name.startsWith("im:order:")) {
+            			return Integer.parseInt(name.replaceAll("[^0-9]", ""));
+            		}
+            	}
+        		return 666;
+        	}        	
+        	
             public int compare(String o1, String o2) {
                 WebSearchable ws1 = filteredWebSearchables.get(o1);
                 WebSearchable ws2 = filteredWebSearchables.get(o2);
@@ -154,13 +187,24 @@ public class WebSearchableListController extends TilesAction
             }
 
             private int compareBags(InterMineBag bag1, InterMineBag bag2) {
-                if (bag1.getDateCreated() != null && bag2.getDateCreated() != null) {
-                    if (!bag1.getDateCreated().equals(bag2.getDateCreated())) {
-                        return bag2.getDateCreated().compareTo(bag1.getDateCreated());
+            	Integer aO = resolveOrderFromTagsList(resolveTagsInBag(bag1));
+            	Integer bO = resolveOrderFromTagsList(resolveTagsInBag(bag2));
+
+                if (aO < bO) {
+                    return -1;
+                } else {
+                    if (aO > bO) {
+                        return 1;
+                    } else {
+                        if (bag1.getDateCreated() != null && bag2.getDateCreated() != null) {
+                            if (!bag1.getDateCreated().equals(bag2.getDateCreated())) {
+                                return bag2.getDateCreated().compareTo(bag1.getDateCreated());
+                            }
+                            return compareByName(bag1, bag2);
+                        }
+                        return compareByName(bag1, bag2);
                     }
-                    return compareByName(bag1, bag2);
                 }
-                return compareByName(bag1, bag2);
             }
 
             private int compareByName(WebSearchable ws1, WebSearchable ws2) {
@@ -272,8 +316,6 @@ public class WebSearchableListController extends TilesAction
         Map<String, ? extends WebSearchable> webSearchables =
             searchRepository.getWebSearchableMap(type);
 
-        TagManager tagManager = im.getTagManager();
-
         filteredWebSearchables = webSearchables;
 
         if (tags != null) {
@@ -317,6 +359,19 @@ public class WebSearchableListController extends TilesAction
             }
         }
 
+        return clone;
+    }
+    
+    private Map<String, ? extends WebSearchable> filterByCurrent(
+            Map<String, ? extends WebSearchable> filteredWebSearchables) {
+        Map<String, WebSearchable> clone = new HashMap<String, WebSearchable>();
+        clone.putAll(filteredWebSearchables);
+        for (Object o : filteredWebSearchables.values()) {
+            InterMineBag bag = (InterMineBag) o;
+            if (!bag.isCurrent()) {
+                clone.remove(bag.getName());
+            }
+        }
         return clone;
     }
 }

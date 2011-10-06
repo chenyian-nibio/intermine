@@ -51,7 +51,7 @@ public class ProfileTest extends TestCase
         userprofileOS = ObjectStoreWriterFactory.getObjectStoreWriter("osw.userprofile-test");
         objectstoreOS = ObjectStoreFactory.getObjectStore("os.unittest");
         bag = new InterMineBag("bob", "Company", "Description", new Date(),
-                               objectstoreOS, bobId, userprofileOS);
+                               true, objectstoreOS, bobId, userprofileOS);
         //Collections.singleton("testElement"));
 //        bag = new InterMinePrimitiveBag(bobId, "bob", userprofileOS, Collections.singleton("1234"));
         sq = new SavedQuery("query1", date, query);
@@ -67,7 +67,7 @@ public class ProfileTest extends TestCase
 
     public void testModifySavedMaps() throws Exception {
         Profile profile = new Profile(null, "bob", bobId, "pass",
-                                      new HashMap(), new HashMap(), new HashMap());
+                                      new HashMap(), new HashMap(), new HashMap(), true);
 
         try {
             profile.getSavedQueries().put("query0", null);
@@ -84,7 +84,7 @@ public class ProfileTest extends TestCase
 
     public void testSaveNoManager() throws Exception {
         Profile profile = new Profile(null, "bob", bobId, "pass",
-                                      new HashMap(), new HashMap(), new HashMap());
+                                      new HashMap(), new HashMap(), new HashMap(), true);
         profile.saveQuery("query1", sq);
         profile.saveBag("bag1", bag);
         profile.saveTemplate("template", template);
@@ -104,11 +104,11 @@ public class ProfileTest extends TestCase
         Map tmpls = new HashMap();
         tmpls.put("tmpl1", template);
 
-        Profile profile = new Profile(null, "bob", bobId, "pass", queries, bags, tmpls);
+        Profile profile = new Profile(null, "bob", bobId, "pass", queries, bags, tmpls, true);
         profile.deleteQuery("query1");
         // It isn't possible to delete a bag without a manager but we never do in the code
         //profile.deleteBag("bag1");
-        profile.deleteTemplate("tmpl1", null);
+        profile.deleteTemplate("tmpl1", null, false);
 
         assertEquals(0, profile.getSavedQueries().size());
         //assertEquals(0, profile.getSavedBags().size());
@@ -117,7 +117,7 @@ public class ProfileTest extends TestCase
 
     public void testSaveWithManager() throws Exception {
         Profile profile = new Profile(profileManager, "bob", bobId, "pass",
-                                      new HashMap(), new HashMap(), new HashMap());
+                                      new HashMap(), new HashMap(), new HashMap(), true);
 
         try {
             profile.saveQuery("query1", sq);
@@ -140,7 +140,7 @@ public class ProfileTest extends TestCase
 
     public void testDeleteWithManager() throws Exception {
         Profile profile = new Profile(profileManager, "bob", bobId, "pass",
-                                      new HashMap(), new HashMap(), new HashMap());
+                                      new HashMap(), new HashMap(), new HashMap(), true);
 
         try {
             profile.deleteQuery("query1");
@@ -155,7 +155,7 @@ public class ProfileTest extends TestCase
 //        }
 
         try {
-            profile.deleteTemplate("tmpl1", null);
+            profile.deleteTemplate("tmpl1", null, false);
             fail("Expected UnsupportedOperationException");
         } catch (UnsupportedOperationException e) {
         }

@@ -11,18 +11,20 @@ package org.intermine.web.struts;
  */
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.collections.iterators.IteratorChain;
+import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
@@ -30,6 +32,8 @@ import org.apache.struts.tiles.actions.TilesAction;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.bag.BagQueryConfig;
 import org.intermine.api.config.ClassKeyHelper;
+import org.intermine.api.mines.FriendlyMineManager;
+import org.intermine.api.mines.Mine;
 import org.intermine.api.profile.TagManager;
 import org.intermine.metadata.ClassDescriptor;
 import org.intermine.metadata.FieldDescriptor;
@@ -67,10 +71,10 @@ public class BagBuildController extends TilesAction
      * @exception Exception if an error occurs
      */
     @Override
-    public ActionForward execute(@SuppressWarnings("unused") ActionMapping mapping,
-                                 @SuppressWarnings("unused") ActionForm form,
+    public ActionForward execute(ActionMapping mapping,
+                                 ActionForm form,
                                  HttpServletRequest request,
-                                 @SuppressWarnings("unused") HttpServletResponse response)
+                                 HttpServletResponse response)
         throws Exception {
 
         HttpSession session = request.getSession();
@@ -84,7 +88,6 @@ public class BagBuildController extends TilesAction
 
         ArrayList<String> typeList = new ArrayList();
         ArrayList<String> preferedTypeList = new ArrayList();
-
 
         TagManager tagManager = im.getTagManager();
         List<Tag> preferredBagTypeTags = tagManager.getTags("im:preferredBagType", null, "class",
@@ -111,16 +114,8 @@ public class BagBuildController extends TilesAction
         if (extraClassName != null) {
             request.setAttribute("extraBagQueryClass", TypeUtil.unqualifiedName(extraClassName));
 
-            // chenyian: only show the 4 organisms
-            List extraClassFieldValues;
-            if (extraClassName.equals("org.intermine.model.bio.Organism")){
-            	extraClassFieldValues = Arrays.asList("H. sapiens", "M. musculus", "R. norvegicus",
-            			"D. melanogaster");
-            } else {
-            	extraClassFieldValues = 
-            		getFieldValues(os, oss, extraClassName, bagQueryConfig.getConstrainField());
-            }
-            
+            List extraClassFieldValues =
+                getFieldValues(os, oss, extraClassName, bagQueryConfig.getConstrainField());
             request.setAttribute("extraClassFieldValues", extraClassFieldValues);
 
             // find the types in typeList that contain a field with the name given by
@@ -139,6 +134,11 @@ public class BagBuildController extends TilesAction
                 }
             }
             request.setAttribute("typesWithConnectingField", typesWithConnectingField);
+            final String defaultValue = getDefaultValue(request, im);
+            if (StringUtils.isNotEmpty(defaultValue)) {
+                BuildBagForm bbf = (BuildBagForm) form;
+                bbf.setExtraFieldValue(defaultValue);
+            }
         }
         return null;
     }
@@ -175,4 +175,14 @@ public class BagBuildController extends TilesAction
 
         return fieldValues;
     }
+
+    private String getDefaultValue(HttpServletRequest request, InterMineAPI im) {
+        FriendlyMineManager linkManager = im.getFriendlyMineManager();
+        Mine mine = linkManager.getLocalMine();
+        if (mine != null) {
+            return mine.getDefaultValue();
+        }
+        return null;
+    }
+
 }

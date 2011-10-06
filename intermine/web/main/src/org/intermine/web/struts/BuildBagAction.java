@@ -98,6 +98,18 @@ public class BuildBagAction extends InterMineAction
          */
         if (formFile != null && formFile.getFileName() != null
                 && formFile.getFileName().length() > 0) {
+            // attach file name as the name of the bag
+            String fileName = formFile.getFileName();
+            // strip suffix
+            Integer lastPos = new Integer(fileName.lastIndexOf('.'));
+            if (lastPos.intValue() > 0) {
+                fileName = fileName.substring(0, lastPos.intValue());
+            }
+            // replace underscores
+            fileName = fileName.replaceAll("_", " ");
+            // attach
+            request.setAttribute("bagName", fileName);
+
             String mimetype = formFile.getContentType();
             if (!"application/octet-stream".equals(mimetype) && !mimetype.startsWith("text")) {
                 recordError(new ActionMessage("bagBuild.notText", mimetype), request);
@@ -164,6 +176,9 @@ public class BuildBagAction extends InterMineAction
             bagRunner.searchForBag(type, list, buildBagForm.getExtraFieldValue(), false);
         session.setAttribute("bagQueryResult", bagQueryResult);
         request.setAttribute("bagType", type);
+        request.setAttribute("bagExtraFilter", buildBagForm.getExtraFieldValue());
+        //buildNewBag used by jsp to set editable the bag name field
+        request.setAttribute("buildNewBag", "true");
         return mapping.findForward("bagUploadConfirm");
     }
 }

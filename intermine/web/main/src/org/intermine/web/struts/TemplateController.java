@@ -31,8 +31,10 @@ import org.intermine.api.profile.SavedQuery;
 import org.intermine.api.search.Scope;
 import org.intermine.api.template.TemplateManager;
 import org.intermine.api.template.TemplateQuery;
+import org.intermine.metadata.ClassDescriptor;
 import org.intermine.pathquery.PathConstraint;
 import org.intermine.pathquery.PathConstraintBag;
+import org.intermine.pathquery.PathConstraintLookup;
 import org.intermine.pathquery.PathConstraintMultiValue;
 import org.intermine.pathquery.PathConstraintNull;
 import org.intermine.pathquery.PathQuery;
@@ -157,7 +159,11 @@ public class TemplateController extends TilesAction
             displayConstraintList.add(displayConstraint);
             // to allow struts tag to set the combo checked
             if (displayConstraint.isBoolean()) {
-                tf.setAttributeValues("" + (index + 1), displayConstraint.getSelectedValue());
+                if (!displayConstraint.isBagSelected()) {
+                    tf.setAttributeValues("" + (index + 1), displayConstraint.getSelectedValue());
+                } else {
+                    tf.setAttributeValues("" + (index + 1), displayConstraint.getOriginalValue());
+                }
             }
             if (pathConstraint instanceof PathConstraintNull) {
                 tf.setNullConstraint("" + (index + 1), displayConstraint.getSelectedValue());
@@ -176,6 +182,7 @@ public class TemplateController extends TilesAction
             }
             index++;
         }
+        verifyDisplayExtraValue(displayConstraintList);
         request.setAttribute("dcl", displayConstraintList);
         request.setAttribute("templateQuery", displayTemplate);
         return null;
@@ -196,5 +203,22 @@ public class TemplateController extends TilesAction
         AutoCompleter ac = SessionMethods.getAutoCompleter(session.getServletContext());
         DisplayConstraintFactory factory =  new DisplayConstraintFactory(im, ac);
         return factory;
+    }
+
+    private void verifyDisplayExtraValue(List<DisplayConstraint> displayConstraintList) {
+       List<DisplayConstraint> dcl = new ArrayList<DisplayConstraint>(displayConstraintList);
+       ClassDescriptor cd = null;
+       for (DisplayConstraint dc : displayConstraintList) {
+           if (dc.isExtraConstraint()) {
+               String extraFieldClass = dc.getExtraValueFieldClass();
+               for (DisplayConstraint displayConstraint : dcl) {
+                   cd = displayConstraint.getPath().getPath().getLastClassDescriptor();
+                   if (cd != null && cd.getName().equals(extraFieldClass)) {
+                       dc.setShowExtraConstraint(false);
+                       break;
+                   }
+               }
+           }
+       }
     }
 }

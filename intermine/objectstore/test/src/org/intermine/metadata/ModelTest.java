@@ -288,7 +288,15 @@ public class ModelTest extends TestCase
         assertEquals(modelString, model.toString());
     }
 
-    public void testGetLevelOrderTraversal() throws Exception {
+    public void testGetSimpleObjectClassDescriptors() throws Exception {
+        Model simpleObjectModel = getSimpleObjectModel();
+
+        ClassDescriptor simple = simpleObjectModel.getClassDescriptorByName("Simple");
+        Set<ClassDescriptor> expected = new HashSet<ClassDescriptor>(Collections.singleton(simple));
+        assertEquals(expected, simpleObjectModel.getSimpleObjectClassDescriptors());
+    }
+
+    public void testGetTopDownTraversal() throws Exception {
         Model model = Model.getInstanceByName("testmodel");
 
         /**
@@ -304,6 +312,109 @@ public class ModelTest extends TestCase
          * F should be in third level which is it's most shallow position
          */
 
+        Model smallModel = getSmallModel();
+
+        ClassDescriptor im = model.getClassDescriptorByName("org.intermine.model.InterMineObject");
+        // the order of nodes at any give level is undefined, so check by level
+        List<ClassDescriptor> actual = smallModel.getTopDownLevelTraversal();
+
+        // level zero
+        assertEquals(im, actual.get(0));
+
+        // level one
+        assertEquals(smallModel.getClassDescriptorByName("A"), actual.get(1));
+
+        // level two
+        Set<ClassDescriptor> expected = new HashSet<ClassDescriptor>();
+        expected.add(smallModel.getClassDescriptorByName("B"));
+        expected.add(smallModel.getClassDescriptorByName("G"));
+        assertEquals(expected, new HashSet<ClassDescriptor>(actual.subList(2, 4)));
+
+        // level two
+        expected = new HashSet<ClassDescriptor>();
+        expected.add(smallModel.getClassDescriptorByName("C"));
+        expected.add(smallModel.getClassDescriptorByName("E"));
+        expected.add(smallModel.getClassDescriptorByName("F"));
+        assertEquals(expected, new HashSet<ClassDescriptor>(actual.subList(4, 7)));
+
+        // level four
+        assertEquals(smallModel.getClassDescriptorByName("D"), actual.get(7));
+    }
+
+    public void testGetBottomUpTraversal() throws Exception {
+        Model model = Model.getInstanceByName("testmodel");
+
+        /**
+         *         A
+         *       /   \
+         *      B     G
+         *     / \    /
+         *    C   E  /
+         *   /     \/
+         *  D      F
+         *
+         * Expected level order: [D], [C, E, F], [B, G], [A]
+         * F should be in third level which is it's most shallow position
+         */
+
+        Model smallModel = getSmallModel();
+
+        ClassDescriptor im = model.getClassDescriptorByName("org.intermine.model.InterMineObject");
+
+        // the order of nodes at any give level is undefined, so check by level
+        List<ClassDescriptor> actual = smallModel.getBottomUpLevelTraversal();
+
+        // level zero
+        assertEquals(smallModel.getClassDescriptorByName("D"), actual.get(0));
+
+        // level one
+        Set<ClassDescriptor> expected = new HashSet<ClassDescriptor>();
+        expected.add(smallModel.getClassDescriptorByName("C"));
+        expected.add(smallModel.getClassDescriptorByName("E"));
+        expected.add(smallModel.getClassDescriptorByName("F"));
+        assertEquals(expected, new HashSet<ClassDescriptor>(actual.subList(1, 4)));
+
+        // level two
+        expected = new HashSet<ClassDescriptor>();
+        expected.add(smallModel.getClassDescriptorByName("B"));
+        expected.add(smallModel.getClassDescriptorByName("G"));
+        assertEquals(expected, new HashSet<ClassDescriptor>(actual.subList(4, 6)));
+
+        // level three
+        assertEquals(smallModel.getClassDescriptorByName("A"), actual.get(6));
+
+        // level four
+        assertEquals(im, actual.get(7));
+    }
+
+
+    // simple objects come before InterMineObject in traversal order, they have no inheritance
+    public void testGetTopDownTraversalSimpleObjects() throws Exception {
+        Model simpleObjectModel = getSimpleObjectModel();
+
+        List<ClassDescriptor> expected = new ArrayList<ClassDescriptor>();
+        expected.add(simpleObjectModel.getClassDescriptorByName("Simple"));
+        expected.add(simpleObjectModel.getClassDescriptorByName("org.intermine.model.InterMineObject"));
+        expected.add(simpleObjectModel.getClassDescriptorByName("A"));
+        expected.add(simpleObjectModel.getClassDescriptorByName("B"));
+
+        assertEquals(expected, simpleObjectModel.getTopDownLevelTraversal());
+    }
+
+    /**
+     * Return a model with inheritance structure:
+     *
+     *  InterMineObject
+     *         |
+     *         A
+     *       /   \
+     *      B     G
+     *     / \    /
+     *    C   E  /
+     *   /     \/
+     *  D      F
+     */
+    private Model getSmallModel() throws MetaDataException {
         Set<ClassDescriptor> smallModelClds = new HashSet<ClassDescriptor>();
         ClassDescriptor a = new ClassDescriptor("A", null, true, EMPTY_SET, EMPTY_SET, EMPTY_SET);
         smallModelClds.add(a);
@@ -321,27 +432,20 @@ public class ModelTest extends TestCase
         smallModelClds.add(g);
 
         Model smallModel = new Model("small", "", smallModelClds);
-
-        // the order of nodes at any give level is undefined, so check by level
-        List<ClassDescriptor> actual = smallModel.getLevelOrderTraversal();
-
-        // level one
-        assertEquals(a, actual.get(0));
-
-        // level two
-        Set<ClassDescriptor> expected = new HashSet<ClassDescriptor>();
-        expected.add(b);
-        expected.add(g);
-        assertEquals(expected, new HashSet<ClassDescriptor>(actual.subList(1, 3)));
-
-        // level two
-        expected = new HashSet<ClassDescriptor>();
-        expected.add(c);
-        expected.add(e);
-        expected.add(f);
-        assertEquals(expected, new HashSet<ClassDescriptor>(actual.subList(3, 6)));
-
-        // level four
-        assertEquals(d, actual.get(6));
+        return smallModel;
     }
+
+    private Model getSimpleObjectModel() throws MetaDataException {
+        Set<ClassDescriptor> clds = new HashSet<ClassDescriptor>();
+        ClassDescriptor a = new ClassDescriptor("A", null, true, EMPTY_SET, EMPTY_SET, EMPTY_SET);
+        clds.add(a);
+        ClassDescriptor b = new ClassDescriptor("B", "A", true, EMPTY_SET, EMPTY_SET, EMPTY_SET);
+        clds.add(b);
+        ClassDescriptor s = new ClassDescriptor("Simple", "java.lang.Object", false, EMPTY_SET, EMPTY_SET, EMPTY_SET);
+        clds.add(s);
+
+        Model simpleObjectModel = new Model("simple", "", clds);
+        return simpleObjectModel;
+    }
+
 }

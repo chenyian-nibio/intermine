@@ -32,12 +32,15 @@ import org.intermine.pathquery.OuterJoinStatus;
 import org.intermine.pathquery.Path;
 import org.intermine.pathquery.PathException;
 import org.intermine.pathquery.PathQuery;
+import org.intermine.pathquery.Path;
+import org.intermine.pathquery.PathException;
 import org.intermine.util.CollectionUtil;
 import org.intermine.util.DynamicUtil;
 import org.intermine.util.TypeUtil;
 import org.intermine.web.logic.config.FieldConfig;
 import org.intermine.web.logic.config.FieldConfigHelper;
 import org.intermine.web.logic.config.WebConfig;
+import org.intermine.web.logic.WebUtil;
 
 /**
  * Helper for everything related to PathQueryResults
@@ -89,13 +92,15 @@ public final class PathQueryResultHelper
             String relPath = fieldConfig.getFieldExpr();
             // only add attributes, don't follow references, following references can be problematic
             // when subclasses get involved.
-            try {
-                Path path = new Path(model, prefix + "." + relPath);
-                if (path.isOnlyAttribute()) {
-                    view.add(path.getNoConstraintsString());
+            if (fieldConfig.getShowInResults()) {
+                try {
+                    Path path = new Path(model, prefix + "." + relPath);
+                    if (path.isOnlyAttribute()) {
+                        view.add(path.getNoConstraintsString());
+                    }
+                } catch (PathException e) {
+                    LOG.error("Invalid path configured in webconfig for class: " + type);
                 }
-            } catch (PathException e) {
-                LOG.error("Invalid path configured in webconfig for class: " + type);
             }
         }
         if (view.size() == 0) {
@@ -173,9 +178,8 @@ public final class PathQueryResultHelper
         return makePathQueryForCollectionForClass(webConfig, os.getModel(), object, field, types);
     }
 
-    // find the subclasses that exist in the given collection
     /**
-     * Search for the classes in a collection for a given InterMineObject, for example fine all of
+     * Search for the classes in a collection for a given InterMineObject, for example find all of
      * the sub-classes of Employee in the Department.employees collection of a given Department.
      * Will return an empty collection if the collection is empty.
      * @param object an InterMineObject to inspect
@@ -183,7 +187,7 @@ public final class PathQueryResultHelper
      * @param os the ObjectStore in which to execute the query
      * @return a list of classes in the collection
      */
-    protected static List<Class<?>> queryForTypesInCollection(InterMineObject object, String field,
+    public static List<Class<?>> queryForTypesInCollection(InterMineObject object, String field,
             ObjectStore os) {
         List<Class<?>> typesInCollection = new ArrayList<Class<?>>();
         Query query = new Query();
@@ -282,4 +286,32 @@ public final class PathQueryResultHelper
         return query;
     }
 
+    /**
+     * Get the view for a path query reformatted to obey the labels given in webconfig.
+     * So if Employee has the alias "Arbeitnehmer", department the alias "Abteilung", then
+     * Employee.department.name would become "Arbeitnehmer > Abteilung > Name". Also, 
+     * camel-cased names will be decamelised, so "Contractor.oldCompanys.vatNumber" would become
+     * "Contractor > Old Companys > Vat Number". ("VAT Number" can be achieved if that field is
+     * labelled as such).
+     *
+     * @param pq The pathquery whose views to get.
+     * @param webConfig The Web-Configuration
+     *
+     * @return A transformed list of strings.
+     */
+    public static List<String> getAliasedColumnHeaders(PathQuery pq, WebConfig webConfig) {
+        List<String> views = pq.getView();
+        List<String> aliasedViews = new ArrayList<String>();
+        for (String view: views) {
+            Path viewPath;
+            try {
+                viewPath = pq.makePath(view);
+            } catch (PathException e) {
+                throw new RuntimeException(e);
+            }
+            aliasedViews.add(WebUtil.formatPath(viewPath, webConfig));
+        }  
+
+        return aliasedViews;
+    }
 }

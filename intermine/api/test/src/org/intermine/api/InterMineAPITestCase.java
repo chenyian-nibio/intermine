@@ -1,5 +1,14 @@
 package org.intermine.api;
 
+/*
+ * Copyright (C) 2002-2011 FlyMine
+ *
+ * This code may be freely distributed and modified under the
+ * terms of the GNU Lesser General Public Licence.  This should
+ * be distributed with the code.  See the LICENSE file for more
+ * information or http://www.gnu.org/copyleft/lesser.html.
+ *
+ */
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -16,7 +25,6 @@ import org.intermine.api.config.ClassKeyHelper;
 import org.intermine.api.profile.DeletingProfileManager;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.ProfileManager;
-import org.intermine.api.tracker.Tracker;
 import org.intermine.api.tracker.TrackerDelegate;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.metadata.Model;
@@ -45,6 +53,7 @@ public class InterMineAPITestCase extends TestCase {
     protected ObjectStore os;
     protected ObjectStoreWriter uosw;
     protected Profile testUser;
+    protected TrackerDelegate trackerDelegate;
 
     /**
      * @param arg
@@ -61,7 +70,6 @@ public class InterMineAPITestCase extends TestCase {
         clearDatabase();
         clearUserprofile();
 
-        TrackerDelegate trackerDelegate = new TrackerDelegate(new HashMap<String, Tracker>());
         ObjectStoreSummary oss = new ObjectStoreSummary(new Properties());
         Map<String, List<FieldDescriptor>> classKeys = getClassKeys(os.getModel());
 
@@ -74,17 +82,26 @@ public class InterMineAPITestCase extends TestCase {
         props.put("superuser.account", "superUser");
 
         ProfileManager pmTmp = new ProfileManager(os, uosw);
-        Profile superUser = new Profile(pmTmp, "superUser", null, "password", new HashMap(), new HashMap(), new HashMap());
+        Profile superUser = new Profile(pmTmp, "superUser", null, "password", new HashMap(), new HashMap(), new HashMap(), true);
         pmTmp.createProfile(superUser);
 
-        testUser = new Profile(pmTmp, "testUser", null, "password", new HashMap(), new HashMap(), new HashMap());
+        testUser = new Profile(pmTmp, "testUser", null, "password", new HashMap(), new HashMap(), new HashMap(), true);
         pmTmp.createProfile(testUser);
+
+        String[] trackerClassNames = {"org.intermine.api.tracker.TemplateTracker",
+                "org.intermine.api.tracker.ListTracker",
+                "org.intermine.api.tracker.LoginTracker",
+                "org.intermine.api.tracker.KeySearchTracker"};
+        trackerDelegate = new TrackerDelegate(trackerClassNames, uosw);
+
 
         im = new InterMineAPI(os, uosw, classKeys, bagQueryConfig, oss, trackerDelegate, null);
 
     }
 
     public void tearDown() throws Exception {
+        trackerDelegate.close();
+        trackerDelegate.finalize();
         clearDatabase();
         clearUserprofile();
         uosw.close();
@@ -102,6 +119,7 @@ public class InterMineAPITestCase extends TestCase {
             InterMineObject o = (InterMineObject) resIter.next();
             osw.delete(o);
         }
+        osw.close();
     }
 
     private void clearUserprofile() throws Exception {
@@ -112,7 +130,6 @@ public class InterMineAPITestCase extends TestCase {
         q.addFrom(qc);
         ObjectStore uos = uosw.getObjectStore();
         SingletonResults res = uos.executeSingleton(q, 1000, false, false, false);
-
         Iterator resIter = res.iterator();
         while (resIter.hasNext()) {
             UserProfile userProfile = (UserProfile) resIter.next();

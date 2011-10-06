@@ -57,7 +57,7 @@ public class InterMineRequestProcessor extends TilesRequestProcessor
     // TODO note that 'experiment' and 'features' are modMine specific.  We should make this
     // configurable by properties
     public static final List<String> START_PATHS =
-        Arrays.asList(LOGON_PATH, LOGON_INIT_PATH, "/classChooser", "/bagBuild", "/objectDetails",
+        Arrays.asList(LOGON_PATH, LOGON_INIT_PATH, "/classChooser", "/bagBuild", "/report",
                 "/examples", "/browseAction", "/collectionDetails", "/iqlQuery", "/login",
                 "/contact", "/portal", "/templates", "/templateSearch", "/template", "/aspect",
                 "/ping", "/standalone", "/quickStart", "/importQuery", "/tree", "/headMenu",
@@ -71,6 +71,9 @@ public class InterMineRequestProcessor extends TilesRequestProcessor
      */
     protected boolean processPreprocess(HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession();
+        if (SessionMethods.isErrorOnInitialiser(request.getSession().getServletContext())) {
+            return true;
+        }
         final InterMineAPI im = SessionMethods.getInterMineAPI(session);
         try {
             String processPath = processPath(request, response);
@@ -211,6 +214,6 @@ public class InterMineRequestProcessor extends TilesRequestProcessor
     }
 
     private final Set<String> bots = Collections.unmodifiableSet(new HashSet<String>(
-                Arrays.asList("googlebot", "slurp", "msnbot", "lycos_spider", "webcrawler",
-                    "scooter")));
+                Arrays.asList("slurp", "bot", "spider", "crawl",
+                    "scooter", "ezooms", "archiver", "eventbox", "docomo", "nutch")));
 }

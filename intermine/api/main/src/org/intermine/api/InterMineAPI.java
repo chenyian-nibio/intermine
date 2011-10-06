@@ -17,6 +17,7 @@ import java.util.Map;
 import org.intermine.api.bag.BagManager;
 import org.intermine.api.bag.BagQueryConfig;
 import org.intermine.api.bag.BagQueryRunner;
+import org.intermine.api.mines.FriendlyMineManager;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.ProfileManager;
 import org.intermine.api.profile.TagManager;
@@ -51,7 +52,8 @@ public class InterMineAPI
     protected ObjectStoreSummary oss;
     protected BagQueryRunner bagQueryRunner;
     protected TrackerDelegate trackerDelegate;
-    private LinkRedirectManager linkRedirector;
+    protected LinkRedirectManager linkRedirector;
+    protected FriendlyMineManager friendlyMineManager;
 
     // query executors are cached per profile
     private final Map<Profile, WebResultsExecutor> wreCache =
@@ -63,6 +65,7 @@ public class InterMineAPI
      * Protected no-argument constructor only used for building test implementations of this class.
      */
     protected InterMineAPI() {
+        // don't instantiate
     }
 
     /**
@@ -85,19 +88,17 @@ public class InterMineAPI
         this.classKeys = classKeys;
         this.bagQueryConfig = bagQueryConfig;
         this.oss = oss;
-        // only null for testing
-        if (userProfileWriter != null) {
-            this.profileManager = new ProfileManager(objectStore, userProfileWriter);
-            this.bagManager = new BagManager(profileManager.getSuperuserProfile(), model);
-            this.templateManager = new TemplateManager(profileManager.getSuperuserProfile(), model,
-                    trackerDelegate.getTemplateTracker());
-            this.templateSummariser = new TemplateSummariser(objectStore,
-                    profileManager.getProfileObjectStoreWriter());
-            this.bagQueryRunner =
-                new BagQueryRunner(objectStore, classKeys, bagQueryConfig, templateManager);
-            this.trackerDelegate = trackerDelegate;
-            this.linkRedirector = linkRedirector;
-        }
+        this.profileManager = new ProfileManager(objectStore, userProfileWriter);
+        Profile superUser = profileManager.getSuperuserProfile(classKeys);
+        this.bagManager = new BagManager(superUser, model);
+        this.templateManager = new TemplateManager(superUser, model,
+                trackerDelegate.getTemplateTracker());
+        this.templateSummariser = new TemplateSummariser(objectStore,
+                profileManager.getProfileObjectStoreWriter());
+        this.bagQueryRunner =
+            new BagQueryRunner(objectStore, classKeys, bagQueryConfig, templateManager);
+        this.trackerDelegate = trackerDelegate;
+        this.linkRedirector = linkRedirector;
     }
 
     /**
@@ -217,5 +218,21 @@ public class InterMineAPI
      */
     public LinkRedirectManager getLinkRedirector() {
         return linkRedirector;
+    }
+
+    /**
+     * Holds list of all intermines
+     * @return friendly mine manager
+     */
+    public FriendlyMineManager getFriendlyMineManager() {
+        return friendlyMineManager;
+    }
+
+    /**
+     * mine manager is initiased in initialiser plugin to make rendering report pages faster
+     * @param friendlyMineManager the friendly mine manager to set
+     */
+    public void setFriendlyMineManager(FriendlyMineManager friendlyMineManager) {
+        this.friendlyMineManager = friendlyMineManager;
     }
 }

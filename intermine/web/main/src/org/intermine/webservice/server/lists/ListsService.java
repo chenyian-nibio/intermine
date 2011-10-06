@@ -11,13 +11,14 @@ package org.intermine.webservice.server.lists;
  */
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.intermine.api.InterMineAPI;
+import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.query.PathQueryExecutor;
 import org.intermine.api.results.ResultElement;
@@ -29,13 +30,9 @@ import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.pathquery.Constraints;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.web.logic.session.SessionMethods;
-import org.intermine.webservice.server.WebService;
 import org.intermine.webservice.server.core.ListManager;
 import org.intermine.webservice.server.exceptions.BadRequestException;
-import org.intermine.webservice.server.exceptions.InternalErrorException;
 import org.intermine.webservice.server.exceptions.ResourceNotFoundException;
-import org.intermine.webservice.server.output.MemoryOutput;
-import org.intermine.webservice.server.output.Output;
 
 
 /**
@@ -55,31 +52,31 @@ import org.intermine.webservice.server.output.Output;
  *  </ul>
  * @author Jakub Kulaviak
  **/
-public class ListsService extends WebService
+public class ListsService extends AvailableListsService
 {
     /**
      * Constructor
      * @param im The InterMine API
      */
-    public ListsService(InterMineAPI im) {
+    public ListsService(final InterMineAPI im) {
         super(im);
     }
 
     /**
      * Executes service specific logic.
      * @param request request
-     * @param response response
+     * @return The lists relevant to this request.
      */
     @Override
-    protected void execute(HttpServletRequest request, HttpServletResponse response) {
+    protected Collection<InterMineBag> getLists(final HttpServletRequest request) {
 
-        ListsServiceInput input = getInput();
+        final ListsServiceInput input = getInput();
 
         Integer objectId = null;
         if (input.getMineId() == null) {
             objectId = resolveMineId(request, input);
             if (objectId == null) {
-                return;
+                throw new ResourceNotFoundException("object with specified id doesn't exist.");
             }
         } else {
             objectId = input.getMineId();
@@ -88,32 +85,22 @@ public class ListsService extends WebService
             }
         }
 
-        List<String> listNames = new ListManager(request).getListsNames(objectId);
-        addListsToOutput(listNames);
-        forward(input, output);
+        return new ListManager(request).getListsContaining(objectId);
     }
 
-    private boolean objectExists(HttpServletRequest request, Integer objectId) {
-        ObjectStore os = this.im.getObjectStore();
+    private boolean objectExists(final HttpServletRequest request, final Integer objectId) {
+        final ObjectStore os = im.getObjectStore();
         try {
-            InterMineObject objectById = os.getObjectById(objectId);
+            final InterMineObject objectById = os.getObjectById(objectId);
             return objectById != null;
-        } catch (ObjectStoreException e) {
+        } catch (final ObjectStoreException e) {
             throw new RuntimeException("Getting object with id " + objectId + " failed.");
         }
     }
 
-    private void addListsToOutput(List<String> listNames) {
-        for (String name : listNames) {
-            List<String> result = new ArrayList<String>();
-            result.add(name);
-            output.addResultItem(result);
-        }
-    }
-
-    private Integer resolveMineId(HttpServletRequest request,
-            ListsServiceInput input) {
-        Model model = this.im.getModel();
+    private Integer resolveMineId(final HttpServletRequest request,
+            final ListsServiceInput input) {
+        final Model model = im.getModel();
 
         // checks  type
         if (model.getClassDescriptorByName(input.getType()) == null) {
@@ -122,15 +109,15 @@ public class ListsService extends WebService
                     + input.getType());
         }
 
-        PathQuery pathQuery = new PathQuery(model);
+        final PathQuery pathQuery = new PathQuery(model);
         pathQuery.addConstraint(Constraints.lookup(input.getType(), input.getPublicId(), null));
         pathQuery.addViews(getViewAccordingClasskeys(request, input.getType()));
 
-        Profile profile = SessionMethods.getProfile(request.getSession());
-        PathQueryExecutor executor = im.getPathQueryExecutor(profile);
-        Iterator<? extends List<ResultElement>> it = executor.execute(pathQuery);
+        final Profile profile = SessionMethods.getProfile(request.getSession());
+        final PathQueryExecutor executor = im.getPathQueryExecutor(profile);
+        final Iterator<? extends List<ResultElement>> it = executor.execute(pathQuery);
         if (it.hasNext()) {
-            List<ResultElement> row = it.next();
+            final List<ResultElement> row = it.next();
             if (it.hasNext()) {
                 throw new BadRequestException("Multiple objects of type " + input.getType()
                         + " with public id " + input.getPublicId() + " were found.");
@@ -142,30 +129,14 @@ public class ListsService extends WebService
         }
     }
 
-    private List<String> getViewAccordingClasskeys(HttpServletRequest request,
-            String type) {
-        List<String> ret = new ArrayList<String>();
-        List<FieldDescriptor> descs = this.im.getClassKeys().get(type);
-        for (FieldDescriptor desc : descs) {
+    private List<String> getViewAccordingClasskeys(final HttpServletRequest request,
+            final String type) {
+        final List<String> ret = new ArrayList<String>();
+        final List<FieldDescriptor> descs = im.getClassKeys().get(type);
+        for (final FieldDescriptor desc : descs) {
             ret.add(type + "." + desc.getName());
         }
         return ret;
-    }
-
-    private void forward(ListsServiceInput input, Output output) {
-        if (getFormat() == HTML_FORMAT) {
-            MemoryOutput mout = (MemoryOutput) output;
-            request.setAttribute("rows", mout.getResults());
-            List<String> columnNames = new ArrayList<String>();
-            columnNames.add("List");
-            request.setAttribute("columnNames", columnNames);
-            request.setAttribute("title", "Lists with " + input.getPublicId());
-            try {
-                getHtmlForward().forward(request, response);
-            } catch (Exception e) {
-                throw new InternalErrorException(e);
-            }
-        }
     }
 
     private ListsServiceInput getInput() {

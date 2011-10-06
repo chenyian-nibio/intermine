@@ -10,10 +10,14 @@ package org.intermine.webservice.server.query.result;
  *
  */
 
+import java.io.UnsupportedEncodingException;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.intermine.webservice.server.exceptions.BadRequestException;
+import org.intermine.webservice.server.query.QueryRequestParser;
 
 /**
  * Processes service request. Evaluates parameters and validates them and check if
@@ -21,7 +25,7 @@ import org.intermine.webservice.server.exceptions.BadRequestException;
  *
  * @author Jakub Kulaviak
  **/
-public class QueryResultRequestParser extends WebServiceRequestParser
+public class QueryResultRequestParser extends QueryRequestParser
 {
     /** Name of parameter with query **/
     public static final String QUERY_PARAMETER = "query";
@@ -31,15 +35,15 @@ public class QueryResultRequestParser extends WebServiceRequestParser
 
     /** Layout parameter name. **/
     public static final String LAYOUT_PARAMETER = "layout";
-
-    private HttpServletRequest request;
+    
+    private static final Logger logger = Logger.getLogger(QueryResultRequestParser.class);
 
     /**
      * RequestProcessor constructor.
      * @param request request
      */
     public QueryResultRequestParser(HttpServletRequest request) {
-        this.request = request;
+        super(request);
     }
 
     /**
@@ -56,8 +60,7 @@ public class QueryResultRequestParser extends WebServiceRequestParser
     private void parseRequest(HttpServletRequest req, QueryResultInput input) {
 
         super.parseRequest(req, input);
-
-        String xmlQuery = req.getParameter(QUERY_PARAMETER);
+        String xmlQuery = getQueryXml(req);
         if (StringUtils.isEmpty(xmlQuery)) {
             throw new BadRequestException("invalid " + QUERY_PARAMETER
                     + " parameter (empty or missing)");

@@ -19,55 +19,47 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import junit.framework.Test;
-
 import org.custommonkey.xmlunit.XMLUnit;
+import org.intermine.api.InterMineAPITestCase;
+import org.intermine.api.config.ClassKeyHelper;
+import org.intermine.api.profile.ProfileManager.ApiPermission;
+import org.intermine.api.profile.ProfileManager.AuthenticationException;
 import org.intermine.api.template.TemplateQuery;
+import org.intermine.metadata.FieldDescriptor;
 import org.intermine.metadata.Model;
-import org.intermine.model.InterMineObject;
 import org.intermine.model.testmodel.CEO;
 import org.intermine.model.testmodel.Department;
 import org.intermine.model.testmodel.Employee;
 import org.intermine.model.userprofile.Tag;
-import org.intermine.model.userprofile.UserProfile;
-import org.intermine.objectstore.ObjectStore;
-import org.intermine.objectstore.ObjectStoreException;
-import org.intermine.objectstore.ObjectStoreWriter;
-import org.intermine.objectstore.ObjectStoreWriterFactory;
 import org.intermine.objectstore.StoreDataTestCase;
-import org.intermine.objectstore.query.ConstraintOp;
-import org.intermine.objectstore.query.Query;
-import org.intermine.objectstore.query.QueryClass;
-import org.intermine.objectstore.query.QueryField;
-import org.intermine.objectstore.query.QueryValue;
-import org.intermine.objectstore.query.SimpleConstraint;
-import org.intermine.objectstore.query.SingletonResults;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.util.DynamicUtil;
 import org.intermine.web.ProfileBinding;
 import org.intermine.web.ProfileManagerBinding;
-import org.intermine.web.bag.PkQueryIdUpgrader;
 
 /**
  * Tests for the Profile class.
  */
 
-public class ProfileManagerTest extends StoreDataTestCase
+public class ProfileManagerTest extends InterMineAPITestCase
 {
     private Profile bobProfile, sallyProfile;
     private ProfileManager pm;
-    private ObjectStore os, uos;
-    private ObjectStoreWriter osw, uosw;
-    private Integer bobId = new Integer(101);
-    private Integer sallyId = new Integer(102);
-    private String bobPass = "bob_pass";
-    private String sallyPass = "sally_pass";
+    private final Integer bobId = new Integer(101);
+    private final Integer sallyId = new Integer(102);
+    private final String bobPass = "bob_pass";
+    private final String sallyPass = "sally_pass";
+    private Map<String, List<FieldDescriptor>>  classKeys;
+
+    private final String bobKey = "BOBKEY";
 
     public ProfileManagerTest(String arg) {
         super(arg);
@@ -75,38 +67,27 @@ public class ProfileManagerTest extends StoreDataTestCase
 
     public void setUp() throws Exception {
         super.setUp();
-        osw = ObjectStoreWriterFactory.getObjectStoreWriter("osw.unittest");
-        os = osw.getObjectStore();
-        uosw =  ObjectStoreWriterFactory.getObjectStoreWriter("osw.userprofile-test");
-        uos = uosw.getObjectStore();
-        pm = new ProfileManager(os, uosw);
-    }
-
-    public void executeTest(String type) {
-    }
-
-    public void testQueries() throws Throwable {
-    }
-
-    public static void oneTimeSetUp() throws Exception {
+        classKeys = im.getClassKeys();
+        pm = im.getProfileManager();
         StoreDataTestCase.oneTimeSetUp();
+//        StoreDataTestCase.storeData();
+
     }
 
-    public static Test suite() {
-        return buildSuite(ProfileManagerTest.class);
+    public void tearDown() throws Exception {
+        super.tearDown();
+        StoreDataTestCase.removeDataFromStore();
     }
 
     private void setUpUserProfiles() throws Exception {
-
         PathQuery query = new PathQuery(Model.getInstanceByName("testmodel"));
         Date date = new Date();
         SavedQuery sq = new SavedQuery("query1", date, query);
 
         // bob's details
         String bobName = "bob";
-
         InterMineBag bag = new InterMineBag("bag1", "Department", "This is some description",
-                new Date(), os, bobId, uosw);
+                new Date(), BagState.CURRENT, os, bobId, uosw);
 
         Department deptEx = new Department();
         deptEx.setName("DepartmentA1");
@@ -125,7 +106,7 @@ public class ProfileManagerTest extends StoreDataTestCase
                               new PathQuery(Model.getInstanceByName("testmodel")));
 
         bobProfile = new Profile(pm, bobName, bobId, bobPass,
-                                 new HashMap(), new HashMap(), new HashMap());
+                                 new HashMap(), new HashMap(), new HashMap(), bobKey, true);
         pm.createProfile(bobProfile);
         bobProfile.saveQuery("query1", sq);
         bobProfile.saveBag("bag1", bag);
@@ -149,13 +130,13 @@ public class ProfileManagerTest extends StoreDataTestCase
         CEO ceoB1 = (CEO) os.getObjectByExample(ceoEx, fieldNames);
 
         InterMineBag objectBag = new InterMineBag("bag2", "Employee", "description",
-                new Date(), os, sallyId, uosw);
+                new Date(), BagState.CURRENT, os, sallyId, uosw);
         objectBag.addIdToBag(ceoB1.getId(), "CEO");
 
         template = new TemplateQuery("template", "ttitle", "tcomment",
                                      new PathQuery(Model.getInstanceByName("testmodel")));
         sallyProfile = new Profile(pm, sallyName, sallyId, sallyPass,
-                                   new HashMap(), new HashMap(), new HashMap());
+                                   new HashMap(), new HashMap(), new HashMap(), true);
         pm.createProfile(sallyProfile);
         sallyProfile.saveQuery("query1", sq);
         sallyProfile.saveBag("sally_bag1", objectBag);
@@ -163,80 +144,12 @@ public class ProfileManagerTest extends StoreDataTestCase
         sallyProfile.saveTemplate("template", template);
     }
 
-
-    public void tearDown() throws Exception {
-        if (bobProfile != null) {
-            for (String name : bobProfile.getSavedQueries().keySet()) {
-                bobProfile.deleteQuery(name);
-            }
-            for (String name : bobProfile.getSavedTemplates().keySet()) {
-                bobProfile.deleteTemplate(name, null);
-            }
-            for (String name : bobProfile.getSavedBags().keySet()) {
-                bobProfile.deleteBag(name);
-            }
-        }
-        if (sallyProfile != null) {
-            for (String name : sallyProfile.getSavedQueries().keySet()) {
-                sallyProfile.deleteQuery(name);
-            }
-            for (String name : sallyProfile.getSavedTemplates().keySet()) {
-                sallyProfile.deleteTemplate(name, null);
-            }
-            for (String name : sallyProfile.getSavedBags().keySet()) {
-                sallyProfile.deleteBag(name);
-            }
-        }
-        cleanUserProfile();
-    }
-
-    private void cleanUserProfile() throws ObjectStoreException {
-        if (uosw.isInTransaction()) {
-            uosw.abortTransaction();
-        }
-        Query q = new Query();
-        QueryClass qc = new QueryClass(Tag.class);
-        q.addFrom(qc);
-        q.addToSelect(qc);
-        q.setConstraint(new SimpleConstraint(new QueryField(qc, "tagName"), ConstraintOp.MATCHES, new QueryValue("test%")));
-        SingletonResults res = uos.executeSingleton(q);
-        Iterator resIter = res.iterator();
-        uosw.beginTransaction();
-        while (resIter.hasNext()) {
-            InterMineObject o = (InterMineObject) resIter.next();
-            uosw.delete(o);
-        }
-
-        removeUserProfile("bob");
-        removeUserProfile("sally");
-
-        uosw.commitTransaction();
-        uosw.close();
-        osw.close();
-    }
-
-    private void removeUserProfile(String username) throws ObjectStoreException {
-        Query q = new Query();
-        QueryClass qc = new QueryClass(UserProfile.class);
-        q.addFrom(qc);
-        q.addToSelect(qc);
-        QueryField qf = new QueryField(qc, "username");
-        SimpleConstraint sc = new SimpleConstraint(qf, ConstraintOp.EQUALS, new QueryValue(username));
-        q.setConstraint(sc);
-        SingletonResults res = uos.executeSingleton(q);
-        Iterator resIter = res.iterator();
-        while (resIter.hasNext()) {
-            InterMineObject o = (InterMineObject) resIter.next();
-            uosw.delete(o);
-        }
-    }
-
     public void testXMLWrite() throws Exception {
         setUpUserProfiles();
         XMLUnit.setIgnoreWhitespace(true);
         StringWriter sw = new StringWriter();
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
-        TagManager tagManager = getTagManager();
+        TagManager tagManager = im.getTagManager();
 
         tagManager.addTag("test-tag", "Department.company", "reference", "bob");
         tagManager.addTag("test-tag2", "Department.name", "attribute", "bob");
@@ -248,8 +161,8 @@ public class ProfileManagerTest extends StoreDataTestCase
         try {
             XMLStreamWriter writer = factory.createXMLStreamWriter(sw);
             writer.writeStartElement("userprofiles");
-            ProfileBinding.marshal(bobProfile, os, writer, PathQuery.USERPROFILE_VERSION);
-            ProfileBinding.marshal(sallyProfile, os, writer, PathQuery.USERPROFILE_VERSION);
+            ProfileBinding.marshal(bobProfile, os, writer, PathQuery.USERPROFILE_VERSION, classKeys);
+            ProfileBinding.marshal(sallyProfile, os, writer, PathQuery.USERPROFILE_VERSION, classKeys);
             writer.writeEndElement();
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
@@ -272,21 +185,20 @@ public class ProfileManagerTest extends StoreDataTestCase
         // TODO this doesn't work because the ids don't match in the bag (as they are retrieved from
         // the database.
 //        assertXMLEqual("XML doesn't match", expectedXml, actualXml);
+        assertEquals("I am a good test that works properly", false);
     }
 
-    private TagManager getTagManager() {
-        return new TagManagerFactory(uosw).getTagManager();
-    }
+
 
     public void testXMLRead() throws Exception {
         InputStream is =
             getClass().getClassLoader().getResourceAsStream("ProfileManagerBindingTestNewIDs.xml");
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 
-        ProfileManagerBinding.unmarshal(reader, pm, osw, new PkQueryIdUpgrader(os));
+        ProfileManagerBinding.unmarshal(reader, pm, pm.getProfileObjectStoreWriter());
 
-        // only profiles from file, not from setUpUserprofiles()
-        assertEquals(2, pm.getProfileUserNames().size());
+        // TODO change this test to not use sally and bob, but to use testUser
+        assertEquals(4, pm.getProfileUserNames().size());
 
         assertTrue(pm.getProfileUserNames().contains("bob"));
 
@@ -300,14 +212,18 @@ public class ProfileManagerTest extends StoreDataTestCase
         Employee employeeEx2 = new Employee();
         employeeEx2.setName("EmployeeB2");
         Employee employeeB2 = (Employee) os.getObjectByExample(employeeEx2, fieldNames);
-        Set<Integer> expectedBagContents = new HashSet<Integer>();
 
-        expectedBagContents.add(employeeA3.getId());
-        expectedBagContents.add(employeeB2.getId());
 
         System.out.println("Testing profile with hashCode " + System.identityHashCode(sallyProfile));
         assertEquals(3, sallyProfile.getSavedBags().size());
-        assertEquals(expectedBagContents, ((InterMineBag) sallyProfile.getSavedBags().get("sally_bag3")).getContentsAsIds());
+        Set<Integer> expectedBagContents = new HashSet<Integer>();
+        //when we read xml file, we load data into savedbag and bagvalues table but not in the
+        //osbag_int loaded after user login
+        assertEquals(expectedBagContents, (sallyProfile.getSavedBags().get("sally_bag3")).getContentsAsIds());
+
+        List<InterMineBag.BagValue> contentsAsKey = (sallyProfile.getSavedBags().get("sally_bag3")).getContentsAsKeyFieldAndExtraValue();
+        assertEquals("EmployeeA3", contentsAsKey.get(0).value);
+        assertEquals("EmployeeB2", contentsAsKey.get(1).value);
 
         assertEquals(1, sallyProfile.getSavedQueries().size());
         assertEquals(1, sallyProfile.getSavedTemplates().size());
@@ -343,7 +259,7 @@ public class ProfileManagerTest extends StoreDataTestCase
         expectedTags.add(tag3);
         expectedTags.add(tag4);
 
-        Set<Tag> actualTags = new HashSet<Tag>(getTagManager().getTags(null, null, null, "bob"));
+        Set<Tag> actualTags = new HashSet<Tag>(im.getTagManager().getTags(null, null, null, "bob"));
 
         assertEquals(expectedTags.size(), actualTags.size());
 
@@ -369,5 +285,118 @@ public class ProfileManagerTest extends StoreDataTestCase
                  + actualTag.getObjectIdentifier() + ", "
                  + actualTag.getType());
         }
+    }
+
+    public void testApiKeys() throws Exception {
+        setUpUserProfiles();
+        Profile bob = pm.getProfile("bob");
+        assertEquals(bob.getApiKey(), bobKey);
+        Profile sally = pm.getProfile("sally");
+        assertEquals(sally.getApiKey(), null);
+        bob.setApiKey("NEW-TOKEN");
+        assertEquals(bob.getApiKey(), "NEW-TOKEN");
+        sally.setApiKey("ANOTHER-TOKEN");
+        assertEquals(sally.getApiKey(), "ANOTHER-TOKEN");
+    }
+
+    // this test takes ~60 seconds
+    public void testGetRWPermission() throws Exception {
+        setUpUserProfiles();
+        ApiPermission permission = null;
+        permission = pm.getPermission(bobKey, classKeys);
+        assertNotNull(permission);
+        assertTrue(permission.isRW());
+        assertEquals(permission.getProfile().getUsername(), bobProfile.getUsername());
+
+        permission = pm.getPermission("bob", bobPass, classKeys);
+        assertNotNull(permission);
+        assertTrue(permission.isRW());
+        assertEquals(permission.getProfile().getUsername(), bobProfile.getUsername());
+
+        permission = pm.getPermission("sally", sallyPass, classKeys);
+        assertNotNull(permission);
+        assertTrue(permission.isRW());
+        assertEquals(permission.getProfile().getUsername(), sallyProfile.getUsername());
+
+        String newKey = pm.generateApiKey(bobProfile);
+        permission = pm.getPermission(newKey, classKeys);
+        assertNotNull(permission);
+        assertTrue(permission.isRW());
+        assertEquals(permission.getProfile().getUsername(), bobProfile.getUsername());
+
+        try {
+            pm.getPermission("foo", classKeys);
+            fail("Expected an exception here");
+        } catch (AuthenticationException e) {
+            //
+        }
+
+        String[] keys = new String[1000];
+        Set<String> uniqueKeys = new HashSet<String>();
+        for (int i = 0; i < 1000; i++) {
+            keys[i] = pm.generateApiKey(bobProfile);
+            uniqueKeys.add(keys[i]);
+        }
+
+        assertEquals(uniqueKeys.size(), 1000);
+
+        // It's not ok to have many single use keys
+        for (int j = 0; j < 999; j++) {
+            try {
+                pm.getPermission(keys[j], classKeys);
+                fail("expected authentication exception");
+            } catch (AuthenticationException e) {
+                // expected
+            }
+        }
+
+        // Only the last key is valid
+        permission = pm.getPermission(keys[999], classKeys);
+        assertNotNull(permission);
+        assertTrue(permission.isRW());
+        assertEquals(permission.getProfile().getUsername(), bobProfile.getUsername());
+    }
+
+    public void testGetROPermission() throws Exception {
+        setUpUserProfiles();
+        ApiPermission permission = null;
+
+        String key = pm.generateSingleUseKey(bobProfile);
+        permission = pm.getPermission(key, classKeys);
+        assertNotNull(permission);
+        assertTrue(permission.isRO());
+        assertEquals(permission.getProfile().getUsername(), bobProfile.getUsername());
+
+        try {
+            pm.getPermission(key, classKeys);
+            fail("Expected an exception here");
+        } catch (AuthenticationException e) {
+            //
+        }
+
+        try {
+            pm.getPermission("foo", classKeys);
+            fail("Expected an exception here");
+        } catch (AuthenticationException e) {
+            //
+        }
+
+        String[] keys = new String[1000];
+        Set<String> uniqueKeys = new HashSet<String>();
+        for (int i = 0; i < 1000; i++) {
+            keys[i] = pm.generateSingleUseKey(bobProfile);
+            uniqueKeys.add(keys[i]);
+        }
+
+        assertEquals(uniqueKeys.size(), 1000);
+
+        // It's ok to have many single use keys
+        for (int j = 0; j < 1000; j++) {
+            permission = pm.getPermission(keys[j], classKeys);
+            assertNotNull(permission);
+            assertTrue(permission.isRO());
+            assertEquals(permission.getProfile().getUsername(), bobProfile.getUsername());
+        }
+
     }
 }

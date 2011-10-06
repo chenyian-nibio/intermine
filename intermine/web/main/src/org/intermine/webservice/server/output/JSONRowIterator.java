@@ -38,6 +38,8 @@ public class JSONRowIterator implements Iterator<JSONArray>
 
     private static final String CELL_KEY_URL = "url";
     private static final String CELL_KEY_VALUE = "value";
+    private static final String CELL_KEY_CLASS = "class";
+    private static final String CELL_KEY_ID = "id";
 
     /**
      * Constructor
@@ -54,7 +56,6 @@ public class JSONRowIterator implements Iterator<JSONArray>
         viewPaths.addAll(subIter.getViewPaths());
     }
 
-    @Override
     public boolean hasNext() {
         return subIter.hasNext();
     }
@@ -74,16 +75,18 @@ public class JSONRowIterator implements Iterator<JSONArray>
             if (im.getLinkRedirector() != null) {
                 mapping.put(CELL_KEY_URL,
                     im.getLinkRedirector().generateLink(im, (InterMineObject) cell.getObject()));
-            } else {
-                mapping.put(CELL_KEY_URL, PortalHelper.generateObjectDetailsPath(cell));
             }
+            if (mapping.get(CELL_KEY_URL) == null) {
+                mapping.put(CELL_KEY_URL, PortalHelper.generateReportPath(cell));
+            }
+            mapping.put(CELL_KEY_CLASS, cell.getType());
+            mapping.put(CELL_KEY_ID, cell.getId());
             mapping.put(CELL_KEY_VALUE, cell.getField());
         }
         JSONObject ret = new JSONObject(mapping);
         return ret;
     }
 
-    @Override
     public JSONArray next() {
         List<ResultElement> row = subIter.next();
         List<JSONObject> jsonRow = new ArrayList<JSONObject>();
@@ -96,7 +99,6 @@ public class JSONRowIterator implements Iterator<JSONArray>
         return next;
     }
 
-    @Override
     public void remove() {
         throw new UnsupportedOperationException("Remove is not supported for this implementation");
     }

@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -54,7 +53,8 @@ public class Model
     private final Map<Class<?>, Map<String, Class<?>>> classToCollectionsMap
         = new HashMap<Class<?>, Map<String, Class<?>>>();
     private final ClassDescriptor rootCld;
-    private List<ClassDescriptor> levelOrderClasses = null;
+    private List<ClassDescriptor> topDownOrderClasses = null;
+    private List<ClassDescriptor> bottomUpOrderClasses = null;
 
     private boolean generatedClassesAvailable = true;
 
@@ -284,16 +284,18 @@ public class Model
         return sb.toString();
     }
 
+    /**
+     * Returns the JSON serialisation of the model.
+     * @return A JSON formatted string.
+     */
     public String toJSONString() {
         StringBuffer sb = new StringBuffer();
-        sb.append("name:\"" + modelName + "\"," + ENDL + "classes:{" + ENDL);
-        Iterator<ClassDescriptor> iter = getClassDescriptors().iterator();
+        sb.append("\"name\":\"" + modelName + "\",\"classes\":{");
         boolean needsComma = false;
-        while (iter.hasNext()) {
-            ClassDescriptor cld = iter.next();
+        for (ClassDescriptor cld: getClassDescriptors()) {
             if (!"org.intermine.model.InterMineObject".equals(cld.getName())) {
                 if (needsComma) {
-                    sb.append("," + ENDL);
+                    sb.append(",");
                 }
                 sb.append(cld.toJSONString());
                 needsComma = true;
@@ -463,17 +465,18 @@ public class Model
      * at any given level is undefined.  The list does not include InterMineObject.
      * @return ClassDescriptors from the model in depth order
      */
-    public synchronized List<ClassDescriptor> getLevelOrderTraversal() {
-        if (levelOrderClasses == null) {
-            levelOrderClasses = new ArrayList<ClassDescriptor>();
+    public synchronized List<ClassDescriptor> getTopDownLevelTraversal() {
+        if (topDownOrderClasses == null) {
+            topDownOrderClasses = new ArrayList<ClassDescriptor>();
 
             // start from InterMineObject which is the root
             LinkedList<ClassDescriptor> queue = new LinkedList<ClassDescriptor>();
+            queue.addAll(getSimpleObjectClassDescriptors());
             queue.add(rootCld);
             while (!queue.isEmpty()) {
                 ClassDescriptor node = queue.remove();
-                if (!node.equals(rootCld) && !levelOrderClasses.contains(node)) {
-                    levelOrderClasses.add(node);
+                if (!topDownOrderClasses.contains(node)) {
+                    topDownOrderClasses.add(node);
                 }
                 // add direct subclasses to the queue
                 if (node.getSubDescriptors() != null) {
@@ -481,8 +484,45 @@ public class Model
                 }
             }
         }
-        return levelOrderClasses;
+        return topDownOrderClasses;
     }
+
+
+    /**
+     * Return the classes in the model in level order from deepest to shallowest, the order of nodes
+     * at any given level is undefined.  The list does not include InterMineObject.
+     * @return ClassDescriptors from the model in reverse depth order
+     */
+    public synchronized List<ClassDescriptor> getBottomUpLevelTraversal() {
+        if (bottomUpOrderClasses == null) {
+            bottomUpOrderClasses = new ArrayList<ClassDescriptor>();
+
+            List<ClassDescriptor> topDown = getTopDownLevelTraversal();
+
+            for (int i = topDown.size() - 1; i >= 0; i--) {
+                bottomUpOrderClasses.add(topDown.get(i));
+            }
+        }
+        return bottomUpOrderClasses;
+    }
+
+    /**
+     * Return ClassDescriptors for simple objects only - simple objects are light weight objects
+     * without an id and with no inheritance.  They can't be interfaces and inherit directly from
+     * java.lang.Object.
+     * @return a set of ClassDescriptors for all simple objects in the model
+     */
+    protected Set<ClassDescriptor> getSimpleObjectClassDescriptors() {
+        Set<ClassDescriptor> simpleObjectClds = new HashSet<ClassDescriptor>();
+        for (ClassDescriptor cld : getClassDescriptors()) {
+            Set<String> superNames = cld.getSuperclassNames();
+            if (superNames.size() == 1 && superNames.contains("java.lang.Object")) {
+                simpleObjectClds.add(cld);
+            }
+        }
+        return simpleObjectClds;
+    }
+
 
     /**
      * @return true if generated classes are available

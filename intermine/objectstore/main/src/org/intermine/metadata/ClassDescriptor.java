@@ -11,6 +11,7 @@ package org.intermine.metadata;
  */
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -43,6 +44,7 @@ public class ClassDescriptor implements Comparable<ClassDescriptor>
     // supers set after redundant super classes have been removed
     private final Set<String> superNames = new LinkedHashSet<String>();
     private final Set<ClassDescriptor> superDescriptors = new LinkedHashSet<ClassDescriptor>();
+    private Set<ClassDescriptor> allSuperDescriptors = null;
     private ClassDescriptor superclassDescriptor;
 
     private final boolean isInterface;
@@ -148,8 +150,8 @@ public class ClassDescriptor implements Comparable<ClassDescriptor>
     public synchronized Class<? extends FastPathObject> getType() {
         if (type == null) {
             try {
-                @SuppressWarnings("unchecked") Class<FastPathObject> tmpType = (Class) Class
-                .forName(className);
+                @SuppressWarnings({ "unchecked", "rawtypes" })
+                Class<FastPathObject> tmpType = (Class) Class.forName(className);
                 if (!FastPathObject.class.isAssignableFrom(tmpType)) {
                     throw new RuntimeException("Class " + className + " is not a FastPathObject");
                 }
@@ -791,7 +793,7 @@ public class ClassDescriptor implements Comparable<ClassDescriptor>
         StringBuffer sb = new StringBuffer();
         Set<String> superClassNames = getSuperclassNames();
         String name = className.substring(className.lastIndexOf(".") + 1);
-        sb.append(name + ":{\"name\":\"" + name + "\",\"extends\":[");
+        sb.append("\"" + name + "\":{\"name\":\"" + name + "\",\"extends\":[");
         Iterator<String> supersIter = superClassNames.iterator();
         while (supersIter.hasNext()) {
             sb.append("\"");
@@ -806,31 +808,37 @@ public class ClassDescriptor implements Comparable<ClassDescriptor>
                 sb.append(",");
             }
         }
-        sb.append("],\"isInterface\":" + isInterface + ",\"attributes\":[");
+        sb.append("],\"isInterface\":" + isInterface + ",\"attributes\":{");
         Iterator<AttributeDescriptor> attrIter = getAllAttributeDescriptors().iterator();
         while (attrIter.hasNext()) {
-            sb.append(attrIter.next().toJSONString());
+            AttributeDescriptor ad = attrIter.next();
+            sb.append("\"" + ad.getName() + "\":");
+            sb.append(ad.toJSONString());
             if (attrIter.hasNext()) {
                 sb.append(",");
             }
         }
-        sb.append("],\"references\":[");
+        sb.append("},\"references\":{");
         Iterator<ReferenceDescriptor> refIter = getAllReferenceDescriptors().iterator();
         while (refIter.hasNext()) {
-            sb.append(refIter.next().toJSONString());
+            ReferenceDescriptor rd = refIter.next();
+            sb.append("\"" + rd.getName() + "\":");
+            sb.append(rd.toJSONString());
             if (refIter.hasNext()) {
                 sb.append(",");
             }
         }
-        sb.append("],\"collections\":[");
+        sb.append("},\"collections\":{");
         Iterator<CollectionDescriptor> colIter = getAllCollectionDescriptors().iterator();
         while (colIter.hasNext()) {
-            sb.append(colIter.next().toJSONString());
+            CollectionDescriptor cd = colIter.next();
+            sb.append("\"" + cd.getName() + "\":");
+            sb.append(cd.toJSONString());
             if (colIter.hasNext()) {
                 sb.append(",");
             }
         }
-        sb.append("]}");
+        sb.append("}}");
         return sb.toString();
     }
 
@@ -899,5 +907,45 @@ public class ClassDescriptor implements Comparable<ClassDescriptor>
             retList.add(terseClass(name));
         }
         return retList;
+    }
+
+    /**
+     * Get the full inheritance list for this class. This set includes not just
+     * this classes' immediate ancestors, but all their ancestors as well, as well as this class'
+     * name.
+     * @return A set of class names.
+     */
+    public Set<String> getAllSuperclassNames() {
+        Set<String> classNames = new LinkedHashSet<String>();
+        classNames.add(this.getName());
+        classNames.addAll(this.getSuperclassNames());
+        for (ClassDescriptor superCd: this.getSuperDescriptors()) {
+            classNames.addAll(superCd.getAllSuperclassNames());
+        }
+        return classNames;
+    }
+
+    /**
+     * Get the full inheritance list for this class. This set includes not just this classes'
+     * immediate ancestors, but all their ancestors as well BUT NOT a class descriptor for
+     * InterMineObject.
+     * @return ClassDescriptors for all ancestors of this class
+     */
+    public Set<ClassDescriptor> getAllSuperDescriptors() {
+        if (allSuperDescriptors == null) {
+            allSuperDescriptors = findAllSuperDescriptors();
+        }
+        return new HashSet<ClassDescriptor>(allSuperDescriptors);
+    }
+
+    private Set<ClassDescriptor> findAllSuperDescriptors() {
+        Set<ClassDescriptor> supers = new LinkedHashSet<ClassDescriptor>();
+        for (ClassDescriptor superCld : this.getSuperDescriptors()) {
+            if (!superCld.getName().equals(INTERMINEOBJECT_NAME)) {
+                supers.add(superCld);
+                supers.addAll(superCld.getAllSuperDescriptors());
+            }
+        }
+        return supers;
     }
 }

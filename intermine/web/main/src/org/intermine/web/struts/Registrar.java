@@ -48,7 +48,7 @@ public class Registrar extends Thread
     // These HTTP statuses are used by the webapp to distinguish
     // between creation and updates
     private static final String CREATED = "created"; // 201
-    private static final String UPDATED = "success"; // 200
+    private static final String UPDATED = "ok"; // 200
 
     private final Properties props;
 
@@ -189,7 +189,7 @@ public class Registrar extends Thread
             handleProblem("Unanticipated problem encountered registering mine: " + e);
         }
         if (!emailContent.isEmpty()) {
-            String feedbackEmail = props.getProperty("feedback.destination");
+            String feedbackEmail = props.getProperty("superuser.account");
             try {
                 MailUtils.email(feedbackEmail, subject, emailIntro + emailContent, props);
             } catch (MessagingException e) {

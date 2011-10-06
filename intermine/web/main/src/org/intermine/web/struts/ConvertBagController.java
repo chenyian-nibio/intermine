@@ -12,7 +12,6 @@ package org.intermine.web.struts;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,17 +91,8 @@ public class ConvertBagController extends TilesAction
                 String clazzName = paramArray[1];
                 // TODO shouldn't use getConstrainField here but have one specified in
                 // the config file
-                
-                // chenyian: only show the 4 organisms
-                List fieldValues;
-                if (clazzName.equals("org.intermine.model.bio.Organism")) {
-                	fieldValues = Arrays.asList("H. sapiens", "M. musculus", "R. norvegicus",
-                			"D. melanogaster");
-                } else {
-                	fieldValues = BagBuildController.getFieldValues(os, oss, clazzName,
-                			bagQueryConfig.getConstrainField());
-                }
-
+                List fieldValues = BagBuildController.getFieldValues(os, oss, clazzName,
+                                                      bagQueryConfig.getConstrainField());
                 customConverters.put(TypeUtil.unqualifiedName(clazzName), fieldValues);
             }
         }

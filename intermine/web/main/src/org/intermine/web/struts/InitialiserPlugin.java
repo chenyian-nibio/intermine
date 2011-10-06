@@ -10,22 +10,27 @@ package org.intermine.web.struts;
  *
  */
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.AbstractMap;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Pattern;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -36,11 +41,14 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionServlet;
 import org.apache.struts.action.PlugIn;
 import org.apache.struts.config.ModuleConfig;
+import org.apache.tools.ant.BuildException;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.LinkRedirectManager;
 import org.intermine.api.bag.BagQueryConfig;
 import org.intermine.api.bag.BagQueryHelper;
 import org.intermine.api.config.ClassKeyHelper;
+import org.intermine.api.mines.FriendlyMineManager;
+import org.intermine.api.profile.BagState;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.ProfileManager;
 import org.intermine.api.profile.TagManager;
@@ -49,7 +57,7 @@ import org.intermine.api.search.SearchRepository;
 import org.intermine.api.tag.TagNames;
 import org.intermine.api.tracker.Tracker;
 import org.intermine.api.tracker.TrackerDelegate;
-import org.intermine.api.tracker.TrackerFactory;
+import org.intermine.api.tracker.util.TrackerUtil;
 import org.intermine.metadata.ClassDescriptor;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.metadata.Model;
@@ -63,8 +71,8 @@ import org.intermine.objectstore.ObjectStoreSummary;
 import org.intermine.objectstore.ObjectStoreWriter;
 import org.intermine.objectstore.ObjectStoreWriterFactory;
 import org.intermine.objectstore.intermine.ObjectStoreInterMineImpl;
-import org.intermine.objectstore.intermine.ObjectStoreWriterInterMineImpl;
 import org.intermine.sql.Database;
+import org.intermine.sql.DatabaseUtil;
 import org.intermine.util.TypeUtil;
 import org.intermine.web.autocompletion.AutoCompleter;
 import org.intermine.web.logic.Constants;
@@ -73,7 +81,6 @@ import org.intermine.web.logic.aspects.AspectBinding;
 import org.intermine.web.logic.config.FieldConfig;
 import org.intermine.web.logic.config.FieldConfigHelper;
 import org.intermine.web.logic.config.WebConfig;
-import org.intermine.web.logic.results.DisplayObject;
 import org.intermine.web.logic.session.SessionMethods;
 
 /**
@@ -88,7 +95,9 @@ public class InitialiserPlugin implements PlugIn
     private static final Logger LOG = Logger.getLogger(InitialiserPlugin.class);
 
     ProfileManager profileManager;
-
+    TrackerDelegate trackerDelegate;
+    ObjectStore os;
+    Set<String> blockingErrorKeys;
     /** The list of tags that mark something as public */
     public static final List<String> PUBLIC_TAG_LIST = Arrays.asList(TagNames.IM_PUBLIC);
 
@@ -103,31 +112,40 @@ public class InitialiserPlugin implements PlugIn
      * @throws ServletException if this <code>PlugIn</code> cannot
      * be successfully initialized
      */
-    @Override
     public void init(ActionServlet servlet, ModuleConfig config) throws ServletException {
 
         // NOTE throwing exceptions other than a ServletException from this class causes the
         // webapp to fail to deploy with no error message.
 
         final ServletContext servletContext = servlet.getServletContext();
-
-        System.setProperty("java.awt.headless", "true");
+        blockingErrorKeys = new LinkedHashSet<String>();
+        SessionMethods.setErrorOnInitialiser(servletContext, blockingErrorKeys);
 
         // initialise properties
         Properties webProperties = loadWebProperties(servletContext);
         SessionMethods.setWebProperties(servletContext, webProperties);
 
+        loadOpenIDProviders(servletContext);
+
         // get link redirector
         LinkRedirectManager redirect = getLinkRedirector(webProperties);
 
         // set up core InterMine application
-        ObjectStore os = getProductionObjectStore(webProperties);
+        os = getProductionObjectStore(webProperties);
 
         final ObjectStoreWriter userprofileOSW = getUserprofileWriter(webProperties);
+
+        //verify if intermine_state exists in the savedbag table and if it has the right type
+        if (!verifyListTables(userprofileOSW)) {
+            return;
+        }
+        //verify if we the webapp needs to upgrade the lists
+        verifyListUpgrade(userprofileOSW);
+
         final ObjectStoreSummary oss = summariseObjectStore(servletContext);
         final Map<String, List<FieldDescriptor>> classKeys = loadClassKeys(os.getModel());
-        final BagQueryConfig bagQueryConfig = loadBagQueries(servletContext, os);
-        TrackerDelegate trackerDelegate = getTrackerDelegate(webProperties, userprofileOSW);
+        final BagQueryConfig bagQueryConfig = loadBagQueries(servletContext, os, webProperties);
+        trackerDelegate = initTrackers(webProperties, userprofileOSW);
         final InterMineAPI im = new InterMineAPI(os, userprofileOSW, classKeys, bagQueryConfig,
                 oss, trackerDelegate, redirect);
         SessionMethods.setInterMineAPI(servletContext, im);
@@ -171,6 +189,10 @@ public class InitialiserPlugin implements PlugIn
         setupClassSummaryInformation(servletContext, oss, os.getModel());
 
         doRegistration(webProperties);
+
+        FriendlyMineManager friendlyMineManager
+            = FriendlyMineManager.getInstance(im, webProperties);
+        im.setFriendlyMineManager(friendlyMineManager);
     }
 
     private void doRegistration(Properties webProperties) {
@@ -179,7 +201,6 @@ public class InitialiserPlugin implements PlugIn
     }
 
     private ObjectStore getProductionObjectStore(Properties webProperties) throws ServletException {
-        ObjectStore os;
         String osAlias = (String) webProperties.get("webapp.os.alias");
         try {
             os = ObjectStoreFactory.getObjectStore(osAlias);
@@ -240,17 +261,13 @@ public class InitialiserPlugin implements PlugIn
      */
     private WebConfig loadWebConfig(ServletContext servletContext, ObjectStore os)
         throws ServletException {
-        InputStream is = servletContext.getResourceAsStream("/WEB-INF/webconfig-model.xml");
-        if (is == null) {
-            throw new ServletException("Unable to find webconfig-model.xml");
-        }
         try {
-            WebConfig retval = WebConfig.parse(is, os.getModel());
+            WebConfig retval = WebConfig.parse(servletContext, os.getModel());
             SessionMethods.setWebConfig(servletContext, retval);
             return retval;
         } catch (Exception e) {
-            LOG.error("Unable to parse webconfig-model.xml", e);
-            throw new ServletException("Unable to parse webconfig-model.xml", e);
+            LOG.error("Problem generating WebConfig", e);
+            throw new ServletException(e);
         }
     }
 
@@ -288,7 +305,7 @@ public class InitialiserPlugin implements PlugIn
     /**
      * Load keys that describe how objects should be uniquely identified
      */
-    private BagQueryConfig loadBagQueries(ServletContext servletContext, ObjectStore os)
+    private BagQueryConfig loadBagQueries(ServletContext servletContext, ObjectStore os, Properties webProperties)
         throws ServletException {
         BagQueryConfig bagQueryConfig = null;
         InputStream is = servletContext.getResourceAsStream("/WEB-INF/bag-queries.xml");
@@ -297,6 +314,20 @@ public class InitialiserPlugin implements PlugIn
                 bagQueryConfig = BagQueryHelper.readBagQueryConfig(os.getModel(), is);
             } catch (Exception e) {
                 throw new ServletException("Error loading class bag queries", e);
+            }
+            InputStream isBag = getClass().getClassLoader().getResourceAsStream("extraBag.properties");
+            Properties bagProperties = new Properties();
+            if (isBag != null) {
+                try {
+                    bagProperties.load(isBag);
+                    bagQueryConfig.setConnectField(bagProperties.getProperty("extraBag.connectField"));
+                    bagQueryConfig.setExtraConstraintClassName(bagProperties.getProperty("extraBag.className"));
+                    bagQueryConfig.setConstrainField(bagProperties.getProperty("extraBag.constrainField"));
+                } catch (IOException e) {
+                      throw new ServletException(e);
+                }
+            } else {
+                LOG.error("Could not find extraBag.properties file");
             }
         } else {
             // can used defaults so just log a warning
@@ -317,6 +348,25 @@ public class InitialiserPlugin implements PlugIn
         } catch (Exception e) {
             throw new ServletException("Unable to find global.web.properties", e);
         }
+
+        LOG.info("Looking for extra property files");
+        Pattern pattern = Pattern.compile(
+            "/WEB-INF/(?!global)\\w+\\.web\\.properties$");
+        ResourceFinder finder = new ResourceFinder(servletContext);
+
+        Collection<String> otherResources = finder.findResourcesMatching(pattern);
+        for (String resource : otherResources) {
+            LOG.info("Loading extra resources from " + resource);
+            InputStream otherResourceStream =
+                servletContext.getResourceAsStream(resource);
+            try {
+                webProperties.load(otherResourceStream);
+            } catch (Exception e) {
+                throw new ServletException("Unable to load " + resource, e);
+            }
+        }
+
+        // Load these last, as they always take precedence.
         InputStream modelPropertiesStream =
             servletContext.getResourceAsStream("/WEB-INF/web.properties");
         if (modelPropertiesStream == null) {
@@ -328,8 +378,40 @@ public class InitialiserPlugin implements PlugIn
                 throw new ServletException("Unable to find web.properties", e);
             }
         }
+
         return webProperties;
     }
+
+    private void loadOpenIDProviders(ServletContext context) throws ServletException {
+        Set<String> providers = new HashSet<String>();
+        Properties providerProps = new Properties();
+
+        InputStream is = getClass().getClassLoader().getResourceAsStream("openid-providers.properties");
+        if (is == null) {
+            LOG.info("couldn't find openid providers, using system class-loader");
+            is = ClassLoader.getSystemClassLoader().getResourceAsStream("openid-properties.properties");
+        }
+        if (is != null) {
+            try {
+                providerProps.load(is);
+            } catch (IOException e) {
+                throw new ServletException(e);
+            }
+        } else {
+            LOG.error("Could not find openid-providers.properties");
+        }
+
+        for (Object key: providerProps.keySet()) {
+            String keyString = (String) key;
+            if (!keyString.endsWith(".alias")) {
+                providers.add(keyString);
+                LOG.info("Added " + keyString);
+            }
+        }
+
+        SessionMethods.setOpenIdProviders(context, providers);
+    }
+
 
     private LinkRedirectManager getLinkRedirector(Properties webProperties) {
         final String err = "Initialisation of link redirector failed: ";
@@ -426,21 +508,6 @@ public class InitialiserPlugin implements PlugIn
             }
         }
         servletContext.setAttribute(Constants.EMPTY_FIELD_MAP, emptyFields);
-        // Build map interface that takes an object and returns set of leaf class descriptors
-        Map leafDescriptorsMap = new AbstractMap() {
-            @Override
-            public Set entrySet() {
-                return null;
-            }
-            @Override
-            public Object get(Object key) {
-                if (key == null) {
-                    return Collections.EMPTY_SET;
-                }
-                return DisplayObject.getLeafClds(key.getClass(), model);
-            }
-        };
-        servletContext.setAttribute(Constants.LEAF_DESCRIPTORS_MAP, leafDescriptorsMap);
     }
 
 
@@ -456,17 +523,41 @@ public class InitialiserPlugin implements PlugIn
             throw new ServletException("Unable to create profile manager - please check that "
                     + "the userprofile database is available", e);
         }
+
+        applyUserProfileUpgrades(userprofileOSW);
         return userprofileOSW;
     }
 
+    private void applyUserProfileUpgrades(ObjectStoreWriter osw) throws ServletException {
+        Connection con = null;
+        try {
+            con = ((ObjectStoreInterMineImpl) osw).getConnection();
+            DatabaseUtil.addColumn(con, "userprofile", "apikey", DatabaseUtil.Type.text);
+            if (!DatabaseUtil.columnExists(con, "userprofile", "localaccount")) {
+                DatabaseUtil.addColumn(con, "userprofile", "localaccount",
+                        DatabaseUtil.Type.boolean_type);
+                DatabaseUtil.updateColumnValue(con, "userprofile", "localaccount", true);
+            }
+        } catch (SQLException sqle) {
+            LOG.error("Problem retrieving connection", sqle);
+            throw new ServletException("Unable to upgrade UserProfile DB");
+        } finally {
+            ((ObjectStoreInterMineImpl) osw).releaseConnection(con);
+        }
+    }
 
     /**
      * Destroy method called at Servlet destroy
      */
-    @Override
     public void destroy() {
         try {
-            profileManager.close();
+            if (profileManager != null) {
+                profileManager.close();
+            }
+            if (trackerDelegate != null) {
+                trackerDelegate.close();
+            }
+            ((ObjectStoreInterMineImpl) os).close();
         } catch (ObjectStoreException e) {
             throw new RuntimeException(e);
         }
@@ -513,6 +604,38 @@ public class InitialiserPlugin implements PlugIn
         }
     }
 
+    private TrackerDelegate initTrackers(Properties webProperties,
+            ObjectStoreWriter userprofileOSW) {
+        if (!verifyTrackTables(userprofileOSW.getObjectStore())) {
+            blockingErrorKeys.add("errors.tracktable.runAnt");
+        }
+        return getTrackerDelegate(webProperties, userprofileOSW);
+    }
+
+    private boolean verifyTrackTables(ObjectStore uos) {
+        Connection con = null;
+        try {
+            con = ((ObjectStoreInterMineImpl) uos).getConnection();
+            if (DatabaseUtil.tableExists(con, TrackerUtil.TEMPLATE_TRACKER_TABLE)) {
+                ResultSet res = con.getMetaData().getColumns(null, null,
+                                TrackerUtil.TEMPLATE_TRACKER_TABLE, "timestamp");
+
+                while (res.next()) {
+                    if (res.getString(3).equals(TrackerUtil.TEMPLATE_TRACKER_TABLE)
+                        && res.getString(4).equals("timestamp")
+                        && res.getInt(5) == Types.TIMESTAMP) {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        } catch (SQLException sqle) {
+            LOG.error("Probelm retriving connection", sqle);
+        } finally {
+            ((ObjectStoreInterMineImpl) uos).releaseConnection(con);
+        }
+        return true;
+    }
     /**
      * Returns the tracker manager of all trackers defined into the webapp configuration properties
      * @param webProperties the webapp configuration properties where the trackers are defined
@@ -525,21 +648,83 @@ public class InitialiserPlugin implements PlugIn
         String trackerList = (String) webProperties.get("webapp.trackers");
         LOG.warn("initializeTrackers: trackerList is" + trackerList);
         if (trackerList != null) {
-            ObjectStoreWriterInterMineImpl uosw = (ObjectStoreWriterInterMineImpl) userprofileOSW;
-            Connection con;
             String[] trackerClassNames = trackerList.split(",");
-            Tracker tracker;
-            for (String trackerClassName : trackerClassNames) {
-                try {
-                    con = uosw.getDatabase().getConnection();
-                    tracker = TrackerFactory.getTracker(trackerClassName, con);
-                    trackers.put(tracker.getName(), tracker);
-                } catch (Exception e) {
-                    LOG.warn("Tracker " + trackerClassName + " hasn't been instatiated", e);
+            TrackerDelegate td = new TrackerDelegate(trackerClassNames, userprofileOSW);
+            return td;
+        }
+        return null;
+    }
+
+    private boolean verifyListTables(ObjectStore uos) {
+        Connection con = null;
+        try {
+            con = ((ObjectStoreInterMineImpl) uos).getConnection();
+            if (!DatabaseUtil.tableExists(con, "bagvalues")) {
+                blockingErrorKeys.add("errors.savedbagtable.runLoadBagValuesTableAnt");
+                return false;
+            } else {
+                if (!DatabaseUtil.columnExists(con, "bagvalues", "extra")
+                    || DatabaseUtil.columnExists(con, "savedbag", "intermine_current")) {
+                    blockingErrorKeys.add("errors.savedbagtable.runListTablesAnt");
+                    return false;
                 }
             }
+        } catch (SQLException sqle) {
+            LOG.error("Probelm retrieving connection", sqle);
+        } finally {
+            ((ObjectStoreInterMineImpl) uos).releaseConnection(con);
         }
-        TrackerDelegate tm = new TrackerDelegate(trackers);
-        return tm;
+        return true;
+    }
+
+    /**
+     * Verify if we need to upgrade the list
+     */
+    private void verifyListUpgrade(ObjectStore uosw) {
+        try {
+            boolean listUpgrade = false;
+            String productionSerialNumber = MetadataManager.retrieve(((ObjectStoreInterMineImpl) os)
+                .getDatabase(), MetadataManager.SERIAL_NUMBER);
+            String userprofileSerialNumber = MetadataManager.retrieve(
+                ((ObjectStoreInterMineImpl) uosw).getDatabase(), MetadataManager.SERIAL_NUMBER);
+            LOG.info("Production database has serialNumber \"" + productionSerialNumber + "\"");
+            LOG.info("Userprofile database has serialNumber \"" + userprofileSerialNumber + "\"");
+            if (productionSerialNumber != null) {
+                if (userprofileSerialNumber == null
+                    || !userprofileSerialNumber.equals(productionSerialNumber)) {
+                    listUpgrade = true;
+                }
+            }
+            if (productionSerialNumber == null && userprofileSerialNumber != null) {
+                listUpgrade = true;
+            }
+            if (listUpgrade) {
+                    LOG.warn("Serial numbers not equal: list upgrate needed");
+                    //set current attribute to false
+                    Connection conn = null;
+                    try {
+                        conn = ((ObjectStoreInterMineImpl) uosw).getDatabase().getConnection();
+                        if (DatabaseUtil.columnExists(conn, "savedbag", "intermine_state")) {
+                            DatabaseUtil.updateColumnValue(
+                                         ((ObjectStoreInterMineImpl) uosw).getDatabase(),
+                                         "savedbag", "intermine_state", BagState.NOT_CURRENT.toString());
+                        }
+                    } catch (SQLException sqle) {
+                        throw new BuildException("Problems connecting bagvalues table", sqle);
+                    } finally {
+                        try {
+                            if (conn != null) {
+                                conn.close();
+                            }
+                        } catch (SQLException sqle) {
+                        }
+                    }
+                    // update the userprofileSerialNumber
+                    MetadataManager.store(((ObjectStoreInterMineImpl) uosw).getDatabase(),
+                            MetadataManager.SERIAL_NUMBER, productionSerialNumber);
+            }
+        } catch (SQLException sqle) {
+            throw new IllegalStateException("Error verifying list upgrading", sqle);
+        }
     }
 }

@@ -11,9 +11,11 @@ package org.intermine.sql;
  */
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,6 +24,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.CharUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.metadata.AttributeDescriptor;
 import org.intermine.metadata.ClassDescriptor;
@@ -450,6 +454,26 @@ public final class DatabaseUtil
         "YEAR",
         "ZONE"));
 
+    public enum Type {
+        text("TEXT"),
+        integer("integer"),
+        bigint("bigint"),
+        real("real"),
+        double_precision("double precision"),
+        timestamp("timestamp"),
+        boolean_type("boolean");
+
+        private final String sqlType;
+
+        Type(String sqlType) {
+            this.sqlType = sqlType;
+        }
+
+        String getSQLType() {
+            return sqlType;
+        }
+    }
+
     private DatabaseUtil() {
         // empty
     }
@@ -472,6 +496,36 @@ public final class DatabaseUtil
 
         while (res.next()) {
             if (res.getString(3).equals(tableName) && "TABLE".equals(res.getString(4))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Tests if a column exists in the database
+     *
+     * @param con a connection to a database
+     * @param tableName the name of a table containing the column
+     * @param columnName the name of the column to test for
+     * @return true if the column exists, false otherwise
+     * @throws SQLException if an error occurs in the underlying database
+     * @throws NullPointerException if tableName is null
+     */
+    public static boolean columnExists(Connection con, String tableName, String columnName)
+        throws SQLException {
+        if (tableName == null) {
+            throw new NullPointerException("tableName cannot be null");
+        }
+        if (columnName == null) {
+            throw new NullPointerException("columnName cannot be null");
+        }
+
+        ResultSet res = con.getMetaData().getColumns(null, null, tableName, columnName);
+
+        while (res.next()) {
+            if (res.getString(3).equals(tableName)
+                && res.getString(4).equals(columnName)) {
                 return true;
             }
         }
@@ -813,6 +867,149 @@ public final class DatabaseUtil
         s.execute(indexCreateSql);
 
         s.execute("ANALYSE " + tableName);
+    }
+
+    /**
+     * Create the table 'bagvalues' containing the values of the key field objects
+     * contained in a bag and an extra values
+     * @param con the Connection to use
+     * @throws SQLException if there is a database problem
+     */
+    public static void createBagValuesTables(Connection con)
+        throws SQLException {
+        String sqlTable = "CREATE TABLE bagvalues (savedbagid integer, value text, extra text)";
+        String sqlIndex = "CREATE UNIQUE INDEX bagvalues_index1 ON bagvalues (savedbagid, value, extra)";
+        con.createStatement().execute(sqlTable);
+        con.createStatement().execute(sqlIndex);
+    }
+
+    /**
+     * Add a column in the table specified in input. A connection is obtained to the database
+     * and automatically released after the addition of the column.
+     * @param database the database to use
+     * @param tableName the table where to add the column
+     * @param columnName the column to add
+     * @param type the type
+     * @throws SQLException if there is a database problem
+     */
+    public static void addColumn(Database database, String tableName, String columnName,
+                                Type type)
+        throws SQLException {
+        Connection connection = database.getConnection();
+        if (DatabaseUtil.tableExists(connection, tableName)) {
+            try {
+                addColumn(connection, tableName, columnName, type);
+            } finally {
+                connection.close();
+            }
+        }
+    }
+
+    /**
+     * Add a column to an existing database table, if it does not already exist.
+     * It is the users responsibility to close the connection after use.
+     * @param con A connection to the database.
+     * @param tableName The table to add the database too
+     * @param columnName The column to add
+     * @param type The SQL type to add
+     * @throws SQLException
+     */
+    public static void addColumn(Connection con, String tableName, String columnName, Type type)
+        throws SQLException {
+        if (!DatabaseUtil.tableExists(con, tableName)) {
+            throw new IllegalArgumentException("there is no table named " + tableName + "in this"
+                    + " database to add a new column to");
+        }
+        if (DatabaseUtil.columnExists(con, tableName, columnName)) {
+            return;
+        }
+        if (!DatabaseUtil.isLegalColumnName(columnName)) {
+            throw new IllegalArgumentException("This is not a legal column name: " + columnName);
+        }
+        String sql = "ALTER TABLE " + tableName + " ADD COLUMN " + columnName
+                      + " " + type.getSQLType();
+        PreparedStatement stmt = con.prepareStatement(sql);
+        LOG.info(stmt.toString());
+        stmt.executeUpdate();
+    }
+
+    /**
+     * Check that a column name provided to us is a legal column name, to prevent SQL injection.
+     * @param name The desired column name.
+     * @return Whether or not we should accept it.
+     */
+    protected static boolean isLegalColumnName(String name) {
+        if (StringUtils.isEmpty(name)) {
+            return false;
+        }
+        boolean isValid = true;
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            isValid = isValid && (CharUtils.isAsciiAlphaLower(c) || CharUtils.isAsciiNumeric(c)
+                    || c == '_');
+        }
+        return isValid;
+    }
+
+    /**
+     * Set the default value in a column for all values where the current value is null.
+     * @param database the database to use
+     * @param tableName the table where update the column
+     * @param columnName the column to Update
+     * @param newValue the value to update
+     * @throws SQLException if there is a database problem
+     */
+    public static void updateColumnValue(Database database, String tableName, String columnName,
+                                         Object newValue)
+        throws SQLException {
+        Connection connection = database.getConnection();
+        try {
+            updateColumnValue(connection, tableName, columnName, newValue);
+        } finally {
+            connection.close();
+        }
+    }
+
+    /**
+     * Set the default value in a column for all values.
+     * @param con A connection to the database to use
+     * @param tableName the table where update the column
+     * @param columnName the column to Update
+     * @param newValue the value to update
+     * @throws SQLException if there is a database problem
+     *
+     * Note, it is the user's responsibility to ensure the connection given is closed.
+     */
+    public static void updateColumnValue(Connection con, String tableName, String columnName,
+            Object newValue) throws SQLException {
+        if (DatabaseUtil.columnExists(con, tableName, columnName)) {
+            String sql = "UPDATE " + tableName + " SET " + columnName + " = ?";
+            PreparedStatement stmt = con.prepareStatement(sql);
+            stmt.setObject(1, newValue);
+            LOG.info(stmt.toString());
+            stmt.executeUpdate();
+        }
+    }
+
+    public static boolean verifyColumnType (Connection con, String tableName, String columnName, int columnType) {
+        try {
+            if (DatabaseUtil.tableExists(con, tableName)) {
+                ResultSet res = con.getMetaData().getColumns(null, null,
+                                                            tableName, columnName);
+
+                while (res.next()) {
+                    if (res.getString(3).equals(tableName)
+                        && columnName.equals(res.getString(4))
+                        && res.getInt(5) == columnType) {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+        }
+        return true;
     }
 }
 

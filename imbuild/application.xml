@@ -58,11 +58,13 @@
 
   <target name="-pre-jar" 
           depends="-final-app-pre-jar, webapp.-pre-jar">
+    <echo message="Running appl  pre-jar"/>
     <!-- Start with base intermine webapp war -->
     <copy file="${source.intermine.webapp.war}" tofile="${dist.war}"/>
   </target>
 
   <target name="do-jar" depends="-init-presetdef-war, retrieve-objectstore-summary">
+      <echo message="Running appl  do-jar"/>
     <appl:war/>
   </target>
 
@@ -102,6 +104,11 @@
                             userProfileAlias="${userprofile.objectstorewriter.name}"/>
   </target>
 
+  <target name="load-bagvalues-table" depends="-init-properties, -init-build-db">
+    <load-bagvalues-table osAlias="${objectstore.name}"
+                               userProfileAlias="${userprofile.objectstore.name}"/>
+  </target>
+
   <target name="write-templatetrack-xml" depends="-init-properties, -init-build-db">
     <write-templatetrack-xml fileName="${build.dir}/templatetrack.xml"
                              userProfileAlias="${userprofile.objectstorewriter.name}"/>
@@ -110,6 +117,21 @@
   <target name="read-templatetrack-xml" depends="-init-properties, -init-build-db">
     <read-templatetrack-xml fileName="${build.dir}/templatetrack.xml"
                         userProfileAlias="${userprofile.objectstorewriter.name}"/>
+  </target>
+
+  <target name="update-templatetrack-table" depends="-init-properties, -init-build-db">
+    <update-templatetrack-table
+                        userProfileAlias="${userprofile.objectstorewriter.name}"/>
+  </target>
+
+  <target name="update-list-tables" depends="-init-properties, -init-build-db">
+    <update-list-tables osAlias="${objectstore.name}"
+                        userProfileAlias="${userprofile.objectstore.name}"/>
+  </target>
+
+  <target name="model-update" depends="-init-properties, -init-build-db">
+    <model-update osAlias="${objectstore.name}"
+                  userProfileAlias="${userprofile.objectstorewriter.name}"/>
   </target>
 
   <!-- RELEASE / REMOVE FROM TOMCAT -->

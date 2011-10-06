@@ -123,7 +123,7 @@ public class PortalQueryAction extends InterMineAction
             // check the matches first...
             for (Map.Entry<Integer, List> entry : matches.entrySet()) {
                 String id = entry.getKey().toString();
-                return new ForwardParameters(mapping.findForward("objectDetails"))
+                return new ForwardParameters(mapping.findForward("report"))
                     .addParameter("id", id).forward();
             }
 
@@ -142,7 +142,7 @@ public class PortalQueryAction extends InterMineAction
                         String[] pair = token.split("=");
                         if (pair[0].equalsIgnoreCase("id")) {
                             id = pair[1].replaceAll("\"", "").replaceAll("]", "");
-                            return new ForwardParameters(mapping.findForward("objectDetails"))
+                            return new ForwardParameters(mapping.findForward("report"))
                                 .addParameter("id", id).forward();
                         }
                         continue;
@@ -178,7 +178,7 @@ public class PortalQueryAction extends InterMineAction
         WebResults webResults = executor.execute(pathQuery, returnBagQueryResults);
 
         String bagName = NameUtil.generateNewName(profile.getSavedBags().keySet(), "link");
-        InterMineBag imBag = profile.createBag(bagName, className, "");
+        InterMineBag imBag = profile.createBag(bagName, className, "", im.getClassKeys());
         List<Integer> bagList = new ArrayList<Integer>();
 
         // There's only one node, get the first value
@@ -207,9 +207,9 @@ public class PortalQueryAction extends InterMineAction
                             className, bagList, addparameter);
                     // No matches
                     if (converted.size() <= 0) {
-                        actionMessages.add(Constants.PORTAL_MSG,
-                            new ActionMessage("portal.noorthologues", addparameter, extId));
-                        session.setAttribute(Constants.PORTAL_MSG, actionMessages);
+//                        actionMessages.add(Constants.PORTAL_MSG,
+//                            new ActionMessage("portal.noorthologues", addparameter, extId));
+//                        session.setAttribute(Constants.PORTAL_MSG, actionMessages);
                         return goToResults(mapping, session, webResults);
                     }
                     actionMessages.add(Constants.PORTAL_MSG, bagConverter.getActionMessage(extId,
@@ -217,7 +217,7 @@ public class PortalQueryAction extends InterMineAction
                     session.setAttribute(Constants.PORTAL_MSG, actionMessages);
 
                     if (converted.size() == 1) {
-                        return goToObjectDetails(mapping, converted.get(0).toString());
+                        return goToReport(mapping, converted.get(0).toString());
                     }
                     return createBagAndGoToBagDetails(mapping, imBag, converted);
                 }
@@ -234,7 +234,7 @@ public class PortalQueryAction extends InterMineAction
             return goToResults(mapping, session, webResults);
         // Go to the object details page
         } else if ((bagList.size() == 1) && (idList.length == 1)) {
-            return goToObjectDetails(mapping, bagList.get(0).toString());
+            return goToReport(mapping, bagList.get(0).toString());
         // Make a bag
         } else if (bagList.size() >= 1) {
             return createBagAndGoToBagDetails(mapping, imBag, bagList);
@@ -253,13 +253,12 @@ public class PortalQueryAction extends InterMineAction
             .addParameter("table", identifier).addParameter("trail", "").forward();
     }
 
-    private ActionForward goToObjectDetails(ActionMapping mapping, String id) {
-        return new ForwardParameters(mapping.findForward("objectDetails"))
+    private ActionForward goToReport(ActionMapping mapping, String id) {
+        return new ForwardParameters(mapping.findForward("report"))
             .addParameter("id", id).forward();
     }
 
-    private ActionForward goToNoResults(ActionMapping mapping,
-            @SuppressWarnings("unused") HttpSession session) {
+    private ActionForward goToNoResults(ActionMapping mapping, HttpSession session) {
         ActionForward forward = mapping.findForward("noResults");
         return new ForwardParameters(forward).addParameter("trail", "").forward();
     }

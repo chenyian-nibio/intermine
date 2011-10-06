@@ -11,10 +11,12 @@ package org.intermine.bio.web.export;
  */
 
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.biojava.bio.Annotation;
 import org.biojava.bio.seq.io.FastaFormat;
 import org.biojava.bio.seq.io.SeqIOTools;
@@ -26,7 +28,6 @@ import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.BioEntity;
 import org.intermine.model.bio.Location;
 import org.intermine.model.bio.Protein;
-import org.intermine.model.bio.Sequence;
 import org.intermine.model.bio.SequenceFeature;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.util.IntPresentSet;
@@ -44,6 +45,10 @@ import org.intermine.web.logic.export.Exporter;
  **/
 public class SequenceExporter implements Exporter
 {
+
+    @SuppressWarnings("unused")
+    private static final Logger LOG = Logger.getLogger(SequenceExporter.class);
+
     private ObjectStore os;
     private OutputStream out;
     private int featureIndex;
@@ -114,6 +119,7 @@ public class SequenceExporter implements Exporter
 
                 if (bioSequence == null) {
                     // the object doesn't have a sequence
+                    header.append("no sequence attached.");
                     continue;
                 }
 
@@ -135,6 +141,10 @@ public class SequenceExporter implements Exporter
                 SeqIOTools.writeFasta(out, bioSequence);
                 writtenResultsCount++;
                 exportedIDs.add(objectId);
+            }
+
+            if (writtenResultsCount == 0) {
+                out.write("Nothing was found for export".getBytes(Charset.forName("UTF-8")));
             }
 
             out.flush();
@@ -164,7 +174,6 @@ public class SequenceExporter implements Exporter
 
         String primaryIdentifier = feature.getPrimaryIdentifier();
         makeHeader(header, primaryIdentifier, object, row);
-
         return bioSequence;
     }
 
@@ -186,15 +195,25 @@ public class SequenceExporter implements Exporter
 
             // add the sequence location info at the second place in the header
             SequenceFeature feature = (SequenceFeature) object;
+            Location loc = feature.getChromosomeLocation();
+            if (loc == null) {
+                headerBits.add("-");
+            } else {
+                // Assume if loc exits, the following information should be available
+                String chr = loc.getLocatedOn().getPrimaryIdentifier();
+                Integer start = loc.getStart();
+                Integer end = loc.getEnd();
 
-            String chr = feature.getChromosome().getPrimaryIdentifier();
-            Integer start = feature.getChromosomeLocation().getStart();
-            Integer end = feature.getChromosomeLocation().getEnd();
-            String locString = chr + ':' + start + '-' + end;
-            headerBits.add(locString);
-
+                String locString = chr + ':' + start + '-' + end;
+                headerBits.add(locString);
+            }
             for (ResultElement re : row) {
-                if (re.getObject().equals(object)) {
+                // to avoid failure in modmine when no experimental factors (sub 2745)
+                if (re == null) {
+                    continue;
+                }
+
+                if (object.equals(re.getObject())) {
                     Object fieldValue = re.getField();
                     if (fieldValue == null) {
                         headerBits.add("-");
@@ -214,7 +233,7 @@ public class SequenceExporter implements Exporter
         } else if (object instanceof Protein) {
 
             for (ResultElement re : row) {
-                if (re.getObject().equals(object)) {
+                if (object.equals(re.getObject())) {
                     Object fieldValue = re.getField();
                     if (fieldValue == null) {
                         headerBits.add("-");
@@ -252,7 +271,8 @@ public class SequenceExporter implements Exporter
     public static boolean canExportStatic(List<Class<?>> clazzes) {
         return (ExportHelper.getClassIndex(clazzes,
                 SequenceFeature.class) >= 0
-                || ExportHelper.getClassIndex(clazzes, Protein.class) >= 0 || ExportHelper
-                .getClassIndex(clazzes, Sequence.class) >= 0);
+                || ExportHelper.getClassIndex(clazzes, Protein.class) >= 0
+//                || ExportHelper.getClassIndex(clazzes, Sequence.class) >= 0
+                );
     }
 }

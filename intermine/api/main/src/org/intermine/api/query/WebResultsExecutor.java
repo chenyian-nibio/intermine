@@ -18,18 +18,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.intermine.api.InterMineAPI;
-import org.intermine.api.LinkRedirectManager;
-import org.intermine.api.bag.BagManager;
 import org.intermine.api.bag.BagQueryResult;
-import org.intermine.api.bag.BagQueryRunner;
 import org.intermine.api.config.Constants;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.results.WebResults;
 import org.intermine.api.template.TemplatePrecomputeHelper;
 import org.intermine.api.template.TemplateQuery;
-import org.intermine.metadata.FieldDescriptor;
-import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.intermine.ObjectStoreInterMineImpl;
 import org.intermine.objectstore.query.Query;
@@ -45,13 +40,11 @@ import org.intermine.pathquery.PathQuery;
  *
  * @author Richard Smith
  * @author Jakub Kulaviak
+ * @author Alex Kalderimis
  */
 public class WebResultsExecutor extends QueryExecutor
 {
-    private ObjectStore os;
-    private Profile profile;
-    private BagManager bagManager;
-    private BagQueryRunner bagQueryRunner;
+
     private Map<PathQuery, ResultsInfo> infoCache = Collections.synchronizedMap(
             new IdentityHashMap<PathQuery, ResultsInfo>());
     private InterMineAPI im;
@@ -69,6 +62,7 @@ public class WebResultsExecutor extends QueryExecutor
         this.profile = profile;
         this.im = im;
         bagManager = im.getBagManager();
+        this.summaryBatchSize = Constants.BATCH_SIZE;
     }
 
     /**
@@ -127,18 +121,6 @@ public class WebResultsExecutor extends QueryExecutor
     }
 
     /**
-     * Take a query and return the results row count.
-     *
-     * @param pathQuery the query to count
-     * @return the number of rows returned
-     * @throws ObjectStoreException if there is a problem counting the query
-     */
-    public int count(PathQuery pathQuery) throws ObjectStoreException {
-        Query q = makeQuery(pathQuery);
-        return os.count(q, ObjectStore.SEQUENCE_IGNORE);
-    }
-
-    /**
      * Creates an SQL query from a PathQuery.
      *
      * @param pathQuery the query to convert
@@ -182,37 +164,6 @@ public class WebResultsExecutor extends QueryExecutor
 
         Query q = MainHelper.makeQuery(pathQuery, allBags, pathToQueryNode, bagQueryRunner,
                 pathToBagQueryResult);
-        return q;
-    }
-
-    /**
-     * Returns the results for a summary for a column in a PathQuery.
-     *
-     * @param pathQuery the query to summarise
-     * @param summaryPath the column to summarise
-     * @return a Results object with varying styles of data
-     * @throws ObjectStoreException if there is a problem summarising
-     */
-    public Results summariseQuery(PathQuery pathQuery,
-            String summaryPath) throws ObjectStoreException {
-        return os.execute(makeSummaryQuery(pathQuery, summaryPath));
-    }
-
-    /**
-     * Creates a query that returns the summary for a column in a PathQuery.
-     *
-     * @param pathQuery the query to convert
-     * @param summaryPath the column to summarise
-     * @return an IQL Query object
-     * @throws ObjectStoreException if there is a problem creating the query
-     */
-    public Query makeSummaryQuery(PathQuery pathQuery,
-            String summaryPath) throws ObjectStoreException {
-        Map<String, QuerySelectable> pathToQueryNode = new HashMap<String, QuerySelectable>();
-
-        Map<String, InterMineBag> allBags = bagManager.getUserAndGlobalBags(profile);
-        Query q = MainHelper.makeSummaryQuery(pathQuery, summaryPath, allBags, pathToQueryNode,
-                bagQueryRunner);
         return q;
     }
 

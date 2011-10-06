@@ -127,9 +127,9 @@ public interface Constants
     int POLL_REFRESH_SECONDS = 2;
 
     /**
-     * The session attribute that holds the DisplayObjectCache object for the session.
+     * The session attribute that holds the ReportObjectCache object for the session.
      */
-    String DISPLAY_OBJECT_CACHE = "DISPLAY_OBJECT_CACHE";
+    String REPORT_OBJECT_CACHE = "REPORT_OBJECT_CACHE";
 
     /**
      * Session attribute that holds cache of table identifiers to PagedTable objects.
@@ -147,14 +147,14 @@ public interface Constants
     String RUNNING_QUERIES = "RUNNING_QUERIES";
 
     /**
-     * Servlet attribute. Map from class name to Set of leaf class descriptors.
-     */
-    String LEAF_DESCRIPTORS_MAP = "LEAF_DESCRIPTORS_MAP";
-
-    /**
      * Servlet attribute. Map from MultiKey(experiment, gene) id to temp file name.
      */
     String GRAPH_CACHE = "GRAPH_CACHE";
+
+    /**
+     * Servlet attribute. Map from class name to Set of leaf class descriptors.
+     */
+    String LEAF_DESCRIPTORS_MAP = "LEAF_DESCRIPTORS_MAP";
 
     /**
      * Servlet attribute. The global webapp cache - a InterMineCache object.
@@ -191,7 +191,7 @@ public interface Constants
      * This constant must changed every time the API changes, either by addition
      * or deletion of features.
      */
-    int WEB_SERVICE_VERSION = 3;
+    int WEB_SERVICE_VERSION = 6;
 
     /**
      * Key for a Map from class name to Boolean.TRUE for all classes in the model that do not have
@@ -203,4 +203,22 @@ public interface Constants
      * Key for the InterMine API object
      */
     String INTERMINE_API = "INTERMINE_API";
+
+    String INITIALISER_KEY_ERROR = "INITIALISER_KEY_ERROR";
+
+    /**
+     * key for the map saved in the session containing the status of saved bags
+     */
+    String SAVED_BAG_STATUS = "SAVED_BAG_STATUS";
+    String UPGRADING_BAG = "UPGRADING";
+
+    /** The replay-attack prevention nonces **/
+    String NONCES = "NONCES";
+
+    /** The display name of the current user **/
+    String USERNAME = "USERNAME";
+    /** The name of the current open-id provider **/
+    String PROVIDER = "PROVIDER";
+
+	String OPENID_PROVIDERS = "OPENID_PROVIDERS";
 }

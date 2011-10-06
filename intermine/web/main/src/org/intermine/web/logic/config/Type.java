@@ -20,11 +20,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.commons.collections.set.ListOrderedSet;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.intermine.web.logic.widget.config.WidgetConfig;
+import org.intermine.util.TypeUtil;
 
 /**
  * Configuration object for displaying a class
@@ -37,19 +39,67 @@ public class Type
     // if fieldName is null it's ignored and the webapp will use the default renderer
     private String fieldName;
     private String className;
-    private LinkedHashMap<String, FieldConfig> fieldConfigMap =
-        new LinkedHashMap<String, FieldConfig>();
+    private Map<String, FieldConfig> fieldConfigMap =
+        new LinkedHashMap<String, FieldConfig>(); // Use a linked map to allow users to specify column order in the config.
     private ListOrderedSet longDisplayers = new ListOrderedSet();
     private ListOrderedSet bagDisplayers = new ListOrderedSet();
     private LinkedList<WidgetConfig> widgets = new LinkedList<WidgetConfig>();
     private Displayer tableDisplayer;
     private Map<String, List<Displayer>> aspectDisplayers = new HashMap<String, List<Displayer>>();
 
+    /** @var inline lists attached to the object type */
+    private LinkedList<InlineList> inlineLists = new LinkedList<InlineList>();
+
+    /** @var header configuration having paths to titles to show */
+    private HeaderConfigTitle headerConfigTitle;
+    private HeaderConfigLink headerConfigLink;
+
+    private String label = null;
+
     /**
-     * Set the fully-qualified class name for this Type
+     * Get the label property's value.
+     * @return The value of this property.
+     */
+    public String getLabel() {
+        return this.label;
+    }
+
+    /**
+     * Set the label property.
+     * @param label the new value for this property.
+     */
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public String getDisplayName() {
+        if (label != null) {
+            return label;
+        } else {
+            return getFormattedClassName();
+        }
+    }
+
+    public String getFormattedClassName() {
+        return Type.getFormattedClassName(className);
+    }
+
+    public static String getFormattedClassName(String nameOfClass) {
+        String unqualifiedName = TypeUtil.unqualifiedName(nameOfClass);
+        String[] parts = StringUtils.splitByCharacterTypeCamelCase(unqualifiedName);
+        String[] newParts = new String[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            newParts[i] = StringUtils.capitalize(parts[i]);
+        }
+        return StringUtils.join(parts, " ");
+    }
+
+    /**
+     * Set the unqualified class name for this Type (from fully-qualified)
      * @param className the name of the Type
      */
     public void setClassName(String className) {
+        //this.className = TypeUtil.unqualifiedName(className);
         this.className = className;
     }
 
@@ -61,12 +111,17 @@ public class Type
         return this.className;
     }
 
+    public String getUnqualifiedClassName() {
+        return TypeUtil.unqualifiedName(this.className);
+    }
+
     /**
      * Add a FieldConfig for this Type
      * @param df the FieldConfig to add
      */
     public void addFieldConfig(FieldConfig df) {
         fieldConfigMap.put(df.getFieldExpr(), df);
+        df.setClassConfig(this);
     }
 
     /**
@@ -84,6 +139,16 @@ public class Type
     public Map<String, FieldConfig> getFieldConfigMap() {
         return Collections.unmodifiableMap(fieldConfigMap);
     }
+
+    /**
+     * Return a FieldConfig for a particular field if it has been specified, otherwise return null
+     * @param fieldName the field to look up config for
+     * @return the FieldConfig or null
+     */
+    public FieldConfig getFieldConfig(String fieldName) {
+        return fieldConfigMap.get(fieldName);
+    }
+
 
    /**
      * Add a long displayer for this Type
@@ -109,6 +174,46 @@ public class Type
             }
             displayers.add(disp);
         }
+    }
+
+    /**
+     * Add a header configuration, used from WebConfig
+     * @param headerConfig lalala
+     */
+    public void addHeaderConfigTitle(HeaderConfigTitle headerConfig) {
+        this.headerConfigTitle = headerConfig;
+    }
+
+    /**
+     *
+     * @return HeaderConfigTitle
+     */
+    public HeaderConfigTitle getHeaderConfigTitle() {
+        return this.headerConfigTitle;
+    }
+
+    /**
+     * Add a header configuration, used from WebConfig
+     * @param headerConfig lalala
+     */
+    public void addHeaderConfigLink(HeaderConfigLink headerConfig) {
+        this.headerConfigLink = headerConfig;
+    }
+
+    /**
+    *
+    * @return HeaderConfigLink
+    */
+    public HeaderConfigLink getHeaderConfigLink() {
+        return this.headerConfigLink;
+    }
+
+    /**
+     * Add an InlineList for this object, used from WebConfig
+     * @param list lalala
+     */
+    public void addInlineList(InlineList list) {
+        inlineLists.add(list);
     }
 
     /**
@@ -155,6 +260,14 @@ public class Type
      */
     public Set getLongDisplayers() {
         return Collections.unmodifiableSet(this.longDisplayers);
+    }
+
+    /**
+     *
+     * @return inline lists
+     */
+    public List<InlineList> getInlineLists() {
+        return inlineLists;
     }
 
     /**
@@ -212,21 +325,24 @@ public class Type
         if (fieldName != null) {
             sb.append(" fieldName=\"" + fieldName + "\"");
         }
-        sb.append(">");
-        sb.append("<fieldconfigs>");
-        for (FieldConfig fc : getFieldConfigs()) {
-            sb.append(fc.toString());
+        if (label != null) {
+        	sb.append(" label=\"" + label + "\"");
         }
-        sb.append("</fieldconfigs>");
+        sb.append(">\n");
+        sb.append("\t<fieldconfigs>\n");
+        for (FieldConfig fc : getFieldConfigs()) {
+            sb.append("\t\t" + fc.toString() + "\n");
+        }
+        sb.append("\t</fieldconfigs>\n");
         if (tableDisplayer != null) {
             sb.append(tableDisplayer.toString("tabledisplayer"));
         }
-        sb.append("<longdisplayers>");
+        sb.append("\t<longdisplayers>\n");
         Iterator iter = longDisplayers.iterator();
         while (iter.hasNext()) {
-            sb.append(iter.next().toString());
+            sb.append("\t\t" + iter.next().toString() + "\n");
         }
-        sb.append("</longdisplayers>");
+        sb.append("\t</longdisplayers>\n");
         sb.append("</class>");
 
         return sb.toString();
@@ -245,4 +361,20 @@ public class Type
     public void setAspectDisplayers(Map<String, List<Displayer>> aspectDisplayers) {
         this.aspectDisplayers = aspectDisplayers;
     }
+
+    /**
+     * @see unused getter for WebConfig to work
+     * @return null
+     */
+    public String getMainTitles() {
+        return null;
+    }
+    /**
+     * @see unused getter for WebConfig to work
+     * @return null
+     */
+    public String getSubTitles() {
+        return null;
+    }
+
 }

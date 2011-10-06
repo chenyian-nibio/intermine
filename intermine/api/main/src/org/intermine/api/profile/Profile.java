@@ -12,19 +12,23 @@ package org.intermine.api.profile;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.collections.map.ListOrderedMap;
 import org.apache.commons.lang.StringUtils;
+import org.intermine.api.config.ClassKeyHelper;
 import org.intermine.api.search.Scope;
 import org.intermine.api.search.SearchRepository;
 import org.intermine.api.search.WebSearchable;
 import org.intermine.api.tag.TagTypes;
 import org.intermine.api.template.TemplateQuery;
 import org.intermine.api.tracker.TrackerDelegate;
+import org.intermine.metadata.FieldDescriptor;
 import org.intermine.model.userprofile.Tag;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
@@ -48,7 +52,14 @@ public class Profile
 
     protected Map queryHistory = new ListOrderedMap();
     private boolean savingDisabled;
-    private SearchRepository searchRepository;
+    private final SearchRepository searchRepository;
+    private String token;
+
+    /**
+     * True if this account is purely local. False if it was created
+     * in reference to another authenticator, such as an OpenID provider.
+     */
+    private final boolean isLocal;
 
     /**
      * Construct a Profile
@@ -59,14 +70,16 @@ public class Profile
      * @param savedQueries the saved queries for this profile
      * @param savedBags the saved bags for this profile
      * @param savedTemplates the saved templates for this profile
+     * @param token The token to use as an API key
      */
     public Profile(ProfileManager manager, String username, Integer userId, String password,
                    Map<String, SavedQuery> savedQueries, Map<String, InterMineBag> savedBags,
-                   Map<String, TemplateQuery> savedTemplates) {
+                   Map<String, TemplateQuery> savedTemplates, String token, boolean isLocal) {
         this.manager = manager;
         this.username = username;
         this.userId = userId;
         this.password = password;
+        this.isLocal = isLocal;
         if (savedQueries != null) {
             this.savedQueries.putAll(savedQueries);
         }
@@ -77,6 +90,24 @@ public class Profile
             this.savedTemplates.putAll(savedTemplates);
         }
         searchRepository = new SearchRepository(this, Scope.USER);
+        this.token = token;
+    }
+
+    /**
+     * Construct a profile without an API key
+     * @param manager the manager for this profile
+     * @param username the username for this profile
+     * @param userId the id of this user
+     * @param password the password for this profile
+     * @param savedQueries the saved queries for this profile
+     * @param savedBags the saved bags for this profile
+     * @param savedTemplates the saved templates for this profile
+     */
+    public Profile(ProfileManager manager, String username, Integer userId, String password,
+            Map<String, SavedQuery> savedQueries, Map<String, InterMineBag> savedBags,
+            Map<String, TemplateQuery> savedTemplates, boolean isLocal) {
+        this(manager, username, userId, password, savedQueries, savedBags, savedTemplates,
+                null, isLocal);
     }
 
     /**
@@ -118,6 +149,17 @@ public class Profile
      */
     public boolean isLoggedIn() {
         return getUsername() != null;
+    }
+
+    /**
+     * Return true if and only if the user logged is superuser
+     * @return Return true if superuser
+     */
+    public boolean isSuperuser() {
+        if (username != null && manager.getSuperuser().equals(username)) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -203,9 +245,9 @@ public class Profile
      * Delete a template and its tags, rename the template tracks adding the prefix "deleted_"
      * to the previous name. If trackerDelegate is null, the template tracks are not renamed
      * @param name the template name
-     * @param trackerDelegate used to rename the template tracks. 
+     * @param trackerDelegate used to rename the template tracks.
      */
-    public void deleteTemplate(String name, TrackerDelegate trackerDelegate) {
+    public void deleteTemplate(String name, TrackerDelegate trackerDelegate, boolean deleteTracks) {
         savedTemplates.remove(name);
         if (manager != null) {
             if (!savingDisabled) {
@@ -215,7 +257,7 @@ public class Profile
         }
         TagManager tagManager = getTagManager();
         tagManager.deleteObjectTags(name, TagTypes.TEMPLATE, username);
-        if (trackerDelegate != null) {
+        if (trackerDelegate != null && deleteTracks) {
             trackerDelegate.updateTemplateName(name, "deleted_" + name);
         }
     }
@@ -303,6 +345,41 @@ public class Profile
     }
 
     /**
+     * Get the saved bags in a map of "status key" -> map of lists
+     * @return
+     */
+    public Map<String, Map<String, InterMineBag>> getSavedBagsByStatus() {
+        Map<String, Map<String, InterMineBag>> result = new LinkedHashMap<String, Map<String, InterMineBag>>();
+        // maintain order on the JSP page
+        result.put("NOT_CURRENT", new HashMap<String, InterMineBag>());
+        result.put("TO_UPGRADE", new HashMap<String, InterMineBag>());
+        result.put("CURRENT", new HashMap<String, InterMineBag>());
+        
+        for (InterMineBag bag : savedBags.values()) {
+        	String state = bag.getState();
+        	// XXX: this can go pear shaped if new statei [sic] are introduced
+            Map<String, InterMineBag> stateMap = result.get(state); 
+        	stateMap.put(bag.getName(), bag);
+        }
+        return result;
+    }    
+    
+    /**
+     * Get the value of savedBags current
+     * @return the value of savedBags
+     */
+    public Map<String, InterMineBag> getCurrentSavedBags() {
+        Map<String, InterMineBag> clone = new HashMap<String, InterMineBag>();
+        clone.putAll(savedBags);
+        for (InterMineBag bag : savedBags.values()) {
+            if (!bag.isCurrent()) {
+                clone.remove(bag.getName());
+            }
+        }
+        return clone;
+    }
+
+    /**
      * Stores a new bag in the profile. Note that bags are always present in the user profile
      * database, so this just adds the bag to the in-memory list of this profile.
      *
@@ -323,14 +400,18 @@ public class Profile
      * @param name the bag name
      * @param type the bag type
      * @param description the bag description
+     * @param classKeys the classKeys used to obtain  the primary identifier field
      * @return the new bag
      * @throws ObjectStoreException if something goes wrong
      */
-    public InterMineBag createBag(String name, String type,
-            String description) throws ObjectStoreException {
+    public InterMineBag createBag(String name, String type, String description,
+        Map<String, List<FieldDescriptor>> classKeys) throws ObjectStoreException {
         ObjectStore os = manager.getProductionObjectStore();
         ObjectStoreWriter uosw = manager.getProfileObjectStoreWriter();
-        InterMineBag bag = new InterMineBag(name, type, description, new Date(), os, userId, uosw);
+        List<String> keyFielNames = ClassKeyHelper.getKeyFieldNames(
+                                    classKeys, type);
+        InterMineBag bag = new InterMineBag(name, type, description, new Date(),
+                               BagState.CURRENT, os, userId, uosw, keyFielNames);
         savedBags.put(name, bag);
         reindex(TagTypes.BAG);
         return bag;
@@ -339,10 +420,14 @@ public class Profile
     /**
      * Delete a bag from the user account, if user is logged in also deletes from the userprofile
      * database.
+     * If there is no such bag associated with the account, no action is performed.
      * @param name the bag name
      * @throws ObjectStoreException if problems deleting bag
      */
     public void deleteBag(String name) throws ObjectStoreException {
+        if (!savedBags.containsKey(name)) {
+            throw new BagDoesNotExistException(name + " not found");
+        }
         InterMineBag bagToDelete = savedBags.get(name);
         if (isLoggedIn()) {
             bagToDelete.delete();
@@ -352,6 +437,23 @@ public class Profile
         TagManager tagManager = getTagManager();
         tagManager.deleteObjectTags(name, TagTypes.BAG, username);
         reindex(TagTypes.BAG);
+    }
+    
+    /**
+     * Update the type of bag.
+     * If there is no such bag associated with the account, no action is performed.
+     * @param name the bag name
+     * @param newType the type to set
+     * @throws ObjectStoreException if problems deleting bag
+     */
+    public void updateBagType(String name, String newType) throws ObjectStoreException {
+        if (!savedBags.containsKey(name)) {
+            throw new BagDoesNotExistException(name + " not found");
+        }
+        InterMineBag bagToUpdate = savedBags.get(name);
+        if (isLoggedIn()) {
+            bagToUpdate.setType(newType);
+        }
     }
 
 
@@ -364,8 +466,7 @@ public class Profile
      */
     public void renameBag(String oldName, String newName) throws ObjectStoreException {
         if (!savedBags.containsKey(oldName)) {
-            throw new IllegalArgumentException("Attempting to rename a bag that doesn't"
-                    + " exist: " + oldName);
+            throw new BagDoesNotExistException("Attempting to rename " + oldName);
         }
         if (savedBags.containsKey(newName)) {
             throw new ProfileAlreadyExistsException("Attempting to rename a bag to a new name that"
@@ -398,7 +499,6 @@ public class Profile
             moveTagsToNewObject(oldName, template.getName(), TagTypes.TEMPLATE);
         }
     }
-
 
     private void moveTagsToNewObject(String oldTaggedObj, String newTaggedObj, String type) {
         TagManager tagManager = getTagManager();
@@ -444,4 +544,33 @@ public class Profile
     public SearchRepository getSearchRepository() {
         return searchRepository;
     }
+
+
+    /**
+     * Get the user's API key token.
+     * @return
+     */
+    public String getApiKey() {
+        return token;
+    }
+
+    /**
+     * Set the API token for this user, and save it in
+     * the backing db.
+     * @param token
+     */
+    public void setApiKey(String token) {
+        this.token = token;
+        manager.saveProfile(this);
+    }
+
+    /**
+     * Returns true if this is a local account, and not, for
+     * example, an OpenID account.
+     * @return Whether or not this is a local account.
+     */
+    public boolean isLocal() {
+    	return this.isLocal;
+    }
+
 }

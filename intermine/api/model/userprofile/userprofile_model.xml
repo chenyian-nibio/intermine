@@ -2,6 +2,8 @@
   <class name="UserProfile" is-interface="false">
     <attribute name="username" type="java.lang.String"/>
     <attribute name="password" type="java.lang.String"/>
+    <attribute name="apiKey" type="java.lang.String"/>
+	<attribute name="localAccount" type="boolean"/>
     <collection name="savedBags" referenced-type="SavedBag" reverse-reference="userProfile"/>
     <collection name="savedQuerys" referenced-type="SavedQuery" reverse-reference="userProfile"/>
     <collection name="savedTemplateQuerys" referenced-type="SavedTemplateQuery" reverse-reference="userProfile"/>
@@ -13,6 +15,7 @@
     <attribute name="description" type="java.lang.String"/>
     <attribute name="dateCreated" type="java.util.Date"/>
     <attribute name="osbId" type="int"/>
+    <attribute name="state" type="java.lang.String"/>
     <reference name="userProfile" referenced-type="UserProfile" reverse-reference="savedBags"/>
   </class>
   <class name="SavedQuery" is-interface="false">

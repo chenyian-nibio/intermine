@@ -26,13 +26,14 @@ import org.intermine.util.Util;
  */
 public class ResultElement implements Serializable
 {
+    private static final long serialVersionUID = 1L;
     protected Object field;
     protected FastPathObject imObj;
     protected String htmlId;
-    private final boolean keyField;
+    /** @boolean protected as we need to determine if the element is a key field from JSP */
+    protected final boolean keyField;
     private final Path path;
     private String linkRedirect;
-
 
     /**
      * Constructs a new ResultCell object
