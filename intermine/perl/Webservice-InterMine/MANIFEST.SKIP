@@ -1,3 +1,4 @@
+\.git
 ^_build
 ^Build$
 ^blib
@@ -15,9 +16,16 @@ extras
 \.svn
 \..*swp$
 ^MYMETA.yml$
-\.yml$
 old_t
 ^cover
 make_distribution\.pl
 .*rej
 \.orig$
+_Inline
+get_gnarly_data.pl
+nytprof
+.*\.out
+scripts
+\.prove.*
+MYMETA\.*
+

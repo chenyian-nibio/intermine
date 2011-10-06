@@ -22,11 +22,13 @@ our @EXPORT_OK = qw/
     get_logo
     get_organisms
     get_version
+    get_error_log
     update_minelist
     update_data
     update_secrets
     update_logs
     update_admins
+    update_error_log
     validate_user
   /;
 
@@ -81,9 +83,15 @@ sub get_admins {
     return get_data("administrators");
 }
 
+sub get_error_log {
+    return get_data( "error_log" );
+}
+
 func get_data($settings_key) {
-    my $content = try{slurp( setting($settings_key) )};
-    return try{ from_yaml($content) } catch { {} };
+    my $file = setting($settings_key);
+    my $content = try{slurp( $file )};
+    my $data = try{ from_yaml($content) } || {};
+    return $data;
 }
 
 sub update_minelist {
@@ -100,6 +108,10 @@ sub update_logs {
 
 sub update_admins {
     update_data( "administrators", @_ );
+}
+
+sub update_error_log {
+    update_data( "error_log", @_ );
 }
 
 func update_data($settings_key, $new_data) {

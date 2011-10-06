@@ -92,6 +92,19 @@
   </query>
 </template>
 
+<template name="SubClassContraints" title="Template with subclasses">
+    <query name="SubClassContraints" model="testmodel" view="Company.departments.employees.name Company.departments.employees.seniority">
+        <constraint path="Company.departments.employees" type="Manager" editable="false"/>
+        <constraint path="Company.name" op="=" value="CompanyA" editable="true" code="A"/>
+    </query>
+</template>
+
+    <template name="SortOrderNotInView" title="Convert employees to addresses" longDescription="" comment="" >
+      <query name="SortOrderNotInView" model="testmodel" view="Employee.name Employee.age" sortOrder="Employee.department.name">
+        <constraint path="Employee.id" op="=" value="0" description="id" editable="true" code="A"/>
+      </query>
+    </template>
+
   </template-queries>
 
   <tags>

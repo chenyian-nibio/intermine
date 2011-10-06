@@ -7,7 +7,7 @@ use Test::More;
 use Test::Exception;
 use Test::MockObject;
 use List::MoreUtils qw/mesh/;
-use InterMine::Model;
+use InterMine::Model::TestModel;
 use XML::Rules;
 
 my $module = 'Webservice::InterMine::Query::Template';
@@ -68,6 +68,8 @@ my @sort_order = (
     'Contractor.id', 'Manager.name',
     'Company.name',  'Company.name',
     'Company.name',  'Employee.name',
+    'Company.departments.employees.name',
+    'Employee.name',
 );
 
 ############################################################
@@ -94,7 +96,6 @@ my @baddies_names = (
       unfinished
       empty_view
       no_constraints
-      sort_order_not_in_query
       descr_and_title
       no_name
       names_differ
@@ -106,24 +107,22 @@ my @baddies_names = (
 my %baddies = mesh( @baddies_names, @baddies );
 my @baddies_errors = (
     'unexpected element: unknown_tag',
-    'BadClass not in the model',
+    'can\'t find field "BadClass"',
     'illegal path',
     'not well-formed',
     'mismatched tag',
     'No view in query',
     'Invalid template: no editable constraints',
-    '.* is not in the view',
     'both description and title',
-    '\(name\) does not pass the type constraint',
+    'No name attribute on template node',
     'We have two names and they differ',
     'No constraint with code',
-    'Inconsistent query',
+    'can\'t find field "Employee"',
     'Only editable constraints can be switchable',
 );
 my %exp_err_for = mesh( @baddies_names, @baddies_errors );
 
-my $modelf = 't/data/testmodel_model.xml';
-my $model = InterMine::Model->new( file => $modelf );
+my $model = InterMine::Model::TestModel->instance;
 
 my $service = Test::MockObject->new;
 $service->set_isa('Webservice::InterMine::Service');
@@ -147,8 +146,7 @@ for my $xmlstring (@goodies) {
         $parser->parse($xmlstring),
         "Successfully parses good template: " . ++$c . ' of ' . @goodies
       )
-      or diag explain( $parser->parse( $t->to_xml ) ),
-      explain( $parser->parse($xmlstring) );
+      or diag explain($parser->parse( $t->to_xml )), explain($parser->parse($xmlstring));
     is(
         $t->sort_order,
         $sort_order[ $c - 1 ] . ' asc',

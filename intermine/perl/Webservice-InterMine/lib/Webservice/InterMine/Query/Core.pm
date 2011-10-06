@@ -9,15 +9,18 @@ with(
 
 use Carp;
 use List::Util qw/reduce/;
-use List::MoreUtils qw/uniq/;
+use List::MoreUtils qw/uniq natatime/;
+use Scalar::Util qw/blessed/;
 
 use MooseX::Types::Moose qw/Str Bool/;
-use InterMine::TypeLibrary qw(
-  PathList PathHash SortOrder SortOrderList
+use InterMine::Model::Types qw/PathList PathHash PathString/;
+use Webservice::InterMine::Types qw(
+  SortOrder SortOrderList
   ConstraintList LogicOrStr JoinList
   QueryName PathDescriptionList
   ConstraintFactory
 );
+
 use Webservice::InterMine::Join;
 use Webservice::InterMine::PathDescription;
 use Webservice::InterMine::Path qw(:validate type_of);
@@ -31,6 +34,62 @@ has '+name' => (
     isa => QueryName, 
     coerce => 1,
 );
+
+=head2 root_path - The root of this query
+
+The starting table for this query.
+
+=head2 has_root_path - Whether or not this query has a root set
+
+=cut
+
+has root_path => (
+    init_arg  => 'class', 
+    isa       => PathString, 
+    is        => 'ro',
+    writer    => '_set_root',
+    coerce    => 1,
+    predicate => 'has_root_path',
+    trigger    => sub {
+        my ($self, $root) = @_;
+        if ($self->is_validating) {
+            my $err = validate_path( $self->model, $root, $self->type_dict );
+            confess $err if $err;
+        }
+    },
+);
+
+=head2 path($expr) -> Path
+
+Return a Webservice::InterMine::Path object corresponding to the
+expression passed in (a dotted path string). The path will be made 
+with the subclass information contained in the query.
+
+=cut
+
+sub path {
+    my ($self, $str) = @_;
+    @_ == 2 or croak "Expected one argument - a path expression, got: @_";
+    my @paths = $self->all_paths or croak "This query does not have any paths yet";
+    $str = $self->prefix_path($str);
+    croak "$str is not a path in this query" unless (grep {$str eq $_} @paths);
+    my $path = Webservice::InterMine::Path->new($str, $self, $self->type_dict);
+    return $path;
+}
+
+=head2 has_sort_order - whether or not this query has a defined sort-order
+
+=head2 push_sort_order - Add a sort order element to the sort order
+
+=head2 sort_orders - get the list of sort orders
+
+=head2 joined_so($sep) - Join the sort orders with a separator
+
+=head2 clear_sort_order - delete all sort order information from the query
+
+=head2 sort_order_is_empty - whether or not there are any elements in the sort order list
+
+=cut
 
 has _sort_order => (
     traits     => ['Array'],
@@ -49,26 +108,107 @@ has _sort_order => (
         sort_orders    => 'elements',
         joined_so      => 'join',
         clear_sort_order => 'clear',
+        sort_order_is_empty =>  'is_empty',
+        filter_sort_order => 'grep',
     },
 );
+
+=head2 sort_order - Return the string representing the sort order
+
+=cut
+
+sub sort_order {
+    my $self = shift;
+    confess "You can't use this method to modify this attribute"
+        if shift;
+    if (grep {not defined} $self->sort_orders) {
+        return '';
+    } elsif ($self->sort_orders == 0) {
+        return $self->get_view(0) . ' asc';
+    } else {
+        return $self->joined_so(' ');
+    } 
+}
+
+=head2 add_sort_order(@args) - add a sort order element to this query
+
+=cut
 
 sub add_sort_order {
     my $self = shift;
     my @args = @_;
     my $so = Webservice::InterMine::SortOrder->new(@args);
+    $self->prefix_pathfeature($so);
     $self->push_sort_order($so);
 }
-sub sort_order {
+
+=head2 order_by(@args) -> $self
+
+Replace any existing sort order by the one defined with the given arguments. 
+Return self to allow method chaining.
+
+=cut
+
+sub order_by {
+    my ($self, @args) = @_;
+    $self->clear_sort_order;
+    my $it = natatime(2, @args);
+    while (my @pair = $it->()) {
+        $self->add_sort_order(@pair);
+    }
+    return $self;
+}
+
+=head2 prefix_pathfeature - prefix the path of a PathFeature with the query's root.
+
+Used internally to process shortened, headless paths.
+
+=cut
+
+sub prefix_pathfeature {
+    my ($self, $pf) = @_;
+    my $new_path = $self->prefix_path($pf->path);
+    $pf->set_path($new_path) unless ($new_path eq $pf->path);
+}
+
+=head2 prefix_path($path) -> a prefixed path
+
+Used internally to process shortened, headless paths.
+
+=cut
+
+sub prefix_path {
+    my ($self, $str) = @_;
+    if ($self->has_root_path) {
+        my $root = $self->root_path;
+        my $new_path = ($str =~ /^$root/) ? $str : $self->root_path . ".$str";
+        return $new_path;
+    } else {
+        my ($root) = split(/\./, $str);
+        $self->_set_root($root);
+        return $str;
+    }
+}
+
+=head2 DEMOLISH
+
+Called upon object destruction
+
+=cut
+
+sub DEMOLISH {
     my $self = shift;
-    confess "You can't use this method to modify this attribute"
-        if shift;
-    return $self->joined_so(' ');
+    $self->suspend_validation;
 }
 
 sub _build__sort_order {
     my $self = shift;
-    ( $self->view )->[0];
+    return $self->get_view(0);
 }
+
+=head2 set_sort_order(@elements) - replace any existing order with the given ones.
+
+=cut
 
 sub set_sort_order {
     my $self = shift;
@@ -85,22 +225,133 @@ has view => (
     writer  => '_set_view',
     handles => {
         views         => 'elements',
-        add_view      => 'push',
+        _add_views    => 'push',
+        get_view      => 'get',
         joined_view   => 'join',
         view_is_empty => 'is_empty',
         clear_view    => 'clear',
+        view_size     => 'count',
     },
 );
 
-after add_view => sub {
+=head2 view -> ArrayRef
+
+Get the view as an array-ref
+
+=head2 views -> list
+
+Get the paths that make up the output columns (the view)
+
+=head2 get_view($index) -> path
+
+Get the view at the specified index
+
+=head2 joined_view($sep) -> Str
+
+Get a string consisting of the view paths joined with the given separator.
+
+=head2 view_is_empty -> Bool
+
+Return true if the view is currently empty.
+
+=head2 clear_view
+
+Clear the current view
+
+=head2 view_size -> Int
+
+Get the number of output columns
+
+=head2 add_views(@views)
+
+Add the given views to the view list, first preprending
+the query's root, and checking for validity.
+
+=head2 add_view
+
+alias for add_views
+
+=head2 add_to_select(@columns)
+
+Alias for add_views
+
+=head2 select(@columns)
+
+Clear the current view and replace it with the given columns.
+
+=cut
+
+sub add_view {
+    goto &add_views;
+}
+
+sub add_to_select {
+    goto &add_views;
+}
+
+sub select {
     my $self = shift;
-    $self->_set_view( $self->joined_view(' ') );
-};
+    $self->clear_view;
+    $self->add_views(@_);
+}
+
+sub add_views {
+    my $self = shift;
+    my @views = map {$self->prefix_path($_)} map {split} @_;
+    my @expanded_views;
+    for my $view (@views) {
+        if ($view =~ /(.*)\.\*$/) {
+            my $path = $1;
+            my $cd = $self->model->get_classdescriptor_by_name(type_of($self->model, $path));
+            my @expanded = map { $path . '.' . $_->name } sort $cd->attributes;
+            push @expanded_views, @expanded;
+        } else {
+            push @expanded_views, $view;
+        }
+    }
+    $self->_add_views(@expanded_views);
+    return $self;
+}
 
 after qr/^add_/ => sub {
     my $self = shift;
     $self->_validate;
 };
+
+=head2 constraints
+
+Get the list of constraints in the order they were added. 
+Returns an arrayref in scalar context,
+and a list in list context.
+
+=head2 all_constraints
+
+Get all constraints as a list, in the order they were added.
+
+=head2 map_constraints($coderef) -> list
+
+Apply the coderef to each constraint in turn (ala C<map>)
+and return the result of each call.
+
+=head2 find_constraints($coderef) -> list
+
+Apply the coderef to each constraint in turn (ala C<grep>) 
+and return the constraints for which the code returns
+a truthy value.
+
+=head2 delete_constraint($index)
+
+Delete the constraint with the given index from the list.
+
+=head2 count_constraints -> Int
+
+Get the number of constraints on this query.
+
+=head2 clear_constraints 
+
+Remove all constraints from this query
+
+=cut
 
 has constraints => (
     traits     => ['Array'],
@@ -110,10 +361,11 @@ has constraints => (
     auto_deref => 1,
     handles    => {
         all_constraints   => 'elements',
-        push_constraint   => 'push',
+        _push_constraint   => 'push',
         find_constraints  => 'grep',
         map_constraints   => 'map',
         delete_constraint => 'delete',
+        _get_constraint   => 'get',
         count_constraints => 'count',
         clear_constraints => 'clear',
     },
@@ -139,6 +391,14 @@ sub get_constraint {
     return $matches[0];
 }
 
+=head2 remove($constraint)
+
+Remove the given object from the query, where the object is
+a constraint child object (a path-description, a constraint or 
+a join).
+
+=cut
+
 sub remove {
     my $self     = shift;
     my $delendum = shift;    # Constraintum delendum est
@@ -160,6 +420,14 @@ sub remove {
     }
 }
 
+=head2 coded_constraints -> list|Int
+
+Return the constraints that have codes and can participate in logic. 
+Returns a list in list context and the size of the list in scalar
+context.
+
+=cut
+
 sub coded_constraints {
     my $self      = shift;
     my $criterion = sub {
@@ -168,6 +436,14 @@ sub coded_constraints {
     return $self->find_constraints($criterion);
 }
 
+=head2 sub_class_constraints -> list|Int
+
+Return the constraints that constrain object types, and cannot participate in logic. 
+Returns a list in list context and the size of the list in scalar
+context.
+
+=cut
+
 sub sub_class_constraints {
     my $self = shift;
     my $criterion =
@@ -175,15 +451,38 @@ sub sub_class_constraints {
     return $self->find_constraints($criterion);
 }
 
+=head2 constraint_codes -> list
+
+Return the codes (single characters from 'A' to 'Z') that this query
+uses.
+
+=cut
+
 sub constraint_codes {
     my $self = shift;
     return map { $_->code } $self->coded_constraints;
 }
 
-after push_constraint => sub {
+after _push_constraint => sub {
     my $self = shift;
-    $self->clear_logic;
+    if ($self->coded_constraints < 2 or not $self->has_logic) {
+        return;
+    }
+    my $new_constraint = $self->_get_constraint(-1);
+    unless ($new_constraint->isa('Webservice::InterMine::Constraint::SubClass') 
+            or $self->count_constraints <= 1) {
+        my $old_logic = $self->logic;
+        $self->set_logic($old_logic & $new_constraint);
+    }
 };
+
+=head2 type_dict -> hashref
+
+returns a hashref with the mapping from class => subclass
+for all constrained types within the query. This summarises the
+information from subclass constraints.
+
+=cut
 
 sub type_dict {
     my $self = shift;
@@ -195,11 +494,42 @@ sub type_dict {
     return {%type_dict};
 }
 
+=head2 subclasses -> list
+
+Return the list of subclasses as constrained in the query.
+
+=cut
+
 sub subclasses {
     my $self = shift;
     my @sccs = $self->sub_class_constraints;
     return map { $_->type } @sccs;
 }
+
+=head2 joins -> arrayref
+
+Return an arrayref of the L<Webservice::InterMine::Join> objects
+on this query, in the order they were added.
+
+=head2 all_joins -> list
+
+Returns the L<Webservice::InterMine::Join> objects of this query as a
+list in the order they were added to the query.
+
+=head2 map_joins($code) -> list
+
+Apply the codereference to each join in the query in turn and 
+return the results of the calls.
+
+=head2 clear_joins
+
+Remove all joins from the query
+
+=head2 delete_join($index)
+
+Remove the given join from the query.
+
+=cut
 
 has joins => (
     traits     => ['Array'],
@@ -209,19 +539,49 @@ has joins => (
     auto_deref => 1,
     handles    => {
         all_joins   => 'elements',
-        push_join   => 'push',
+        _push_join   => 'push',
         map_joins   => 'map',
         clear_joins => 'clear',
         delete_join => 'delete',
     }
 );
 
+=head2 add_join( $path ) -> $self
+
+Specifies the join style of a path on the query. 
+The default join style this method adds is "OUTER", but
+it can be specified with C<path =&gt; $path, style =&gt; $style>.
+Possible join styles are INNER and OUTER.
+
+=cut
+
 sub add_join {
     my $self = shift;
     my $join = Webservice::InterMine::Join->new(@_);
-    $self->push_join($join);
+    $self->prefix_pathfeature($join);
+    $self->_push_join($join);
     return $self;
 }
+
+=head2 outerjoin($path) -> $self
+
+A shortcut for C<< add_join($path, 'OUTER') >>.
+
+=cut
+
+sub outerjoin {
+    my ($self, $path) = @_;
+    confess "Too many arguments - 1 expected" if (@_ > 2);
+    return $self->add_join($path, 'OUTER');
+}
+
+=head2 add_outer_join( $path )
+
+A shortcut for C<< add_join($path, 'OUTER') >>.
+
+=cut
+
+sub add_outer_join {goto &outerjoin}
 
 has path_descriptions => (
     traits     => ['Array'],
@@ -241,20 +601,60 @@ has path_descriptions => (
 sub add_pathdescription {
     my $self = shift;
     my $pd   = Webservice::InterMine::PathDescription->new(@_);
+    $self->prefix_pathfeature($pd);
     $self->push_path_description($pd);
     return $self;
 }
+
+=head2 logic -> Logic
+
+Returns the logic object for this query. This object stringifies to the
+logic expression used in the serialisation. 
+
+=head2 clear_logic 
+
+Remove the current logic from this query
+
+=head2 has_logic
+
+Return true if this query has logic set for it.
+
+=cut
+
 has logic => (
-    is      => 'rw',
+    writer  => '_set_logic',
+    reader  => 'logic',
     isa     => LogicOrStr,
     lazy    => 1,
     clearer => 'clear_logic',
-    trigger => \&check_logic,
+    predicate => 'has_logic',
+    trigger => \&_check_logic,
     default => sub {
         my $self = shift;
         reduce { $a & $b } $self->coded_constraints;
     },
 );
+
+=head2 set_logic($expr) -> self
+
+Sets the logic for this query, validating it in the process.
+Returns self to support chaining.
+
+  $query->set_logic("A or B and C");
+
+=cut
+
+sub set_logic {
+    my ($self, @args) = @_;
+    $self->_set_logic(@args);
+    return $self;
+}
+
+=head2 constraint_factory
+
+The object responsible for making constraints for this query.
+
+=cut
 
 has constraint_factory => (
     is         => 'ro',
@@ -304,12 +704,25 @@ sub all_children {
 }
 ############### METHODS
 
-sub check_logic {
+sub _check_logic {
     my ( $self, $value ) = @_;
     unless ( blessed $value) {
         my $new_value = _parse_logic( $value, $self->coded_constraints );
-        $self->logic($new_value);
+        $self->set_logic($new_value);
     }
+}
+
+use Webservice::InterMine::LogicParser;
+
+has logic_parser => (
+    isa => 'Webservice::InterMine::LogicParser',
+    is => 'ro',
+    lazy_build => 1,
+);
+
+sub _build_logic_parser {
+    my $self = shift;
+    return Webservice::InterMine::LogicParser->new(query => $self);
 }
 
 sub _parse_logic {
@@ -353,6 +766,16 @@ sub _parse_logic {
     return eval join '', @processed_bits;
 }
 
+=head2 add_constraint(@args) -> constraint
+
+Adds a constraint corresponding to the given arguments, 
+and returns the new constraint.
+
+  $query->add_constraint('name', '=', 'foo');
+  $query->add_constraint(age => {lt => 50});
+
+=cut
+
 sub add_constraint {
     my $self       = shift;
     my %args       = parse_constraint_string(@_);
@@ -363,9 +786,80 @@ sub add_constraint {
             $constraint->set_code( ++$code );
         }
     }
-    $self->push_constraint($constraint);
+    $self->prefix_pathfeature($constraint);
+    $self->_push_constraint($constraint);
     return $constraint;
 }
+
+=head2 search($constraints) -> self|results
+
+Add the given constraints to the query, where those constraints 
+are specified with an array-reference or a hash-reference. 
+In list context return the result of the query. In scalar context, return
+the query for chaining.
+
+This method is similar in interface to the method of the same name 
+in L<DBIx::Class::ResultSet>.
+
+=cut
+
+sub search {
+    my $self = shift;
+    my $constraints = shift;
+    my $results_args = shift || {as => 'jsonobjects', json => 'instantiate'};
+    if ($self->view_is_empty and $self->has_root_path) {
+        $self->select("*");
+    }
+    if (ref $constraints eq 'HASH') {
+        while (my ($path, $con) = each(%$constraints)) {
+            $self->add_constraint($path, $con);
+        }
+    } elsif (ref $constraints eq 'ARRAY' and @$constraints % 2 == 0) {
+        for (my $i = 0; $i < (@$constraints - 1); $i += 2) {
+            my ($path, $con) = @{$constraints}[$i, ($i + 1)];
+            $self->add_constraint($path, $con);
+        }
+    } else {
+        carp "Bad argument: '$constraints' should be a hashref or an array ref with an even number of elements";
+    }
+
+    if (wantarray) {
+        return $self->results(%$results_args);
+    } else {
+        return $self;
+    }
+}
+
+=head2 where(@constraints) -> $self
+
+Add the given constraints to the query, and return self to support chaining
+
+  $query->where(
+    name     => "foo",
+    fullTime => 'true',
+    age      => {gt => 10},
+    'department.name'    => ['Sales', 'Accounting'],
+    'department.company' => {lookup => 'Foo'},
+  );
+
+=cut
+
+sub where {
+    my $self = shift;
+    if (@_ == 1) {
+        return $self->search(@_);
+    } else {
+        return $self->search([@_]);
+    }
+}
+
+=head2 parse_constraint_string
+
+Interpret the constraint arguments so that constraints
+can be constructed while allowing multiple representations of
+constraints to be understood.
+
+=cut
 
 sub parse_constraint_string {
     if ( @_ > 1 ) {
@@ -378,6 +872,54 @@ sub parse_constraint_string {
                 return %args;
             }
         }
+        if ( @_ == 2 ) {
+            my ($path, $con) = @_;
+
+            if (not defined $con) {
+                return (path => $path, op => 'IS NULL');
+            }
+            unless (grep {$con eq $_} 'IS NULL', 'IS NOT NULL') {
+                my %args;
+                if (ref $con eq 'HASH') {
+                    %args = (path => $path, %$con);
+                } else {
+                    %args = (path => $path);
+                }
+
+                my $value = $con;
+
+                for my $key (keys %args) {
+                    unless (grep {$key eq $_} qw/path op code extra_value type/) {
+                        my $op = $key;
+                        $value = delete($args{$op});
+                        $args{op} = $op;
+                    }
+                }
+
+                if ($args{type}) {
+                    # Ignore
+                } elsif (not defined $value) {
+                    $args{op} = 'IS NULL'     if (grep {$args{op} eq $_} '=', 'eq', 'is');
+                    $args{op} = 'IS NOT NULL' if (grep {$args{op} eq $_} '!=', 'ne', 'isnt');
+                } elsif (ref $value eq 'ARRAY') {
+                    $args{op} ||= 'ONE OF';
+                    $args{values} = $value;
+                } elsif (blessed $value and $value->isa('Webservice::InterMine::List')) {
+                    $args{op} ||= 'IN';
+                    $args{value} = $value;
+                } elsif (blessed $value and $value->isa('Webservice::InterMine::Path')) {
+                    $args{op} ||= 'IS';
+                    $args{loop_path} = $value;
+                } elsif (blessed $value and $value->isa('InterMine::Model::ClassDescriptor')) {
+                    $args{type} ||= $value;
+                } else {
+                    $args{op} ||= '=';
+                    $args{value} = $value;
+                }
+                return %args;
+            }
+        }
+
         my %args;
         @args{qw/path op value extra_value/} = @_;
         if ( ref $args{value} eq 'ARRAY' ) {
@@ -398,7 +940,7 @@ sub parse_constraint_string {
                 (
                 IS\sNOT\sNULL|
                 IS\sNULL|
-                NOT\sIN|\S+
+                (?:NOT\s)?IN|\S+
                 )
         	   (
                ?:\s+(.*)
@@ -414,6 +956,12 @@ sub parse_constraint_string {
     }
 }
 
+=head2 clean_out_SCCs
+
+Remove pointless subclass constraints from the query.
+
+=cut
+
 sub clean_out_SCCs {
     my $self = shift;
     for ( $self->sub_class_constraints ) {
@@ -423,6 +971,28 @@ sub clean_out_SCCs {
             $self->remove($_); # remove it because it is constraine to itself
         }
     }
+}
+
+=head2 to_string 
+
+Return a readable representation of the query.
+
+=cut
+
+sub to_string {
+    my $self = shift;
+    my $ret = '';
+    $ret .= 'VIEW: [' . $self->joined_view(', ') . ']';
+    if ($self->constraints) {
+        $ret .= ', CONSTRAINTS: [';
+        for my $con ($self->constraints) {
+            $ret .= '<' . $con->to_string . '>,';
+        }
+        $ret .= ']';
+    }
+    $ret .= ', LOGIC: ' . $self->logic->code if ($self->coded_constraints > 1);
+    $ret .= ', SORT_ORDER: ' . $self->joined_so(' ');
+    return $ret;
 }
 
 #########################
@@ -445,8 +1015,15 @@ sub _validate {    # called internally, obeys is_validating
 
     #   push @errs, $self->validate_logic;
     @errs = grep { $_ } @errs;
-    croak join( '', @errs ) if @errs;
+    confess join( '', @errs ) if @errs;
 }
+
+before _validate => sub {
+    my $self = shift;
+    if ($self->has_root_path and $self->view_is_empty) {
+        $self->add_view('id');
+    }
+};
 
 sub validate_paths {
     my $self = shift;
@@ -469,12 +1046,33 @@ sub validate_consistency {
     return undef;
 }
 
+sub is_in_view {
+    my ($self, $path) = @_;
+    return if $self->view_is_empty;
+    return grep {$path eq $_} $self->views;
+}
+
+sub clean_out_irrelevant_sort_orders {
+    my $self = shift;
+    return if $self->view_is_empty;
+    return if (not $self->has_sort_order or $self->sort_order_is_empty);
+    my @relevant_sos = $self->filter_sort_order(sub {$self->is_in_view($_->path)});
+    if (@relevant_sos) {
+        $self->_set_sort_order(\@relevant_sos);
+    } else {
+        $self->clear_sort_order;
+    }
+    return;
+}
+
 sub validate_sort_order {
     my $self = shift;
     return if $self->view_is_empty;
-    for my $so ($self->sort_orders) {
-        unless ( grep { $so->path eq $_ } $self->views ) {
-            return $so->path . " is not in the view\n";
+    if ($self->has_sort_order) {
+        for my $so ($self->sort_orders) {
+            unless ( grep { $so->path eq $_ } $self->views ) {
+                return $so->path . " is not in the view\n";
+            }
         }
     }
     return;
