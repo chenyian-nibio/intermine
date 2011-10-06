@@ -30,8 +30,11 @@ import org.intermine.webservice.client.util.URLParser;
 public class RequestImpl implements Request
 {
 
-	protected static final String FORMAT_PARAMETER_JSON_OBJ = "jsonobjects";
-	
+    protected static final String FORMAT_PARAMETER_JSON_OBJ = "jsonobjects";
+    protected static final String FORMAT_PARAMETER_JSON_ROWS = "jsonrows";
+    protected static final String FORMAT_PARAMETER_XML = "xml";
+    protected static final String FORMAT_PARAMETER_COUNT = "count";
+
     private RequestType type;
 
     private String serviceUrl;
@@ -40,13 +43,13 @@ public class RequestImpl implements Request
 
     private Map<String, List<String>> parameters = new HashMap<String, List<String>>();
 
-    private Map<String, String> headers = new HashMap<String, String>();
+    private final Map<String, String> headers = new HashMap<String, String>();
 
     /**
      * Constructor.
-     */
+
     public RequestImpl() {
-    }
+    }*/
 
     /**
      * Constructor.
@@ -63,6 +66,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public void addParameter(String name, String value) {
         List<String> values = getParameterValues(name);
         if (values == null) {
@@ -75,6 +79,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public List<String> getParameterValues(String name) {
         return parameters.get(name);
     }
@@ -82,6 +87,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getParameter(String name) {
         List<String>  pars = getParameterValues(name);
         if (pars != null && pars.size() > 0) {
@@ -94,6 +100,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public Set<String> getParameterNames() {
         return parameters.keySet();
     }
@@ -101,6 +108,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setParameter(String name, String value) {
         List<String> values = parameters.get(name);
         if (values == null) {
@@ -114,6 +122,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public RequestType getType() {
         return type;
     }
@@ -121,6 +130,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setType(RequestType type) {
         this.type = type;
     }
@@ -128,6 +138,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getServiceUrl() {
         return serviceUrl;
     }
@@ -135,6 +146,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setServiceUrl(String url) {
         this.serviceUrl = url;
     }
@@ -142,6 +154,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setUrl(String url) {
         try {
             this.serviceUrl = URLParser.parseServiceUrl(url);
@@ -150,7 +163,7 @@ public class RequestImpl implements Request
             throw new ServiceException("Invalid url: " + url, e);
         }
     }
-    
+
     /**
      * Sets the maximum number of rows returned.
      *
@@ -159,18 +172,35 @@ public class RequestImpl implements Request
     public void setMaxCount(int maxCount) {
         setParameter("size", maxCount + "");
     }
-    
-    public void setFormat(String format) {
-    	setParameter("format", format);
+
+    public void setStart(int start) {
+        setParameter("start", start + "");
     }
-    
+
+    public void setFormat(String format) {
+        setParameter("format", format);
+    }
+
     public void setJSONFormat() {
-    	setFormat(FORMAT_PARAMETER_JSON_OBJ);
+        setFormat(FORMAT_PARAMETER_JSON_OBJ);
+    }
+
+    public void setJSONRowsFormat() {
+        setFormat(FORMAT_PARAMETER_JSON_ROWS);
+    }
+
+    public void setXMLFormat() {
+        setFormat(FORMAT_PARAMETER_XML);
+    }
+
+    public void setCountFormat() {
+        setFormat(FORMAT_PARAMETER_COUNT);
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public ContentType getContentType() {
         return contentType;
     }
@@ -178,13 +208,15 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setContentType(ContentType contentType) {
         this.contentType = contentType;
     }
-  
+
     /**
      * {@inheritDoc}
      */
+    @Override
     public Map<String, List<String>> getParameterMap() {
         return parameters;
     }
@@ -192,6 +224,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getUrl(boolean encode) {
         StringBuilder sb = new StringBuilder();
         sb.append(serviceUrl);
@@ -227,6 +260,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setHeader(String name, String value) {
         headers.put(name, value);
     }
@@ -234,6 +268,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public Map<String, String> getHeaders() {
         return headers;
     }
@@ -241,6 +276,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getHeader(String name) {
         return headers.get(name);
     }
@@ -248,6 +284,7 @@ public class RequestImpl implements Request
     /**
      * {@inheritDoc}
      */
+    @Override
     public String toString() {
         return getUrl(true);
     }

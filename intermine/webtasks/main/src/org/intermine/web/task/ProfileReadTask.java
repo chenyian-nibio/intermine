@@ -22,7 +22,6 @@ import org.intermine.objectstore.ObjectStoreFactory;
 import org.intermine.objectstore.ObjectStoreWriter;
 import org.intermine.objectstore.ObjectStoreWriterFactory;
 import org.intermine.web.ProfileManagerBinding;
-import org.intermine.web.bag.PkQueryIdUpgrader;
 
 /**
  * Task to read an XML file of a webapp userprofiles into a userprofile ObjectStore.
@@ -35,7 +34,6 @@ public class ProfileReadTask extends Task
     private String fileName;
     private String userProfileAlias;
     private String osAlias;
-    private String source;
 
     /**
      * Set the name of the file to read from.
@@ -59,14 +57,6 @@ public class ProfileReadTask extends Task
      */
     public void setUserProfileAlias(String userProfileAlias) {
         this.userProfileAlias = userProfileAlias;
-    }
-
-    /**
-     * Set a source name (optional - use to find a restricted set of keys)
-     * @param source name of source
-     */
-    public void setSource(String source) {
-        this.source = source;
     }
 
     /**
@@ -104,13 +94,7 @@ public class ProfileReadTask extends Task
             ProfileManager pm = new ProfileManager(os, userProfileOS);
             osw = os.getNewWriter();
 
-            PkQueryIdUpgrader upgrader;
-            if (source == null) {
-                upgrader = new PkQueryIdUpgrader(osw);
-            } else {
-                upgrader = new PkQueryIdUpgrader(this.source, osw);
-            }
-            ProfileManagerBinding.unmarshal(reader, pm, osw, upgrader, false);
+            ProfileManagerBinding.unmarshal(reader, pm, osw, false);
         } catch (Exception e) {
             throw new BuildException(e);
         } finally {

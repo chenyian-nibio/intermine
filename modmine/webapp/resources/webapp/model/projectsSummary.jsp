@@ -58,7 +58,21 @@ An individual 'submission' is a single instance of an experiment which tests var
     </c:forEach>
   </td>
 
-  <td><h4><html:link href="/${WEB_PROPERTIES['webapp.path']}/experiment.do?experiment=${exp.name}">${exp.name}</html:link></h4>
+<%-- FIX for experiments with + in the name (needs to be encoded)   --%>
+<td><h4>  
+  <c:choose>
+   <c:when test="${fn:contains(exp.name, '+')}">
+<html:link href="/${WEB_PROPERTIES['webapp.path']}/experiment.do?experiment=${fn:replace(exp.name, '+', '%2B')}">
+${exp.name}
+</html:link></h4>
+  </c:when>
+  <c:otherwise>
+<html:link href="/${WEB_PROPERTIES['webapp.path']}/experiment.do?experiment=${exp.name}">${exp.name}
+</html:link></h4>
+  </c:otherwise>
+ </c:choose>
+<%-- END FIX --%>
+
 
 <%-- LABS Note: linking with surname only, 2 Green and Kim--%>
 Project:${exp.projectName } &nbsp;&nbsp;(${exp.pi })&nbsp;&nbsp;
@@ -93,10 +107,10 @@ Labs:
      <c:if test="${fn:length(exp.factorTypes) > 0 }">
        <c:choose>
          <c:when test="${ fn:length(exp.factorTypes) == 1}">
-           <c:out value="The experimental factor is"/>
+           <c:out value="The experimental factor is "/>
          </c:when>
          <c:otherwise>
-           <c:out value="The experimental factors are"/>
+           <c:out value="The experimental factors are "/>
          </c:otherwise>
        </c:choose>
        <c:forEach items="${exp.factorTypes}" var="ft" varStatus="ft_status"><c:if test="${ft_status.count > 1 && !ft_status.last }">, </c:if><c:if test="${ft_status.count > 1 && ft_status.last }"> and </c:if><b>${ft}</b></c:forEach>.
@@ -108,7 +122,7 @@ Labs:
       <c:forEach items="${exp.featureCountsRecords}" var="fc" varStatus="fc_status">
      <c:if test="${fc_status.count > 1 }"><br> </c:if>
 
-     <%-- TEMP patch until data is corrected. it should be (otherwise) --%>
+     <%-- TEMP patch until data is corrected. it should be (otherwise) 
      <c:choose>
      <c:when test="${exp.name == 'Genome-wide localization of essential replication initiators'
   && fc.featureType == 'ProteinBindingSite'}">
@@ -118,7 +132,11 @@ Labs:
       ${fc.featureType}:&nbsp;${fc.featureCounts}
      </c:otherwise>
      </c:choose>
+     --%>
 <%-- END --%>
+
+${fc.featureType}:&nbsp;${fc.featureCounts}
+
 
 <%-- too crowded: rm here, still available in the experiment page
       <c:if test="${!empty fc.uniqueFeatureCounts && fc.uniqueFeatureCounts != fc.featureCounts}">
@@ -198,21 +216,20 @@ Labs:
 
 <td>
 <im:querylink text="Fly" showArrow="true" skipBuilder="true">
- <query name="" model="genomic"
-   view="Submission.title Submission.DCCid Submission.experimentType "
-   sortOrder="Submission.experimentType asc">
-  <constraint path="Submission.organism.shortName" op="=" value="D. melanogaster"/>
+<query name="" model="genomic" 
+   view="Submission.title Submission.DCCid Submission.experimentType Submission.organism.shortName "
+   sortOrder="Submission.organism.shortName asc">
+<constraint path="Submission.organism.genus" op="=" value="Drosophila"/>
 </query>
-
 </im:querylink>
     </td>
 
 <td>
 <im:querylink text="Worm" showArrow="true" skipBuilder="true">
- <query name="" model="genomic"
-   view="Submission.title Submission.DCCid Submission.experimentType "
-   sortOrder="Submission.experimentType asc">
-  <constraint path="Submission.organism.shortName" op="=" value="C. elegans"/>
+<query name="" model="genomic" 
+   view="Submission.title Submission.DCCid Submission.experimentType Submission.organism.shortName "
+   sortOrder="Submission.organism.shortName asc">
+<constraint path="Submission.organism.genus" op="=" value="Caenorhabditis"/>
 </query>
 </im:querylink>
 </td>
@@ -220,7 +237,7 @@ Labs:
 <td>
 <im:querylink text="All submissions" showArrow="true" skipBuilder="true">
  <query name="" model="genomic"
-   view="Submission.title Submission.DCCid Submission.experimentType "
+   view="Submission.title Submission.DCCid Submission.experimentType Submission.organism.shortName "
    sortOrder="Submission.experimentType asc">
 </query>
 </im:querylink>

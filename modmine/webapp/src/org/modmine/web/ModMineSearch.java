@@ -22,8 +22,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.StopAnalyzer;
-import org.apache.lucene.analysis.snowball.SnowballAnalyzer;
+import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
@@ -87,6 +86,29 @@ public class ModMineSearch
         }
     }
 
+    
+    private static String prepareQueryString(String formInput)
+    {
+        // to lowercase the search string terms but not the operators
+        // TODO it should probably go into the parseQueryString method
+        String[] result = formInput.split("\\s");
+        StringBuffer newString = new StringBuffer();
+        for (String token : result) {
+            if (token.equalsIgnoreCase("AND") ||
+                    token.equalsIgnoreCase("OR") ||
+                    token.equalsIgnoreCase("NOT"))
+            {
+                newString.append(token.toUpperCase() + " ");
+            }
+            else {
+                newString.append(token.toLowerCase() + " ");
+            }
+        }
+        LOG.debug("QUERYSTRING " + newString.toString());        
+        return newString.toString();
+    }
+
+    
     /**
      * perform a keyword search over all document metadata fields with lucene
      * @param searchString
@@ -94,18 +116,14 @@ public class ModMineSearch
      * @return map of document IDs with their respective scores
      */
     public static Map<Integer, Float> runLuceneSearch(String searchString) {
-        LinkedHashMap<Integer, Float> matches = new LinkedHashMap<Integer, Float>();
-
-        String queryString = parseQueryString(searchString);
+        LinkedHashMap<Integer, Float> matches = new LinkedHashMap<Integer, Float>();        
+        String queryString = parseQueryString(prepareQueryString(searchString));
 
         long time = System.currentTimeMillis();
 
         try {
             IndexSearcher searcher = new IndexSearcher(ram);
-
-            Analyzer analyzer = new SnowballAnalyzer(Version.LUCENE_30, "English",
-                    StopAnalyzer.ENGLISH_STOP_WORDS_SET);
-
+            Analyzer analyzer = new WhitespaceAnalyzer();
             org.apache.lucene.search.Query query;
 
             // pass entire list of field names to the multi-field parser
@@ -211,6 +229,10 @@ public class ModMineSearch
 
                 // submission details
                 addToDocument(doc, subId, "dCCid", sub.getdCCid().toString());
+                if (dccId.startsWith("modENCODE_")) {
+                    addToDocument(doc, subId, "dCCid",
+                            sub.getdCCid().substring("modENCODE_".length()));
+                }
                 addToDocument(doc, subId, "title", sub.getTitle());
                 addToDocument(doc, subId, "description", sub.getDescription());
 
@@ -322,7 +344,8 @@ public class ModMineSearch
         if (!StringUtils.isBlank(fieldName) && !StringUtils.isBlank(value)) {
             LOG.debug("ADDED FIELD TO #" + objectId + ": " + fieldName + " = " + value);
 
-            Field f = new Field(fieldName, value, Field.Store.NO, Field.Index.ANALYZED);
+            Field f = new Field(fieldName, value.toLowerCase(), Field.Store.NO,
+                    Field.Index.ANALYZED);
             doc.add(f);
             fieldNames.add(fieldName);
         }
@@ -337,11 +360,8 @@ public class ModMineSearch
         ram = new RAMDirectory();
         IndexWriter writer;
         try {
-            SnowballAnalyzer snowballAnalyzer = new SnowballAnalyzer(Version.LUCENE_30, "English",
-                    StopAnalyzer.ENGLISH_STOP_WORDS_SET);
-            writer = new IndexWriter(ram, snowballAnalyzer, true,
+            writer = new IndexWriter(ram, new WhitespaceAnalyzer(), true,
                     IndexWriter.MaxFieldLength.UNLIMITED);
-
             for (Document doc : docs) {
                 try {
                     writer.addDocument(doc);
