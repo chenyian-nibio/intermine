@@ -10,6 +10,8 @@ package org.intermine.bio.dataconversion;
  *
  */
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -22,7 +24,10 @@ import java.util.Set;
 import java.util.Stack;
 
 import org.apache.commons.collections.keyvalue.MultiKey;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.intermine.bio.util.OrganismData;
+import org.intermine.bio.util.OrganismRepository;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -70,6 +75,9 @@ public class BioGridConverter extends BioFileConverter
     private Map<String, String> genes = new HashMap<String, String>();
     private Map<String, Map<String, String>> config = new HashMap<String, Map<String, String>>();
     private Set<String> taxonIds = null;
+    private static final OrganismRepository OR = OrganismRepository.getOrganismRepository();
+    private Map<MultiKey, Item> idsToExperiments;
+    private Map<String, String> strains = new HashMap<String, String>();
 
     /**
      * Constructor
@@ -97,6 +105,15 @@ public class BioGridConverter extends BioFileConverter
      * {@inheritDoc}
      */
     public void process(Reader reader) throws Exception {
+        File file = getCurrentFile();
+        if (file == null) {
+            throw new FileNotFoundException("No valid data files found.");
+        }
+        if (taxonIds != null || !taxonIds.isEmpty()) {
+            if (!isValidOrganism(file.getName())) {
+                return;
+            }
+        }
         BioGridHandler handler = new BioGridHandler();
         try {
             SAXParser.parse(new InputSource(reader), handler);
@@ -105,6 +122,25 @@ public class BioGridConverter extends BioFileConverter
             throw new RuntimeException(e);
         }
     }
+
+    private boolean isValidOrganism(String filename) {
+        //BIOGRID-ORGANISM-Mus_musculus-3.1.76.psi25.xml:
+        String organism = filename.substring(17);
+        organism = organism.substring(0, organism.indexOf('-'));
+        if (!organism.contains("_")) {
+            return false;
+        }
+        String[] bits = organism.split("_");
+        if (bits.length == 1) {
+            return false;
+        }
+        OrganismData od = OR.getOrganismDataByGenusSpecies(bits[0], bits[1]);
+        if (taxonIds.contains(String.valueOf(od.getTaxonId()))) {
+            return true;
+        }
+        return false;
+    }
+
 
     private void readConfig() {
         Properties props = new Properties();
@@ -135,9 +171,12 @@ public class BioGridConverter extends BioFileConverter
             if ("xref".equals(attributes[1])) {
                 config.get(taxonId).put(attributes[2], value.toLowerCase());
             } else {
-                // attributes[1] is the identifierType, eg. primaryIdentifier
-                // value = 'shortLabel'
-                config.get(taxonId).put(attributes[1], value);
+                String attribute = attributes[1];
+                if ("strain".equals(attribute)) {
+                    strains.put(value, taxonId);
+                } else {
+                    config.get(taxonId).put(attribute, value);
+                }
             }
         }
     }
@@ -152,6 +191,19 @@ public class BioGridConverter extends BioFileConverter
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public void close()  {
+        for (Item experiment : idsToExperiments.values()) {
+            try {
+                store(experiment);
+            } catch (ObjectStoreException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    /**
      * Handles xml file
      */
     class BioGridHandler extends DefaultHandler
@@ -160,8 +212,9 @@ public class BioGridConverter extends BioFileConverter
         private Map<String, Participant> participants = new HashMap<String, Participant>();
         // BioGRID_ID to holder - one holder object can have multiple BioGRID_ids (proteins, genes)
         private Map<String, InteractorHolder> interactors = new HashMap<String, InteractorHolder>();
-        private Map<String, ExperimentHolder> experiments = new HashMap<String, ExperimentHolder>();
-        private Map<MultiKey, Item> idsToExperiments = new HashMap<MultiKey, Item>();
+        private Map<String, ExperimentHolder> experimentIDs
+            = new HashMap<String, ExperimentHolder>();
+
         private InteractionHolder holder;
         private ExperimentHolder experimentHolder;
         private InteractorHolder interactorHolder;
@@ -235,7 +288,7 @@ public class BioGridConverter extends BioFileConverter
            // <interactorList><interactor id="4"><organism ncbiTaxId="7227">
             } else if ("organism".equals(qName) && "interactor".equals(stack.peek())) {
                 String taxId = attrs.getValue("ncbiTaxId");
-
+                taxId = replaceStrain(taxId);
                 if ((taxonIds == null || taxonIds.isEmpty()) || taxonIds.contains(taxId))  {
                     try {
                         interactorHolder.organismRefId = getOrganism(taxId);
@@ -329,8 +382,6 @@ public class BioGridConverter extends BioFileConverter
                 }
             } else if ("experimentDescription".equals(qName)) {
                 setExperiment(experimentHolder);
-            } else if ("entrySet".equals(qName)) {
-                storeExperiments();
 
             /********************************* GENES ***********************************/
 
@@ -387,7 +438,7 @@ public class BioGridConverter extends BioFileConverter
             } else if (attName != null && "experimentRef".equals(attName)
                             && "experimentRef".equals(qName)
                             && "experimentList".equals(stack.peek())) {
-                holder.setExperimentHolder(experiments.get(attValue.toString()));
+                holder.setExperimentHolder(experimentIDs.get(attValue.toString()));
 
                 //</interaction>
             } else if ("interaction".equals(qName) && holder != null && holder.validActors) {
@@ -553,6 +604,14 @@ public class BioGridConverter extends BioFileConverter
             return item.getIdentifier();
         }
 
+        private String replaceStrain(String id) {
+            String mainTaxonId = strains.get(id);
+            if (StringUtils.isNotEmpty(mainTaxonId)) {
+                return mainTaxonId;
+            }
+            return id;
+        }
+
         private String getTerm(String identifier)
             throws SAXException {
             String refId = terms.get(identifier);
@@ -571,10 +630,10 @@ public class BioGridConverter extends BioFileConverter
         }
 
         private ExperimentHolder getExperimentHolder(String experimentId) {
-            ExperimentHolder eh =  experiments.get(experimentId);
+            ExperimentHolder eh =  experimentIDs.get(experimentId);
             if (eh == null) {
-                eh = new ExperimentHolder(experimentId);
-                experiments.put(experimentId, eh);
+                eh = new ExperimentHolder();
+                experimentIDs.put(experimentId, eh);
             }
             return eh;
         }
@@ -588,6 +647,9 @@ public class BioGridConverter extends BioFileConverter
             String pubRefId = eh.pubRefId;
             String name = eh.shortName;
             MultiKey key = new MultiKey(pubRefId, name);
+            if (idsToExperiments == null || idsToExperiments.isEmpty()) {
+                idsToExperiments = new HashMap<MultiKey, Item>();
+            }
             Item exp = idsToExperiments.get(key);
             if (exp == null) {
                 exp = createItem("InteractionExperiment");
@@ -602,15 +664,6 @@ public class BioGridConverter extends BioFileConverter
             eh.experimentRefId = exp.getIdentifier();
         }
 
-        private void storeExperiments() throws SAXException {
-            for (Item experiment : idsToExperiments.values()) {
-                try {
-                    store(experiment);
-                } catch (ObjectStoreException e) {
-                    throw new SAXException(e);
-                }
-            }
-        }
 
         private ArrayList<String> getInteractingObjects(InteractionHolder interactionHolder,
                                                         String refId) {
@@ -705,52 +758,45 @@ public class BioGridConverter extends BioFileConverter
             }
         }
 
+
+    }
+
+    /**
+     * Holder object for Experiment.  Holds all information about an experiment until
+     * an interaction is verified to have only valid organisms
+     * @author Julie Sullivan
+     */
+    protected class ExperimentHolder
+    {
+        protected String experimentRefId;
+        protected String shortName;
+        protected String description;
+        protected String pubRefId;
+        protected boolean isStored = false;
+        protected String methodRefId;
+
         /**
-         * Holder object for Experiment.  Holds all information about an experiment until
-         * an interaction is verified to have only valid organisms
-         * @author Julie Sullivan
+         *
+         * @param description the full name of the experiments
          */
-        protected class ExperimentHolder
-        {
-            protected String experimentRefId;
-            protected String shortName;
-            protected String description;
-            protected String pubRefId;
-            protected boolean isStored = false;
-            protected String methodRefId;
-            protected String id;
+        protected void setDescription(String description) {
+            this.description = description;
+        }
 
-            /**
-             * Constructor
-             * @param id experiment id
-             */
-            public ExperimentHolder(String id) {
-                this.id = id;
-            }
+        /**
+         *
+         * @param pubRefId reference to publication item for this experiment
+         */
+        protected void setPublication(String pubRefId) {
+            this.pubRefId = pubRefId;
+        }
 
-            /**
-             *
-             * @param description the full name of the experiments
-             */
-            protected void setDescription(String description) {
-                this.description = description;
-            }
-
-            /**
-             *
-             * @param pubRefId reference to publication item for this experiment
-             */
-            protected void setPublication(String pubRefId) {
-                this.pubRefId = pubRefId;
-            }
-
-            /**
-             * terms describe the method used int he experiment, eg two hybrid, etc
-             * @param methodRefId reference to the term item for this experiment
-             */
-            protected void setMethod(String methodRefId) {
-                this.methodRefId = methodRefId;
-            }
+        /**
+         * terms describe the method used int he experiment, eg two hybrid, etc
+         * @param methodRefId reference to the term item for this experiment
+         */
+        protected void setMethod(String methodRefId) {
+            this.methodRefId = methodRefId;
         }
     }
 }

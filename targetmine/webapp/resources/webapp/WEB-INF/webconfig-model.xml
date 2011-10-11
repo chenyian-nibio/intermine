@@ -53,10 +53,10 @@
   <class className="org.intermine.model.bio.Gene">
     <fields>
       <fieldconfig fieldExpr="ncbiGeneNumber"/>
-      <fieldconfig fieldExpr="primaryIdentifier"/>
-      <fieldconfig fieldExpr="secondaryIdentifier"/>
+      <fieldconfig fieldExpr="primaryIdentifier" showInSummary="false"/>
+      <fieldconfig fieldExpr="secondaryIdentifier" showInSummary="false"/>
       <fieldconfig fieldExpr="symbol"/>
-      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="name" showInSummary="false"/>
       <fieldconfig fieldExpr="organism.shortName" />
     </fields>
     <longdisplayers>
@@ -251,18 +251,6 @@
       <fieldconfig fieldExpr="drug.drugBankId" />
     </fields>
   </class>
-<!--
-  <class className="org.intermine.model.bio.Drug">
-    <fields>
-      <fieldconfig fieldExpr="identifier"/>
-      <fieldconfig fieldExpr="drugBankId"/>
-      <fieldconfig fieldExpr="genericName" />
-    </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
-  </class>
--->
   <class className="org.intermine.model.bio.Enzyme">
     <fields>
       <fieldconfig fieldExpr="ecNumber"/>

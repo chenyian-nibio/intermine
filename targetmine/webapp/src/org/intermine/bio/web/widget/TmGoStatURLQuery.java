@@ -49,8 +49,8 @@ public class TmGoStatURLQuery implements WidgetURLQuery {
         q.addViews(prefix + ".primaryIdentifier",
                 prefix + ".symbol",
                 prefix + ".organism.name",
-                prefix + ".goAnnotation.ontologyTerm.identifier",
-                prefix + ".goAnnotation.ontologyTerm.name",
+//                prefix + ".goAnnotation.ontologyTerm.identifier",
+//                prefix + ".goAnnotation.ontologyTerm.name",
                 prefix + ".goAnnotation.ontologyTerm.parents.identifier",
                 prefix + ".goAnnotation.ontologyTerm.parents.name");
 

@@ -110,7 +110,7 @@ public final class ErrorCorrection
         Map<String, BigDecimal> adjustedMap = new HashMap<String, BigDecimal>();
         for (Entry<String, BigDecimal> entry : results.entrySet()) {
 
-        	// chenyian: 
+        	// chenyian: to be confirmed (2011/10/11)
         	numberOfTests = results.size();
         	
             // get original values
@@ -191,6 +191,52 @@ public final class ErrorCorrection
         }
         return adjustedResults;
     }
+    // chenyian: intermine v0.98 new implement, to be confirmed if it is correct (2011/10/11) 
+//    private static Map<String, BigDecimal> calculateBenjaminiHochberg(
+//            Map<String, BigDecimal> results, int numberOfTests, Double max) {
+//
+//        Map<String, BigDecimal> adjustedResults = new HashMap<String, BigDecimal>();
+//        Map<String, BigDecimal> sortedResults = sortMap(results);
+//
+//        BigDecimal lastValue = null;
+//        int i = 1;
+//        BigDecimal index = ONE;
+//
+//        for (Entry<String, BigDecimal> entry : sortedResults.entrySet()) {
+//
+//            BigDecimal p = entry.getValue();
+//
+//            // if the p-value is not the same as previous, sync the rank
+//            if (lastValue == null || p.compareTo(lastValue) != 0) {
+//                index = new BigDecimal(i);
+//            }
+//
+//            // n/rank
+//            BigDecimal m = new BigDecimal(numberOfTests).divide(index, MathContext.DECIMAL128);
+//
+//            // p-value*(n/rank)
+//            BigDecimal adjustedP = p.multiply(m, MathContext.DECIMAL128);
+//
+//            // p-value can't be over 1
+//            if (adjustedP.compareTo(ONE) > 0) {
+//                adjustedP = ONE;
+//            }
+//
+//            // only report if value <= maximum
+//            if (adjustedP.doubleValue() <= max.doubleValue()) {
+//                adjustedResults.put(entry.getKey(), adjustedP);
+//            } else {
+//                // p-values are in ascending order, on first large number we can stop
+//                return adjustedResults;
+//            }
+//
+//            // to compare if next value is the same
+//            lastValue = p;
+//
+//            i++;
+//        }
+//        return adjustedResults;
+//    }
 
     /**
      * Calculates the Bonferroni and Holm correction of the false discovery rate.
@@ -202,7 +248,7 @@ public final class ErrorCorrection
     private static Map<String, BigDecimal> calculateBonferroniHolm(Map<String, BigDecimal> results,
             int numberOfTests, Double max) {
 
-    	// chenyian: not sure, to be clarify
+    	// chenyian: to be confirmed (2011/10/11)
     	numberOfTests = results.size();
     	
         Map<String, BigDecimal> adjustedResults = new HashMap<String, BigDecimal>();
