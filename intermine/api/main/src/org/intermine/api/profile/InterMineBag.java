@@ -156,6 +156,20 @@ public class InterMineBag implements WebSearchable, Cloneable
      */
     public InterMineBag(ObjectStore os, Integer savedBagId, ObjectStoreWriter uosw)
         throws ObjectStoreException {
+        this(os, savedBagId, uosw, true);
+    }
+
+    /**
+     * Loads an InterMineBag from the UserProfile database.
+     *
+     * @param os the production ObjectStore
+     * @param savedBagId the ID of the bag in the userprofile database
+     * @param uosw the ObjectStoreWriter of the userprofile database
+     * @param classDescriptor if true the classDescriptor will be setted
+     * @throws ObjectStoreException if something goes wrong
+     */
+    public InterMineBag(ObjectStore os, Integer savedBagId, ObjectStoreWriter uosw, boolean classDescriptor)
+        throws ObjectStoreException {
         this.os = os;
         this.uosw = uosw;
         this.savedBagId = savedBagId;
@@ -168,7 +182,9 @@ public class InterMineBag implements WebSearchable, Cloneable
         this.profileId = savedBag.proxGetUserProfile().getId();
         setState(savedBag.getState());
         this.osb = new ObjectStoreBag(savedBag.getOsbId());
-        setClassDescriptors();
+        if (classDescriptor) {
+            setClassDescriptors();
+        }
     }
 
     private void setClassDescriptors() {
@@ -405,7 +421,7 @@ public class InterMineBag implements WebSearchable, Cloneable
                     extra = (String) row.get(0);
                     index++;
                 }
-                for (; index < keyFieldNames.size() + 1; index++) {
+                for (; index < row.size(); index++) {
                     value = (String) row.get(index);
                     if (value != null && !"".equals(value)) {
                         keyFieldValueList.add(new BagValue(value, extra));
@@ -957,7 +973,7 @@ public class InterMineBag implements WebSearchable, Cloneable
     }
 
     /**Update the bagvalues table with the items contained in osb_int table
-     * 
+     *
      */
     private void updateBagValues() {
         deleteAllBagValues();

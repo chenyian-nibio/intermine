@@ -94,13 +94,15 @@ Labs:
   </c:choose>
 
 <%-- REPOSITORY ENTRIES --%>
-    <c:if test="${exp.repositedCount == 1}">
-       It has produced <b>${exp.repositedCount} entry in public repositories</b>.
+<c:if test="${exp.repositedCount > 0}">
+It has produced 
+<c:if test="${exp.repositedCount == 1}">
+<b>${exp.repositedCount} entry in public repositories</b>.
     </c:if>
     <c:if test="${exp.repositedCount > 1}">
-       It has produced <b>${exp.repositedCount} entries in public repositories</b>.
+    <b>${exp.repositedCount} entries in public repositories</b>.
     </c:if>
-
+</c:if>
 
 
 <%-- EXPERIMENTAL FACTORS --%>
@@ -120,23 +122,10 @@ Labs:
 <td>
 <%-- FEATURES --%>
       <c:forEach items="${exp.featureCountsRecords}" var="fc" varStatus="fc_status">
-     <c:if test="${fc_status.count > 1 }"><br> </c:if>
-
-     <%-- TEMP patch until data is corrected. it should be (otherwise) 
-     <c:choose>
-     <c:when test="${exp.name == 'Genome-wide localization of essential replication initiators'
-  && fc.featureType == 'ProteinBindingSite'}">
-  ${fc.featureType}:&nbsp;38114
-     </c:when>
-     <c:otherwise>
-      ${fc.featureType}:&nbsp;${fc.featureCounts}
-     </c:otherwise>
-     </c:choose>
-     --%>
-<%-- END --%>
+     <c:if test="${fc_status.count > 1 }"></c:if>
 
 ${fc.featureType}:&nbsp;${fc.featureCounts}
-
+<br>
 
 <%-- too crowded: rm here, still available in the experiment page
       <c:if test="${!empty fc.uniqueFeatureCounts && fc.uniqueFeatureCounts != fc.featureCounts}">
@@ -145,13 +134,13 @@ ${fc.featureType}:&nbsp;${fc.featureCounts}
       (${fc.uniqueFeatureCounts} unique ${fc.featureType}s)
       </i>
       </c:if>
-
 --%>
-     <c:if test="${fc_status.last }"><br> </c:if>
+     <c:if test="${fc_status.last && exp.expressionLevelCount == 0}"><br> </c:if>
       </c:forEach>
 
     <c:if test="${exp.expressionLevelCount > 0}">
        with ${exp.expressionLevelCount} expression levels.
+       <br><br>
     </c:if>
 
 <p/>
@@ -165,12 +154,13 @@ ${fc.featureType}:&nbsp;${fc.featureCounts}
            <c:out value="${fn:length(tracks[exp.name])}"/> GBrowse tracks
          </c:otherwise>
        </c:choose>
-<br></br>
+     <br>
      </c:if>
 <%-- REPOSITORY ENTRIES --%>
      <c:if test="${exp.repositedCount > 0}">
 
       <c:forEach items="${exp.reposited}" var="rep" varStatus="rep_status">
+      <c:if test="${rep_status.first}"></c:if>
       ${rep.value}
       <c:choose>
         <c:when test="${rep.value == 1}">
@@ -181,10 +171,11 @@ ${fc.featureType}:&nbsp;${fc.featureCounts}
         </c:otherwise>
       </c:choose>
       in ${rep.key}
-      <br></br>
+      <br>
       </c:forEach>
      </c:if>
-
+ 
+     
 <%-- GET DATA --%>
 <html:link
         href="/${WEB_PROPERTIES['webapp.path']}/experiment.do?experiment=${exp.name}">

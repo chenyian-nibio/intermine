@@ -182,7 +182,7 @@ public class GenomicRegionSearchService
         if (excludedFeatureTypes == null || "".equals(excludedFeatureTypes)) {
             excludedFeatureTypeList = null;
         } else {
-            excludedFeatureTypeList = Arrays.asList(excludedFeatureTypes.split(","));
+            excludedFeatureTypeList = Arrays.asList(excludedFeatureTypes.split("[, ]+"));
         }
 
         if ("".equals(orgFeatureJSONString)) {
@@ -900,9 +900,11 @@ public class GenomicRegionSearchService
 
         for (Entry<GenomicRegion, List<List<String>>> e : resultMap.entrySet()) {
 
-            for (List<String> sf : e.getValue()) {
-                if (sf.get(3).equals(featureType)) { // 3 featureType
-                    featureIdSet.add(Integer.valueOf(sf.get(0))); // 0 id
+            if (e.getValue() != null) {
+                for (List<String> sf : e.getValue()) {
+                    if (sf.get(3).equals(featureType)) { // 3 featureType
+                        featureIdSet.add(Integer.valueOf(sf.get(0))); // 0 id
+                    }
                 }
             }
         }
@@ -956,8 +958,10 @@ public class GenomicRegionSearchService
         Set<String> ftSet = new TreeSet<String>();
 
         for (List<List<String>> l : resultMap.values()) {
-            for (List<String> feature : l) {
-                ftSet.add(feature.get(3)); // the 3rd is feature type
+            if (l != null) {
+                for (List<String> feature : l) {
+                    ftSet.add(feature.get(3)); // the 3rd is feature type
+                }
             }
         }
 
@@ -1016,7 +1020,7 @@ public class GenomicRegionSearchService
 
             // get list of featureTypes
             String ftHtml = categorizeFeatureTypes(features, s);
-            Set<String> ftSet = getFeatureTypeSet(features, s);
+            Set<String> ftSet = getFeatureTypeSet(features);
 
             /*
              * order: 0.id
@@ -1057,8 +1061,10 @@ public class GenomicRegionSearchService
                 }
 
                 String facet = "SequenceFeature";
-                if (ftSet.size() == 1) {
-                    facet = ftSet.iterator().next();
+                if (ftSet != null) {
+                    if (ftSet.size() == 1) {
+                        facet = ftSet.iterator().next();
+                    }
                 }
 
                 sb.append("<div style='align:center; padding-bottom:12px'>"
@@ -1175,22 +1181,27 @@ public class GenomicRegionSearchService
      */
     public String categorizeFeatureTypes(List<List<String>> features, GenomicRegion s) {
         String id = s.getChr() + "-" + s.getStart() + "-" + s.getEnd();
-        Set<String> ftSet = getFeatureTypeSet(features, s);
 
-        String ftHtml = "<div>"
-            + "<a href=\"javascript: createList('" + s.getExtendedRegion() + "', '" + id + "');\">"
-            + "Create List by</a>"
-            + "<select id=\"" + id + "\" style=\"margin: 4px 3px\">";
+        Set<String> ftSet = getFeatureTypeSet(features);
 
-        for (String ft : ftSet) {
-            ftHtml += "<option value=\"" + ft + "\">"
-                    + WebUtil.formatPath(ft, interMineAPI, webConfig)
-                    + "</option>";
+        if (ftSet == null) {
+            return "";
+        } else {
+            String ftHtml = "<div>"
+                + "<a href=\"javascript: createList('" + s.getExtendedRegion() + "', '" + id + "');\">"
+                + "Create List by</a>"
+                + "<select id=\"" + id + "\" style=\"margin: 4px 3px\">";
+
+            for (String ft : ftSet) {
+                ftHtml += "<option value=\"" + ft + "\">"
+                        + WebUtil.formatPath(ft, interMineAPI, webConfig)
+                        + "</option>";
+            }
+
+            ftHtml += "</select></div>";
+
+            return ftHtml;
         }
-
-        ftHtml += "</select></div>";
-
-        return ftHtml;
     }
 
     /**
@@ -1199,10 +1210,15 @@ public class GenomicRegionSearchService
      * @param s GenomicRegion
      * @return a set of feature types of a genomic region
      */
-    public Set<String> getFeatureTypeSet(List<List<String>> features, GenomicRegion s) {
-        Set<String> ftSet = new TreeSet<String>();
-        for (List<String> feature : features) {
-            ftSet.add(feature.get(3)); // the 3rd is feature type
+    public Set<String> getFeatureTypeSet(List<List<String>> features) {
+        Set<String> ftSet = null;
+
+        if (features != null) {
+            ftSet = new TreeSet<String>();
+
+            for (List<String> feature : features) {
+                ftSet.add(feature.get(3)); // the 3rd is feature type
+            }
         }
 
         return ftSet;

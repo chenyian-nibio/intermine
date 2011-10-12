@@ -22,25 +22,20 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletContext;
 
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.filters.StringInputStream;
-import org.intermine.api.results.ExportResultsIterator;
 import org.intermine.bio.constants.ModMineCacheKeys;
 import org.intermine.metadata.Model;
 import org.intermine.model.bio.BindingSite;
-import org.intermine.model.bio.BioEntity;
-import org.intermine.model.bio.CellLine;
 import org.intermine.model.bio.DatabaseRecord;
-import org.intermine.model.bio.DevelopmentalStage;
 import org.intermine.model.bio.Experiment;
-import org.intermine.model.bio.GeneExpressionScore;
 import org.intermine.model.bio.Project;
 import org.intermine.model.bio.ResultFile;
 import org.intermine.model.bio.Submission;
@@ -58,8 +53,6 @@ import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.QueryFunction;
 import org.intermine.objectstore.query.Results;
 import org.intermine.objectstore.query.ResultsRow;
-import org.intermine.pathquery.OrderDirection;
-import org.intermine.pathquery.PathQuery;
 import org.intermine.sql.Database;
 import org.intermine.util.PropertiesUtil;
 import org.intermine.util.TypeUtil;
@@ -86,10 +79,7 @@ public final class MetadataCache
     private static Map<String, Integer> submissionIdCache = null;
     private static Map<String, List<GBrowseTrack>> submissionTracksCache = null;
 
-    // private static Map<String, Map<String, Long>> submissionFileSourceCounts
-    // = null;
     private static Map<String, Map<String, Map<String, Long>>> submissionFileSourceCounts = null;
-
     private static Map<String, Set<ResultFile>> submissionFilesCache = null;
     private static Map<String, Integer> filesPerSubmissionCache = null;
     private static Map<String, List<String>> submissionLocatedFeatureTypes = null;
@@ -97,6 +87,7 @@ public final class MetadataCache
     private static Map<String, List<String>> submissionSequencedFeatureTypes = null;
 
     private static Map<String, List<String[]>> submissionRepositedCache = null;
+    private static Map<String, Integer> experimentRepositedCountCache = null;
 
     private static Map<String, String> featDescriptionCache = null;
     private static Map<String, List<DisplayExperiment>> projectExperiments = null;
@@ -115,8 +106,7 @@ public final class MetadataCache
     /**
      * Fetch experiment details for display.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @return a list of experiments
      */
     public static synchronized List<DisplayExperiment> getExperiments(
@@ -130,8 +120,7 @@ public final class MetadataCache
     /**
      * Fetch experiment details for display.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @return a list of experiments
      */
     public static synchronized Map<String, List<DisplayExperiment>> getProjectExperiments(
@@ -145,8 +134,7 @@ public final class MetadataCache
     /**
      * Fetch experiment details for display.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @return a list of experiments
      */
     public static synchronized Map<String, List<DisplayExperiment>> getCategoryExperiments(
@@ -160,13 +148,10 @@ public final class MetadataCache
     /**
      * Fetch the metadata properties from database.
      *
-     * @param os
-     *            the production objectStore
+     * @param os  the production objectStore
      * @return the metadata properties
-     * @throws SQLException
-     *             exception
-     * @throws IOException
-     *             exception
+     * @throws SQLException exception
+     * @throws IOException exception
      */
     public static synchronized Properties getProperties(ObjectStore os)
         throws SQLException, IOException {
@@ -200,8 +185,7 @@ public final class MetadataCache
     /**
      * Fetch located feature types per submission.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @return map of located feature types
      */
     public static synchronized Map<String, List<String>> getLocatedFeatureTypes(
@@ -215,8 +199,7 @@ public final class MetadataCache
     /**
      * Fetch unlocated feature types per submission.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @return map of unlocated feature types
      */
     public static synchronized Map<String, List<String>> getUnlocatedFeatureTypes(
@@ -230,8 +213,7 @@ public final class MetadataCache
     /**
      * Fetch unlocated feature types per submission.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @param dccId
      *            ID from DCC
      * @return map of unlocated feature types
@@ -249,8 +231,7 @@ public final class MetadataCache
     /**
      * Fetch located feature types per submission.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @return map of located feature types
      */
     public static synchronized Map<String, List<String>> getSequencedFeatureTypes(
@@ -264,8 +245,7 @@ public final class MetadataCache
     /**
      * Fetch the collection of ResultFiles per submission.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @return map
      */
     public static synchronized Map<String, Set<ResultFile>> getSubmissionFiles(
@@ -279,8 +259,7 @@ public final class MetadataCache
     /**
      * Fetch the collection of Expression Level Counts per submission.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @return map
      */
     public static synchronized Map<String, Integer> getSubmissionExpressionLevelCounts(
@@ -294,8 +273,7 @@ public final class MetadataCache
     /**
      * Fetch the collection of Expression Level Counts per submission.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @return map
      */
     public static synchronized Map<String, Map<String, Long>>
@@ -310,8 +288,7 @@ public final class MetadataCache
     /**
      * Fetch the collection of Expression Level Counts per submission.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @return map
      */
     public static synchronized Map<String, Map<String, Long>>
@@ -326,8 +303,7 @@ public final class MetadataCache
     /**
      * Fetch number of input/output file per submission.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @return map
      */
     public static synchronized Map<String, Integer> getFilesPerSubmission(
@@ -350,10 +326,8 @@ public final class MetadataCache
     /**
      * Fetch a list of file names for a given submission.
      *
-     * @param os
-     *            the objectStore
-     * @param dccId
-     *            the modENCODE submission id
+     * @param os the objectStore
+     * @param dccId the modENCODE submission id
      * @return a list of file names
      */
     public static synchronized List<ResultFile> getFilesByDccId(ObjectStore os,
@@ -370,8 +344,7 @@ public final class MetadataCache
     /**
      * Fetch a list of GBrowse tracks for a given submission.
      *
-     * @param dccId
-     *            the modENCODE submission id
+     * @param dccId the modENCODE submission id
      * @return a list of file names
      */
     public static synchronized List<GBrowseTrack> getTracksByDccId(String dccId) {
@@ -386,8 +359,7 @@ public final class MetadataCache
     /**
      * Fetch experiment and submission details for spanUpload.
      *
-     * @param os
-     *            the production objectStore
+     * @param os the production objectStore
      * @return a map of experiment name as key and a set of submission ids as
      *         value
      */
@@ -415,8 +387,7 @@ public final class MetadataCache
     /**
      * Fetch a list of file names for a given submission.
      *
-     * @param servletContext
-     *            servletContext
+     * @param servletContext servletContext
      * @return a list of file names
      */
     public static synchronized Map<String, String> getFeatTypeDescription(
@@ -444,10 +415,8 @@ public final class MetadataCache
     /**
      * Fetch a map from feature type to count for a given submission.
      *
-     * @param os
-     *            the objectStore
-     * @param dccId
-     *            the modENCODE submission id
+     * @param os the objectStore
+     * @param dccId the modENCODE submission id
      * @return a map from feature type to count
      */
     public static synchronized Map<String, Long> getSubmissionFeatureCounts(
@@ -461,13 +430,10 @@ public final class MetadataCache
     /**
      * Fetch a submission by the modENCODE submission ids
      *
-     * @param os
-     *            the objectStore
-     * @param dccId
-     *            the modENCODE submission id
+     * @param os the objectStore
+     * @param dccId the modENCODE submission id
      * @return the requested submission
-     * @throws ObjectStoreException
-     *             if error reading database
+     * @throws ObjectStoreException if error reading database
      */
     public static synchronized Submission getSubmissionByDccId(ObjectStore os,
             String dccId) throws ObjectStoreException {
@@ -480,13 +446,10 @@ public final class MetadataCache
     /**
      * Get experiment information by name
      *
-     * @param os
-     *            the objectStore
-     * @param name
-     *            of the experiment to fetch
+     * @param os   the objectStore
+     * @param name   of the experiment to fetch
      * @return details of the experiment
-     * @throws ObjectStoreException
-     *             if error reading database
+     * @throws ObjectStoreException   if error reading database
      */
     public static synchronized DisplayExperiment getExperimentByName(
             ObjectStore os, String name) throws ObjectStoreException {
@@ -498,8 +461,7 @@ public final class MetadataCache
 
     /**
      *
-     * @param os
-     *            objectStore
+     * @param  os  objectStore
      * @return map experiment expression levels
      */
     public static Map<String, Integer> getExperimentExpressionLevels(
@@ -522,9 +484,24 @@ public final class MetadataCache
     }
 
     /**
+    *
+    * @param  os objectStore
+    * @return map exp-repository entries count
+    */
+   public static Map<String, Integer> getExperimentRepositoryCount(
+           ObjectStore os) {
+       
+       if (experimentRepositedCountCache == null) {
+           getExperimentRepositoryEntries(os);
+       }
+       return experimentRepositedCountCache;
+   }
+
+       
+       
+    /**
      *
-     * @param os
-     *            objectStore
+     * @param  os objectStore
      * @return map exp-repository entries
      */
     public static Map<String, Set<String[]>> getExperimentRepositoryEntries(
@@ -532,6 +509,9 @@ public final class MetadataCache
         Map<String, Set<String[]>> reposited = new HashMap<String, Set<String[]>>();
 
         Map<String, List<String[]>> subRepositedMap = getRepositoryEntries(os);
+
+        experimentRepositedCountCache = 
+            new HashMap<String, Integer>();
 
         for (DisplayExperiment exp : getExperiments(os)) {
             Set<String[]> expReps = new HashSet<String[]>();
@@ -545,14 +525,32 @@ public final class MetadataCache
             // entry produced by 2 different submissions.
             Set<String[]> expRepsCleaned = removeDuplications(expReps);
             reposited.put(exp.getName(), expRepsCleaned);
+            
+            experimentRepositedCountCache.put(exp.getName(), expRepsCleaned.size());
         }
         return reposited;
     }
 
     /**
+     * Fetch reposited (GEO/SRA/AE..) entries per submission.
+     *
+     * @param  os      the production objectStore
+     * @return map
+     */
+    public static synchronized Map<String, List<String[]>> getRepositoryEntries(
+            ObjectStore os) {
+        if (submissionRepositedCache == null) {
+            readSubmissionRepositoryEntries(os);
+        }
+        return submissionRepositedCache;
+    }
+
+    
+    
+    
+    /**
      * Get GBrowseTracks information for each Experiment.
-     * @param os
-     *            objectStore
+     * @param os objectStore
      * @return map exp-tracks
      */
     public static synchronized Map<String, List<GBrowseTrack>> getExperimentGBrowseTracks(
@@ -584,8 +582,7 @@ public final class MetadataCache
     /**
      * Set the map of GBrowse tracks.
      *
-     * @param tracks
-     *            map of dccId:GBrowse tracks
+     * @param tracks   map of dccId:GBrowse tracks
      */
     public static synchronized void setGBrowseTracks(
             Map<String, List<GBrowseTrack>> tracks) {
@@ -595,8 +592,14 @@ public final class MetadataCache
 
     /*
      * ========================== PRIVATE METHODS ============================
+     *
+     * Note: actual database queries can generally be moved to 
+     * CreateModMineMetaDataCache, you need to express the results in the 
+     * key-value format and add a label to ModMineCacheKeys
+     *
      */
 
+    
     private static void fetchGBrowseTracks() {
         long timeSinceLastRefresh = System.currentTimeMillis()
                 - lastTrackCacheRefresh;
@@ -609,8 +612,7 @@ public final class MetadataCache
     /**
      * Method to obtain the map of unlocated feature types by submission id
      *
-     * @param os
-     *            the objectStore
+     * @param os  the objectStore
      * @return submissionUnlocatedFeatureTypes
      */
     private static Map<String, List<String>> readUnlocatedFeatureTypes(
@@ -657,10 +659,8 @@ public final class MetadataCache
     /**
      * adds the elements of a list i to a list l only if they are not yet there
      *
-     * @param l
-     *            the receiving list
-     * @param i
-     *            the donating list
+     * @param l   the receiving list
+     * @param i   the donating list
      */
     private static void addToList(List<GBrowseTrack> l, List<GBrowseTrack> i) {
         Iterator<GBrowseTrack> it = i.iterator();
@@ -697,8 +697,7 @@ public final class MetadataCache
     /**
      * Fetch a map from project name to experiment.
      *
-     * @param os
-     *            the production ObjectStore
+     * @param os  the production ObjectStore
      * @return a map from project name to experiment
      */
     private static Map<String, List<DisplayExperiment>> readProjectExperiments(
@@ -724,8 +723,7 @@ public final class MetadataCache
     /**
      * Fetch a map from project name to experiment.
      *
-     * @param os
-     *            the production ObjectStore
+     * @param os  the production ObjectStore
      * @return a map from project name to experiment
      */
     private static Map<String, List<DisplayExperiment>> readCategoryExperiments(
@@ -750,8 +748,7 @@ public final class MetadataCache
      * to reduce the number of fields and to deal temporarily with sub 2675 TODO
      * remove first ||
      *
-     * @param exp
-     *            the DisplayExperiment
+     * @param exp the DisplayExperiment
      * @return the category for the front page
      */
     private static String adaptCategory(DisplayExperiment exp) {
@@ -1208,21 +1205,6 @@ public final class MetadataCache
                 + "ms size = " + submissionLocatedFeatureTypes.size());
     }
 
-    /**
-     * Fetch reposited (GEO/SRA/AE..) entries per submission.
-     *
-     * @param os
-     *            the production objectStore
-     * @return map
-     */
-    public static synchronized Map<String, List<String[]>> getRepositoryEntries(
-            ObjectStore os) {
-        if (submissionRepositedCache == null) {
-            readSubmissionRepositoryEntries(os);
-        }
-        return submissionRepositedCache;
-    }
-
     private static void readSubmissionRepositoryEntries(ObjectStore os) {
         //
         long startTime = System.currentTimeMillis();
@@ -1300,12 +1282,9 @@ public final class MetadataCache
     /**
      * adds an element to a list which is the value of a map
      *
-     * @param m
-     *            the map (<Integer, List<String>>)
-     * @param key
-     *            the key for the map
-     * @param value
-     *            the list
+     * @param m   the map (<Integer, List<String>>)
+     * @param key the key for the map
+     * @param value the list
      */
     private static void addToMap(Map<Integer, List<String>> m, Integer key,
             String value) {
@@ -1324,12 +1303,9 @@ public final class MetadataCache
     /**
      * adds an element to a list which is the value of a map
      *
-     * @param m
-     *            the map (<String, List<String>>)
-     * @param key
-     *            the key for the map
-     * @param value
-     *            the list
+     * @param m       the map (<String, List<String>>)
+     * @param key     the key for the map
+     * @param value   the list
      */
     private static void addToMap(Map<String, List<String>> m, String key,
             String value) {
@@ -1348,12 +1324,9 @@ public final class MetadataCache
     /**
      * adds an element to a set of ResultFile which is the value of a map
      *
-     * @param m
-     *            the map (<Integer, Set<ResultFile>>)
-     * @param key
-     *            the key for the map
-     * @param value
-     *            the list
+     * @param m       the map (<Integer, Set<ResultFile>>)
+     * @param key     the key for the map
+     * @param value   the list
      */
     private static void addToMap(Map<String, Set<ResultFile>> m, String key,
             ResultFile value) {
@@ -1454,278 +1427,29 @@ public final class MetadataCache
         return featDescriptionCache;
     }
 
-    private static void readFlyScores(ObjectStore os) {
-        // TODO
-        long startTime = System.currentTimeMillis();
-        try {
 
-            Query q = new Query();
-            QueryClass qcFlyScore = new QueryClass(GeneExpressionScore.class);
-            QueryField qfSubject = new QueryField(qcFlyScore, "subject");
-            q.addFrom(qcFlyScore);
-            q.addToSelect(qfSubject);
-
-            QueryClass qcCellLine = new QueryClass(CellLine.class);
-            q.addFrom(qcCellLine);
-            q.addToSelect(qcCellLine);
-
-            QueryClass qcDevStage = new QueryClass(DevelopmentalStage.class);
-            q.addFrom(qcDevStage);
-            q.addToSelect(qcDevStage);
-
-            QueryClass qcBioEnt = new QueryClass(BioEntity.class);
-            q.addFrom(qcBioEnt);
-            q.addToSelect(qcBioEnt);
-
-            // join the tables
-            // QueryObjectReference ref1 =
-            // new QueryCollectionReference(qcSubmission, "databaseRecords");
-            // ContainsConstraint cc = new ContainsConstraint(ref1,
-            // ConstraintOp.CONTAINS,
-            // qcRepositoryEntry);
-            //
-            // q.setConstraint(cc);
-            // q.addToOrderBy(qfDCCid);
-            // q.addToOrderBy(qfDatabase);
-
-            // QueryCollectionReference subFiles = new
-            // QueryCollectionReference(qcSubmission,
-            // "resultFiles");
-            // ContainsConstraint cc = new ContainsConstraint(subFiles,
-            // ConstraintOp.CONTAINS,
-            // qcFile);
-            //
-            // q.setConstraint(cc);
-            q.addToOrderBy(qfSubject);
-
-            Results results = os.execute(q);
-
-            submissionFilesCache = new HashMap<String, Set<ResultFile>>();
-
-            @SuppressWarnings("unchecked")
-            Iterator<ResultsRow> iter = (Iterator) results.iterator();
-
-            while (iter.hasNext()) {
-                ResultsRow<?> row = (ResultsRow<?>) iter.next();
-
-                String dccId = (String) row.get(0);
-                ResultFile file = (ResultFile) row.get(1);
-
-                addToMap(submissionFilesCache, dccId, file);
-            }
-
-        } catch (Exception err) {
-            err.printStackTrace();
-        }
-        long timeTaken = System.currentTimeMillis() - startTime;
-        LOG.info("Primed submission collections caches, took: " + timeTaken
-                + "ms    size: files = " + submissionFilesCache.size());
-    }
-
-    /*
-     * private static void readSubmissionFileSourceCount(ObjectStore os) {
-     *
-     * long startTime = System.currentTimeMillis();
-     *
-     * Model model = os.getModel();
-     *
-     * Query q = new Query(); q.setDistinct(true);
-     *
-     * QueryClass qcSub = new
-     * QueryClass(model.getClassDescriptorByName("Submission").getType());
-     * QueryClass qcLsf = new QueryClass(SequenceFeature.class); QueryClass
-     * qcLoc = new QueryClass(Location.class);
-     *
-     * QueryField qfDccId = new QueryField(qcSub, "DCCid"); QueryField qfClass =
-     * new QueryField(qcLsf, "class");
-     *
-     * q.addFrom(qcSub); q.addFrom(qcLsf); q.addFrom(qcLoc);
-     *
-     * q.addToSelect(qfDccId); q.addToSelect(qfClass);
-     *
-     * ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
-     *
-     * QueryCollectionReference features = new QueryCollectionReference(qcSub,
-     * "features"); ContainsConstraint ccFeats = new
-     * ContainsConstraint(features, ConstraintOp.CONTAINS, qcLsf);
-     * cs.addConstraint(ccFeats);
-     *
-     *
-     * // submission.features featureType QueryField featureType = new
-     * QueryField(qcLsf, "featureType"); cs.addConstraint(new
-     * SimpleConstraint(featureType, ConstraintOp.EQUALS, new
-     * QueryValue("ProteinBindingSite")));
-     *
-     * QueryObjectReference location = new QueryObjectReference(qcLsf,
-     * "chromosomeLocation"); ContainsConstraint ccLocs = new
-     * ContainsConstraint(location, ConstraintOp.CONTAINS, qcLoc);
-     * cs.addConstraint(ccLocs);
-     *
-     * q.setConstraint(cs);
-     *
-     * Results results = os.execute(q);
-     *
-     * // for each classes set the values for jsp
-     *
-     * @SuppressWarnings("unchecked") Iterator<ResultsRow> iter = (Iterator)
-     * results.iterator(); while (iter.hasNext()) { ResultsRow<?> row =
-     * iter.next(); String dccId = (String) row.get(0); Class<?> feat =
-     * (Class<?>) row.get(1);
-     *
-     * String key = ModMineCacheKeys.SUB_PROTEIN_BINDING_SITE + "." + dccId +
-     * "." + TypeUtil.unqualifiedName(feat.getName()); LOG.info("PBS: " + key);
-     *
-     * } long timeTaken = System.currentTimeMillis() - startTime;
-     * LOG.info("Read located features types, took: " + timeTaken + " ms."); }
-     */
-
-    // private static void readSubProteinBindingSite(ObjectStore os, Properties
-    // props) {
-    //
-    // long startTime = System.currentTimeMillis();
-    //
-    // Model model = os.getModel();
-    //
-    // Query q = new Query();
-    // q.setDistinct(true);
-    //
-    // QueryClass qcSub = new
-    // QueryClass(model.getClassDescriptorByName("Submission").getType());
-    // QueryClass qcLsf = new QueryClass(SequenceFeature.class);
-    // QueryClass qcLoc = new QueryClass(Location.class);
-    //
-    // QueryField qfDccId = new QueryField(qcSub, "DCCid");
-    // QueryField qfClass = new QueryField(qcLsf, "class");
-    //
-    // q.addFrom(qcSub);
-    // q.addFrom(qcLsf);
-    // q.addFrom(qcLoc);
-    //
-    // q.addToSelect(qfDccId);
-    // q.addToSelect(qfClass);
-    //
-    // ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
-    //
-    // QueryCollectionReference features = new QueryCollectionReference(qcSub,
-    // "features");
-    // ContainsConstraint ccFeats = new ContainsConstraint(features,
-    // ConstraintOp.CONTAINS, qcLsf);
-    // cs.addConstraint(ccFeats);
-    //
-    //
-    // // submission.features featureType
-    // QueryField featureType = new QueryField(qcLsf, "featureType");
-    // cs.addConstraint(new SimpleConstraint(featureType, ConstraintOp.EQUALS,
-    // new QueryValue("ProteinBindingSite")));
-    //
-    // QueryObjectReference location = new QueryObjectReference(qcLsf,
-    // "chromosomeLocation");
-    // ContainsConstraint ccLocs = new ContainsConstraint(location,
-    // ConstraintOp.CONTAINS, qcLoc);
-    // cs.addConstraint(ccLocs);
-    //
-    // q.setConstraint(cs);
-    //
-    // Results results = os.execute(q);
-    //
-    // // for each classes set the values for jsp
-    // @SuppressWarnings("unchecked") Iterator<ResultsRow> iter =
-    // (Iterator) results.iterator();
-    // while (iter.hasNext()) {
-    // ResultsRow<?> row = iter.next();
-    // String dccId = (String) row.get(0);
-    // Class<?> feat = (Class<?>) row.get(1);
-    //
-    // String key = ModMineCacheKeys.SUB_PROTEIN_BINDING_SITE
-    // + "." + dccId + "." + TypeUtil.unqualifiedName(feat.getName());
-    // props.put(key, "" + TypeUtil.unqualifiedName(feat.getName()));
-    //
-    // }
-    // long timeTaken = System.currentTimeMillis() - startTime;
-    // LOG.info("Read located features types, took: " + timeTaken + " ms.");
-    // }
-
-    // private static void readSubmissionFileSourceCounts(ObjectStore os,
-    // Properties props) {
 
     private static void readSubmissionFileSourceCounts(ObjectStore os) {
         long startTime = System.currentTimeMillis();
-
-        Model model = os.getModel();
-        Query q = new Query();
-        q.setDistinct(false);
-
-        QueryClass qcSub = new QueryClass(model.getClassDescriptorByName(
-                "Submission").getType());
-        QueryClass qcLsf = new QueryClass(BindingSite.class);
-        // QueryClass qcLsf = new QueryClass(SequenceFeature.class);
-        // QueryClass qcEL =
-        // new
-        // QueryClass(model.getClassDescriptorByName("BindingSite").getType());
-
-        QueryField qfDccId = new QueryField(qcSub, "DCCid");
-        QueryField qfClass = new QueryField(qcLsf, "class");
-        QueryField qfFile = new QueryField(qcLsf, "sourceFile");
-
-        q.addFrom(qcSub);
-        q.addFrom(qcLsf);
-        // q.addFrom(qcEL);
-
-        q.addToSelect(qfDccId);
-        q.addToSelect(qfClass);
-        q.addToSelect(qfFile);
-        q.addToSelect(new QueryFunction());
-
-        q.addToGroupBy(qfDccId);
-        q.addToGroupBy(qfClass);
-        q.addToGroupBy(qfFile);
-
-        q.addToOrderBy(qfDccId);
-        q.addToOrderBy(qfClass);
-        q.addToOrderBy(qfFile);
-
-        ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
-
-        QueryCollectionReference features = new QueryCollectionReference(qcSub,
-                "features");
-        ContainsConstraint ccFeats = new ContainsConstraint(features,
-                ConstraintOp.CONTAINS, qcLsf);
-        cs.addConstraint(ccFeats);
-        // QueryCollectionReference el = new QueryCollectionReference(qcLsf,
-        // "expressionLevels");
-        // ContainsConstraint ccEl = new ContainsConstraint(el,
-        // ConstraintOp.CONTAINS, qcEL);
-        // cs.addConstraint(ccEl);
-
-        q.setConstraint(cs);
-
-        Results results = os.execute(q);
         submissionFileSourceCounts = new HashMap<String, Map<String, Map<String, Long>>>();
+        Properties props = extractProperties(os,
+                ModMineCacheKeys.SUB_FILE_SOURCE_COUNT);
 
-        @SuppressWarnings("unchecked")
-        Iterator<ResultsRow> iter = (Iterator) results.iterator();
-        while (iter.hasNext()) {
-            ResultsRow<?> row = iter.next();
-            String dccId = (String) row.get(0);
-            Class<?> feat = (Class<?>) row.get(1);
-            String fileName = (String) row.get(2);
-            Long count = (Long) row.get(3);
-
-            String featName = TypeUtil.unqualifiedName(feat.getName());
-            LOG.debug("PBS: " + dccId + ":" + featName + "|" + fileName + "="
-                    + count);
-
+        for (Object key : props.keySet()) {
+            String keyString = (String) key;
+            
+            String[] token = keyString.split("\\.");
+            String dccId = token[0];
+            String featName = token[1];
+            String fileName = token[2];
+            Long count = Long.parseLong((String) props.get(key));
+               
             addToMap(submissionFileSourceCounts, dccId, featName, fileName,
                     count);
         }
 
-        // String key = ModMineCacheKeys.SUB_FEATURE_EXPRESSION_LEVEL_COUNT +
-        // "."
-        // + dccId + "." + TypeUtil.unqualifiedName(feat.getName());
-        // props.put(key, "" + count);
-
         long timeTaken = System.currentTimeMillis() - startTime;
-        LOG.info("Read submissionFileSourceCounts cache, took: " + timeTaken
+        LOG.info("Primed submissionFileSourceCounts cache, took: " + timeTaken
                 + "ms");
     }
 

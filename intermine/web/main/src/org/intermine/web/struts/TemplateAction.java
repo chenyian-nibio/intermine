@@ -303,6 +303,7 @@ public class TemplateAction extends InterMineAction
                 && ("perl".equalsIgnoreCase(codeGenTemplate)
                      || "java".equalsIgnoreCase(codeGenTemplate)
                      || "python".equalsIgnoreCase(codeGenTemplate)
+                     || "ruby".equalsIgnoreCase(codeGenTemplate)
                      || "javascript".equalsIgnoreCase(codeGenTemplate)
                     )) {
             return true;
@@ -344,7 +345,7 @@ public class TemplateAction extends InterMineAction
                     if (tf.getSwitchOff(key) != null
                         && tf.getSwitchOff(key).equalsIgnoreCase(SwitchOffAbility.OFF.toString())) {
                         if (c instanceof PathConstraintMultiValue) {
-                            String multiValueAttribute = tf.getMultiValueAttribute(key);
+                            String multiValueAttribute = constraintStringValue(c);
                             if (multiValueAttribute != null && !("".equals(multiValueAttribute))) {
                                 List<String> multiValues = new ArrayList<String>();
                                 multiValues.addAll(Arrays.asList(multiValueAttribute.split(",")));
