@@ -20,7 +20,6 @@
 		<attribute name="drugBankId" type="java.lang.String"/>
 		<attribute name="keggDrugId" type="java.lang.String"/>
 		<attribute name="description" type="java.lang.String"/>
-		<attribute name="fdaLabelIssuedDate" type="java.util.Date"/>
 		<attribute name="casRegistryNumber" type="java.lang.String"/>
 		<reference name="hetGroup" referenced-type="HetGroup" reverse-reference="drugs"/>
 		<reference name="chebiCompound" referenced-type="ChebiCompound" reverse-reference="drugs"/>

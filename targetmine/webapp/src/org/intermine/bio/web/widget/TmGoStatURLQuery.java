@@ -46,7 +46,7 @@ public class TmGoStatURLQuery implements WidgetURLQuery {
             q.addViews("Protein.primaryAccession");
         }
 
-        q.addViews(prefix + ".primaryIdentifier",
+        q.addViews(prefix + ".ncbiGeneNumber",
                 prefix + ".symbol",
                 prefix + ".organism.name",
 //                prefix + ".goAnnotation.ontologyTerm.identifier",

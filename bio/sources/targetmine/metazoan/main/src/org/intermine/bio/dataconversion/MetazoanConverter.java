@@ -134,7 +134,7 @@ public class MetazoanConverter extends DirectoryConverter {
 		ret.setAttribute("role", role);
 		ret.setReference("experiment", interactionExperiment);
 		store(ret);
-		master.addToCollection("proteinDNAinteractions", ret);
+		master.addToCollection("proteinDNAInteractions", ret);
 		interactionExperiment.addToCollection("interactions", ret);
 		return ret;
 	}

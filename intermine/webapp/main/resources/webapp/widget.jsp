@@ -18,7 +18,7 @@
 <c:set var="type" value="${split[fn:length(split)-1]}"/>
 
 <html:xhtml/>
-<form action="widgetAction.do" id="widgetaction${widget.id}">
+<form method="POST" action="widgetAction.do" id="widgetaction${widget.id}">
 <html:hidden property="link" value="${widget.link}"/>
 <html:hidden property="bagType" value="${bag.type}"/>
 <html:hidden property="bagName" value="${bag.name}" />
@@ -55,8 +55,8 @@
     <li>
     <label>Multiple Hypothesis Test Correction</label>
     <select id="errorCorrection${widget.id}" onchange="getProcessEnrichmentWidgetConfig('${widget.id}','${bag.name}');">
-      <option value="Holm-Bonferroni">Holm-Bonferroni</option>
       <option value="Benjamini Hochberg">Benjamini and Hochberg</option>
+      <option value="Holm-Bonferroni">Holm-Bonferroni</option>
       <option value="Bonferroni">Bonferroni</option>
       <option value="None">None</option>
     </select>

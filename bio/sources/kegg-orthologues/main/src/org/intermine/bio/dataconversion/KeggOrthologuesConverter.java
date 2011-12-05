@@ -217,9 +217,11 @@ public class KeggOrthologuesConverter extends BioFileConverter
 
         IdResolver resolver = null;
         if ("7227".equals(taxonId)) {
-            resolver = flyResolverFactory.getIdResolver();
+        	// chenyian: turn the error exception off, since we don't need id resolver
+            resolver = flyResolverFactory.getIdResolver(false);
         } else if ("6239".equals(taxonId)) {
-            resolver = wormResolverFactory.getIdResolver();
+        	// chenyian: same as above, though we don't have worm data
+            resolver = wormResolverFactory.getIdResolver(false);
         }
 
         if (resolver != null) {

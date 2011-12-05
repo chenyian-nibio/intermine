@@ -245,9 +245,9 @@ public class DrugBankConverter extends BioFileConverter {
 			// chenyian: set the compound identifier
 			oDrug.setAttribute("identifier", String.format("DrugBank: %s", m_oPrimaryAccNo));
 			
-			if( m_oFdaLabel != null){
-				oDrug.setAttribute( "fdaLabelIssuedDate", m_oFdaLabel );
-			}
+//			if( m_oFdaLabel != null){
+//				oDrug.setAttribute( "fdaLabelIssuedDate", m_oFdaLabel );
+//			}
 			oDrug.setAttribute("description", m_oDescription.toString());
 			oDrug.setAttribute( "genericName", m_oGenericName );
 			// chenyian: Compound's attribute

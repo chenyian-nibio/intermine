@@ -6,12 +6,14 @@
   </class>
 
   <class className="org.intermine.model.bio.BioEntity">
+    <headerconfig>
+      <titles>
+        <title mainTitles="symbol|primaryIdentifier" numberOfMainTitlesToShow="1" subTitles="*organism.shortName*" />
+      </titles>
+    </headerconfig>
     <fields>
-      <fieldconfig fieldExpr="primaryIdentifier"/>
+      <fieldconfig fieldExpr="primaryIdentifier" label="DB identifier"/>
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
   </class>
 
   <class className="org.intermine.model.bio.Chromosome">
@@ -20,15 +22,20 @@
       <fieldconfig fieldExpr="organism.name"/>
       <fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" />
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
   </class>
 
   <class className="org.intermine.model.bio.Comment">
     <fields>
       <fieldconfig fieldExpr="type"/>
       <fieldconfig fieldExpr="text"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.CrossReference">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="source.name"/>
+      <fieldconfig fieldExpr="subject.primaryIdentifier"/>
     </fields>
   </class>
 
@@ -44,9 +51,6 @@
       <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="url" doNotTruncate="true"/>
     </fields>
-    <longdisplayers>
-      <displayer src="/model/dataSourceLong.jsp"/>
-    </longdisplayers>
     <tabledisplayer src="/model/dataSourceShort.jsp"/>
   </class>
 
@@ -59,12 +63,6 @@
       <fieldconfig fieldExpr="name" showInSummary="false"/>
       <fieldconfig fieldExpr="organism.shortName" />
     </fields>
-    <longdisplayers>
-      <!-- attribute links can now be configured for gene report pages -->
-      <displayer src="attributeLinkDisplayer.tile"/>
-      <displayer src="cytoscapeNetworkDisplayer.tile"/>
-      <!-- displayer src="geneMicroArrayDisplayer.tile"/-->
-    </longdisplayers>
     <bagdisplayers>
       <!-- attribute links can now be configured for gene list analysis pages -->
       <displayer src="attributeLinkDisplayer.tile"/>
@@ -91,26 +89,34 @@
       <fieldconfig fieldExpr="chromosomeLocation.end" showInInlineCollection="false" showInSummary="false" />
       <fieldconfig fieldExpr="organism.name"/>
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
     <bagdisplayers>
     </bagdisplayers>
   </class>
 
-  <class className="org.intermine.model.bio.OntologyTerm">
+  <class className="org.intermine.model.bio.Ontology">
     <fields>
-      <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="name"/>
-      <fieldconfig fieldExpr="description" doNotTruncate="true" />
     </fields>
   </class>
 
   <class className="org.intermine.model.bio.OntologyRelation">
     <fields>
       <fieldconfig fieldExpr="relationship"/>
+      <fieldconfig fieldExpr="parentTerm.name"/>
       <fieldconfig fieldExpr="parentTerm.identifier"/>
+      <fieldconfig fieldExpr="childTerm.name"/>
       <fieldconfig fieldExpr="childTerm.identifier"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.OntologyTerm">
+    <headerconfig>
+      <titles mainTitles="identifier|name" subTitles="ontology.name" />
+    </headerconfig>
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="description" doNotTruncate="true" />
     </fields>
   </class>
 
@@ -122,14 +128,13 @@
   </class>
 
   <class className="org.intermine.model.bio.Organism">
+    <headerconfig>
+      <titles mainTitles="name"/>
+    </headerconfig>
     <fields>
       <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="taxonId" />
-      <fieldconfig fieldExpr="shortName" />
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
   </class>
 
   <class className="org.intermine.model.bio.Protein">
@@ -140,11 +145,6 @@
       <fieldconfig fieldExpr="organism.name"/>
       <fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" />
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-	  <displayer src="/model/proteinAnalysisResult.jsp"/>
-	  <displayer src="cytoscapeNetworkDisplayer.tile"/>
-    </longdisplayers>
     <bagdisplayers>
     </bagdisplayers>
   </class>
@@ -159,9 +159,6 @@
       <fieldconfig fieldExpr="pages"/>
       <fieldconfig fieldExpr="pubMedId"/>
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
   </class>
 
   <class className="org.intermine.model.bio.Sequence">
@@ -186,9 +183,35 @@
       <fieldconfig fieldExpr="resolution"/>
       <fieldconfig fieldExpr="experimentType"/>
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.bio.GOAnnotation">
+    <fields>
+      <fieldconfig fieldExpr="subject.secondaryIdentifier"/>
+      <fieldconfig fieldExpr="subject.name"/>
+      <fieldconfig fieldExpr="subject.symbol"/>
+      <fieldconfig fieldExpr="ontologyTerm.identifier" />
+      <fieldconfig fieldExpr="ontologyTerm.name" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.GOEvidenceCode">
+    <fields>
+      <fieldconfig fieldExpr="code"/>
+    </fields>
+  </class>
+
+    <class className="org.intermine.model.bio.GOTerm">
+    <headerconfig>
+        <titles>
+            <title mainTitles="identifier|name" subTitles="ontology.name" />
+        </titles>
+    </headerconfig>
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" />
+    </fields>
   </class>
 
   <class className="org.intermine.model.bio.Compound">
@@ -196,9 +219,6 @@
       <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="name"/>
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
   </class>
 
   <class className="org.intermine.model.bio.ProteinDomain">
@@ -208,9 +228,6 @@
       <fieldconfig fieldExpr="shortName"/>
       <fieldconfig fieldExpr="type"/>
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
   </class>
 
   <class className="org.intermine.model.bio.ProteinDomainRegion">
@@ -221,36 +238,75 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.Pathway">
+  <class className="org.intermine.model.bio.ProteinStructureRegion">
     <fields>
-      <fieldconfig fieldExpr="identifier"/>
-      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="start"/>
+      <fieldconfig fieldExpr="end"/>
+      <fieldconfig fieldExpr="pdbRegion.start"/>
+      <fieldconfig fieldExpr="pdbRegion.end"/>
+      <fieldconfig fieldExpr="pdbRegion.chain.pdbId"/>
+      <fieldconfig fieldExpr="pdbRegion.chain.chain"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.Pathway">
+    <headerconfig>
+        <titles>
+            <title mainTitles="identifier|name" />
+        </titles>
+    </headerconfig>
+    <fields>
+      <fieldconfig fieldExpr="identifier" />
+      <fieldconfig fieldExpr="name" />
       <fieldconfig fieldExpr="mainClass" showInSummary="false"/>
       <fieldconfig fieldExpr="subClass" showInSummary="false"/>
     </fields>
-    <longdisplayers>
-      <displayer src="pathwayLinkDisplayer.tile"/>
-    </longdisplayers>
+  </class>
+
+  <class className="org.intermine.model.bio.Homologue">
+    <fields>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="gene.ncbiGeneNumber" showInResults="false" showInInlineCollection="false" />
+      <fieldconfig fieldExpr="homologue.ncbiGeneNumber"/>
+      <fieldconfig fieldExpr="homologue.organism.shortName"/>
+    </fields>
   </class>
 
 <!-- chenyian: disable for external server 
 -->
   <class className="org.intermine.model.bio.Disease">
+    <headerconfig>
+        <titles>
+            <title mainTitles="omimId|title" />
+        </titles>
+    </headerconfig>
     <fields>
       <fieldconfig fieldExpr="omimId"/>
       <fieldconfig fieldExpr="title"/>
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
+  </class>
+  <class className="org.intermine.model.bio.ProteinComputationalResult">
+    <fields>
+      <fieldconfig fieldExpr="computationalAnalysis.algorithm"/>
+      <fieldconfig fieldExpr="computationalAnalysis.description"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.ProteinHitRegion">
+    <fields>
+      <fieldconfig fieldExpr="start"/>
+      <fieldconfig fieldExpr="end"/>
+      <fieldconfig fieldExpr="score"/>
+    </fields>
   </class>
 
   <class className="org.intermine.model.bio.DrugProteinInteraction">
     <fields>
       <fieldconfig fieldExpr="protein.primaryAccession"/>
       <fieldconfig fieldExpr="drug.drugBankId" />
+      <fieldconfig fieldExpr="drug.genericName" />
     </fields>
   </class>
+
   <class className="org.intermine.model.bio.Enzyme">
     <fields>
       <fieldconfig fieldExpr="ecNumber"/>
@@ -263,9 +319,6 @@
       <fieldconfig fieldExpr="pdbId" />
       <fieldconfig fieldExpr="chain" />
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
   </class>
 
   <class className="org.intermine.model.bio.ProteinRegion">
@@ -295,15 +348,27 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.DOAnnotation">
+    <fields>
+      <fieldconfig fieldExpr="subject.primaryIdentifier"/>
+      <fieldconfig fieldExpr="subject.name"/>
+      <fieldconfig fieldExpr="subject.symbol"/>
+      <fieldconfig fieldExpr="ontologyTerm.identifier" />
+      <fieldconfig fieldExpr="ontologyTerm.name" />
+    </fields>
+  </class>
+
   <class className="org.intermine.model.bio.DOTerm">
+    <headerconfig>
+        <titles>
+            <title mainTitles="identifier|name" subTitles="ontology.name" />
+        </titles>
+    </headerconfig>
     <fields>
       <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="description" doNotTruncate="true" />
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
   </class>
 
   <class className="org.intermine.model.bio.DrugType">
@@ -325,9 +390,35 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.ProteinInteraction">
+    <fields>
+      <fieldconfig fieldExpr="representativePartner.primaryAccession"/>
+      <fieldconfig fieldExpr="representativePartner.name"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.ProteinDNAInteraction">
+    <fields>
+      <fieldconfig fieldExpr="role"/>
+      <fieldconfig fieldExpr="interactionType"/>
+      <fieldconfig fieldExpr="interactWith.ncbiGeneNumber"/>
+      <fieldconfig fieldExpr="interactWith.symbol"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.StitchInteraction">
+    <fields>
+      <fieldconfig fieldExpr="compound.identifier"/>
+      <fieldconfig fieldExpr="compound.name"/>
+      <fieldconfig fieldExpr="score"/>
+      <fieldconfig fieldExpr="evidence"/>
+    </fields>
+  </class>
+
   <class className="org.intermine.model.bio.CompoundGroupInteraction">
     <fields>
-      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="protein.primaryAccession"/>
+      <fieldconfig fieldExpr="compoundGroup.name"/>
     </fields>
   </class>
 
@@ -336,14 +427,41 @@
       <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="name"/>
     </fields>
-    <longdisplayers>
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </longdisplayers>
   </class>
 
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
   <tableExportConfig id="gff3" className="org.intermine.bio.web.export.GFF3HttpExporter"/>
+
+<!-- reportdisplayers -->
+  <reportdisplayers>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.CytoscapeNetworkDisplayer"
+                     jspName="model/cytoscapeNetworkDisplayer.jsp"
+                     replacesFields="interactions"
+                     placement="Interactions"
+                     types="Gene,Protein"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneOntologyDisplayer"
+                     jspName="model/geneOntologyDisplayer.jsp"
+                     replacesFields="goAnnotation"
+                     placement="Gene Ontology"
+                     types="Gene,Protein"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.UniProtCommentsDisplayer"
+                     jspName="model/uniProtCommentsDisplayer.jsp"
+                     replacesFields="comments"
+                     placement="Proteins"
+                     types="Protein"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinDomainDisplayer"
+                     jspName="model/proteinAnalysisResult.jsp"
+                     replacesFields="proteinDomainRegions"
+                     placement="Proteins"
+                     types="Protein"/>
+
+  </reportdisplayers>
+
   
 <!-- widgets -->
 <widgets>

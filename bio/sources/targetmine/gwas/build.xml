@@ -1,0 +1,5 @@
+<project name="gwas" default="default" basedir=".">
+  <description>build, test, package gwas</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

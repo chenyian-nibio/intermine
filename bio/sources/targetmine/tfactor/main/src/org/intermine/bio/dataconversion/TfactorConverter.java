@@ -161,7 +161,7 @@ public class TfactorConverter extends FileConverter {
 		ret.setReference("bindingSite", bindingSite);
 		
 		store(ret);
-		master.addToCollection("proteinDNAinteractions", ret);
+		master.addToCollection("proteinDNAInteractions", ret);
 		return ret;
 	}
 

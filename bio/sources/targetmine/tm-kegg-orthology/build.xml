@@ -1,0 +1,5 @@
+<project name="tm-kegg-orthology" default="default" basedir=".">
+  <description>build, test, package tm-kegg-orthology</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

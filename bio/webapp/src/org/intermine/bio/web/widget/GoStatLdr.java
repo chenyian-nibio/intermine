@@ -108,13 +108,17 @@ public class GoStatLdr extends EnrichmentWidgetLdr
         QueryField qfId = null;
 
         if ("Protein".equals(bagType)) {
-            qfPrimaryIdentifier = new QueryField(qcProtein, "primaryIdentifier");
+//            qfPrimaryIdentifier = new QueryField(qcProtein, "primaryIdentifier");
+        	// chenyian: in TargetMine we prefer primaryAccession
+            qfPrimaryIdentifier = new QueryField(qcProtein, "primaryAccession");
             qfId = qfProteinId;
         } else if ("SNP".equals(bagType)) {
             qfPrimaryIdentifier = new QueryField(qcSNP, "primaryIdentifier");
             qfId = qfProteinId;
         } else {
-            qfPrimaryIdentifier = new QueryField(qcGene, "primaryIdentifier");
+//            qfPrimaryIdentifier = new QueryField(qcGene, "primaryIdentifier");
+        	// chenyian: in TargetMine we prefer ncbiGeneNumber
+            qfPrimaryIdentifier = new QueryField(qcGene, "ncbiGeneNumber");
             qfId = qfGeneId;
         }
 

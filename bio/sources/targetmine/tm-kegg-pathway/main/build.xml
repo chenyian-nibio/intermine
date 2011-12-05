@@ -1,0 +1,4 @@
+<project name="tm-kegg-pathway-tasks" default="default" basedir=".">
+  <description>build tm-kegg-pathway tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

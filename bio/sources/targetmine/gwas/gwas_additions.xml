@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<classes>
+    <class name="Gene" is-interface="true">
+        <collection name="snps" referenced-type="SNP" reverse-reference="gene"/>
+    </class>
+
+    <class name="SNP" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="context" type="java.lang.String"/>
+        <reference name="gene" referenced-type="Gene" reverse-reference="snps"/>
+        <collection name="genomeWideAssociations" referenced-type="GenomeWideAssociation" reverse-reference="snps"/>
+    </class>
+
+    <class name="GenomeWideAssociation" is-interface="true">
+		<attribute name="trait" type="java.lang.String"/>
+        <collection name="snps" referenced-type="SNP" reverse-reference="genomeWideAssociations"/>
+        <collection name="doTerms" referenced-type="DOTerm"/>
+		<reference name="publication" referenced-type="Publication"/>
+    </class>
+
+	<class name="DOTerm" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+    </class>
+
+</classes>

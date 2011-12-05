@@ -97,6 +97,10 @@ sub executePostprocessing {
 		print STDOUT " [post] $_";
 	}
 	close PIPE;
+	if ($? != 0) {
+		sendNoticeMail("Post process Failed","Post process failed, check the build log.");
+		die "failed with exit code $?: @_\n";
+	}
 }
 
 sub dumpDatabase {

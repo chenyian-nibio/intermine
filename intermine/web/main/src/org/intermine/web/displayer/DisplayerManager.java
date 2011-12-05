@@ -67,6 +67,7 @@ public final class DisplayerManager
             } catch (Exception e) {
                 LOG.error("Failed to instantiate displayer for class: " + config.getJavaClass()
                         + " because: " + e);
+                e.printStackTrace();
             }
             if (displayer == null) {
                 continue;
