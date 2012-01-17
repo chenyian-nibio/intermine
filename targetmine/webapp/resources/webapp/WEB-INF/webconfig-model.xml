@@ -547,6 +547,14 @@
                                  externalLink="http://www.drugbank.ca/drugs/"
                                  typeClass="org.intermine.model.bio.Protein"
                                  externalLinkLabel="DrugBank:" />
+       <enrichmentwidgetdisplayer id="gene_drug_enrichment" title="Drug Enrichment"
+                                 link="org.intermine.bio.web.widget.DrugURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.GeneDrugDataLoader"
+                                 label="Drug"
+                                 description="Drugs enriched for genes in this list."
+                                 externalLink="http://www.drugbank.ca/drugs/"
+                                 typeClass="org.intermine.model.bio.Gene"
+                                 externalLinkLabel="DrugBank:" />
  <!--
       <bagtabledisplayer id="table_drugs_protein" title="Associated Drugs"
                          link="org.intermine.bio.web.widget.DrugURLQuery"

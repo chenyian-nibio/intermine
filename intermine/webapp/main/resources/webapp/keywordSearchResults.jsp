@@ -173,9 +173,9 @@ input.submit {
             <li>Remove restrictions by clicking the red <b>(x)</b> above</li>
           </c:if>
           <li>Add an asterisk (*) to the end of a word to search for
-          partial matches, e.g. <i>dros*</i></li>
-          <li>Search for synonyms using the OR operator, e.g. <i>(fly
-          OR drosophila)</i></li>
+          partial matches, e.g. <i>trans*</i></li>
+          <li>Search for synonyms using the OR operator, e.g. <i>(human
+          OR homo)</i></li>
         </ul>
                    </c:otherwise>
           </c:choose>
