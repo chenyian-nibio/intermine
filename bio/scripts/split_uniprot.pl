@@ -33,7 +33,8 @@ if (@ARGV!=4) {
 }
 
 #my $download_dir = "/home/chenyian/data/uniprot";
-my $download_dir = "/data/bio/db/uniprot";
+#my $download_dir = "/data/bio/db/uniprot";
+my $download_dir = "/scratch/chenyian/uniprot";
 
 
 #============================================================================

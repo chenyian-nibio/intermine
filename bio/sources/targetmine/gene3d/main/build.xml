@@ -1,0 +1,4 @@
+<project name="gene3d-tasks" default="default" basedir=".">
+  <description>build gene3d tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

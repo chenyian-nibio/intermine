@@ -1,0 +1,5 @@
+<project name="gene3d" default="default" basedir=".">
+  <description>build, test, package gene3d</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

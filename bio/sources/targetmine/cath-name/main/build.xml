@@ -1,0 +1,4 @@
+<project name="cath-name-tasks" default="default" basedir=".">
+  <description>build cath-name tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>
