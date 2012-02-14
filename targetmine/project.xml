@@ -63,6 +63,16 @@
       <property name="clsFile" value="/data/bio/db/Targetmine/scop/dir.cla.scop.txt_1.75"/>
     </source>
 
+    <source name="cath-name" type="cath-name">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/cath"/>
+      <property name="src.data.dir.includes" value="CathNames"/>
+    </source>
+<!--
+    <source name="gene3d" type="gene3d">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/gene3d"/>
+      <property name="src.data.dir.includes" value="filtered.uniprot.txt"/>
+    </source>
+-->
     <source name="kegg-orthology" type="tm-kegg-orthology">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg/orthology"/>
       <property name="src.data.dir.includes" value="*" />
@@ -82,7 +92,6 @@
     </source>
     
  <!-- chenyian: disabled for external version 
- -->
     <source name="protein-analysis" type="protein-analysis">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis"/>
       <property name="src.data.dir.includes" value="result.out"/>
@@ -96,6 +105,7 @@
       <property name="src.data.dir.includes" value="omim_phenotype_title"/>
       <property name="mim2geneFile" value="/data/bio/db/Targetmine/omim/mim2gene" />
     </source>
+ -->
 <!--Added by Chen: Start -->
 
     <source name="pdb_ext" type="pdb_ext">
@@ -159,7 +169,7 @@
     </source>
     <source name="pubchem" type="pubchem">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pubchem" />
-      <property name="src.data.dir.includes" value="cid-inchikey-ext" />
+      <property name="src.data.dir.includes" value="cid-inchikey" />
       <property name="meshFile" value="/data/bio/db/Targetmine/pubchem/CID-MeSH" />
     </source>
     <source name="chebi-db" type="chebi-db">
@@ -173,7 +183,7 @@
 
     <source name="irefindex" type="irefindex">
 		<property name="src.data.dir" location="/data/bio/db/Targetmine/irefindex"/>
-		<property name="src.data.dir.includes" value="*.01192011.txt"/>
+		<property name="src.data.dir.includes" value="*.mitab.*.txt"/>
 	</source>
   	<source name="fill-missing-proteins" type="fill-missing-proteins">
       <property name="src.data.file" location="build/proteins.txt"/>
