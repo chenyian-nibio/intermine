@@ -85,6 +85,10 @@ public class CytoscapeNetworkService
         for (String s : fullInteractingGeneList) {
             fullInteractingGeneSet.add(Integer.valueOf(s));
         }
+        // chenyian: prevent empty list
+        if (fullInteractingGeneSet.isEmpty()){
+        	return NO_INTERACTION_FOR_INPUT_GENE;
+        }
 
         //=== Query interactions ===
         CytoscapeNetworkDBQueryRunner queryRunner = new CytoscapeNetworkDBQueryRunner();

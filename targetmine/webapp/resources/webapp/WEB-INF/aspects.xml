@@ -1,11 +1,11 @@
 <aspects>
 
   <aspect name="Genomics">
-    <subtitle>Genome annotation</subtitle>
+    <subtitle>Gene annotations</subtitle>
     <icon-image>model/images/genomics.gif</icon-image>
     <large-image>model/images/genomics.gif</large-image>
     <intro-text>
-      The gene structure and other genome annotation in TargetMine are provided by
+      The gene and genome annotations in TargetMine are provided by
       a variety of curated source databases. 
     </intro-text>
     <tile-name>model/genomics.jsp</tile-name>
@@ -14,11 +14,11 @@
   </aspect>
 
   <aspect name="Proteins">
-    <subtitle>Protein and proteomics&lt;br/&gt;data</subtitle>
+    <subtitle>Protein annotations</subtitle>
     <icon-image>model/images/proteins.png</icon-image>
     <large-image>model/images/proteins.png</large-image>
     <intro-text>
-      Protein annotation (including family and domain annotation) from UniProt.
+      Protein annotations and protein-gene mappings from UniProt.
     </intro-text>
     <tile-name>model/proteins.jsp</tile-name>
     <aspect-source name="UniProt" url="http://www.uniprot.org"/>
@@ -56,7 +56,7 @@
       3-D protein structure information.
     </intro-text>
     <tile-name>model/proteinStructure.jsp</tile-name>
-     <aspect-source name="RCSB Protein Data Bank" url="http://www.rcsb.org/pdb/home/home.do"/>
+     <aspect-source name="MSD SIFTS" url="http://www.ebi.ac.uk/pdbe/docs/sifts/"/>
   </aspect>
 
   <aspect name="Interactions">
@@ -72,18 +72,7 @@
     <aspect-source name="BioGRID" url="http://www.thebiogrid.org/"/>
     <aspect-source name="AMADEUS" url="http://acgt.cs.tau.ac.il/amadeus/"/>
     <aspect-source name="ORegAnno" url="http://www.oreganno.org/oregano/"/>
-    <aspect-source name="iRefWeb" url="http://wodaklab.org/iRefWeb/"/>
-  </aspect>
-
-  <aspect name="Homologues">
-    <subtitle>Homologues (Orthologues and Paralogues)</subtitle>
-    <icon-image>model/images/homolog.png</icon-image>
-    <large-image>model/images/homolog.png</large-image>
-    <intro-text>
-      Homologues (Orthologues and Paralogues).
-    </intro-text>
-    <tile-name>model/orthologues.jsp</tile-name>
-    <aspect-source name="KEGG Orthology" url="http://www.genome.jp/kegg/ko.html"/>
+    <aspect-source name="iRefIndex" url="http://irefindex.uio.no/wiki/iRefIndex"/>
   </aspect>
 
   <aspect name="Disease">
@@ -100,7 +89,6 @@
     <aspect-source name="Disease Ontology Wiki" url="http://do-wiki.nubic.northwestern.edu/index.php" />
   </aspect>
 
-
   <aspect name="Protein Domain">
     <subtitle></subtitle>
     <icon-image>model/images/domain.png</icon-image>
@@ -112,17 +100,6 @@
     <aspect-source name="InterPro" url="http://www.ebi.ac.uk/interpro/"/>
     <aspect-source name="IPI" url="http://www.ebi.ac.uk/IPI/"/>
     <aspect-source name="Integr8" url="http://www.ebi.ac.uk/integr8/"/>
-  </aspect>
-
-  <aspect name="Literature">
-    <subtitle></subtitle>
-    <icon-image>model/images/book.png</icon-image>
-    <large-image>model/images/book.png</large-image>
-    <intro-text>
-      Publications of Genes, Proteins, GO annotations, Interactions and Drugs. 
-    </intro-text>
-    <tile-name>model/literature.jsp</tile-name>
-    <aspect-source name="NCBI" url="http://www.ncbi.nlm.nih.gov/"/>
   </aspect>
 
   <aspect name="Compounds">

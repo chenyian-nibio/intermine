@@ -59,7 +59,7 @@ public class CathNameConverter extends BioFileConverter {
 			if (line.startsWith("#")) {
 				continue;
 			}
-			Pattern pattern = Pattern.compile("^([\\d|\\.]+)\\s+(\\w+)\\s+:(.+)$");
+			Pattern pattern = Pattern.compile("^([\\d|\\.]+)\\s+(\\w+)\\s+:(.*)$");
 			Matcher matcher = pattern.matcher(line);
 			while (matcher.find()) {
 				String nodeNumber = matcher.group(1);
@@ -83,6 +83,8 @@ public class CathNameConverter extends BioFileConverter {
 		item.setAttribute("cathDomainName", cathDomainName);
 		if (description != null && !description.equals("")){
 			item.setAttribute("description", description);
+		} else {
+			item.setAttribute("description", String.format("No name: %s", cathDomainName));
 		}
 		// logical error here!!
 		item.addToCollection("parents", item);
@@ -108,7 +110,8 @@ public class CathNameConverter extends BioFileConverter {
 
 	public static void main(String[] args) {
 		String line = "1.20.1000    1f5nA01    :Signaling Protein - Interferon-induced Guanylate-binding Protein 1; Chain A, domain 1";
-		Pattern pattern = Pattern.compile("^([\\d|\\.]+)\\s+(\\w+)\\s+:(.+)$");
+//		String line = "3.40.50.10210    1l5oA02    :";
+		Pattern pattern = Pattern.compile("^([\\d|\\.]+)\\s+(\\w+)\\s+:(.*)$");
 		Matcher matcher = pattern.matcher(line);
 		if (matcher.find()) {
 			String nodeNumber = matcher.group(1);

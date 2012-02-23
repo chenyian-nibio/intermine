@@ -67,11 +67,11 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/cath"/>
       <property name="src.data.dir.includes" value="CathNames"/>
     </source>
-<!--
     <source name="gene3d" type="gene3d">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene3d"/>
-      <property name="src.data.dir.includes" value="filtered.uniprot.txt"/>
+      <property name="src.data.dir.includes" value="gene3d.HRMD.txt"/>
     </source>
+<!--
 -->
     <source name="kegg-orthology" type="tm-kegg-orthology">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg/orthology"/>
@@ -92,6 +92,7 @@
     </source>
     
  <!-- chenyian: disabled for external version 
+ -->
     <source name="protein-analysis" type="protein-analysis">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis"/>
       <property name="src.data.dir.includes" value="result.out"/>
@@ -105,7 +106,6 @@
       <property name="src.data.dir.includes" value="omim_phenotype_title"/>
       <property name="mim2geneFile" value="/data/bio/db/Targetmine/omim/mim2gene" />
     </source>
- -->
 <!--Added by Chen: Start -->
 
     <source name="pdb_ext" type="pdb_ext">

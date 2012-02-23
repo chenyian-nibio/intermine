@@ -20,22 +20,20 @@ import org.intermine.objectstore.query.QueryExpression;
 import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.QueryFunction;
 import org.intermine.objectstore.query.QueryObjectReference;
-import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.web.logic.widget.EnrichmentWidgetLdr;
 
 /***
  * 
  * @author chenyian
- *
+ * 
  */
-public class DrugDataLoader extends EnrichmentWidgetLdr {
-	private static final Logger LOG = Logger.getLogger(DrugDataLoader.class);
-    private Model model;
+public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
+	private static final Logger LOG = Logger.getLogger(StructuralDomainDataLoader.class);
+	private Model model;
 
-	public DrugDataLoader(InterMineBag bag, ObjectStore os, String extraAttribute) {
+	public StructuralDomainDataLoader(InterMineBag bag, ObjectStore os, String extraAttribute) {
 		this.bag = bag;
 		organisms = BioUtil.getOrganisms(os, bag, false);
-		//  having attributes lowercase increases the chances the indexes will be used
 		for (String s : organisms) {
 			organismsLower.add(s.toLowerCase());
 		}
@@ -47,36 +45,42 @@ public class DrugDataLoader extends EnrichmentWidgetLdr {
 
 		// classes for FROM clause
 		QueryClass qcProtein = new QueryClass(Protein.class);
-		QueryClass qcDrugProteinInteraction;
-		QueryClass qcDrug;
+		QueryClass qcStructuralDomainRegion;
+		QueryClass qcCathChild;
+		QueryClass qcCathParent;
 		QueryClass qcOrganism = new QueryClass(Organism.class);
 
-        try {
-        	qcDrugProteinInteraction = new QueryClass(Class.forName(model.getPackageName() + ".DrugProteinInteraction"));
-        	qcDrug = new QueryClass(Class.forName(model.getPackageName() + ".Drug"));
-        } catch (ClassNotFoundException e) {
-            LOG.error("Error rendering drug enrichment widget", e);
-            // don't throw an exception, return NULL instead.  The widget will display 'no
-            // results'. the javascript that renders widgets assumes a valid widget and thus
-            // can't handle an exception thrown here.
-            return null;
-        }
+		try {
+			qcStructuralDomainRegion = new QueryClass(Class.forName(model.getPackageName()
+					+ ".StructuralDomainRegion"));
+			qcCathParent = new QueryClass(Class.forName(model.getPackageName()
+					+ ".CathClassification"));
+			qcCathChild = new QueryClass(Class.forName(model.getPackageName()
+					+ ".CathClassification"));
+		} catch (ClassNotFoundException e) {
+			LOG.error("Error rendering structural domain enrichment widget", e);
+			// don't throw an exception, return NULL instead. The widget will display 'no
+			// results'. the javascript that renders widgets assumes a valid widget and thus
+			// can't handle an exception thrown here.
+			return null;
+		}
 
 		// fields for SELECT clause
 		QueryField qfProteinId = new QueryField(qcProtein, "id");
 		QueryField qfOrganismName = new QueryField(qcOrganism, "name");
-		QueryField qfDrugId = new QueryField(qcDrug, "drugBankId");
-		QueryField qfDrugName = new QueryField(qcDrug, "genericName");
+		QueryField qfCathCode = new QueryField(qcCathParent, "cathCode");
+		QueryField qfCathDomainName = new QueryField(qcCathParent, "cathDomainName");
+		QueryField qfCathDescription = new QueryField(qcCathParent, "description");
 		QueryField qfPrimaryAccession = new QueryField(qcProtein, "primaryAccession");
 
 		// constraints
 		ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
 
-		cs.addConstraint(new SimpleConstraint(qfDrugId, ConstraintOp.IS_NOT_NULL));
+		// cs.addConstraint(new SimpleConstraint(qfCathCode, ConstraintOp.IS_NOT_NULL));
 
 		// constrain genes to be in subset of list the user selected
 		if (keys != null) {
-			cs.addConstraint(new BagConstraint(qfDrugId, ConstraintOp.IN, keys));
+			cs.addConstraint(new BagConstraint(qfCathCode, ConstraintOp.IN, keys));
 		}
 
 		// constrain genes to be in list
@@ -92,20 +96,24 @@ public class DrugDataLoader extends EnrichmentWidgetLdr {
 		QueryObjectReference qor = new QueryObjectReference(qcProtein, "organism");
 		cs.addConstraint(new ContainsConstraint(qor, ConstraintOp.CONTAINS, qcOrganism));
 
-		// protein.drugs.drug = drug
-		QueryCollectionReference qcr = new QueryCollectionReference(qcProtein, "drugs");
+		// protein.structuralDomains.cathClassification.parents
+		QueryCollectionReference qcr = new QueryCollectionReference(qcProtein, "structuralDomains");
 		cs.addConstraint(new ContainsConstraint(qcr, ConstraintOp.CONTAINS,
-				qcDrugProteinInteraction));
-		QueryObjectReference qordrug = new QueryObjectReference(qcDrugProteinInteraction, "drug");
-		cs.addConstraint(new ContainsConstraint(qordrug, ConstraintOp.CONTAINS, qcDrug));
+				qcStructuralDomainRegion));
+		QueryObjectReference qorChild = new QueryObjectReference(qcStructuralDomainRegion,
+				"cathClassification");
+		cs.addConstraint(new ContainsConstraint(qorChild, ConstraintOp.CONTAINS, qcCathChild));
+		QueryCollectionReference qcrParent = new QueryCollectionReference(qcCathChild, "parents");
+		cs.addConstraint(new ContainsConstraint(qcrParent, ConstraintOp.CONTAINS, qcCathParent));
 
 		Query q = new Query();
 		q.setDistinct(true);
 
 		// from statement
 		q.addFrom(qcProtein);
-		q.addFrom(qcDrugProteinInteraction);
-		q.addFrom(qcDrug);
+		q.addFrom(qcStructuralDomainRegion);
+		q.addFrom(qcCathChild);
+		q.addFrom(qcCathParent);
 		q.addFrom(qcOrganism);
 
 		// add constraints to query
@@ -117,9 +125,9 @@ public class DrugDataLoader extends EnrichmentWidgetLdr {
 			// export query
 			// needed for export button on widget
 		} else if (action.equals("export")) {
-			q.addToSelect(qfDrugId);
+			q.addToSelect(qfCathCode);
 			q.addToSelect(qfPrimaryAccession);
-			q.addToOrderBy(qfDrugId);
+			q.addToOrderBy(qfCathCode);
 			// total queries
 			// needed for enrichment calculations
 		} else if (action.endsWith("Total")) {
@@ -130,14 +138,15 @@ public class DrugDataLoader extends EnrichmentWidgetLdr {
 			q.addToSelect(new QueryFunction()); // gene count
 			// needed for enrichment calculations
 		} else {
-			q.addToSelect(qfDrugId);
-			q.addToGroupBy(qfDrugId);
+			q.addToSelect(qfCathCode);
+			q.addToGroupBy(qfCathCode);
 			q.addToSelect(new QueryFunction()); // gene count
 			if (action.equals("sample")) {
-				q.addToSelect(qfDrugName);
-				q.addToGroupBy(qfDrugName);
+				q.addToSelect(qfCathDomainName);
+				q.addToGroupBy(qfCathDomainName);
 			}
 		}
 		return q;
 	}
+
 }

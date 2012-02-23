@@ -53,7 +53,7 @@
         
         <P><B>Genetic interactions from the BioGRID</B></P>
         <P><B>Transcription factor data from AMADEUS and ORegAnno</B></P>
-        <P><B>Protein-protein interactions from the iRefWeb</B></P>
+        <P><B>Protein-protein interactions from the iRefIndex and PPIView</B></P>
 
       </div>
     </TD>

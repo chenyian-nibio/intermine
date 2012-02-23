@@ -19,16 +19,12 @@
     <td valign="top">
       <div class="body" style="height:1%">
 
-    <li>
-    <dt>Experimentally determined protein structures from the <a href="http://www.rcsb.org/pdb/home/home.do" target="_new">RCSB Protein data Bank.</a>
-    </dt>
-    </li>
-<dt> The <a href="http://www.jmol.org" target="_new">JMol structural viewer</a> has been
-     integrated into TargetMine and allows viewing and further analysis of each protein
-     structure.
-</dt>
-   </div>
-  </td>
+    	<li>
+    		<dt>Experimentally determined protein structures and protein classifications.
+    		</dt>
+    	</li>
+   	  </div>
+    </td>
 
 
     <td width="40%" valign="top">

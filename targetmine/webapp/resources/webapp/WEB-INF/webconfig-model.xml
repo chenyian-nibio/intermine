@@ -409,7 +409,6 @@
   <class className="org.intermine.model.bio.StitchInteraction">
     <fields>
       <fieldconfig fieldExpr="compound.identifier"/>
-      <fieldconfig fieldExpr="compound.name"/>
       <fieldconfig fieldExpr="score"/>
       <fieldconfig fieldExpr="evidence"/>
     </fields>
@@ -426,6 +425,24 @@
     <fields>
       <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="name"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.StructuralDomainRegion">
+    <fields>
+      <fieldconfig fieldExpr="start"/>
+      <fieldconfig fieldExpr="end"/>
+      <fieldconfig fieldExpr="cathClassification.cathCode"/>
+      <fieldconfig fieldExpr="cathClassification.cathDomainName"/>
+      <fieldconfig fieldExpr="cathClassification.description"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.CathClassification">
+    <fields>
+      <fieldconfig fieldExpr="cathCode"/>
+      <fieldconfig fieldExpr="cathDomainName"/>
+      <fieldconfig fieldExpr="description"/>
     </fields>
   </class>
 
@@ -458,6 +475,12 @@
                      jspName="model/proteinAnalysisResult.jsp"
                      replacesFields="proteinDomainRegions"
                      placement="Proteins"
+                     types="Protein"/>
+                     
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinSequenceDisplayer"
+                     jspName="model/proteinSequenceDisplayer.jsp"
+                     replacesFields="sequence"
+                     placement="summary"
                      types="Protein"/>
 
   </reportdisplayers>
@@ -555,36 +578,15 @@
                                  externalLink="http://www.drugbank.ca/drugs/"
                                  typeClass="org.intermine.model.bio.Gene"
                                  externalLinkLabel="DrugBank:" />
- <!--
-      <bagtabledisplayer id="table_drugs_protein" title="Associated Drugs"
-                         link="org.intermine.bio.web.widget.DrugURLQuery"
-                         pathStrings="Protein.drugs.drug"
-                         description="Drugs which associated with proteins in the list."
-                         displayFields="drugBankId"
-                         exportField="primaryAccession"
-                         typeClass="org.intermine.model.bio.Protein"
-                         columnTitle="Targeted Proteins"/>
--->
-      <bagtabledisplayer id="table_drugs_gene" title="Associated Drugs"
-                         link="org.intermine.bio.web.widget.DrugURLQuery"
-                         pathStrings="Gene.proteins.drugs.drug"
-                         description="Drugs which associated with genes in the list."
-                         displayFields="drugBankId"
-                         exportField="ncbiGeneNumber"
-                         typeClass="org.intermine.model.bio.Gene"
-                         externalLinkLabel="DrugBank:"
-                         externalLink="http://www.drugbank.ca/drugs/"
-                         columnTitle="Targeted Genes"/>
-<!--
-      <bagtabledisplayer id="table_ppis" title="Protein-Protein Interactions"
-                         link="org.intermine.bio.web.widget.PpiURLQuery"
-                         pathStrings="Protein.proteinInteractions.representativePartner"
-                         description="Proteins that interact with proteins in this list."
-                         displayFields="primaryAccession"
-                         exportField="primaryAccession"
-                         typeClass="org.intermine.model.bio.Protein"
-                         columnTitle="PPIs"/>
--->
+
+       <enrichmentwidgetdisplayer id="structural_domain_enrichment" title="CATH classificatioin Enrichment"
+                                 link="org.intermine.bio.web.widget.StructuralDomainURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.StructuralDomainDataLoader"
+                                 label="CATH classification"
+                                 description="Structural domains enriched for proteins in this list."
+                                 externalLink="http://www.cathdb.info/cathnode/"
+                                 typeClass="org.intermine.model.bio.Protein"
+                                 externalLinkLabel="CATH:" />
 
 </widgets>
 </webconfig>
