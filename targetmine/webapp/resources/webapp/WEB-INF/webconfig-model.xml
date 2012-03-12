@@ -415,6 +415,8 @@
   <class className="org.intermine.model.bio.CompoundGroupInteraction">
     <fields>
       <fieldconfig fieldExpr="protein.primaryAccession"/>
+      <fieldconfig fieldExpr="protein.name"/>
+      <fieldconfig fieldExpr="compoundGroup.identifier"/>
       <fieldconfig fieldExpr="compoundGroup.name"/>
     </fields>
   </class>

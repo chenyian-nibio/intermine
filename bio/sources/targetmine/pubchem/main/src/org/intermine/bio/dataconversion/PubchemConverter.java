@@ -93,6 +93,7 @@ public class PubchemConverter extends BioFileConverter {
 			item.setAttribute("identifier", String.format("PubChem: %s", cid));
 			item.setAttribute("pubChemCid", cid);
 			String name = meshNameMap.get(cid);
+			// TODO chenyian: if name is not available, use identifier instead
 			if (name != null) {
 //				item.setAttribute("name", name + " (MeSH)");
 				item.setAttribute("name", name);
@@ -112,6 +113,7 @@ public class PubchemConverter extends BioFileConverter {
 			compoundGroupMap.put(inchiKey, ret);
 		}
 		// randomly pick one name
+		// TODO chenyian: if name is not available, use identifier instead
 		if (nameMap.get(inchiKey) == null && name != null) {
 			nameMap.put(inchiKey, name);
 			ret.setAttribute("name", name);
