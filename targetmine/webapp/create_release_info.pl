@@ -9,7 +9,8 @@ my $web_path="resources/webapp";
 my @sources = (
 	"gene_info", "uniprot", "go-annotation/obo", "go-annotation", 
 	"interpro", "kegg", "scop", "biogrid", "do", "do-annotation", 
-	"drugbank", "enzyme", "ipi-ipc", "integr8", "reactome/lv3", "irefindex", "stitch");
+	"drugbank", "enzyme", "ipi-ipc", "integr8", "reactome/lv3", "irefindex", "stitch", 
+	"cath", "gene3d", "nci-pathway", "metazoan", "tfactor", "pubchem");
 
 
 my @time = localtime(time);

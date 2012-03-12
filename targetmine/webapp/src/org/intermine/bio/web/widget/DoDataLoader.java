@@ -106,14 +106,6 @@ public class DoDataLoader extends EnrichmentWidgetLdr {
         QueryCollectionReference c1 = new QueryCollectionReference(qcGene, "doAnnotations");
         cs.addConstraint(new ContainsConstraint(c1, ConstraintOp.CONTAINS, qcDoAnnotation));
 
-        // ignore the big three ontologies
-//        String[] ids = getOntologies();
-//        QueryExpression c2 = new QueryExpression(QueryExpression.LOWER, qfParentGoIdentifier);
-//        for (int i = 0; i < ids.length; i++) {
-//            cs.addConstraint(new SimpleConstraint(c2, ConstraintOp.NOT_EQUALS,
-//                    new QueryValue(ids[i])));
-//        }
-
         // DO terms selected by user = gene.doAnnotations.ontologyTerm.identifier
         if (keys != null) {
             cs.addConstraint(new BagConstraint(qfParentDoIdentifier, ConstraintOp.IN, keys));

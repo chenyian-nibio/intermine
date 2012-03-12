@@ -69,14 +69,13 @@ public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
 		QueryField qfProteinId = new QueryField(qcProtein, "id");
 		QueryField qfOrganismName = new QueryField(qcOrganism, "name");
 		QueryField qfCathCode = new QueryField(qcCathParent, "cathCode");
-		QueryField qfCathDomainName = new QueryField(qcCathParent, "cathDomainName");
 		QueryField qfCathDescription = new QueryField(qcCathParent, "description");
 		QueryField qfPrimaryAccession = new QueryField(qcProtein, "primaryAccession");
 
 		// constraints
 		ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
 
-		// cs.addConstraint(new SimpleConstraint(qfCathCode, ConstraintOp.IS_NOT_NULL));
+//		 cs.addConstraint(new SimpleConstraint(qfCathCode, ConstraintOp.IS_NOT_NULL));
 
 		// constrain genes to be in subset of list the user selected
 		if (keys != null) {
@@ -130,23 +129,47 @@ public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
 			q.addToOrderBy(qfCathCode);
 			// total queries
 			// needed for enrichment calculations
-		} else if (action.endsWith("Total")) {
+		} else if (action.endsWith("Total")) { // n and N
 			q.addToSelect(qfProteinId);
 			Query subQ = q;
 			q = new Query();
 			q.addFrom(subQ);
 			q.addToSelect(new QueryFunction()); // gene count
 			// needed for enrichment calculations
-		} else {
-			q.addToSelect(qfCathCode);
-			q.addToGroupBy(qfCathCode);
-			q.addToSelect(new QueryFunction()); // gene count
-			if (action.equals("sample")) {
-				q.addToSelect(qfCathDomainName);
-				q.addToGroupBy(qfCathDomainName);
-			}
+		} else { // k and M
+			
+            /*
+            the first query gets all of the protein --> cath parent relationships unique
+            the second query then counts the proteins per each cath parent
+             */
+
+            // subquery
+            Query subq = q;
+            subq.addToSelect(qfProteinId);
+            subq.addToSelect(qfCathCode);
+
+            QueryField qfName = null;
+            if (action.equals("sample")) {
+                subq.addToSelect(qfCathDescription);
+                qfName = new QueryField(subq, qfCathDescription);
+            }
+
+            // needed so we can select this field in the parent query
+            QueryField qfIdentifier = new QueryField(subq, qfCathCode);
+
+            // main query
+            q = new Query();
+            q.setDistinct(false);
+            q.addFrom(subq);
+            q.addToSelect(qfIdentifier);
+            q.addToSelect(new QueryFunction());
+            if (action.equals("sample")) {
+                q.addToSelect(qfName);
+                q.addToGroupBy(qfName);
+            }
+            q.addToGroupBy(qfIdentifier);
+
 		}
 		return q;
 	}
-
 }

@@ -5,55 +5,11 @@
 		<attribute name="sunid" type="java.lang.Integer"/>
 		<attribute name="sccs" type="java.lang.String"/>
 		<attribute name="description" type="java.lang.String"/>
-	</class>
-
-	<class name="ScopClassification" is-interface="true">
-		<attribute name="sid" type="java.lang.String"/>
-		<attribute name="sccs" type="java.lang.String"/>
-		<reference name="scopClass" referenced-type="ScopClass"/>
-		<reference name="scopFold" referenced-type="ScopFold"/>
-		<reference name="scopSuperFamily" referenced-type="ScopSuperFamily"/>
-		<reference name="scopFamily" referenced-type="ScopFamily"/>
-		<reference name="scopDomain" referenced-type="ScopDomain"/>
-		<reference name="scopSpecies" referenced-type="ScopSpecies"/>
-		<reference name="scopProtein" referenced-type="ScopProtein"/>
+		<attribute name="type" type="java.lang.String"/>
+		<collection name="parents" referenced-type="ScopEntry"/>
 		<collection name="scopRegions" referenced-type="ScopRegion" reverse-reference="scopClassification"/>
 	</class>
-	
-	<class name="ScopClass" extends="ScopEntry" is-interface="true">
-		<collection name="scopFolds" referenced-type="ScopFold" reverse-reference="scopClass"/>
-	</class>
-	
-	<class name="ScopFold" extends="ScopEntry" is-interface="true">
-		<reference name="scopClass" referenced-type="ScopClass" reverse-reference="scopFolds" />
-		<collection name="scopSuperFamilies" referenced-type="ScopSuperFamily" reverse-reference="scopFold"/>
-	</class>
-	
-	<class name="ScopSuperFamily" extends="ScopEntry" is-interface="true">
-		<reference name="scopFold" referenced-type="ScopFold" reverse-reference="scopSuperFamilies" />
-		<collection name="scopFamilies" referenced-type="ScopFamily" reverse-reference="scopSuperFamily"/>
-	</class>
-	
-	<class name="ScopFamily" extends="ScopEntry" is-interface="true">
-		<reference name="scopSuperFamily" referenced-type="ScopSuperFamily" reverse-reference="scopFamilies" />
-		<collection name="scopDomain" referenced-type="ScopDomain" reverse-reference="scopFamily"/>
-	</class>
-	
-	<class name="ScopDomain" extends="ScopEntry" is-interface="true">
-		<reference name="scopFamily" referenced-type="ScopFamily" reverse-reference="scopDomain" />
-		<collection name="scopSpecies" referenced-type="ScopSpecies" reverse-reference="scopDomain"/>
-	</class>
-	
-	<class name="ScopSpecies" extends="ScopEntry" is-interface="true">
-		<reference name="scopDomain" referenced-type="ScopDomain" reverse-reference="scopSpecies" />
-		<collection name="scopProteins" referenced-type="ScopProtein" reverse-reference="scopSpecies"/>
-	</class>
-	
-	<class name="ScopProtein" extends="ScopEntry" is-interface="true">
-		<reference name="scopSpecies" referenced-type="ScopSpecies" reverse-reference="scopProteins" />
-		<collection name="scopRegions" referenced-type="ScopRegion" reverse-reference="scopProtein"/>
-	</class>
-	
+
 	<class name="ProteinRegion" is-interface="true">
 		<attribute name="start" type="java.lang.Integer"/>
 		<attribute name="end" type="java.lang.Integer"/>
@@ -62,24 +18,16 @@
 	<class name="ScopRegion" extends="ProteinRegion" is-interface="true">
 		<attribute name="startInsertionCode" type="java.lang.String"/>
 		<attribute name="endInsertionCode" type="java.lang.String"/>
-		<reference name="scopClassification" referenced-type="ScopClassification" reverse-reference="scopRegions"/>
+		<reference name="scopClassification" referenced-type="ScopEntry" reverse-reference="scopRegions"/>
 		<reference name="chain" referenced-type="ProteinChain" reverse-reference="scopRegions"/>
-		<reference name="scopProtein" referenced-type="ScopProtein" reverse-reference="scopRegions"/>
 	</class>
 	
 	<class name="ProteinChain" is-interface="true">
 		<attribute name="pdbId" type="java.lang.String"/>
 		<attribute name="chain" type="java.lang.String"/>
+		<attribute name="identifier" type="java.lang.String"/>
 		<reference name="structure" referenced-type="ProteinStructure" ordered="true" reverse-reference="chains"/>
 		<collection name="scopRegions" referenced-type="ScopRegion" reverse-reference="chain"/>
-	</class>
-
-	<class name="MacroMolecularStructure" is-interface="true">
-	</class>
-	
-	<class name="ProteinStructure" extends="MacroMolecularStructure" is-interface="true">
-		<attribute name="pdbId" type="java.lang.String"/>
-		<collection name="chains" referenced-type="ProteinChain" reverse-reference="structure"/>
 	</class>
 
 </classes>

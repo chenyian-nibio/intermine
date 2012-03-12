@@ -330,21 +330,19 @@
 
   <class className="org.intermine.model.bio.ScopEntry">
     <fields>
-      <fieldconfig fieldExpr="description" />
+      <fieldconfig fieldExpr="type" />
+      <fieldconfig fieldExpr="sunid" />
       <fieldconfig fieldExpr="sccs" />
+      <fieldconfig fieldExpr="description" />
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.ScopClassification">
+  <class className="org.intermine.model.bio.ScopRegion">
     <fields>
-      <fieldconfig fieldExpr="sid"/>
-      <fieldconfig fieldExpr="scopClass.description" />
-      <fieldconfig fieldExpr="scopFold.description" />
-      <fieldconfig fieldExpr="scopSuperFamily.description" />
-      <fieldconfig fieldExpr="scopFamily.description" />
-      <fieldconfig fieldExpr="scopDomain.description" />
-      <fieldconfig fieldExpr="scopSpecies.description" />
-      <fieldconfig fieldExpr="scopProtein.description"  showInSummary="false"/>
+      <fieldconfig fieldExpr="start" />
+      <fieldconfig fieldExpr="startInsertionCode" />
+      <fieldconfig fieldExpr="end" />
+      <fieldconfig fieldExpr="endInsertionCode" />
     </fields>
   </class>
 
@@ -579,7 +577,7 @@
                                  typeClass="org.intermine.model.bio.Gene"
                                  externalLinkLabel="DrugBank:" />
 
-       <enrichmentwidgetdisplayer id="structural_domain_enrichment" title="CATH classificatioin Enrichment"
+       <enrichmentwidgetdisplayer id="structural_domain_enrichment" title="CATH classification Enrichment"
                                  link="org.intermine.bio.web.widget.StructuralDomainURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.StructuralDomainDataLoader"
                                  label="CATH classification"

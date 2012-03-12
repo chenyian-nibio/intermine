@@ -59,7 +59,6 @@
     <source name="scop" type="scop">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/scop"/>
       <property name="src.data.dir.includes" value="dir.des.scop.txt_1.75"/>
-      <property name="hieFile" value="/data/bio/db/Targetmine/scop/dir.hie.scop.txt_1.75"/>
       <property name="clsFile" value="/data/bio/db/Targetmine/scop/dir.cla.scop.txt_1.75"/>
     </source>
 
