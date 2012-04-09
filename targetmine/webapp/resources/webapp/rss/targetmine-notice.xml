@@ -7,6 +7,12 @@
 
   <item>
     <title>Update</title>
+    <link>news/2012/04/</link>
+    <description>build 20120408 released</description>
+    <pubDate>Wed, 11 Apr 2012 12:00:00 +0900</pubDate>
+  </item>
+  <item>
+    <title>Update</title>
     <link>news/2012/03/</link>
     <description>build 20120308 released</description>
     <pubDate>Wed, 14 Mar 2012 12:00:00 +0900</pubDate>
@@ -58,42 +64,6 @@
     <link>news/2011/04/</link>
     <description>build 20110415 released</description>
     <pubDate>Fri, 15 Apr 2011 12:00:00 +0900</pubDate>
-  </item>
-  <item>
-    <title>Update</title>
-    <link>news/2011/03/</link>
-    <description>build 20110307 released</description>
-    <pubDate>Tue, 08 Mar 2011 12:00:00 +0900</pubDate>
-  </item>
-  <item>
-    <title>Update</title>
-    <link>news/2011/02/</link>
-    <description>build 20110209 released</description>
-    <pubDate>Wed, 09 Feb 2011 12:00:00 +0900</pubDate>
-  </item>
-  <item>
-    <title>Update</title>
-    <link>news/2011/01/</link>
-    <description>build 20110119 released</description>
-    <pubDate>Wed, 19 Jan 2011 12:00:00 +0900</pubDate>
-  </item>
-  <item>
-    <title>Update</title>
-    <link>news/2010/11/</link>
-    <description>build 20101102 released</description>
-    <pubDate>Tue, 02 Nov 2010 12:00:00 +0900</pubDate>
-  </item>
-  <item>
-    <title>Update</title>
-    <link>news/2010/09/</link>
-    <description>build 20100903 released</description>
-    <pubDate>Fri, 03 Sep 2010 12:00:00 +0900</pubDate>
-  </item>
-  <item>
-    <title>Update</title>
-    <link>news/2010/07/</link>
-    <description>build 20100726 released</description>
-    <pubDate>Mon, 26 Jul 2010 12:00:00 +0900</pubDate>
   </item>
 
 </channel>

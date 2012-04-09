@@ -63,6 +63,8 @@ my $split_dir = "$home/uniprot/split/";
 if (&checkdir_exists($split_dir)==0) {
   warn "Data already split.\n";
 } else {
+  print STDOUT `date`, "\n";
+  
   print "Splitting files by taxon Id\n";
   #use hash to define output name for each source file
   #comment out one of them to process the other file only
@@ -101,8 +103,8 @@ if (&checkdir_exists($split_dir)==0) {
         $keep = "true";
         #is this a taxon Id line?
       } elsif ($newline && $in_organism && 
-#               $newline=~/dbReference type="NCBI Taxonomy".*id="(\d+)"/) { # chenyian: uniprot change the format, 20110114 
-               $newline=~/dbReference id="(\d+)".*type="NCBI Taxonomy"/) {
+               $newline=~/dbReference type="NCBI Taxonomy".*id="(\d+)"/) { # chenyian: uniprot changed the format, 20110114 
+#               $newline=~/dbReference id="(\d+)".*type="NCBI Taxonomy"/) { # chenyian: changed again, 20120321 
         #get the taxon Id only if we are in an <organism>...</organism> to avoid <organismHost>
         $taxon = $1;
         #is this the end of the entry?
@@ -139,6 +141,8 @@ if (&checkdir_exists($split_dir)==0) {
     close(FILE);
   }
 #  system "chmod -R a+r,g+w $download_dir";
+  print STDOUT `date`, "\n";
+
 }
 
 #creates files and adds elements as appropriate

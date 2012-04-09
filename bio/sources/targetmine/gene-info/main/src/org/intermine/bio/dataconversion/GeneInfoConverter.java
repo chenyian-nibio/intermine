@@ -104,9 +104,9 @@ public class GeneInfoConverter extends BioFileConverter {
 
 			String[] split = key.trim().split("\\.");
 			if (idMap.get(split[0]) == null) {
-				throw new RuntimeException("Unrecognized organism id: " + split[0]
-						+ ", which is not specified in property: geneinfo.organisms. "
-						+ "Check your settings in project.xml and " + PROP_FILE + " .");
+				LOG.error("Unrecognized organism id: " + split[0]
+						+ ", which is not specified in property: geneinfo.organisms. ");
+				continue;
 			}
 			idMap.get(split[0]).put(split[1], value.trim());
 		}
@@ -155,6 +155,7 @@ public class GeneInfoConverter extends BioFileConverter {
 			String symbol = cols[2].trim();
 			String type = cols[9].trim();
 			String chromosome = cols[6].trim();
+			String dbXrefs = cols[5].trim();
 			// String mapLocation = cols[7].trim();
 
 			if (!taxonIds.contains(taxId)) {
@@ -165,8 +166,13 @@ public class GeneInfoConverter extends BioFileConverter {
 			gene.setAttribute("ncbiGeneNumber", geneId);
 			gene.setAttribute("name", name);
 			gene.setAttribute("description", desc);
-			gene.setAttribute("type", type);
 			gene.setReference("organism", getOrganism(taxId));
+			// check if the gene is micro RNA
+			if (type.equals("miscRNA") && dbXrefs.contains("miRBase:")){
+				gene.setAttribute("type", "microRNA");
+			} else {
+				gene.setAttribute("type", type);
+			}
 
 			String geneRefId = gene.getIdentifier();
 
@@ -361,7 +367,8 @@ public class GeneInfoConverter extends BioFileConverter {
 
 	private void processGene2unigene() {
 		unigeneMap = new HashMap<String, Set<String>>();
-		// #Format: GeneID UniGene_cluster (tab is used as a separator, pound sign - start of a comment)
+		// #Format: GeneID UniGene_cluster (tab is used as a separator, pound sign - start of a
+		// comment)
 		try {
 			Iterator<String[]> iterator = FormattedTextParser
 					.parseTabDelimitedReader(new BufferedReader(new FileReader(gene2unigeneFile)));

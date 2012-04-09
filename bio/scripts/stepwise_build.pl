@@ -37,7 +37,8 @@ my $postprocessDir = "postprocess";
 my $databaseName = "production-target-chen";
 my $databaseUser = "intermine";
 my $backupPath = "/scratch/targetmine";
-my $dumpCmd = "pg_dump -U $databaseUser $databaseName > $backupPath";
+#my $dumpCmd = "pg_dump -U $databaseUser $databaseName > $backupPath";
+my $dumpCmd = "pg_dump -v -F c -U $databaseUser -f $backupPath";
 
 #if ($#ARGV > 1) {
 #	die "Invalid arguments; too may arguments.";
@@ -107,7 +108,8 @@ sub dumpDatabase {
 	my @t = localtime();
 	my $date = sprintf("%02d", $t[5] % 100).sprintf("%02d", $t[4]+1).sprintf("%02d", $t[3]);
 	my $time = sprintf("%02d", $t[2]).sprintf("%02d", $t[1]).sprintf("%02d", $t[0]);
-	my $cmd = "$dumpCmd/$_[0].$date.$time.auto.pgdump";
+#	my $cmd = "$dumpCmd/$_[0].$date.$time.auto.pgdump";
+	my $cmd = "$dumpCmd/$_[0].$date.$time.auto.backup $databaseName";
 
 	open PIPE, "$cmd |" or die "cannot run $cmd: $?\n";
 	while (<PIPE>) {
