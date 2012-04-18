@@ -17,8 +17,8 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.apache.struts.action.ActionMessages;
-import org.intermine.api.template.TemplateQuery;
 import org.intermine.api.util.NameUtil;
+import org.intermine.template.TemplateQuery;
 import org.intermine.web.logic.session.SessionMethods;
 
 /**
@@ -32,6 +32,7 @@ public class TemplateSettingsForm extends ActionForm
     private String name = "";
     private String title = "";
     private String comment = "";
+    private String actionType = "";
 
     /**
      * Return the description.
@@ -121,4 +122,13 @@ public class TemplateSettingsForm extends ActionForm
         }
         return errors;
     }
+
+    public String getActionType() {
+        return actionType;
+    }
+
+    public void setActionType(String actionType) {
+        this.actionType = actionType;
+    }
+
 }

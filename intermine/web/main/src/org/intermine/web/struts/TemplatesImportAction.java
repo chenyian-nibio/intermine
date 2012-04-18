@@ -29,11 +29,12 @@ import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.search.SearchRepository;
 import org.intermine.api.tag.TagTypes;
-import org.intermine.api.template.TemplateQuery;
+import org.intermine.api.template.ApiTemplate;
 import org.intermine.api.util.NameUtil;
 import org.intermine.pathquery.PathConstraint;
 import org.intermine.pathquery.PathConstraintLookup;
 import org.intermine.pathquery.PathQuery;
+import org.intermine.template.TemplateQuery;
 import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.web.logic.template.TemplateHelper;
 
@@ -47,10 +48,9 @@ public class TemplatesImportAction extends InterMineAction
     /**
      * {@inheritDoc}
      */
-    public ActionForward execute(ActionMapping mapping,
-                                 ActionForm form,
-                                 HttpServletRequest request,
-                                 @SuppressWarnings("unused") HttpServletResponse response)
+    @Override
+    public ActionForward execute(ActionMapping mapping, ActionForm form,
+            HttpServletRequest request, HttpServletResponse response)
         throws Exception {
         HttpSession session = request.getSession();
         final InterMineAPI im = SessionMethods.getInterMineAPI(session);
@@ -72,30 +72,27 @@ public class TemplatesImportAction extends InterMineAction
             Set<String> templateNames = new HashSet<String>(profile.getSavedTemplates().keySet());
             if (tif.isOverwriting() && templateNames.size() > 0) {
                 for (String templateName : templateNames) {
-                    profile.deleteTemplate(templateName, im.getTrackerDelegate(), tif.isDeleteTracks());
+                    profile.deleteTemplate(templateName, im.getTrackerDelegate(),
+                            tif.isDeleteTracks());
                     deleted++;
                 }
             }
             boolean validConstraints = true;
             for (TemplateQuery template : templates.values()) {
-                String templateName = template.getName();
+                ApiTemplate apiTemplate = new ApiTemplate(template);
+                String templateName = apiTemplate.getName();
 
                 String updatedName = NameUtil.validateName(profile.getSavedTemplates().keySet(),
                         templateName);
                 if (!templateName.equals(updatedName)) {
-                    template = renameTemplate(updatedName, template);
+                    apiTemplate = renameTemplate(updatedName, apiTemplate);
                 }
                 if (validateLookupConstraints(template)) {
-                    profile.saveTemplate(template.getName(), template);
+                    profile.saveTemplate(apiTemplate.getName(), apiTemplate);
                     imported++;
                 } else {
                     validConstraints = false;
                 }
-            }
-
-            if (SessionMethods.isSuperUser(session)) {
-                SearchRepository sr = SessionMethods.getGlobalSearchRepository(servletContext);
-                sr.globalChange(TagTypes.TEMPLATE);
             }
 
             recordMessage(new ActionMessage("importTemplates.done", new Integer(deleted),
@@ -112,9 +109,9 @@ public class TemplatesImportAction extends InterMineAction
     }
 
     // clone the template and set the new special-character-free name
-    private TemplateQuery renameTemplate(String newName, TemplateQuery template) {
+    private ApiTemplate renameTemplate(String newName, ApiTemplate template) {
 
-        TemplateQuery newTemplate = template.clone();
+        ApiTemplate newTemplate = template.clone();
         newTemplate.setName(newName);
         return newTemplate;
     }

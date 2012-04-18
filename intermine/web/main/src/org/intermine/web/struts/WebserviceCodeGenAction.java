@@ -36,10 +36,10 @@ import org.intermine.api.query.codegen.WebservicePythonCodeGenerator;
 import org.intermine.api.query.codegen.WebserviceRubyCodeGenerator;
 import org.intermine.api.tag.TagNames;
 import org.intermine.api.tag.TagTypes;
-import org.intermine.api.template.TemplateManager;
-import org.intermine.api.template.TemplateQuery;
 import org.intermine.pathquery.PathQuery;
-import org.intermine.util.TypeUtil;
+import org.intermine.api.template.ApiTemplate;
+import org.intermine.api.template.TemplateManager;
+import org.intermine.template.TemplateQuery;
 import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.web.util.URLGenerator;
 
@@ -94,7 +94,7 @@ public class WebserviceCodeGenAction extends InterMineAction
 
             WebserviceCodeGenInfo info = null;
             if ("templateQuery".equals(source)) {
-                TemplateQuery template = getTemplateQuery(im, profile, request, session);
+                TemplateQuery template = getTemplateQuery(profile, request);
                 info = getWebserviceCodeGenInfo(
                         template,
                         serviceBaseURL,
@@ -134,21 +134,20 @@ public class WebserviceCodeGenAction extends InterMineAction
      * @param session HttpSession object
      * @return PathQuery object
      */
-    private TemplateQuery getTemplateQuery(InterMineAPI im, Profile profile,
-            HttpServletRequest request, HttpSession session) {
+    private TemplateQuery getTemplateQuery(Profile profile, HttpServletRequest request) {
 
         String name = request.getParameter("name");
         String scope = request.getParameter("scope");
         String originalTemplate = request.getParameter("originalTemplate");
 
-        TemplateManager templateManager = im.getTemplateManager();
+        TemplateManager templateManager = SessionMethods.getInterMineAPI(request).getTemplateManager();
         if (name == null) {
             throw new IllegalArgumentException("Cannot find a template in context "
                                                    + scope);
         } else {
             TemplateQuery template = (originalTemplate != null)
                                      ? templateManager.getTemplate(profile, name, scope)
-                                     : (TemplateQuery) SessionMethods.getQuery(session);
+                                     : (TemplateQuery) SessionMethods.getQuery(request);
             if (template != null) {
                 return template;
             } else {
@@ -164,15 +163,12 @@ public class WebserviceCodeGenAction extends InterMineAction
      * @return PathQuery object
      */
     private PathQuery getPathQuery(HttpSession session) {
-        // path query name is empty
         PathQuery query =  SessionMethods.getQuery(session);
 
         if (query != null) {
-            // If Class is Template, convert it to PathQuery
-            if ("TemplateQuery".equals(TypeUtil.unqualifiedName(query.getClass().toString()))) {
-                query = ((TemplateQuery) query).getPathQuery();
-            }
-            return query;
+            // Use copy constructor, as we need to return an object of this exact type,
+            // since the CodeGenerators use the class to determine how to generate code.
+            return new PathQuery(query);
         } else {
             throw new IllegalArgumentException("Cannot find a query");
         }
@@ -188,7 +184,7 @@ public class WebserviceCodeGenAction extends InterMineAction
      * @return whether or not Joe Public could run this without logging in.
      */
     protected static boolean templateIsPublic(TemplateQuery t, InterMineAPI im, Profile p) {
-        Map<String, TemplateQuery> templates = p.getSavedTemplates();
+        Map<String, ApiTemplate> templates = p.getSavedTemplates();
 
         return !templates.keySet().contains(t.getName()) && pathQueryIsPublic(t, im, p);
     }
@@ -225,8 +221,8 @@ public class WebserviceCodeGenAction extends InterMineAction
             String serviceRootURL, String projectTitle, String perlWSModuleVer,
             boolean isPublic, String user) {
 
-        WebserviceCodeGenInfo wsCodeGenInfo =
-            new WebserviceCodeGenInfo(query, serviceRootURL, projectTitle, perlWSModuleVer, isPublic, user);
+        WebserviceCodeGenInfo wsCodeGenInfo = new WebserviceCodeGenInfo(query,
+                serviceRootURL, projectTitle, perlWSModuleVer, isPublic, user);
         return wsCodeGenInfo;
     }
 
@@ -240,7 +236,8 @@ public class WebserviceCodeGenAction extends InterMineAction
     private void sendCode(String sourceCodeString, String extension, String filename,
             HttpServletResponse response) {
         response.setContentType("text/plain");
-        response.setHeader("Content-Disposition ", "inline; filename=" + filename + "." + extension);
+        response.setHeader("Content-Disposition ", "inline; filename="
+                + filename + "." + extension);
 
         PrintStream out;
         try {

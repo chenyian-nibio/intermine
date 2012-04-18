@@ -33,8 +33,6 @@ import org.apache.struts.tiles.actions.TilesAction;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.results.Column;
-import org.intermine.api.template.SwitchOffAbility;
-import org.intermine.api.template.TemplateQuery;
 import org.intermine.bio.web.export.BEDHttpExporter;
 import org.intermine.bio.web.logic.OrganismGenomeBuildLookup;
 import org.intermine.bio.web.logic.SequenceFeatureExportUtil;
@@ -51,8 +49,11 @@ import org.intermine.pathquery.PathConstraintBag;
 import org.intermine.pathquery.PathConstraintLookup;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.pathquery.PathQueryBinding;
+import org.intermine.template.SwitchOffAbility;
+import org.intermine.template.TemplateQuery;
 import org.intermine.util.DynamicUtil;
 import org.intermine.util.StringUtil;
+import org.intermine.web.logic.WebUtil;
 import org.intermine.web.logic.export.http.TableHttpExporter;
 import org.intermine.web.logic.results.PagedTable;
 import org.intermine.web.logic.session.SessionMethods;
@@ -133,7 +134,14 @@ public class GalaxyExportOptionsController extends TilesAction
 
         } else { // request from normal result table
             String tableName = request.getParameter("table");
+            request.setAttribute("table", tableName);
             PagedTable pt = SessionMethods.getResultsTable(session, tableName);
+
+            // Null check to page table, maybe session timeout?
+            if (pt == null) {
+                LOG.error("Page table is NULL...");
+                return null;
+            }
 
             // Check if can export as BED
             TableHttpExporter tableExporter = new BEDHttpExporter();
@@ -141,7 +149,10 @@ public class GalaxyExportOptionsController extends TilesAction
             try {
                 canExportAsBED = tableExporter.canExport(pt);
             } catch (Exception e) {
+                canExportAsBED = false;
+
                 LOG.error("Caught an error running canExport() for: BEDHttpExporter. " + e);
+                e.printStackTrace();
             }
 
             LinkedHashMap<Path, Integer> exportClassPathsMap = getExportClassPaths(pt);
@@ -212,11 +223,11 @@ public class GalaxyExportOptionsController extends TilesAction
 
 //        String encodedQueryXML = URLEncoder.encode(queryXML, "UTF-8");
 
-        String tableURL = new URLGenerator(request).getPermanentBaseURL()
+        String tableViewURL = new URLGenerator(request).getPermanentBaseURL()
             + "/service/query/results";
 
-        request.setAttribute("tableURL", tableURL);
-        request.setAttribute("query", queryXML);
+        request.setAttribute("tableURL", tableViewURL);
+        request.setAttribute("queryXML", queryXML);
         request.setAttribute("size", 1000000);
 
         // If can export as BED
@@ -243,6 +254,17 @@ public class GalaxyExportOptionsController extends TilesAction
             request.setAttribute("org", org);
             request.setAttribute("dbkey", dbkey);
         }
+
+        // PathMap
+        Map<String, String> pathsMap = new LinkedHashMap<String, String>();
+        List<String> views = query.getView();
+        for (String view : views) {
+            String title = query.getGeneratedPathDescription(view);
+            title = WebUtil.formatColumnName(title);
+            pathsMap.put(view, title);
+        }
+
+        request.setAttribute("pathsMap", pathsMap);
 
         return null;
     }

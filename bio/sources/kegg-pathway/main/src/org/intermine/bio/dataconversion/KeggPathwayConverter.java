@@ -9,9 +9,7 @@ package org.intermine.bio.dataconversion;
  * information or http://www.gnu.org/copyleft/lesser.html.
  *
  */
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
@@ -61,45 +59,8 @@ public class KeggPathwayConverter extends BioFileConverter
         readConfig();
         // only construct factory here so can be replaced by mock factory in tests
         resolverFactory = new FlyBaseIdResolverFactory("gene");
-
-        // chenyian:
-		readClass = false;
     }
 
-    // chenyian: start
-	private Map<String, String> mainClass = new HashMap<String, String>();
-	private Map<String, String> subClass = new HashMap<String, String>();
-
-	private File pathwayClassFile;
-	private boolean readClass;
-
-	public void setPathwayClassFile(File pathwayClassFile) {
-		this.pathwayClassFile = pathwayClassFile;
-	}
-
-	@SuppressWarnings("unchecked")
-	private void readPathwayClassification() {
-		if (pathwayClassFile == null) {
-			throw new NullPointerException("pathwayClassFile property not set");
-		}
-		BufferedReader reader;
-		try {
-			reader = new BufferedReader(new FileReader(pathwayClassFile));
-
-			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
-
-			while (iterator.hasNext()) {
-				String[] strings = iterator.next();
-				mainClass.put(strings[1], strings[2]);
-				subClass.put(strings[0], strings[1]);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		readClass = true;
-	}
-	// chenyian: end
-	
     /**
      * Sets the list of taxonIds that should be imported
      *
@@ -153,10 +114,6 @@ public class KeggPathwayConverter extends BioFileConverter
      * {@inheritDoc}
      */
     public void process(Reader reader) throws Exception {
-		if (readClass == false) {
-			readPathwayClassification();
-		}
-
         Iterator<?> lineIter = FormattedTextParser.parseTabDelimitedReader(reader);
         File currentFile = getCurrentFile();
         while (lineIter.hasNext()) {
@@ -170,7 +127,13 @@ public class KeggPathwayConverter extends BioFileConverter
                 processPathway(line);
             } else if (matcher.find()) {
                 String organism = matcher.group(1);
-                String taxonId = config.get(organism)[0];
+
+                String[] orgConfig = config.get(organism);
+                if (orgConfig == null) {
+                    throw new RuntimeException("No config found for " + organism);
+                }
+
+                String taxonId = orgConfig[0];
                 // only process organisms set in project.xml
                 if (!taxonIds.isEmpty() && !taxonIds.contains(taxonId)) {
                     continue;
@@ -257,22 +220,22 @@ public class KeggPathwayConverter extends BioFileConverter
         }
         return gene;
     }
+
     private void processPathway(String[] line) throws ObjectStoreException {
         String identifier = line[0];
         String name = line[1];
+        String description = null;
+        if (line.length > 2) {
+            description = line[2];
+        }
         Item pathway = pathwaysNotStored.remove(identifier);
         if (pathway == null) {
             pathway = getPathway(identifier);
         }
         pathway.setAttribute("name", name);
-		// chenyian: add classification information
-		String subclass = subClass.get(identifier);
-		if (subclass == null) {
-			LOG.error("No subclass found for " + identifier);
-		} else {
-			pathway.setAttribute("subClass", subclass);
-			pathway.setAttribute("mainClass", mainClass.get(subclass));
-		}
+        if (StringUtils.isNotEmpty(description)) {
+            pathway.setAttribute("description", description);
+        }
         store(pathway);
     }
 

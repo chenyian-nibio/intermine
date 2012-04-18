@@ -2215,6 +2215,18 @@ public final class SqlGenerator
                 buffer.append("UPPER(");
                 queryEvaluableToString(buffer, nodeE.getArg1(), q, state);
                 buffer.append(")");
+            } else if (nodeE.getOperation() == QueryExpression.GREATEST) {
+                buffer.append("GREATEST(");
+                queryEvaluableToString(buffer, nodeE.getArg1(), q, state);
+                buffer.append(",");
+                queryEvaluableToString(buffer, nodeE.getArg2(), q, state);
+                buffer.append(")");
+            } else if (nodeE.getOperation() == QueryExpression.LEAST) {
+                buffer.append("LEAST(");
+                queryEvaluableToString(buffer, nodeE.getArg1(), q, state);
+                buffer.append(",");
+                queryEvaluableToString(buffer, nodeE.getArg2(), q, state);
+                buffer.append(")");
             } else {
                 QueryEvaluable arg1 = nodeE.getArg1();
                 QueryEvaluable arg2 = nodeE.getArg2();
@@ -2280,6 +2292,7 @@ public final class SqlGenerator
         } else if (node instanceof QueryValue) {
             QueryValue nodeV = (QueryValue) node;
             Object value = nodeV.getValue();
+
             objectToString(buffer, value);
         } else if (node instanceof QueryCast) {
             buffer.append("(");
@@ -2507,7 +2520,12 @@ public final class SqlGenerator
         return retval.toString();
     }
 
-    private static class State
+    /**
+     * Internal representation of the State of the query as it is build up.
+     * @author Matthew
+     *
+     */
+    protected static class State
     {
         private StringBuffer whereText = new StringBuffer();
         private StringBuffer havingText = new StringBuffer();

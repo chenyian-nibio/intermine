@@ -30,6 +30,11 @@ import org.intermine.pathquery.PathConstraintLookup;
 import org.intermine.pathquery.PathConstraintMultiValue;
 import org.intermine.pathquery.PathConstraintNull;
 import org.intermine.pathquery.PathException;
+import org.intermine.template.SwitchOffAbility;
+import org.intermine.template.TemplatePopulatorException;
+import org.intermine.template.TemplateQuery;
+import org.intermine.template.TemplateValue;
+import org.intermine.template.TemplateValue.ValueType;
 import org.intermine.util.DynamicUtil;
 
 

@@ -7,6 +7,11 @@
     </fields>
   </class>
   <class className="org.intermine.model.bio.Pathway">
+    <headerconfig>
+      <titles>
+        <title mainTitles="name" />
+      </titles>
+    </headerconfig>
     <fields>
       <fieldconfig fieldExpr="identifier" />
       <fieldconfig fieldExpr="name" />
@@ -119,10 +124,10 @@
       <table path="pathways.name" showLinksToObjects="true" />
     </inlinelist>
     <fields>
-      <fieldconfig fieldExpr="primaryIdentifier"/>
-      <fieldconfig fieldExpr="secondaryIdentifier"/>
       <fieldconfig fieldExpr="symbol" showInListAnalysisPreviewTable="true"/>
       <fieldconfig fieldExpr="name" showInListAnalysisPreviewTable="true"/>
+      <fieldconfig fieldExpr="primaryIdentifier"/>
+      <fieldconfig fieldExpr="secondaryIdentifier"/>
       <fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" />
       <fieldconfig fieldExpr="summary" doNotTruncate="true" showInSummary="false" showInResults="false" showInInlineCollection="false" />
       <fieldconfig fieldExpr="chromosomeLocation" displayer="/model/chromosomeLocDisplayer.jsp" showInResults="false" />
@@ -146,6 +151,7 @@
         <fieldconfig fieldExpr="primaryIdentifier" showInListAnalysisPreviewTable="true"/>
         <fieldconfig fieldExpr="primaryAccession"/>
         <fieldconfig fieldExpr="organism.name"/>
+        <fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" />
     </fields>
   </class>
 
@@ -205,13 +211,6 @@
      <fieldconfig fieldExpr="confidenceText"/>
      <fieldconfig fieldExpr="confidence"/>
      <fieldconfig fieldExpr="role"/>
-    </fields>
-  </class>
-
-  <class className="org.intermine.model.bio.InteractionExperiment">
-    <fields>
-      <fieldconfig fieldExpr="name"/>
-      <fieldconfig fieldExpr="description"/>
     </fields>
   </class>
 
@@ -278,15 +277,6 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.Protein">
-    <fields>
-      <fieldconfig fieldExpr="primaryIdentifier"/>
-      <fieldconfig fieldExpr="primaryAccession"/>
-      <fieldconfig fieldExpr="organism.name"/>
-      <fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" />
-    </fields>
-  </class>
-
   <class className="org.intermine.model.bio.ProteinDomain">
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
@@ -297,6 +287,11 @@
   </class>
 
   <class className="org.intermine.model.bio.Publication">
+      <headerconfig>
+      <titles>
+        <title mainTitles="title" />
+      </titles>
+    </headerconfig>
     <fields>
       <fieldconfig fieldExpr="firstAuthor"/>
       <fieldconfig fieldExpr="title"/>
@@ -320,13 +315,12 @@
   <class className="org.intermine.model.bio.SNP">
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier" showInListAnalysisPreviewTable="true"/>
-      <fieldconfig fieldExpr="symbol" showInListAnalysisPreviewTable="true"/>
-      <fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" />
-      <fieldconfig fieldExpr="chromosomeLocation" displayer="/model/chromosomeLocDisplayer.jsp" showInResults="false" />
-      <fieldconfig fieldExpr="chromosome.primaryIdentifier" showInInlineCollection="false" showInSummary="true" />
-      <fieldconfig fieldExpr="chromosomeLocation.start" showInInlineCollection="false" showInSummary="true" />
-      <fieldconfig fieldExpr="chromosomeLocation.end" showInInlineCollection="false" showInSummary="true" />
+      <fieldconfig fieldExpr="chromosomeLocation" displayer="/model/chromosomeLocDisplayer.jsp"/>
       <fieldconfig fieldExpr="alleles"/>
+      <fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" />
+      <fieldconfig fieldExpr="chromosome.primaryIdentifier" showInInlineCollection="true" showInSummary="true" />
+      <fieldconfig fieldExpr="chromosomeLocation.start" showInInlineCollection="true" showInSummary="true" />
+      <fieldconfig fieldExpr="chromosomeLocation.end" showInInlineCollection="true" showInSummary="true" />
       <fieldconfig fieldExpr="type"/>
       <fieldconfig fieldExpr="organism.name"/>
     </fields>
@@ -365,11 +359,26 @@
 
 <!-- report page displayers -->
 <reportdisplayers>
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneIdentifiersDisplayer"
+                     jspName="model/geneIdentifiersDisplayer.jsp"
+                     replacesFields="primaryIdentifier,secondaryIdentifier,ncbiGeneNumber"
+                     showImmediately="true"
+                     placement="top"
+                     types="Gene"/>
+
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.SequenceFeatureDisplayer"
                      jspName="model/sequenceFeatureDisplayer.jsp"
                      replacesFields="chromosome,chromosomeLocation,sequence,length,sequenceOntologyTerm,locations,mapLocation"
-                     placement="summary"
+                     showImmediately="true"
+                     placement="top"
                      types="SequenceFeature"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.MetabolicGeneSummaryDisplayer"
+                     jspName="model/metabolicGeneSummaryDisplayer.jsp"
+                     replacesFields=""
+                     showImmediately="true"
+                     placement="top"
+                     types="Gene"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneStructureDisplayer"
                      jspName="model/geneStructureDisplayer.jsp"
@@ -394,6 +403,12 @@
                      replacesFields="overlappingFeatures"
                      placement="Genomics"
                      types="SequenceFeature"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.MouseAllelesDisplayer"
+                     jspName="model/mouseAllelesDisplayer.jsp"
+                     replacesFields="alleles"
+                     placement="Genomics"
+                     types="Gene"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.JBrowseDisplayer"
                      jspName="model/jbrowseDisplayer.jsp"
@@ -426,8 +441,14 @@
                      placement="summary"
                      types="Gene"/>
 
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneExpressionAtlasDisplayer"
-                     jspName="model/geneExpressionAtlasDisplayer.jsp"
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneExpressionAtlasTissuesDisplayer"
+                     jspName="model/geneExpressionAtlasTissuesDisplayer.jsp"
+                     replacesFields="atlasExpression"
+                     placement="summary"
+                     types="Gene"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneExpressionAtlasDiseasesDisplayer"
+                     jspName="model/geneExpressionAtlasDiseasesDisplayer.jsp"
                      replacesFields="atlasExpression"
                      placement="summary"
                      types="Gene"/>
@@ -445,6 +466,12 @@
                      replacesFields="publications"
                      placement="summary"
                      types="BioEntity"/>
+
+     <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinSequenceDisplayer"
+                     jspName="model/proteinSequenceDisplayer.jsp"
+                     replacesFields="sequence"
+                     placement="summary"
+                     types="Protein"/>
 
 </reportdisplayers>
 
@@ -469,7 +496,7 @@
         filters="biological_process,cellular_component,molecular_function"
         filterLabel="Ontology"
         typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
-        externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term-details.cgi?term="
+        externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="
         style="height:290px;"
     />
 
@@ -535,7 +562,7 @@
     />
 
     <bagtabledisplayer id="snp_consequence_types" title="SNP Consequence Types"
-        pathStrings="SNP.consequences.type"
+        pathStrings="SNP.consequences.description"
         link="org.metabolicmine.web.widget.SNPConsequenceTypesURLQuery"
         description="Consequence types for SNPs in this list"
         displayFields="type"

@@ -9,12 +9,44 @@
 
 <html:xhtml/>
 
-<tiles:importAttribute name="pagedResults" ignore="false"/>
-<tiles:importAttribute name="currentPage" ignore="false"/>
+<tiles:importAttribute name="pagedResults" ignore="true"/>
+<tiles:importAttribute name="currentPage" ignore="true"/>
 <tiles:importAttribute name="bagName" ignore="true"/>
 <tiles:importAttribute name="inlineTable" ignore="true"/>
 <tiles:importAttribute name="highlightId" ignore="true"/>
 <tiles:importAttribute name="tableIdentifier" ignore="true"/>
+<%-- Required for displaying the contents of invalid bags --%>
+<tiles:importAttribute name="invalid" ignore="true"/>
+<tiles:importAttribute name="bag" ignore="true"/>
+
+<c:choose>
+    <c:when test="${invalid}">
+        <div class="results collection-table nowrap nomargin">
+            <table>
+                <thead>
+                    <tr onclick="javascript:jQuery('tr.invalid-value').fadeToggle('fast')">
+                        <th>Value</th>
+                        <th>Extra Value</th>
+                    </tr>
+                </thead>
+                <tbody id="invalid-values">
+                    <c:forEach var="bagValue" items="${bag.contents}" varStatus="status">
+                    <c:set var="rowClass">
+                        <c:choose>
+                        <c:when test="${status.count % 2 == 1}">even</c:when>
+                        <c:otherwise>odd</c:otherwise>
+                        </c:choose>
+                    </c:set>
+                    <tr class="invalid-value ${rowClass}">
+                        <td>${bagValue.value}</td>
+                        <td>${bagValue.extra}</td>
+                    </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+        </div>
+    </c:when>
+    <c:otherwise>
 
 <script type="text/javascript">
   function changePageSize() {
@@ -58,16 +90,16 @@
           <div class="right">
           <a href="javascript:getColumnSummary('${pagedResults.tableid}','${column.path.noConstraintsString}', &quot;${columnDisplayName}&quot;)"
                title="${summaryTitle}" class="summary_link"><img src="images/summary_maths.png" title="${summaryTitle}"/></a>
-		  </div>
+      </div>
         </c:if>
         <c:if test="${column.selectable && empty inlineTable}">
-			<c:set var="disabled" value="false"/>
+      <c:set var="disabled" value="false"/>
             <c:if test="${(!empty pagedResults.selectedClass) && (pagedResults.selectedClass != column.typeClsString)}">
-            	<c:set var="disabled" value="true"/>
+              <c:set var="disabled" value="true"/>
             </c:if>
             <html:multibox property="currentSelectedIdStrings" name="pagedResults" styleId="selectedObjects_${status.index}"
             styleClass="selectable" onclick="selectAll(${status.index}, '${column.typeClsString}','${pagedResults.tableid}')" disabled="${disabled}">
-            	<c:out value="${column.columnId}"/>
+              <c:out value="${column.columnId}"/>
             </html:multibox>
         </c:if>
         <im:columnName onHover="${displayPath}" columnName="${columnDisplayName}" tableId="${pagedResults.tableid}" colNo="${status.count}"/>
@@ -149,12 +181,12 @@
                           <c:out value="${resultElement.id}"/>
                         </html:multibox>&nbsp;
                         <script type=text/javascript>
-                        	<%-- individual checkbox handler --%>
-                        	(function() {
-                            	jQuery("input#selectedObjects_${status2.index}_${status.index}_${subRow[column.index].value.type}").click(function() {
-                            		itemChecked(${status.index},${status2.index}, '${pagedResults.tableid}', this);
-                            	});
-                        	})();
+                          <%-- individual checkbox handler --%>
+                          (function() {
+                              jQuery("input#selectedObjects_${status2.index}_${status.index}_${subRow[column.index].value.type}").click(function() {
+                                itemChecked(${status.index},${status2.index}, '${pagedResults.tableid}', this);
+                              });
+                          })();
                         </script>
                       </c:if>
                     </c:if>
@@ -180,62 +212,69 @@
     <c:if test="${tableIdentifier != null}">
       <script type=text/javascript>
       (function() {
-	      	var exactSize = ${pagedResults.exactSize};
-	      	var tableId = '${tableIdentifier}';
-	        if (${pagedResults.exactSize} > 1) {
-	        	jQuery('#' + tableId).find("h3 div.right").text(exactSize + ' results');
-	        	jQuery('#' + tableId + ' table tbody tr').hide();
-	        	jQuery('#' + tableId + ' div.collection-table div.toggle')
-	        	.append(
-	                	jQuery('<a/>', {
-	        		    'title': 'Collapse/Hide',
-	        		    'class': 'less',
-	        		    'text': 'Collapse',
-	        		    'style': 'float:right;display:none;margin-left:20px;',
-	        		    'click': function(e) {
-	        		    	jQuery('#' + tableId + ' div.show-in-table').hide();
-	        		    	jQuery('#' + tableId + ' table tbody tr').hide();
-	        		    	jQuery('#' + tableId + ' table').parent().hide();
-	        		    	jQuery('#' + tableId).scrollTo('fast', 'swing', -30);
-	        		    	jQuery('#' + tableId + ' div.toggle a.more').text(function() {
-	        		    		return 'Show ' + ((exactSize < 11) ? 'all ' + exactSize : 'first ' + 10) + ' rows';
-	        		    	});
-	        		    	jQuery(this).hide();
-	        		    }
-	        		})
-		        ).append(
-		            	jQuery('<a/>', {
-		    		    'title': 'Show more items',
-		    		    'class': 'more',
-		    		    'style': 'float:right;',
-		    		    'text': function() {
-		    		    	return 'Show ' + ((exactSize < 11) ? 'all ' + exactSize : 'first ' + 10) + ' rows';
-		    		    },
-		    		    'click': function(e) {
-		    		    	jQuery('#' + tableId + ' div.show-in-table').show();
-		    		    	jQuery('#' + tableId + ' table').parent().show();
-		    		    	jQuery('#' + tableId + ' table tbody tr:hidden').each(function(index) {
-		    		    	    if (index < 10) {
-		        		    	    jQuery(this).show();
-		    		    	    }
-		    		    	});
-		    		    	var remaining = jQuery('#' + tableId + ' table tbody tr:hidden').length;
-		    		    	if (remaining > 0) {
-		        		    	jQuery(this).text(function() {
-		            		    	return 'Show ' + ((remaining < 11) ? 'last ' + remaining : 'further ' + 10) + ' rows';
-		        		    	});
-		        		    	jQuery('#' + tableId + ' div.toggle a.less').show();
-		    		    	} else {
-		        		    	jQuery(this).parent().remove();
-		    		    	}
-		    		    }
-		    		})
-		    	);
-	        } else {
-	        	jQuery('#' + tableId).find("h3 div.right").text('1 result');
-				jQuery('#' + tableId + ' table').parent().show();
-	        }
-      	})();
+          var exactSize = ${pagedResults.exactSize};
+          var tableId = '${tableIdentifier}';
+          if (${pagedResults.exactSize} > 1) {
+            jQuery('#' + tableId).find("h3 div.right").text(exactSize + ' results');
+            jQuery('#' + tableId + ' table tbody tr').hide();
+            jQuery('#' + tableId + ' div.collection-table div.toggle')
+            .append(
+                    jQuery('<a/>', {
+                  'title': 'Collapse/Hide',
+                  'class': 'less',
+                  'text': 'Collapse',
+                  'style': 'float:right;display:none;margin-left:20px;',
+                  'click': function(e) {
+                    jQuery('#' + tableId + ' div.show-in-table').hide();
+                    jQuery('#' + tableId + ' table tbody tr').hide();
+                    jQuery('#' + tableId + ' table').parent().hide();
+                    jQuery('#' + tableId).scrollTo('fast', 'swing', -30);
+                    jQuery('#' + tableId + ' div.toggle a.more').text(function() {
+                      return 'Show ' + ((exactSize < 11) ? 'all ' + exactSize : 'first ' + 10) + ' rows';
+                    });
+                    jQuery(this).parent().find('a.more').show(); // show the expander
+                    jQuery(this).hide(); // hide us
+                  }
+              })
+            ).append(
+                  jQuery('<a/>', {
+                'title': 'Show more items',
+                'class': 'more',
+                'style': 'float:right;',
+                'text': function() {
+                  return 'Show ' + ((exactSize < 11) ? 'all ' + exactSize : 'first ' + 10) + ' rows';
+                },
+                'click': function(e) {
+                  jQuery('#' + tableId + ' div.show-in-table').show();
+                  jQuery('#' + tableId + ' table').parent().show();
+                  jQuery('#' + tableId + ' table tbody tr:hidden').each(function(index) {
+                      if (index < 10) {
+                          jQuery(this).show();
+                      }
+                  });
+                  var remaining = jQuery('#' + tableId + ' table tbody tr:hidden').length;
+                  if (remaining > 0) {
+                      jQuery(this).text(function() {
+                          return 'Show ' + ((remaining < 11) ? 'more' : 'further ' + 10) + ' rows';
+                      });
+                  } else {
+                      jQuery(this).hide();
+                  }
+                  jQuery('#' + tableId + ' div.toggle a.less').show();
+                }
+            })
+          );
+
+            <%-- make the header clickable to expand --%>
+            jQuery('#' + tableId).find('h3 span.name').click(function() {
+              jQuery(this).closest('div.template').find('div.toggle a.more').click();
+            });
+
+          } else {
+            jQuery('#' + tableId).find("h3 div.right").text('1 result');
+        jQuery('#' + tableId + ' table').parent().show();
+          }
+        })();
       </script>
     </c:if>
   </c:if>
@@ -291,3 +330,6 @@
     </c:otherwise>
   </c:choose>
   </div>
+
+  </c:otherwise>
+</c:choose>

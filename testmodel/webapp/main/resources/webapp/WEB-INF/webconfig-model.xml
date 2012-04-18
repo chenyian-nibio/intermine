@@ -2,7 +2,7 @@
   <class className="org.intermine.model.testmodel.Company">
     <fields>
       <fieldconfig fieldExpr="name" showInSummary="true" showInInlineCollection="true" showInResults="true"/>
-      <fieldconfig fieldExpr="vatNumber" showInSummary="true" showInInlineCollection="true" showInResults="true"/>
+      <fieldconfig fieldExpr="vatNumber" hideInQueryBuilder="true" showInSummary="true" showInInlineCollection="true" showInResults="true"/>
       <fieldconfig fieldExpr="address.address" showInSummary="true" showInInlineCollection="true" showInResults="true"/>
     </fields>
   </class>
@@ -10,17 +10,12 @@
   <class className="org.intermine.model.testmodel.Employee">
     <fields>
       <fieldconfig fieldExpr="name" showInSummary="true" showInInlineCollection="true" showInResults="true"/>
-      <fieldconfig fieldExpr="department.name" showInSummary="true" showInResults="true" showInInlineCollection="true"/>
-      <fieldconfig fieldExpr="department.company.name" showInSummary="true" showInResults="true" showInInlineCollection="false"/>
+      <fieldconfig fieldExpr="department.name" showInSummary="true" showInResults="true" showInInlineCollection="true" label="Works In"/>
+      <fieldconfig fieldExpr="department.company.name" showInSummary="true" showInResults="true" showInInlineCollection="false" label="Works For"/>
       <fieldconfig fieldExpr="age" showInSummary="false" showInResults="false" showInInlineCollection="true" label="Years Alive"/>
-      <fieldconfig fieldExpr="fullTime" showInSummary="true" showInResults="true" showInInlineCollection="true" label="Works Full Time"/>
-      <fieldconfig fieldExpr="address.address" showInSummary="true" showInResults="true" showInInlineCollection="true"/>
+      <fieldconfig fieldExpr="fullTime" showInSummary="true" showInResults="true" showInInlineCollection="true" label="Works Full Time?"/>
+      <fieldconfig fieldExpr="address.address" showInSummary="true" showInResults="true" showInInlineCollection="true" label="Lives at"/>
     </fields>
-    <bagdisplayers>
-      <bagtabledisplayer title="Department information" type="Department" collectionName="department"
-      urlGen="org.intermine.model.testmodel.web.widget.EmployeeURLQuery"
-      description="Most popular Departments for this bag" />
-    </bagdisplayers>
   </class>
 
   <!-- exists to test that displayers for base classes (in this case
@@ -61,6 +56,57 @@
     </longdisplayers>
   </class>
 
+  <class className="org.intermine.model.testmodel.CEO"></class>
+
   <tableExportConfig id="employeeExporter" actionPath="/exportAction?type=employeeExporter"
                      className="org.intermine.model.testmodel.web.EmployeeExporter"/>
+
+     <widgets>
+         <graphdisplayer id="age_groups"
+                 dataSetLoader="org.intermine.model.testmodel.web.widget.AgeGroupLdr"
+                 typeClass="org.intermine.model.testmodel.Employee"
+                 title="Age Groups Distribution"
+                 description="Demographic distribution of employees by age group"
+                 domainLabel="Age Group"
+                 rangeLabel="Count"
+                 graphType="BarChart"/>
+         <graphdisplayer id="age_salary"
+                 dataSetLoader="org.intermine.model.testmodel.web.widget.AgeSalaryLdr"
+                 typeClass="org.intermine.model.testmodel.CEO"
+                 title="Age - Salary trend line"
+                 description="Relationship between age and salaries for CEOs"
+                 domainLabel="Age"
+                 rangeLabel="Salary"
+                 graphType="XYLineChart"/>
+         <graphdisplayer id="company_distribution"
+                 dataSetLoader="org.intermine.model.testmodel.web.widget.CompanyDistLdr"
+                 typeClass="org.intermine.model.testmodel.Employee"
+                 title="Company Affiliation"
+                 description="Percentage of employees belonging to each company"
+                 domainLabel="Company"
+                 rangeLabel="No. of employees"
+                 graphType="PieChart"/>
+         <graphdisplayer id="full_part_time"
+                 dataSetLoader="org.intermine.model.testmodel.web.widget.FullTimeLdr"
+                 typeClass="org.intermine.model.testmodel.CEO,org.intermine.model.testmodel.Company"
+                 title="Full-Time Status by Department"
+                 description="For each department associated with an item show the number of workers in that department in full or part-time employment"
+                 domainLabel="Department"
+                 rangeLabel="No. of employees"
+                 graphType="StackedBarChart"/>
+         <graphdisplayer id="age_seniority"
+                 dataSetLoader="org.intermine.model.testmodel.web.widget.AgeSeniorityLdr"
+                 typeClass="org.intermine.model.testmodel.Manager"
+                 title="Age versus Seniority"
+                 description="The relationship between age and seniority"
+                 domainLabel="Age"
+                 rangeLabel="Seniority"
+                 graphType="ScatterPlot"/>
+         <enrichmentwidgetdisplayer id="contractor_enrichment"
+                 typeClass="org.intermine.model.testmodel.Employee"
+                 dataSetLoader="org.intermine.model.testmodel.web.widget.ContractorEnrichmentLdr"
+                 title="Contractor Enrichment"
+                 label="Contractor"/>
+     </widgets>
+
 </webconfig>

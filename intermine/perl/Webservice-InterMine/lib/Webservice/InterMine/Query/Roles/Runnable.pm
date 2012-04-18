@@ -66,9 +66,42 @@ The following options are available:
 
 =item * as => $format
 
-Possible values: (string|tsv|csv|arrayrefs|hashrefs|jsonobjects|jsonrows|count)
+Possible values: (rr|ro|objects|string|jsonobjects|jsonrows|count)
 
-The format to request results in. The default is C<arrayrefs>
+The format to request results in. 
+
+=over 8
+
+=item * C<rr> ResultRows (default)
+
+ResultRows are objects that represent a row of results, allowing both 
+hash-ref and array-ref access to their results. See 
+L<Webservice::InterMine::ResultRow>. 
+
+=item * C<ro> ResultObjects
+
+Inflated L<Webservice::InterMine::ResultObject>s will be returned  (it is a 
+synonym for C<< as => "jsonobjects", json => "inflate" >>). 
+
+=item * C<objects> Instantiated L<InterMine::Model> objects.
+
+Fully instantiated objects will be returned (see L<InterMine::Model::make_new>).
+
+=item * C<string> Unparsed TSV rows
+
+If "string" is selected, then the results will be unparsed tab delimited rows.
+
+=item * json[objects|rows] - raw data structures
+
+The two json formats allow low-level access to the data-structures returned
+by the webservice.
+
+=item * count - a single row containing the count
+
+In preference to using the iterator, it is recommended you use 
+L<Webservice::InterMine::Query::Roles::Runnable::count> instead.
+
+=back
 
 =item * size => $size
 
@@ -92,6 +125,24 @@ Possible values: (inflate|instantiate|raw|perl)
 What to do with JSON results. The results can be returned as inflated objects,
 full instantiated Moose objects, a raw json string, or as a perl
 data structure. (default is C<perl>).
+
+=item * summaryPath => $path
+
+The path of the query to summarise (see L<summarise>). 
+
+If a value for this is supplied, then C<< (as => 'jsonrows')  >> is implied.
+Also, unlike the L< summarise > method, this option will return
+a list of item/count pairs, as below:
+
+  [
+    { item => "the-best", count => 100 },
+    { item => "the-runner-up", count => 99 },
+    { item => "the-wooden-spoon", count => 98 },
+  ]
+
+This is best when you care more about the top of the summary list, or which
+value is at the top than what the value of particular item is. If you are 
+using this method with a big result set it is best to use C<size> as well.
 
 =back
 
@@ -118,15 +169,28 @@ sub results_iterator {
     $self->validate;
 
     my $row_format  = delete($args{as})   || "rr";
-    $row_format = 'tab' if ($row_format eq 'string' || $row_format eq 'tsv');
-    my $json_format = delete($args{json}) || "perl";
+    my $json_format;
+    if ($row_format eq 'ro') {
+        $row_format = 'jsonobjects';
+        $json_format = 'inflate';
+    } elsif ($row_format eq 'objects') {
+        $row_format = 'jsonobjects';
+        $json_format = 'instantiate';
+    } else {
+        $row_format = 'tab' if ($row_format eq 'string' || $row_format eq 'tsv');
+        $row_format = 'jsonrows' if $args{summaryPath};
+        $json_format = delete($args{json}) || "perl";
+    }
     my $roles       = delete $args{with};
 
     my %query_form = $self->get_request_parameters;
     
     # Set optional parameters
-    for my $opt (qw/start size columnheaders/) {
+    for my $opt (qw/start size columnheaders summaryPath/) {
         $query_form{$opt} = $args{$opt} if (defined $args{$opt});
+        if ($query_form{$opt} and $opt eq "summaryPath") {
+            $query_form{$opt} = $self->path($query_form{$opt})->to_string();
+        }
     }
     warn join(', ', map {"$_ => $query_form{$_}"} keys %query_form) if $ENV{DEBUG};
     return $self->service->get_results_iterator(
@@ -139,6 +203,53 @@ sub results_iterator {
     );
 }
 
+=head2 summarise($path, <%opts>) / summarize($path, <%opts>)
+
+Get a column summary for a path in the query. For numerical values this
+returns a hash reference with four keys: C< average >, C< stdev >, C< min >,
+and C< max >. These may be accessed as so:
+
+  my $average = $query->summarise("length")->{average};
+
+For non-numerical paths, the summary provides a hash from item => count, so
+the number of occurrences of an item may be accessed as so:
+
+  my $no_on_chr2 = $query->summarise("chromosome.primaryIdentifier")->{2};
+
+Obviously you can sort the hash yourself, but if you want this information
+in order, or just a particular subset (the top 100 perhaps), then you 
+should use C< results() > instead.
+
+Any further options will be passed along to the result-iterator as is,
+although the one that makes the most sense is C<size>, when you don't want
+all the results from a very large result set.
+
+=cut
+
+sub summarize {
+    goto &summarise;
+}
+
+sub summarise {
+    my $self = shift;
+    my $path = shift;
+    my %opts = @_;
+
+    my $it = $self->results_iterator(summaryPath => $path, %opts);
+    my @results = $it->get_all();
+    if (@results == 1) {
+        return $results[0];
+    } else {
+        return {map {$_->{item} => $_->{count}} @results};
+    }   
+}
+
+=head2 iterator
+
+A synonym for results_iterator. See L<Webservice::InterMine::Query::Roles::Runnable::results_iterator>.
+
+=cut
+
 sub iterator {
     goto &results_iterator;
 }
@@ -146,42 +257,11 @@ sub iterator {
 =head2 results( %options )
 
 returns the results from a query in the result format
-specified. 
+specified.
 
-The following options are available:
-
-=over 4
-
-=item * as => $format
-
-Possible values: (tsv|csv|arrayrefs|hashrefs|jsonobjects|jsonrows|count)
-
-The format to request results in. The default is C<arrayrefs>
-
-=item * size => $size
-
-The number of results to return. Leave undefined for "all" (default).
-
-=item * start => $start 
-
-The first result to return (starting at 0). The default is 0.
-
-=item * addheaders => 0/1/friendly/path
-
-Whether to return the column headers at the top of TSV/CSV results. The default is
-false. There are two styles - friendly: "Gene > pathways > name" and 
-path: "Gene.pathways.name". The default style is friendly if a true value is entered and
-it is not "path".
-
-=item * json => $json_processor
-
-Possible values: (inflate|instantiate|perl)
-
-What to do with JSON results. The results can be returned as inflated objects,
-full instantiated Moose objects, a raw json string, or as a perl
-data structure. (default is C<perl>).
-
-=back
+This method supports all the options of L<results_iterator>, but returns 
+a list (in list context) or an array-reference (in scalar context) of results
+instead.
 
 =cut
 

@@ -22,7 +22,8 @@ import org.intermine.web.logic.results.PagedTable;
 import org.intermine.web.logic.session.SessionMethods;
 
 /**
- * Action that builds a PagedCollection to view a bag. Redirects to results.do
+ * Action that builds a PagedCollection to view a bag. 
+ * Redirects to results.do
  *
  * @author Kim Rutherford
  * @author Thomas Riley
@@ -42,9 +43,9 @@ public class BagDetailsAction extends Action
      */
     @Override
     public ActionForward execute(ActionMapping mapping,
-                                 @SuppressWarnings("unused") ActionForm form,
+                                 ActionForm form,
                                  HttpServletRequest request,
-                                 @SuppressWarnings("unused") HttpServletResponse response)
+                                 HttpServletResponse response)
         throws Exception {
         HttpSession session = request.getSession();
 

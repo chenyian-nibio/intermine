@@ -23,7 +23,8 @@ import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.search.SearchRepository;
 import org.intermine.api.tag.TagTypes;
-import org.intermine.api.template.TemplateQuery;
+import org.intermine.api.template.ApiTemplate;
+import org.intermine.template.TemplateQuery;
 import org.intermine.web.logic.session.SessionMethods;
 
 /**
@@ -52,16 +53,11 @@ public class UserTemplateAction extends InterMineDispatchAction
         String templateName = request.getParameter("name");
         Profile profile = SessionMethods.getProfile(session);
 
-        TemplateQuery template = profile.getSavedTemplates().get(templateName);
+        ApiTemplate template = profile.getSavedTemplates().get(templateName);
         if (template != null) {
             recordMessage(new ActionMessage("templateList.deleted", templateName), request);
             InterMineAPI im = SessionMethods.getInterMineAPI(session);
             profile.deleteTemplate(templateName, im.getTrackerDelegate(), true);
-            // If superuser then rebuild shared templates
-            if (SessionMethods.isSuperUser(session)) {
-                SearchRepository tr = SessionMethods.getGlobalSearchRepository(servletContext);
-                tr.webSearchableRemoved(template, TagTypes.TEMPLATE);
-            }
         } else {
             recordError(new ActionMessage("errors.template.nosuchtemplate"), request);
         }

@@ -27,6 +27,10 @@ module Metadata
     #
     class Model
 
+        FLOAT_TYPES = ["Float", "Double", "float", "double"]
+        INT_TYPES = ["Integer", "int",  "long", "Long", "short", "Short"]
+        BOOL_TYPES = ["Boolean", "boolean"]
+        NUMERIC_TYPES = FLOAT_TYPES | INT_TYPES
 
         # The name of the model
         attr_reader :name
@@ -497,18 +501,18 @@ module Metadata
         #
         def to_module
             if @module.nil?
-                nums = ["Float", "Double", "float", "double"]
-                ints = ["Integer", "int"]
-                bools = ["Boolean", "boolean"]
+                nums = Model::FLOAT_TYPES
+                ints = Model::INT_TYPES
+                bools = Model::BOOL_TYPES
 
                 supers = @extends.map { |x| @model.get_cd(x).to_module }
 
                 klass = Module.new
                 fd_names = @fields.values.map { |x| x.name }
+                attr_names = @fields.values.select { |x| x.is_a?(AttributeDescriptor)}.map {|x| x.name}
                 klass.class_eval do
                     include *supers
-                    attr_reader *fd_names
-
+                    attr_reader *attr_names
                 end
 
                 @fields.values.each do |fd|
@@ -531,6 +535,20 @@ module Metadata
                             end
                         end
                     end
+                    
+                    if fd.is_a?(ReferenceDescriptor)
+                        klass.class_eval do 
+                            define_method(fd.name) do 
+                                if instance_variable_get("@" + fd.name).nil?
+                                    q = __cd__.select(fd.name + ".*").where(:id => objectId)
+                                    instance_var = q.results.first[fd.name]
+                                    instance_variable_set("@" + fd.name, instance_var)
+                                end
+                                return instance_variable_get("@" + fd.name)
+                            end
+                        end
+                    end
+
                     klass.class_eval do
                         define_method(fd.name + "=") do |val|
                             if fd.is_a?(AttributeDescriptor)

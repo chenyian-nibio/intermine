@@ -17,12 +17,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
+import org.intermine.api.bag.UnknownBagTypeException;
 import org.intermine.api.config.ClassKeyHelper;
 import org.intermine.api.profile.BagState;
 import org.intermine.api.profile.InterMineBag;
@@ -41,8 +42,8 @@ import org.intermine.sql.DatabaseUtil;
 
 /**
  * Task that rename the column 'intermine_current' into 'intermine_state' in savedbag table
- * and add the column 'extra' (and its value) in the bagvalues table
  * (from boolean to text)
+ * and add the column 'extra' (and its value) in the bagvalues table
  * @author dbutano
  */
 
@@ -83,27 +84,31 @@ public class UpdateListTablesTask extends Task
         }
         Connection connection = null;
         try {
-            userProfileOS =ObjectStoreFactory.getObjectStore(userProfileAlias);
+            userProfileOS = ObjectStoreFactory.getObjectStore(userProfileAlias);
             os = ObjectStoreFactory.getObjectStore(osAlias);
             connection = ((ObjectStoreInterMineImpl) userProfileOS).getDatabase().getConnection();
 
             //rename the column intermine_current -> intermine_state
             if (!DatabaseUtil.columnExists(connection, SAVEDBAG_TABLE, "intermine_state")
                 && DatabaseUtil.columnExists(connection, SAVEDBAG_TABLE, "intermine_current")) {
+                log("Start replacing intermine_current with intermine_state in savedbag table.");
                 addIntermineStateColumn(connection);
+                log("Replacing successfully.");
             }
             //add the column extra and set the value
             if (DatabaseUtil.tableExists(connection, "bagvalues")
                 && !DatabaseUtil.columnExists(connection, "bagvalues", "extra")) {
-                    DatabaseUtil.addColumn(connection, "bagvalues", "extra", DatabaseUtil.Type.text);
-                    String sqlDeleteIndex = "DROP INDEX bagvalues_index1";
-                    try {
-                        connection.createStatement().execute(sqlDeleteIndex);
-                    } catch (SQLException sql) {
-                    }
-                    String sqlCreateIndex = "CREATE UNIQUE INDEX bagvalues_index1 ON bagvalues (savedbagid, value, extra)";
-                    connection.createStatement().execute(sqlCreateIndex);
-                    setExtraValue();
+                DatabaseUtil.addColumn(connection, "bagvalues", "extra", DatabaseUtil.Type.text);
+                String sqlDeleteIndex = "DROP INDEX bagvalues_index1";
+                try {
+                    connection.createStatement().execute(sqlDeleteIndex);
+                } catch (SQLException sql) {
+                }
+                String sqlCreateIndex = "CREATE UNIQUE INDEX bagvalues_index1 ON bagvalues"
+                                        + " (savedbagid, value, extra)";
+                connection.createStatement().execute(sqlCreateIndex);
+                log("Added column extra in bagvalues table.");
+                setExtraValue();
             }
         } catch (ObjectStoreException ose) {
             ose.printStackTrace();
@@ -180,12 +185,16 @@ public class UpdateListTablesTask extends Task
                     bag.setKeyFieldNames(keyFielNames);
 
                     if (bag.isCurrent()) {
+                        log("Start setting extra values for list:" + bag.getName());
                         bag.deleteAllBagValues();
                         bag.addBagValues();
+                        log("Extra values set.");
                     }
                 } catch (ObjectStoreException ose) {
                     throw new BuildException("Exception while creating InterMineBag", ose);
-                } 
+                } catch (UnknownBagTypeException e) {
+                    log("Skipping invalid bag '" + savedBag.getName() + "'");
+                }
             }
         }
         if (osw != null) {

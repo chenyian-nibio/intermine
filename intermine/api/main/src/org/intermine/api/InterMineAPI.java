@@ -23,7 +23,6 @@ import org.intermine.api.profile.ProfileManager;
 import org.intermine.api.profile.TagManager;
 import org.intermine.api.query.PathQueryExecutor;
 import org.intermine.api.query.WebResultsExecutor;
-import org.intermine.api.template.TemplateManager;
 import org.intermine.api.template.TemplateSummariser;
 import org.intermine.api.tracker.TrackerDelegate;
 import org.intermine.metadata.FieldDescriptor;
@@ -31,6 +30,7 @@ import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreSummary;
 import org.intermine.objectstore.ObjectStoreWriter;
+import org.intermine.api.template.TemplateManager;
 
 /**
  * InterMineAPI provides access to manager objects for the main parts of an InterMine application:
@@ -94,7 +94,7 @@ public class InterMineAPI
         this.templateManager = new TemplateManager(superUser, model,
                 trackerDelegate.getTemplateTracker());
         this.templateSummariser = new TemplateSummariser(objectStore,
-                profileManager.getProfileObjectStoreWriter());
+                profileManager.getProfileObjectStoreWriter(), oss);
         this.bagQueryRunner =
             new BagQueryRunner(objectStore, classKeys, bagQueryConfig, templateManager);
         this.trackerDelegate = trackerDelegate;
@@ -218,21 +218,5 @@ public class InterMineAPI
      */
     public LinkRedirectManager getLinkRedirector() {
         return linkRedirector;
-    }
-
-    /**
-     * Holds list of all intermines
-     * @return friendly mine manager
-     */
-    public FriendlyMineManager getFriendlyMineManager() {
-        return friendlyMineManager;
-    }
-
-    /**
-     * mine manager is initiased in initialiser plugin to make rendering report pages faster
-     * @param friendlyMineManager the friendly mine manager to set
-     */
-    public void setFriendlyMineManager(FriendlyMineManager friendlyMineManager) {
-        this.friendlyMineManager = friendlyMineManager;
     }
 }

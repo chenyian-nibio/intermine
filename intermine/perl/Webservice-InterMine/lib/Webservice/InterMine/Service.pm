@@ -56,8 +56,8 @@ use Perl6::Junction qw(any);
 use Time::HiRes qw/gettimeofday/;
 require Webservice::InterMine::Path;
 
-my @JSON_FORMATS = (qw/jsonobjects jsonrows jsondatatable/);
-my @SIMPLE_FORMATS = (qw/ tsv tab csv count xml/);
+my @JSON_FORMATS = (qw/jsonobjects jsonrows jsondatatable json/);
+my @SIMPLE_FORMATS = (qw/tsv tab csv count xml/);
 
 =head2 new( $url, [$user, $pass] )
 
@@ -196,6 +196,7 @@ which serves to validate the webservice.
 has version => (
     is       => 'ro',
     isa      => ServiceVersion,
+    coerce   => 1,
     required => 1,
     default  => sub {
         my $self = shift;
@@ -589,7 +590,9 @@ has _lists => (
     writer => '_set_lists',
     handles => { 
         list => 'get_list', 
+        get_list => 'get_list',
         lists => 'get_lists', 
+        get_lists => 'get_lists',
         lists_with_object => 'get_lists_with_object',
         list_names => 'get_list_names',
         new_list => 'new_list',
@@ -725,6 +728,8 @@ sub get_request_format {
     my $row_format = shift;
     if ($row_format eq any(@SIMPLE_FORMATS, @JSON_FORMATS)) {
         return $row_format;
+    } elsif ($self->version >= 8) { # Not available earlier...
+        return "json";
     } else {
         return "jsonrows";
     }
@@ -769,6 +774,10 @@ sub fetch {
     my $uri  = $self->build_uri($url);
     warn "FETCHING $uri " . gettimeofday() if $ENV{DEBUG};
     my $resp = $self->agent->get($uri);
+    # Correct incorrect bases.
+    if ($uri->host ne $resp->base->host) {
+        $self->root->host($resp->base->host);
+    }
     if ( $resp->is_error ) {
         confess $resp->status_line, $resp->content;
     } else {

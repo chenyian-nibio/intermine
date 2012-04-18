@@ -45,12 +45,28 @@ public class PathQueryUnmarshalTest extends  TestCase
 
     public void testInvalidView() {
         PathQuery query = createQuery("InvalidView.xml");
-        assertTrue(query.verifyQuery().size() == 1);
+        assertEquals(1, query.verifyQuery().size());
+    }
+
+    public void testEmptyView() {
+        PathQuery query = createQuery("emptyView.xml");
+        assertFalse("Viewless queries should be invalid", query.isValid());
+        assertEquals(1, query.verifyQuery().size());
     }
 
     public void testInvalidSortOrder() {
         PathQuery query = createQuery("InvalidSortOrder.xml");
-        assertTrue(query.verifyQuery().size() == 0);
+        assertTrue("Invalid sort orders are not tolerated", !query.isValid());
+    }
+
+    public void testOrderlessSortOrder() {
+        PathQuery query = createQuery("OrderlessSortOrder.xml");
+        assertTrue("Orderless sort orders are tolerated", query.isValid());
+    }
+
+    public void testIrrelevantSortOrder() {
+        PathQuery query = createQuery("IrrelevantSortOrder.xml");
+        assertEquals(Arrays.asList("Order by element for path Employee.department.name is not relevant to the query"), query.verifyQuery());
     }
 
     public void testInvalidConstraintLogic() {
@@ -159,7 +175,7 @@ public class PathQueryUnmarshalTest extends  TestCase
         String path = "PathQueryBindingUnmarshal/MultipleQueries.xml";
         InputStream is = getClass().getClassLoader().getResourceAsStream(path);
         Model model = Model.getInstanceByName("testmodel");
-        Collection<PathQuery> pqlist = PathQueryBinding.unmarshal(new InputStreamReader(is), 1).values();
+        Collection<PathQuery> pqlist = PathQueryBinding.unmarshalPathQueries(new InputStreamReader(is), 1).values();
 
         assertEquals(pqlist.size(), 2);
     }
@@ -168,7 +184,7 @@ public class PathQueryUnmarshalTest extends  TestCase
         String path = "PathQueryBindingUnmarshal/MultipleQueriesSameName.xml";
         InputStream is = getClass().getClassLoader().getResourceAsStream(path);
         Model model = Model.getInstanceByName("testmodel");
-        Set<String> pqnames = PathQueryBinding.unmarshal(new InputStreamReader(is), 1).keySet();
+        Set<String> pqnames = PathQueryBinding.unmarshalPathQueries(new InputStreamReader(is), 1).keySet();
 
         assertTrue(pqnames.contains("a_query"));
         assertTrue(pqnames.contains("a_query_1"));
@@ -209,7 +225,7 @@ public class PathQueryUnmarshalTest extends  TestCase
         String path = "PathQueryBindingUnmarshal/" + fileName;
         InputStream is = getClass().getClassLoader().getResourceAsStream(path);
         Model model = Model.getInstanceByName("testmodel");
-        PathQuery ret = PathQueryBinding.unmarshal(new InputStreamReader(is), 1).values().iterator().next();
+        PathQuery ret = PathQueryBinding.unmarshalPathQueries(new InputStreamReader(is), 1).values().iterator().next();
         return ret;
     }
 }

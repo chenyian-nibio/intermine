@@ -1,5 +1,6 @@
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
 <%@ page import="java.net.URLEncoder" language="java" %>
 
 <!-- heatMap.jsp -->
@@ -12,6 +13,36 @@
     <script type="text/javascript" src="model/canvasXpress/js/canvasXpress.min.js"></script>
 
 <div class="body" id="expression_div">
+
+<script type="text/javascript" charset="utf-8">
+jQuery(document).ready(function () {
+    var feature_count = parseInt(${FeatureCount});
+    if (feature_count > 100) {
+        jQuery("#heatmapGraph").hide();
+    } else {
+        jQuery("#heatmapGraph").show();
+    }
+
+    jQuery("#bro").click(function () {
+       if(jQuery("#heatmapGraph").is(":hidden")) {
+         jQuery("#oc").attr("src", "images/disclosed.gif");
+       } else {
+         jQuery("#oc").attr("src", "images/undisclosed.gif");
+       }
+       jQuery("#heatmapGraph").toggle("slow");
+    });
+})
+</script>
+
+<c:set var="MAX_CLUSTER" value="250" />
+<c:set var="MAX_MAP" value="600" />
+<c:set var="MAX_DEFAULT_OPEN" value="100" />
+
+<%--
+<hr>
+${expressionScoreJSONCellLine}
+<hr>
+--%>
     <div id="heatmap_div">
         <p>
           <h2>
@@ -38,6 +69,23 @@
           </i>
         </p>
         <br/>
+
+        <html:link linkName="#" styleId="bro" style="cursor:pointer">
+        <h3>
+        <c:if test="${FeatureCount > MAX_DEFAULT_OPEN}">
+        Your list is big and there could be issues with the display:
+        </c:if>
+        <b>Click to see/hide</b> the expression maps<img src="images/undisclosed.gif" id="oc"></h3>
+        </html:link>
+
+
+        <div id="heatmapGraph" style="display: block">
+
+        <c:if test="${FeatureCount > MAX_CLUSTER}">
+        Please note that clustering functions are not available for lists with more than ${MAX_CLUSTER} elements.
+        <br>
+        </c:if>
+
         <div id="heatmapContainer">
             <table>
               <tr>
@@ -57,7 +105,7 @@
                     <canvas id="canvas_cl" width="525" height="550"></canvas>
                 </td>
                 <td>
-                     <div style="padding: 0px 0px 5px 25px;">
+                     <div style="padding: 0px 0px 5px 30px;">
                      <span>Developmental Stage Clustering - Hierarchical:</span>
                      <select id="ds-hc">
                          <option value="single" selected="selected">Single</option>
@@ -95,19 +143,31 @@
                   ${ExpressionType}
                 </c:otherwise>
               </c:choose>
+            <br>Further information: check the <a href="/${WEB_PROPERTIES['webapp.path']}/portal.do?class=Submission&externalids=modENCODE_3305">
+modENCODE submission</a>, with links to the original score files for <a href="http://submit.modencode.org/submit/public/get_file/3305/extracted/Drosophila_Cell_Lines_and_Developmental_Stages_Gene_Scores.txt" target="_blank">genes</a>
+            and <a href="http://submit.modencode.org/submit/public/get_file/3305/extracted/Drosophila_Cell_Lines_and_Developmental_Stages_Exon_Scores.txt" target="_blank">exons</a>.
             </i>
-            To see <a href="/${WEB_PROPERTIES['webapp.path']}/portal.do?class=Submission&externalids=${expressionScoreDCCid}">
-            further information about the submission</a> and <a href="http://www.modencode.org/docs/flyscores/" target="_blank">original score tables</a>.
         </div>
     </div>
 </div>
+</div>
+
 
 <script type="text/javascript">
+var feature_count = parseInt(${FeatureCount});
+var max_cluster = parseInt(${MAX_CLUSTER});
+var max_map = parseInt(${MAX_MAP});
 
-    if ('${expressionScoreDCCid}'=='') {
+    if ('${fn:length(expressionScoreJSONCellLine)}' < 10) {
         jQuery('#heatmap_div').remove();
         jQuery('#expression_div').html('<i>Expression scores are not available</i>');
      } else {
+
+         if (feature_count > max_map) {
+             jQuery('#heatmap_div').remove();
+             jQuery('#expression_div').html('<i>Too many elements, please select a subset to see the heat maps.</i>');
+         }
+
          jQuery("#description").hide();
 
          jQuery("#description_div").click(function () {
@@ -119,9 +179,8 @@
                jQuery("#description").toggle("slow");
             });
 
-           var feature_count = parseInt(${FeatureCount});
 
-            // hm - heatmap; cl - cellline; ds - developmentalstage; hc - hierarchical clustering; km - kmeans
+           // hm - heatmap; cl - cellline; ds - developmentalstage; hc - hierarchical clustering; km - kmeans
             var hm_cl = new CanvasXpress('canvas_cl',
                                          ${expressionScoreJSONCellLine},
                                          {graphType: 'Heatmap',
@@ -134,7 +193,7 @@
                                           setMax: ${maxExpressionScore},
                                           varLabelRotate: 45,
                                           centerData: false,
-                                          autoExtend: false},
+                                          autoExtend: true},
                                           {click: function(o) {
                                                    var featureId = o.y.smps;
                                                    var condition = o.y.vars;
@@ -159,8 +218,12 @@
                                                    // window.open('/${WEB_PROPERTIES['webapp.path']}/portal.do?class=Gene&externalids=' + o.y.smps);
                                                   }}
                                          );
+            // cluster on gene/exons
+            if (feature_count > max_cluster) {
+                jQuery("#cl-hc").attr('disabled', 'disabled');
+            }
 
-            if (feature_count > 3) {
+            if (feature_count > 3 && feature_count <= max_cluster) {
                 hm_cl.clusterSamples();
                 hm_cl.kmeansSamples();
 
@@ -175,9 +238,13 @@
                 jQuery("#cl-km").attr('disabled', 'disabled');
             }
 
-            hm_cl.clusterVariables(); // clustering method will call draw action within it.
+            // cluster on conditions
+            if (feature_count <= max_cluster) {
+                hm_cl.clusterVariables(); // clustering method will call draw action within it.
+                hm_cl.draw();
+            }
             // cx_cellline.kmeansVariables();
-            hm_cl.draw();
+//            hm_cl.draw();
 
             var hm_ds = new CanvasXpress('canvas_ds',
                                          ${expressionScoreJSONDevelopmentalStage},
@@ -190,7 +257,7 @@
                                           setMax: ${maxExpressionScore},
                                           varLabelRotate: 45,
                                           centerData: false,
-                                          autoExtend: false},
+                                          autoExtend: true},
                                           {click: function(o) {
                                                    var featureId = o.y.smps;
                                                    var condition = o.y.vars;
@@ -216,7 +283,10 @@
                                                   }}
                                          );
 
-            if (feature_count > 3) {
+            if (feature_count > max_cluster) {
+                jQuery("#ds-hc").attr('disabled', 'disabled');
+            }
+            if (feature_count > 3 && feature_count <= max_cluster) {
                 hm_ds.clusterSamples();
                 hm_ds.kmeansSamples();
 
@@ -228,7 +298,6 @@
                 }
 
             } else {
-                jQuery("#ds-hc").attr('disabled', 'disabled');
                 jQuery("#ds-km").attr('disabled', 'disabled');
             }
 

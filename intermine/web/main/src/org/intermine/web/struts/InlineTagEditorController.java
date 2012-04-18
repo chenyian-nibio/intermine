@@ -22,15 +22,15 @@ import org.apache.struts.action.ActionMapping;
 import org.apache.struts.tiles.ComponentContext;
 import org.apache.struts.tiles.actions.TilesAction;
 import org.intermine.api.InterMineAPI;
-import org.intermine.api.profile.InterMineBag;
+import org.intermine.api.profile.StorableBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.TagManager;
 import org.intermine.api.tag.TagTypes;
-import org.intermine.api.template.TemplateQuery;
 import org.intermine.metadata.ClassDescriptor;
 import org.intermine.metadata.CollectionDescriptor;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.metadata.ReferenceDescriptor;
+import org.intermine.template.TemplateQuery;
 import org.intermine.web.logic.session.SessionMethods;
 
 /**
@@ -75,9 +75,9 @@ public class InlineTagEditorController extends TilesAction
         } else if (taggable instanceof ClassDescriptor) {
             type = TagTypes.CLASS;
             tagged = ((ClassDescriptor) taggable).getName();
-        } else if (taggable instanceof InterMineBag) {
+        } else if (taggable instanceof StorableBag) {
             type = TagTypes.BAG;
-            tagged = ((InterMineBag) taggable).getName();
+            tagged = ((StorableBag) taggable).getName();
         }
 
         request.setAttribute("editorId", createUniqueEditorId(tagged));

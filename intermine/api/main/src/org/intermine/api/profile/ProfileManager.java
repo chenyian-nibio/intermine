@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -26,9 +27,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.api.bag.UnknownBagTypeException;
 import org.intermine.api.config.ClassKeyHelper;
-import org.intermine.api.template.TemplateQuery;
+import org.intermine.api.template.ApiTemplate;
 import org.intermine.api.xml.SavedQueryBinding;
-import org.intermine.api.xml.TemplateQueryBinding;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.userprofile.SavedBag;
@@ -52,9 +52,10 @@ import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.objectstore.query.SingletonResults;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.pathquery.PathQueryBinding;
+import org.intermine.template.TemplateQuery;
+import org.intermine.template.xml.TemplateQueryBinding;
 import org.intermine.util.CacheMap;
 import org.intermine.util.PasswordHasher;
-import org.intermine.util.PropertiesUtil;
 
 /**
  * Class to manage and persist user profile data such as saved bags
@@ -80,8 +81,21 @@ public class ProfileManager
      */
     public ProfileManager(ObjectStore os, ObjectStoreWriter userProfileOS) {
         this.os = os;
-        superuser = PropertiesUtil.getProperties().getProperty("superuser.account");
         this.uosw = userProfileOS;
+        //retrieve the super user
+        UserProfile superuserProfile = new UserProfile();
+        superuserProfile.setSuperuser(true);
+        Set<String> fieldNames = new HashSet<String>();
+        fieldNames.add("superuser");
+        try {
+            superuserProfile = (UserProfile) uosw.getObjectByExample(superuserProfile, fieldNames);
+            if (superuserProfile != null) {
+                superuser = superuserProfile.getUsername();
+            }
+        } catch (ObjectStoreException e) {
+            throw new RuntimeException("Unable to load user profile", e);
+        }
+
         try {
             String versionString = MetadataManager.retrieve(((ObjectStoreInterMineImpl) uosw)
                 .getDatabase(), MetadataManager.PROFILE_FORMAT_VERSION);
@@ -101,7 +115,7 @@ public class ProfileManager
                 QueryClass qc = new QueryClass(SavedQuery.class);
                 q.addFrom(qc);
                 q.addToSelect(qc);
-                List results = uosw.execute(q, 0, 1, false, false, ObjectStore.SEQUENCE_IGNORE);
+                List<?> results = uosw.execute(q, 0, 1, false, false, ObjectStore.SEQUENCE_IGNORE);
                 if (results.isEmpty()) {
                     q = new Query();
                     qc = new QueryClass(SavedTemplateQuery.class);
@@ -227,13 +241,13 @@ public class ProfileManager
      */
     public synchronized Profile getProfile(String username, String password) {
         if (hasProfile(username)) {
-        	if (getUserProfile(username).getLocalAccount()) {
-        		if (validPassword(username, password)) {
+            if (getUserProfile(username).getLocalAccount()) {
+                if (validPassword(username, password)) {
                     return getProfile(username);
-        		}
-        	} else {
-        		return getProfile(username);
-        	}
+                }
+            } else {
+                return getProfile(username);
+            }
         }
         return null;
     }
@@ -270,7 +284,7 @@ public class ProfileManager
         }
 
         Map<String, InterMineBag> savedBags = new HashMap<String, InterMineBag>();
-        Map<String, InterMineBag> savedInvalidBags = new HashMap<String, InterMineBag>();
+        Map<String, InvalidBag> savedInvalidBags = new HashMap<String, InvalidBag>();
         Query q = new Query();
         QueryClass qc = new QueryClass(SavedBag.class);
         q.addFrom(qc);
@@ -280,27 +294,26 @@ public class ProfileManager
                     ConstraintOp.CONTAINS, new ProxyReference(null, userProfile.getId(),
                         UserProfile.class)));
         try {
-            // TODO ig
             Results bags = uosw.execute(q, 1000, false, false, true);
-            for (Iterator i = bags.iterator(); i.hasNext();) {
-                ResultsRow row = (ResultsRow) i.next();
+            for (Iterator<?> i = bags.iterator(); i.hasNext();) {
+                ResultsRow<?> row = (ResultsRow<?>) i.next();
                 Integer bagId = (Integer) row.get(0);
                 SavedBag savedBag = (SavedBag) row.get(1);
-                if (StringUtils.isBlank(savedBag.getName())) {
+                String bagName = savedBag.getName();
+                if (StringUtils.isBlank(bagName)) {
                     LOG.warn("Failed to load bag with blank name on login for user: " + username);
                 } else {
-                    InterMineBag bag = null;
                     try {
-                        bag = new InterMineBag(os, bagId, uosw);
+                        InterMineBag bag = new InterMineBag(os, bagId, uosw);
                         bag.setKeyFieldNames(ClassKeyHelper.getKeyFieldNames(
                                              classKeys, bag.getType()));
-                        savedBags.put(bag.getName(), bag);
+                        savedBags.put(bagName, bag);
                     } catch (UnknownBagTypeException e) {
-                        LOG.warn("The bag '" + savedBag.getName() + " for user '"
-                                + username + "' with type: " + savedBag.getType()
+                        LOG.warn("The bag '" + bagName + "' for user '" + username + "'"
+                                + " with type: " + savedBag.getType()
                                 + " is not in the model. It will be saved into invalidBags", e);
-                        bag = new InterMineBag(os, bagId, uosw, false);
-                        savedInvalidBags.put(bag.getName(), bag);
+                        InvalidBag bag = new InvalidBag(savedBag, userProfile.getId(), os, uosw);
+                        savedInvalidBags.put(bagName, bag);
                     }
                 }
             }
@@ -312,11 +325,12 @@ public class ProfileManager
             new HashMap<String, org.intermine.api.profile.SavedQuery>();
         for (SavedQuery query : userProfile.getSavedQuerys()) {
             try {
-                Map queries =
-                    SavedQueryBinding.unmarshal(new StringReader(query.getQuery()), savedBags,
+                Map queries = SavedQueryBinding.unmarshal(
+                            new StringReader(query.getQuery()), savedBags,
                             version);
                 if (queries.size() == 0) {
-                    queries = PathQueryBinding.unmarshal(new StringReader(query.getQuery()),
+                    queries = PathQueryBinding.unmarshalPathQueries(
+                            new StringReader(query.getQuery()),
                             version);
                     if (queries.size() == 1) {
                         Map.Entry entry = (Map.Entry) queries.entrySet().iterator().next();
@@ -334,16 +348,17 @@ public class ProfileManager
                 LOG.warn("Failed to unmarshal saved query: " + query.getQuery());
             }
         }
-        Map<String, TemplateQuery> savedTemplates = new HashMap<String, TemplateQuery>();
+        Map<String, ApiTemplate> savedTemplates = new HashMap<String, ApiTemplate>();
         for (SavedTemplateQuery template : userProfile.getSavedTemplateQuerys()) {
             try {
                 StringReader sr = new StringReader(template.getTemplateQuery());
-                Map<String, TemplateQuery> templateMap = TemplateQueryBinding.unmarshal(sr,
-                        savedBags, version);
+                Map<String, TemplateQuery> templateMap =
+                        TemplateQueryBinding.unmarshalTemplates(sr, version);
                 String templateName = templateMap.keySet().iterator().next();
                 TemplateQuery templateQuery = templateMap.get(templateName);
-                templateQuery.setSavedTemplateQuery(template);
-                savedTemplates.put(templateName, templateQuery);
+                ApiTemplate apiTemplate = new ApiTemplate(templateQuery);
+                apiTemplate.setSavedTemplateQuery(template);
+                savedTemplates.put(templateName, apiTemplate);
             } catch (Exception err) {
                 // Ignore rows that don't unmarshal (they probably reference
                 // another model.
@@ -351,9 +366,10 @@ public class ProfileManager
                          + template.getTemplateQuery(), err);
             }
         }
+        BagSet bags = new BagSet(savedBags, savedInvalidBags);
         profile = new Profile(this, username, userProfile.getId(), userProfile.getPassword(),
-                savedQueries, savedBags, savedInvalidBags, savedTemplates, userProfile.getApiKey(),
-                userProfile.getLocalAccount());
+                savedQueries, bags, savedTemplates, userProfile.getApiKey(),
+                userProfile.getLocalAccount(), userProfile.getSuperuser());
         profileCache.put(username, profile);
         return profile;
     }
@@ -378,7 +394,7 @@ public class ProfileManager
             UserProfile userProfile = getUserProfile(userId);
 
             if (userProfile != null) {
-            	userProfile.setApiKey(profile.getApiKey());
+                userProfile.setApiKey(profile.getApiKey());
                 for (Iterator i = userProfile.getSavedQuerys().iterator(); i.hasNext();) {
                     uosw.delete((InterMineObject) i.next());
                 }
@@ -410,11 +426,10 @@ public class ProfileManager
                 }
             }
 
-            for (Iterator i = profile.getSavedTemplates().entrySet().iterator(); i.hasNext();) {
-                TemplateQuery template = null;
+            for (Entry<String, ApiTemplate> entry: profile.getSavedTemplates().entrySet()) {
+                ApiTemplate template = null;
                 try {
-                    Map.Entry entry = (Map.Entry) i.next();
-                    template = (TemplateQuery) entry.getValue();
+                    template = entry.getValue();
                     SavedTemplateQuery savedTemplate = template.getSavedTemplateQuery();
                     if (savedTemplate == null) {
                         savedTemplate = new SavedTemplateQuery();
@@ -448,8 +463,9 @@ public class ProfileManager
         userProfile.setLocalAccount(profile.isLocal());
 
         if (profile.isLocal()) {
-        	userProfile.setPassword(PasswordHasher.hashPassword(profile.getPassword()));
+            userProfile.setPassword(PasswordHasher.hashPassword(profile.getPassword()));
         }
+        userProfile.setSuperuser(profile.isSuperUser);
 
         try {
             uosw.store(userProfile);
@@ -476,8 +492,8 @@ public class ProfileManager
 
     /**
      * Generate a single use API key and store it in memory, before returning it.
-     * @param profile
-     * @return
+     * @param profile the user profile
+     * @return the generated key
      */
     public synchronized String generateSingleUseKey(Profile profile) {
         String key = generateApiKey();
@@ -522,7 +538,7 @@ public class ProfileManager
         UserProfile userProfile = new UserProfile();
         userProfile.setUsername(profile.getUsername());
         userProfile.setPassword(PasswordHasher.hashPassword(profile.getPassword()));
-
+        userProfile.setSuperuser(profile.isSuperUser);
         try {
             uosw.store(userProfile);
             profile.setUserId(userProfile.getId());
@@ -598,13 +614,6 @@ public class ProfileManager
     }
 
     /**
-     * @param superuser the superuser name to set
-     */
-    public void setSuperuser(String superuser) {
-        this.superuser = superuser;
-    }
-
-    /**
      * @return the superuser profile
      */
     public Profile getSuperuserProfile() {
@@ -615,7 +624,12 @@ public class ProfileManager
      * @return the superuser profile
      */
     public Profile getSuperuserProfile(Map<String, List<FieldDescriptor>> classKeys) {
-        return getProfile(superuser, classKeys);
+        Profile profile = getProfile(superuser, classKeys);
+        if (profile == null) {
+            String msg = "Unable to retrieve superuser profile.";
+            throw new UserNotFoundException(msg);
+        }
+        return profile;
     }
 
     private final Map<String, PasswordChangeToken> passwordChangeTokens
@@ -704,7 +718,8 @@ public class ProfileManager
     }
 
     /**
-     * Transient API access keys for automated API access. These tokens are only valid for a single use.
+     * Transient API access keys for automated API access. These tokens are only valid for a
+     * single use.
      * @author Alex Kalderimis
      *
      */
@@ -831,7 +846,8 @@ public class ProfileManager
         return getProfile(profile.getUsername(), classKeys);
     }
 
-    public static class AuthenticationException extends RuntimeException {
+    public static class AuthenticationException extends RuntimeException
+    {
 
         /**
          * Default serial UID

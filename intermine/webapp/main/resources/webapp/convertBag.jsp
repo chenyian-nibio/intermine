@@ -8,34 +8,85 @@
 
 <!-- convertBag.jsp -->
 <tiles:importAttribute />
-    <c:forEach items="${conversionTypes}" var="type">
-      <script type="text/javascript" charset="utf-8">
-        getConvertCountForBag('${bag.name}','${type}','${idname}');
-      </script>
-      <c:set var="nameForURL"/>
-      <str:encodeUrl var="nameForURL">${bag.name}</str:encodeUrl>
-      <html:link action="/modifyBagDetailsAction.do?convert=${type}&bagName=${nameForURL}">${type}</html:link>&nbsp;&nbsp;<span id="${type}_convertcount_${idname}">&nbsp;</span><br>
-    </c:forEach>
-    <c:if test="${orientation!='h'}">
-      <hr/>
-    </c:if>
-    <c:if test="${orientation=='h'}">
-     <c:forEach items="${customConverters}" var="converterInfo">
-    <h3 class="goog"><%--<c:out value="${converterInfo.key}" />--%>Orthologues</h3>
-    <p>
-    <html:select property="extraFieldValue" styleId="extraConstraintSelect" >
-        <c:forEach items="${converterInfo.value}" var="value">
-         <html:option value="${value}">${value}</html:option>
-       </c:forEach>
-    </html:select>
-  &nbsp;
-    <html:submit property="convertToThing">Convert</html:submit>
-    </p>
-    </c:forEach>
-    </c:if>
 
-<c:if test="${empty conversionTypes}">
-    <div><i><fmt:message key="convert.noresults"/></i></div>
+<div id="convert-and-orthologues">
+
+<!-- convert e.g. Transcript, Protein etc. -->
+<c:if test="${!empty conversionTypes}">
+
+   <h3 class="goog"><img src="images/icons/convert.png" title="Convert objects in this bag to different type"/>&nbsp;Convert to a different type</h3>
+
+   <c:forEach items="${conversionTypes}" var="type">
+     <script type="text/javascript" charset="utf-8">
+       getConvertCountForBag('${bag.name}','${type}','${idname}');
+     </script>
+     <c:set var="nameForURL"/>
+     <str:encodeUrl var="nameForURL">${bag.name}</str:encodeUrl>
+     <html:link action="/modifyBagDetailsAction.do?convert=${type}&bagName=${nameForURL}">${type}</html:link>&nbsp;&nbsp;<span id="${type}_convertcount_${idname}">&nbsp;</span><br>
+   </c:forEach>
+
 </c:if>
+
+<!-- custom converters -->
+<c:if test="${orientation=='h'}">
+
+  <div class="orthologues">
+  <c:forEach items="${customConverters}" var="converter">
+    <h3 class="goog">${converter.title}</h3>
+
+    <input type="text" name="extraFieldValue" style="display:none;" />
+    <input type="text" name="convertToThing" value="Convert" style="display:none;" />
+
+    <script type="text/javascript" charset="utf-8">
+        Object.prototype.hasOwnProperty = function(property) {
+            return typeof(this[property]) !== 'undefined'
+        };
+
+        function convertBagCallBag(datei) {
+          var _i, _len, _ref, _target, _ref1, _ref2;
+          _json = jQuery.parseJSON(datei);
+          _target = jQuery("ul#customConverter");
+          _ref1 = "name";
+          _ref2 = "count";
+          for (_i = 0, _len = _json.length; _i < _len; _i++) {
+            _entry = _json[_i];
+            if (_entry.hasOwnProperty(_ref1) && _entry.hasOwnProperty(_ref2)) {
+              var _text, _count;
+              _name = _entry[_ref1];
+              _count = _entry[_ref2];
+              _target.append(
+                jQuery("<li/>", {
+                  style: 'display:inline-block',
+                  html: function() {
+                    return jQuery("<a/>", {
+                      href: "#",
+                      "data-value": _name,
+                      text: function() {
+                        return "" + _name + " (" + _count + ")";
+                      },
+                      click: function() {
+                        var _value;
+                        _value = jQuery(this).attr("data-value");
+                        jQuery("input[name='extraFieldValue']").attr("value", _value);
+                        jQuery("form#modifyBagDetailsForm").submit();
+                      }
+                    });
+                  }
+                })
+              );
+            }
+          }
+        }
+
+        getCustomConverterCounts('${bag.name}', '${converter.className}', convertBagCallBag);
+    </script>
+    <ul id="customConverter"></ul>
+  </c:forEach>
+  </div>
+
+</c:if>
+<!-- /custom converters -->
+
+</div>
 
 <!-- /convertBag.jsp -->

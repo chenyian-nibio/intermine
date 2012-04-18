@@ -31,6 +31,7 @@ import org.intermine.pathquery.Path;
 import org.intermine.pathquery.PathConstraint;
 import org.intermine.pathquery.PathConstraintBag;
 import org.intermine.pathquery.PathException;
+import org.intermine.template.TemplateQuery;
 
 /**
  * Helper class providing methods for precomputing and summarising TemplateQuery objects.

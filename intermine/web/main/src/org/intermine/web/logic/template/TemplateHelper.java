@@ -14,11 +14,15 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.stream.XMLOutputFactory;
@@ -26,17 +30,23 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.intermine.api.profile.InterMineBag;
-import org.intermine.api.template.SwitchOffAbility;
-import org.intermine.api.template.TemplateQuery;
-import org.intermine.api.template.TemplateValue;
-import org.intermine.api.xml.TemplateQueryBinding;
+import org.intermine.api.template.ApiTemplate;
 import org.intermine.objectstore.query.ConstraintOp;
+import org.intermine.pathquery.OrderElement;
+import org.intermine.pathquery.Path;
 import org.intermine.pathquery.PathConstraint;
 import org.intermine.pathquery.PathConstraintBag;
 import org.intermine.pathquery.PathConstraintLookup;
 import org.intermine.pathquery.PathConstraintMultiValue;
 import org.intermine.pathquery.PathConstraintNull;
+import org.intermine.pathquery.PathException;
+import org.intermine.pathquery.PathQuery;
+import org.intermine.template.SwitchOffAbility;
+import org.intermine.template.TemplateQuery;
+import org.intermine.template.TemplateValue;
+import org.intermine.template.xml.TemplateQueryBinding;
 import org.intermine.webservice.server.CodeTranslator;
 
 /**
@@ -52,6 +62,11 @@ public final class TemplateHelper
     private static final String VALUE_PARAMETER = "value";
     private static final String ID_PARAMETER = "constraint";
     private static final String CODE_PARAMETER = "code";
+
+    /**
+     * A logger.
+     */
+    private static final Logger LOG = Logger.getLogger(TemplateHelper.class);
 
     private TemplateHelper() {
         // don't
@@ -84,6 +99,74 @@ public final class TemplateHelper
         return sw.toString();
     }
 
+    /**
+     * Removed from the view all the direct attributes that aren't editable constraints
+     * @param tq The template to remove attributes from.
+     * @return altered template query
+     */
+    public static TemplateQuery removeDirectAttributesFromView(TemplateQuery tq) {
+        TemplateQuery templateQuery = tq.clone();
+        List<String> viewPaths = templateQuery.getView();
+        String rootClass = null;
+        try {
+            rootClass = templateQuery.getRootClass();
+            for (String viewPath : viewPaths) {
+                Path path = templateQuery.makePath(viewPath);
+                if (path.getElementClassDescriptors().size() == 1
+                    && path.getLastClassDescriptor().getUnqualifiedName().equals(rootClass)) {
+                    if (templateQuery.getEditableConstraints(viewPath).isEmpty()) {
+                        templateQuery.removeView(viewPath);
+                        for (OrderElement oe : templateQuery.getOrderBy()) {
+                            if (oe.getOrderPath().equals(viewPath)) {
+                                templateQuery.removeOrderBy(viewPath);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (PathException pe) {
+            LOG.error("Error updating the template's view", pe);
+        }
+        return templateQuery;
+    }
+
+    /**
+     * Serialse a map of templates to XML.
+     * @param templates The templates to serialise.
+     * @param version The UserProfile version to use.
+     * @return An XML serialise.
+     */
+    public static String apiTemplateMapToXml(Map<String, ApiTemplate> templates, int version) {
+        return templateMapToXml(downCast(templates), version);
+    }
+
+    private static Map<String, TemplateQuery> downCast(Map<String, ApiTemplate> templates) {
+        Map<String, TemplateQuery> ret = new HashMap<String, TemplateQuery>();
+        for (Entry<String, ApiTemplate> pair: templates.entrySet()) {
+            ret.put(pair.getKey(), pair.getValue());
+        }
+        return ret;
+    }
+
+    /**
+     * Transform a map of templates into a map of API templates.
+     * @param templates The original, non-api templates.
+     * @return templates brought into the realm of the API.
+     */
+    public static Map<String, ApiTemplate> upcast(Map<String, TemplateQuery> templates) {
+        Map<String, ApiTemplate> ret = new HashMap<String, ApiTemplate>();
+        for (Entry<String, TemplateQuery> pair: templates.entrySet()) {
+            ret.put(pair.getKey(), new ApiTemplate(pair.getValue()));
+        }
+        return ret;
+    }
+
+    /**
+     * Routine for serialising map of templates to JSON.
+     * @param templates The templates to serialise.
+     * @return A JSON string.
+     */
     public static String templateMapToJson(Map<String, TemplateQuery> templates) {
         StringBuilder sb = new StringBuilder("{");
         Iterator<String> keys = templates.keySet().iterator();
@@ -100,6 +183,15 @@ public final class TemplateHelper
     }
 
     /**
+     * Helper routine for serialising a map of templates to JSON.
+     * @param templates The map of templates to serialise.
+     * @return A JSON string.
+     */
+    public static String apiTemplateMapToJson(Map<String, ApiTemplate> templates) {
+        return templateMapToJson(downCast(templates));
+    }
+
+    /**
      * Parse templates in XML format and return a map from template name to
      * TemplateQuery.
      *
@@ -112,7 +204,7 @@ public final class TemplateHelper
     public static Map<String, TemplateQuery> xmlToTemplateMap(String xml,
             Map<String, InterMineBag> savedBags, int version) throws Exception {
         Reader templateQueriesReader = new StringReader(xml);
-        return new TemplateQueryBinding().unmarshal(templateQueriesReader, savedBags, version);
+        return TemplateQueryBinding.unmarshalTemplates(templateQueriesReader, version);
     }
 
     /**
@@ -122,12 +214,15 @@ public final class TemplateHelper
      * @return map of constraints and values to be used to populate template.
      */
     public static Map<String, List<ConstraintInput>> parseConstraints(HttpServletRequest request) {
-        // Maximum of constraints is 50, it should be enough
+        // Maximum number of constraints is determined by the valid code range
+        // on PathQueries.
         Map<String, List<ConstraintInput>> ret = new HashMap<String, List<ConstraintInput>>();
-        for (int i = 0; i < 50; i++) {
+        Set<String> processedIds = new HashSet<String>();
+        for (int i = 1; i <= PathQuery.MAX_CONSTRAINTS; i++) {
 
             String idParameter = ID_PARAMETER + i;
             String id = request.getParameter(idParameter);
+            processedIds.add(idParameter);
 
             String opParameter = OPERATION_PARAMETER + i;
             String opString = request.getParameter(opParameter);
@@ -149,22 +244,22 @@ public final class TemplateHelper
             String code = request.getParameter(codeParameter);
 
             if (opString != null && opString.length() > 0 && op == null) {
-                throw new IllegalArgumentException("invalid parameter: '" 
+                throw new IllegalArgumentException("invalid parameter: '"
                     + opParameter + "' with value '" + opString + "': "
                     + "This must be valid operation code. "
                     + "Special characters must be encoded in request. "
                     + " See help for 'url encoding'.");
             }
 
-            if (isPresent(op) || isPresent(value) || isPresent(id) 
+            if (isPresent(op) || isPresent(value) || isPresent(id)
                     || isPresent(extraValue) || isPresent(code)
                     || multivalues != null) {
-                String problemIntro = 
+                String problemIntro =
                     "parameters were provided for constraint " + i;
                 if (!isPresent(id)) {
                     throw new IllegalArgumentException(problemIntro
                         + " but no path was provided to identify the "
-                        + "constraint. Missing parameter: '" 
+                        + "constraint. Missing parameter: '"
                         + idParameter + "'.");
                 }
                 if (!isPresent(op)) {
@@ -175,7 +270,7 @@ public final class TemplateHelper
                 if (!PathConstraintNull.VALID_OPS.contains(op)
                     && (request.getParameterValues(valueParameter) == null)) {
                     throw new IllegalArgumentException(problemIntro
-                        + " but no values were provided, and " + op 
+                        + " but no values were provided, and " + op
                         + " requires at least one value. Missing"
                         + " parameter '" + valueParameter + "'.");
                 }
@@ -183,19 +278,37 @@ public final class TemplateHelper
                     && multivalues != null && multivalues.size() > 1) {
                     throw new IllegalArgumentException(
                         " An operation was provided ('" + op + "') "
-                        + " that expected at most one value, but " 
+                        + " that expected at most one value, but "
                         + multivalues.size()
                         + " values were provided using the parameter '"
                         + valueParameter + "'.");
                 }
 
-                ConstraintInput load = new ConstraintInput(idParameter, 
+                ConstraintInput load = new ConstraintInput(idParameter,
                         id, code, op, value, multivalues, extraValue);
                 if (ret.get(id) == null) {
                     ret.put(id, new ArrayList<ConstraintInput>());
                 }
                 ret.get(id).add(load);
             }
+        }
+        // Make sure there aren't any extra parameters hanging around.
+        // Use the id parameters (eg. constraint1, constraint2, ...) as a proxy
+        // for the whole constraint.
+        Set<String> allIdParameters = new HashSet<String>();
+        for (Enumeration<String> e = request.getParameterNames(); e.hasMoreElements();) {
+            String next = e.nextElement();
+            if (next.startsWith("constraint")) {
+                allIdParameters.add(next);
+            }
+        }
+        allIdParameters.removeAll(processedIds);
+        if (allIdParameters.size() > 0) {
+            throw new IllegalArgumentException("Maximum number of template parameters ("
+                    + PathQuery.MAX_CONSTRAINTS
+                    + ") exceeded. "
+                    + "The extra values were :"
+                    + allIdParameters);
         }
         return ret;
     }
@@ -204,7 +317,8 @@ public final class TemplateHelper
         ConstraintOp ret = ConstraintOp.getConstraintOp(CodeTranslator.getCode(parValue));
         if (parValue != null && ret == null) {
             throw new IllegalArgumentException(
-                    "Problem with parameter '" + parName + "': '" + parValue + "' is not a valid operator.");
+                    "Problem with parameter '" + parName
+                    + "': '" + parValue + "' is not a valid operator.");
         }
         return ret;
     }
@@ -313,7 +427,10 @@ public final class TemplateHelper
     private static TemplateValue createTemplateValue(PathConstraint con, ConstraintInput input,
             SwitchOffAbility switchOffAbility) {
         TemplateValue value;
-        if (con instanceof PathConstraintLookup) {
+        if (PathConstraintBag.VALID_OPS.contains(input.getConstraintOp())) {
+            value = new TemplateValue(con, input.getConstraintOp(), input.getValue(),
+                TemplateValue.ValueType.BAG_VALUE, switchOffAbility);
+        } else if (con instanceof PathConstraintLookup) {
             value = new TemplateValue(con, input.getConstraintOp(), input.getValue(),
                     TemplateValue.ValueType.SIMPLE_VALUE, input.getExtraValue(), switchOffAbility);
         } else if (con instanceof PathConstraintBag) {
@@ -321,8 +438,9 @@ public final class TemplateHelper
                     TemplateValue.ValueType.BAG_VALUE, switchOffAbility);
         } else {
             if (PathConstraintMultiValue.VALID_OPS.contains(input.getConstraintOp())) {
-                value = new TemplateValue(con, input.getConstraintOp(), 
-                        TemplateValue.ValueType.SIMPLE_VALUE, input.getMultivalues(), switchOffAbility);
+                value = new TemplateValue(con, input.getConstraintOp(),
+                        TemplateValue.ValueType.SIMPLE_VALUE,
+                        input.getMultivalues(), switchOffAbility);
             } else if (input.getValue() != null) {
                 value = new TemplateValue(con, input.getConstraintOp(), input.getValue(),
                     TemplateValue.ValueType.SIMPLE_VALUE, switchOffAbility);

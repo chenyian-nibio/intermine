@@ -36,7 +36,7 @@ public final class GBrowseParser
     private static final String GBROWSE_URL_END = "/?show_tracks=1";
     private static final String GBROWSE_ST_URL_END = "/?action=scan";
     private static final String GBROWSE_DEFAULT_URL =
-        "http://modencode.oicr.on.ca/cgi-bin/gb2/gbrowse/";
+        "http://modencode.oicr.on.ca/fgb2/gbrowse/";
     private static final String DCC_PREFIX = "modENCODE_";
     private static final String SEPARATOR = ";";
     // private static final String TRACK_SEPARATOR = "%1E";
@@ -155,8 +155,8 @@ public final class GBrowseParser
             // in this case we should link only to the first data source
             // (nr of sources = nr of tracks according to peter ...)
             // wait for document on parsing and news about fgb2
-            
-            
+
+
             StringBuffer trackName = new StringBuffer();
             StringBuffer toAppend = new StringBuffer();
             boolean hasSelected = false;
@@ -208,9 +208,9 @@ public final class GBrowseParser
                         GBrowseTrack newTrack =
                             new GBrowseTrack(organism, trackName.toString(), trackName.toString(),
                                     dccId);
-                        addToGBMap(submissionsToTracks, dccId, newTrack);                       
+                        addToGBMap(submissionsToTracks, dccId, newTrack);
                     }
-                    
+
                 }
             }
             reader.close();

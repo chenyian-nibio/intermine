@@ -15,11 +15,11 @@ import org.intermine.api.bag.BagManager;
 import org.intermine.api.bag.BagQueryConfig;
 import org.intermine.api.bag.BagQueryRunner;
 import org.intermine.api.profile.ProfileManager;
-import org.intermine.api.template.TemplateManager;
 import org.intermine.api.template.TemplateSummariser;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreSummary;
+import org.intermine.api.template.TemplateManager;
 
 /**
  * InterMineAPITest is a class created only to allow some tests.
@@ -49,7 +49,7 @@ public class TestInterMineAPI extends InterMineAPI
         this.bagManager = new BagManager(pm.getSuperuserProfile(), model);
         this.templateManager = new TemplateManager(pm.getSuperuserProfile(), model);
         this.templateSummariser = new TemplateSummariser(objectStore,
-                pm.getProfileObjectStoreWriter());
+                pm.getProfileObjectStoreWriter(), oss);
         this.bagQueryRunner =
             new BagQueryRunner(objectStore, classKeys, bagQueryConfig, templateManager);
     }

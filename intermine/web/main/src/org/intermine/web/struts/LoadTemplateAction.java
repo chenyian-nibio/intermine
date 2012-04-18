@@ -24,13 +24,13 @@ import org.apache.struts.actions.DispatchAction;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.query.WebResultsExecutor;
-import org.intermine.api.template.TemplateManager;
 import org.intermine.api.template.TemplatePopulator;
-import org.intermine.api.template.TemplatePopulatorException;
-import org.intermine.api.template.TemplateQuery;
-import org.intermine.api.template.TemplateValue;
 import org.intermine.api.util.NameUtil;
 import org.intermine.objectstore.ObjectStoreException;
+import org.intermine.api.template.TemplateManager;
+import org.intermine.template.TemplatePopulatorException;
+import org.intermine.template.TemplateQuery;
+import org.intermine.template.TemplateValue;
 import org.intermine.web.logic.bag.BagHelper;
 import org.intermine.web.logic.config.WebConfig;
 import org.intermine.web.logic.export.http.TableExporterFactory;
@@ -122,7 +122,7 @@ public class LoadTemplateAction extends DispatchAction
         String path = request.getParameter("path");
         String bagName = template.getName() + "_results";
         bagName = NameUtil.generateNewName(profile.getSavedBags().keySet(), bagName);
-        BagHelper.createBagFromPathQuery(template.getPathQuery(), bagName,
+        BagHelper.createBagFromPathQuery(template, bagName,
                 template.getDescription(), path, profile, im);
         ForwardParameters forwardParameters =
             new ForwardParameters(mapping.findForward("bagDetails"));
@@ -169,7 +169,7 @@ public class LoadTemplateAction extends DispatchAction
             throw new RuntimeException("unknown export format: " + exportFormat);
         }
 
-        exporter.export(pt, request, response, null);
+        exporter.export(pt, request, response, null, null, null);
 
         // If null is returned then no forwarding is performed and
         // to the output is not flushed any jsp output, so user

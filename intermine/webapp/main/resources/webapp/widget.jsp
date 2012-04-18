@@ -18,7 +18,7 @@
 <c:set var="type" value="${split[fn:length(split)-1]}"/>
 
 <html:xhtml/>
-<form method="POST" action="widgetAction.do" id="widgetaction${widget.id}">
+<form action="widgetAction.do" id="widgetaction${widget.id}" method="post">
 <html:hidden property="link" value="${widget.link}"/>
 <html:hidden property="bagType" value="${bag.type}"/>
 <html:hidden property="bagName" value="${bag.name}" />
@@ -28,10 +28,9 @@
 <html:hidden property="exporttype" value="" styleId="export${widget.id}"/>
 
 <c:set var="extraAttrMap" value="${widget2extraAttrs[widget.id]}" />
-
 <div id="widgetcontainer${widget.id}" class="widgetcontainer">
-
-  <span id="closewidget${widget.id}" class="widgetcloser"><a href="javascript:toggleWidget('widgetcontainer${widget.id}','togglelink${widget.id}');">close</a></span>
+  <a name="anchorage${widget.id}" id="anchorage${widget.id}"></a>
+  <span id="closewidget${widget.id}" class="widgetcloser"><a href="javascript:closeWidget('${widget.id}','togglelink${widget.id}');">close</a></span>
   <h3 class="goog">${widget.title}</h3>
   <p>${widget.description}
   <c:if test="${type == 'EnrichmentWidgetConfig'}">
@@ -54,9 +53,9 @@
    <html:hidden property="externalLinkLabel${widget.id}" styleId="externalLinkLabel${widget.id}" value="${widget.externalLinkLabel}"/>
     <li>
     <label>Multiple Hypothesis Test Correction</label>
-    <select id="errorCorrection${widget.id}" onchange="getProcessEnrichmentWidgetConfig('${widget.id}','${bag.name}');">
-      <option value="Benjamini Hochberg">Benjamini and Hochberg</option>
+    <select name="errorCorrection" id="errorCorrection${widget.id}" onchange="getProcessEnrichmentWidgetConfig('${widget.id}','${bag.name}');">
       <option value="Holm-Bonferroni">Holm-Bonferroni</option>
+      <option value="Benjamini Hochberg">Benjamini and Hochberg</option>
       <option value="Bonferroni">Bonferroni</option>
       <option value="None">None</option>
     </select>
@@ -98,12 +97,12 @@
         <!-- View in results table button -->
         <li id="tool_bar_li_display_widget_${widget.id}" class="tb_button">
           <span id="tool_bar_button_display_${widget.id}" class="widget_tool_bar_button"
-          onclick="javascript:submitWidgetForm('${widget.id}','display','null');return false;"
+            onclick="javascript:submitWidgetForm('${widget.id}','display','null');return false;"
           >View</span>
         </li>
         <li id="tool_bar_li_export_widget_${widget.id}" class="tb_button">
           <span id="tool_bar_button_export_${widget.id}" class="widget_tool_bar_button"
-          onclick="javascript:submitWidgetForm('${widget.id}','export','tab');return false;"
+            onclick="javascript:submitWidgetForm('${widget.id}','export','tab');return false;"
           >Download</span>
         </li>
     </ul>

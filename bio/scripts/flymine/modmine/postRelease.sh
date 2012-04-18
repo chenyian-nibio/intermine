@@ -8,13 +8,13 @@ ARKDIR=/micklem/releases/modmine
 DBHOST=modfast
 DBUSER=modmine
 DATADIR=/micklem/data/modmine/subs/chado
+RELDIR="$DATADIR/ark"
 LOADDIR="$DATADIR/load"
 INTERACT=y
 DOIT=y
 
-#PRO="oliver snyder"
-PRO="lieb henikoff macalpine oliver snyder karpen white celnikerlai waterstonpiano"
-#PRO="lieb macalpine snyder karpen celnikerlai waterstonpiano"
+#PRO="lieb henikoff macalpine oliver snyder karpen white celnikerlai waterstonpiano"
+PRO="henikoff karpen waterstonpiano"
 
 progname=$0
 
@@ -95,12 +95,11 @@ function prepare_production {
 #mv dump to archive
 echo
 # use the build dump (from modfast)
-mv $ARKDIR/build/mod-final.dmp $ARKDIR/r$REL/modmine-r$REL
+mv $ARKDIR/build/mod-final.dmp.final $ARKDIR/r$REL/modmine-r$REL
 
 #alt
 #echo "Dumping current release $REL ..."
 #pg_dump -F c -i -h modprod0 -f $ARKDIR/r$REL/modmine-r$REL modmine-r$REL -U modmine
-
 #echo "Dumping modmine-build in modfast..."
 #pg_dump -F c -i -h modfast -f $ARKDIR/r$REL/modmine-r$REL modmine-build -U modminebuild
 
@@ -115,8 +114,6 @@ pg_restore -h modprod0 -U modmine -d modmine-r$REL $ARKDIR/r$REL/modmine-r$REL
 echo "done"
 echo
 }
-
-
 
 
 function dump_chadoes {
@@ -229,7 +226,7 @@ cd /home/modmine/.intermine
 sed 's/modprod0/modalone/g' modmine.properties.r$PREL | sed 's/modmine-prod-userprofile/modmine-r'"$PREL"'-userprofile/g' | grep -v 'google.analytics' > modmine.properties.modmine-$PREL
 
 echo; echo "Starting archived webapp r$PREL..."
-cd /home/modmine/svn/modmine-$PREL/modmine/webapp
+cd /data/code/modmine/modmine-$PREL/modmine/webapp
 ant -Drelease=modmine-$PREL default remove-webapp release-webapp
 
 echo
@@ -243,6 +240,61 @@ cd $RETURNDIR
 echo "done"
 echo
 }
+
+function do_modlog {
+RETURNDIR=$PWD
+echo
+
+if [ ! -s "$RELDIR/$REL" ]
+then
+echo
+echo "Creating directory $RELDIR/$REL..."
+mkdir $RELDIR/$REL
+echo "... and copying the .live files"
+cp $DATADIR/*.live  $RELDIR/$REL
+cp $DATADIR/deprecation.table $RELDIR/$REL
+cp $DATADIR/deprecations $RELDIR/$REL
+cp $DATADIR/superseded.table $RELDIR/$REL
+mkdir $RELDIR/$REL/delta
+fi
+
+DELTA=$RELDIR/$REL/delta
+
+echo
+echo "--------------------------------------------------------------"
+echo "Building modification log between releases $REL and $PREL"
+echo "The projects considered are:"
+echo "$PRO"
+echo "--------------------------------------------------------------"
+echo
+
+LOG="$DATADIR/$REL"_changes.log
+echo "modMine $REL changelog" > $LOG
+echo "=========================================" >>$LOG
+
+
+cd $DATADIR
+
+for p in $PRO
+do
+echo "$p.."
+echo "$p project" >> $LOG
+echo >> $LOG
+grep -vwf $RELDIR/$PREL/$p.live $p.live > $DELTA/$p.delta
+
+grep -wf $DELTA/$p.delta deprecation.table | sed 's/->/deprecated by/g' >> $LOG
+grep -wf $DELTA/$p.delta superseded.table | sed 's/->/superseded by/g' >> $LOG
+grep -vwf $LOG $DELTA/$p.delta |  sed '1i\---- new ----'>> $LOG
+
+echo "=========================================" >>$LOG
+done
+
+cd $RETURNDIR
+echo "done"
+echo   
+}
+
+
 
 function interact {
 if [ "$INTERACT" = "y" ]
@@ -286,6 +338,12 @@ interact "Start archived webapp modmine $PREL:"
 if [ "$DOIT" != "n" ]
 then
 start_archive_webapp
+fi
+
+interact "Build a log of the modifications in the $REL release vs $PREL:"
+if [ "$DOIT" != "n" ]
+then
+do_modlog
 fi
 
 interact "Archiving xml files for all the projects:"

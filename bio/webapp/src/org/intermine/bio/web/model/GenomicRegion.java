@@ -16,15 +16,18 @@ package org.intermine.bio.web.model;
  *
  * @author Fengyuan Hu
  */
-public class GenomicRegion
+public class GenomicRegion implements Comparable<GenomicRegion>
 {
+    private String organism;
     private String chr;
     private Integer start;
     private Integer end;
-    // user add region flanking
-    private Integer extendedStart = 0;
-    private Integer extendedEnd = 0;
-    private int extendedRegionSize = 0;
+    private Integer extendedRegionSize = new Integer(0); // user add region flanking
+    private Integer extendedStart;
+    private Integer extendedEnd;
+
+    //user identifier to tag the order of input e.g. X:7880589..7880644:5 is the 5th input
+    private Integer tag = null;
 
     /**
      * Default constructor
@@ -34,6 +37,21 @@ public class GenomicRegion
     public GenomicRegion() {
 
     }
+
+    /**
+     * @param organism short name
+     */
+    public void setOrganism(String organism) {
+        this.organism = organism;
+    }
+
+    /**
+     * @return organism
+     */
+    public String getOrganism() {
+        return organism;
+    }
+
     /**
      * @return chr
      */
@@ -119,6 +137,20 @@ public class GenomicRegion
     }
 
     /**
+     * @param tag as integer
+     */
+    public void setTag(Integer tag) {
+        this.tag = tag;
+    }
+
+    /**
+     * @return tag value
+     */
+    public Integer getTag() {
+        return tag;
+    }
+
+    /**
      * Make a string of orginal region if extended
      * @return chr:start..end
      */
@@ -134,25 +166,48 @@ public class GenomicRegion
     }
 
     /**
+     * @return chr:extendedStart..extenededEnd|chr:start..end
+     */
+    public String getFullRegionInfo() {
+        if (extendedRegionSize == 0) {
+            return chr + ":" + start + ".." + end + "|" + extendedRegionSize + "|" + organism;
+        } else {
+            return chr + ":" + extendedStart + ".." + extendedEnd + "|" + chr
+                + ":" + start + ".." + end + "|" + extendedRegionSize + "|" + organism;
+        }
+    }
+
+    /**
      * @param obj a GenomicRegion object
      * @return boolean
      */
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof GenomicRegion) {
-            GenomicRegion s = (GenomicRegion) obj;
+            GenomicRegion gr = (GenomicRegion) obj;
 
-            return (chr.equals(s.getChr())
-                    && extendedStart.equals(s.getExtendedStart()) && extendedEnd
-                    .equals(s.getExtendedEnd())
-                    && start.equals(s.getStart()) && end.equals(s.getEnd()));
+            // To uniquely identify a region
+            if (gr.getOrganism() == null || gr.getTag() == null) { // for simpler version
+                return (chr.equals(gr.getChr())
+                        && start.equals(gr.getStart())
+                        && end.equals(gr.getEnd()));
+            } else {                                               // for full version
+                return (chr.equals(gr.getChr())
+                        && start.equals(gr.getStart())
+                        && end.equals(gr.getEnd())
+                        && organism.equals(gr.getOrganism())
+                        && extendedRegionSize.equals(gr.getExtendedRegionSize())
+                        && tag == gr.getTag());
+            }
         }
         return false;
     }
-    
-    @Override 
+
+    @Override
     public String toString() {
-        return getOriginalRegion() + (getOriginalRegion().equals(getExtendedRegion()) ? "" : " +/- " + extendedRegionSize);
+        return getOriginalRegion()
+                + (getOriginalRegion().equals(getExtendedRegion()) ? ""
+                        : " +/- " + extendedRegionSize);
     }
 
     /**
@@ -160,19 +215,75 @@ public class GenomicRegion
      */
     @Override
     public int hashCode() {
-        return chr.hashCode() + start.hashCode() + end.hashCode()
-                + extendedStart.hashCode() + extendedEnd.hashCode();
+        if (organism == null) {  // for simpler version
+            return chr.hashCode()
+                + start.hashCode()
+                + end.hashCode();
+        } else {                 // for full version
+            return chr.hashCode()
+                + start.hashCode()
+                + end.hashCode()
+                + organism.hashCode()
+                + extendedRegionSize.hashCode();
+        }
+    }
+
+    @Override
+    public int compareTo(GenomicRegion gr) {
+        final int bEFORE = -1;
+        final int eQUAL = 0;
+        final int aFTER = 1;
+
+        //this optimization is usually worthwhile, and can always be added
+        if (this == gr) {
+            return eQUAL;
+        }
+
+        if (this.getChr().compareTo(gr.getChr()) < 0) {
+            return bEFORE;
+        }
+
+        if (this.getChr().equals(gr.getChr())) {
+            if (extendedRegionSize == 0) {
+                if (this.getStart() < gr.getStart()) {
+                    return bEFORE;
+                } else if (this.getStart() > gr.getStart()) {
+                    return aFTER;
+                } else {
+                    if (this.getEnd() < gr.getEnd()) {
+                        return bEFORE;
+                    } else {
+                        return aFTER;
+                    }
+                }
+            } else {
+                if (this.getExtendedStart() < gr.getExtendedStart()) {
+                    return bEFORE;
+                } else if (this.getExtendedStart() > gr.getExtendedStart()) {
+                    return aFTER;
+                } else {
+                    if (this.getExtendedEnd() < gr.getExtendedEnd()) {
+                        return bEFORE;
+                    } else {
+                        return aFTER;
+                    }
+                }
+            }
+        }
+
+        return eQUAL;
     }
 
     /**
-     * Test if region is extended
-     * @return a boolean value
+     * Test if two regions are overlapped.
+     *
+     * @param gr GenomicRegion
+     * @return A boolean value
      */
-    public boolean isRegionExtended() {
-        if (this.extendedRegionSize > 0) {
-            return true;
-        } else {
-            return false;
-        }
+    public boolean isOverlapped(GenomicRegion gr) {
+
+        // TODO use extended region?
+
+        return false;
     }
 }

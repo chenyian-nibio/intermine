@@ -19,8 +19,8 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.SavedQuery;
-import org.intermine.api.template.TemplateQuery;
 import org.intermine.pathquery.PathQuery;
+import org.intermine.template.TemplateQuery;
 import org.intermine.web.logic.Constants;
 import org.intermine.web.logic.session.SessionMethods;
 
@@ -44,8 +44,8 @@ public class CurrentQueryAction extends InterMineAction
      *  an exception
      */
     @Override
-    public ActionForward execute(ActionMapping mapping, @SuppressWarnings("unused") ActionForm form,
-            HttpServletRequest request, @SuppressWarnings("unused") HttpServletResponse response)
+    public ActionForward execute(ActionMapping mapping, ActionForm form,
+            HttpServletRequest request, HttpServletResponse response)
         throws Exception {
         HttpSession session = request.getSession();
         PathQuery query = SessionMethods.getQuery(session);

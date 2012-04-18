@@ -21,6 +21,11 @@ class ListManager(object):
 
     This class is not meant to be called itself, but rather for its
     methods to be called by the service object.
+
+    Note that the methods for creating lists can conflict in threaded applications, if 
+    two threads are each allocated the same unused list name. You are
+    strongly advised to use locks to synchronise any list creation requests (create_list, 
+    or intersect, union, subtract, diff) unless you are choosing your own names each time.
     """
 
     DEFAULT_LIST_NAME = "my_list_"
@@ -88,7 +93,16 @@ class ListManager(object):
         return len(self.get_all_list_names())
 
     def get_unused_list_name(self):
-        """Get a list name that does not conflict with any lists you have access to"""
+        """
+        Get an unused list name 
+        =======================
+
+        This method returns a new name that does not conflict
+        with any currently existing list name. 
+
+        The list name is only guaranteed to be unused at the time
+        of allocation. 
+        """
         list_names = self.get_all_list_names()
         counter = 1
         name = self.DEFAULT_LIST_NAME + str(counter)
@@ -98,6 +112,30 @@ class ListManager(object):
         self._temp_lists.add(name)
         return name
 
+    def _get_listable_query(self, queryable):
+        q = queryable.to_query()
+        if not q.views:
+            q.add_view(q.root.name + ".id")
+        else: 
+            # Check to see if the class of the selected items is unambiguous
+            up_to_attrs = set((v[0:v.rindex(".")] for v in q.views))
+            if len(up_to_attrs) == 1:
+                q.select(up_to_attrs.pop() + ".id")
+        return q
+
+    def _create_list_from_queryable(self, queryable, name, description, tags):
+        q = self._get_listable_query(queryable)
+        uri = q.get_list_upload_uri()
+        params = q.to_query_params()
+        params["listName"] = name
+        params["description"] = description
+        params["tags"] = ";".join(tags)
+        form = urllib.urlencode(params)
+        resp = self.service.opener.open(uri, form)
+        data = resp.read()
+        resp.close()
+        return self.parse_list_upload_response(data) 
+
     def create_list(self, content, list_type="", name=None, description=None, tags=[]):
         """
         Create a new list in the webservice
@@ -106,6 +144,9 @@ class ListManager(object):
         If no name is given, the list will be considered to be a temporary
         list, and will be automatically deleted when the program ends. To prevent
         this happening, give the list a name, either on creation, or by renaming it.
+
+        This method is not thread safe for anonymous lists - it will need synchronisation
+        with locks if you intend to create lists with multiple threads in parallel.
 
         @rtype: intermine.lists.List
         """
@@ -122,24 +163,17 @@ class ListManager(object):
                 ids = content
             else:
                 try:
+                    return self._create_list_from_queryable(content, name, description, tags)
+                except AttributeError:
                     ids = "\n".join(map(lambda x: '"' + x + '"', iter(content)))
-                except TypeError:
-                    try:
-                        uri = content.get_list_upload_uri()
-                    except:
-                        content = content.to_query()
-                        uri = content.get_list_upload_uri()
-                    params = content.to_query_params()
-                    params["listName"] = name
-                    params["description"] = description
-                    form = urllib.urlencode(params)
-                    resp = self.service.opener.open(uri, form)
-                    data = resp.read()
-                    resp.close()
-                    return self.parse_list_upload_response(data) 
 
         uri = self.service.root + self.service.LIST_CREATION_PATH
-        query_form = {'name': name, 'type': list_type, 'description': description, 'tags': ";".join(tags)}
+        query_form = {
+            'name': name, 
+            'type': list_type, 
+            'description': description, 
+            'tags': ";".join(tags)
+        }
         uri += "?" + urllib.urlencode(query_form)
         data = self.service.opener.post_plain_text(uri, ids)
         return self.parse_list_upload_response(data)
@@ -162,12 +196,13 @@ class ListManager(object):
 
     def delete_lists(self, lists):
         """Delete the given lists from the webserver"""
+        all_names = self.get_all_list_names()
         for l in lists:
             if isinstance(l, List):
                 name = l.name
             else:
                 name = str(l)
-            if name not in self.get_all_list_names():
+            if name not in all_names:
                 continue
             uri = self.service.root + self.service.LIST_PATH
             query_form = {'name': name}
@@ -177,6 +212,57 @@ class ListManager(object):
             if not response_data.get("wasSuccessful"):
                 raise ListServiceError(response_data.get("error"))
         self.refresh_lists()
+
+    def remove_tags(self, to_remove_from, tags):
+        """
+        Add the tags to the given list
+        ==============================
+
+        Returns the current tags of this list.
+        """
+        uri = self.service.root + self.service.LIST_TAG_PATH
+        form = {"name": to_remove_from.name, "tags": ";".join(tags)}
+        uri += "?" + urllib.urlencode(form)
+        body = self.service.opener.delete(uri)
+        return self._body_to_json(body)["tags"]
+
+    def add_tags(self, to_tag, tags):
+        """
+        Add the tags to the given list
+        ==============================
+
+        Returns the current tags of this list.
+        """
+        uri = self.service.root + self.service.LIST_TAG_PATH
+        form = {"name": to_tag.name, "tags": ";".join(tags)}
+        resp = self.service.opener.open(uri, urllib.urlencode(form))
+        body = resp.read()
+        resp.close()
+        return self._body_to_json(body)["tags"]
+
+    def get_tags(self, im_list):
+        """
+        Get the up-to-date set of tags for a given list
+        ===============================================
+
+        Returns the current tags of this list.
+        """
+        uri = self.service.root + self.service.LIST_TAG_PATH
+        form = {"name": im_list.name}
+        uri += "?" + urllib.urlencode(form)
+        resp = self.service.opener.open(uri)
+        body = resp.read()
+        resp.close()
+        return self._body_to_json(body)["tags"]
+
+    def _body_to_json(self, body):
+        try:
+            data = json.loads(body)
+        except ValueError:
+            raise ListServiceError("Error parsing response: " + body)
+        if not data.get("wasSuccessful"):
+            raise ListServiceError(data.get("error"))
+        return data
 
     def delete_temporary_lists(self):
         """Delete all the lists considered temporary (those created without names)"""

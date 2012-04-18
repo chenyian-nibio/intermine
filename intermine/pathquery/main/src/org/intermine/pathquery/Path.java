@@ -458,7 +458,10 @@ public class Path
      */
     public ClassDescriptor getSecondLastClassDescriptor() {
         List<ClassDescriptor> l = getElementClassDescriptors();
-        return l.get(l.size() - 2);
+        if (l.size() >1) {
+            return l.get(l.size() - 2);
+        }
+        return null;
     }
 
     /**
@@ -604,34 +607,44 @@ public class Path
     public Model getModel() {
         return model;
     }
-    
+
     /**
      * Return true if the first element in the path has the class given in input as type
      * @param cls the class
      * @return true if the first element contains the class
      */
     public boolean startContainsClass(String cls) {
-        String rootClass = startCld.getType().getSimpleName();
+        String rootClass = startCld.getSimpleName();
         if (rootClass.equals(cls)) {
             return true;
         }
         return false;
     }
-    
+
     /**
-     * Return true if there is an element containing the field given in input
+     * Return the indexes of elements containing the field given in input
      * @param cls the class containing the field
      * @param field the field
-     * @return true if there is an element containing the class
+     * @return list of indexes
      */
-    public boolean elementsContainField(String cls, String field) {
+    public List<Integer> getElementsContainingField(String cls, String field) {
+        List<Integer> indexElementsContainingField = new ArrayList<Integer>();
+        ClassDescriptor cd;
         for (int index = 0; index < elements.size(); index++) {
             if (elements.get(index).equals(field)) {
-                 if (getElementClassDescriptors().get(index).getType().getSimpleName().equals(cls)) {
-                     return true;
-                 }
-             }
+                cd = getElementClassDescriptors().get(index);
+                if (cd.getSimpleName().equals(cls)) {
+                    indexElementsContainingField.add(index);
+                } else {
+                    for (String superClass : cd.getAllSuperclassNames()) {
+                        if (superClass.equals(cls)) {
+                            indexElementsContainingField.add(index);
+                            break;
+                        }
+                    }
+                }
+            }
         }
-        return false;
+        return indexElementsContainingField;
     }
 }

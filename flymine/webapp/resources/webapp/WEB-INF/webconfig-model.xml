@@ -140,12 +140,12 @@
     <inlinelist>
       <table path="synonyms.value" showInHeader="true" lineLength="100" />
       <table path="probeSets.primaryIdentifier" showLinksToObjects="true" />
-      <table path="pathways.name" showLinksToObjects="true" />
     </inlinelist>
     <fields>
       <fieldconfig fieldExpr="secondaryIdentifier"/>
       <fieldconfig fieldExpr="symbol"/>
       <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="organism.name"/>
     </fields>
     <bagdisplayers>
       <displayer src="friendlyMineLinkDisplayer.tile" showOnLeft="false" />
@@ -170,7 +170,9 @@
 
     <class className="org.intermine.model.bio.GOTerm">
     <headerconfig>
-      <titles mainTitles="identifier|name" subTitles="ontology.name" />
+      <titles>
+      <title mainTitles="identifier|name" subTitles="ontology.name" />
+      </titles>
     </headerconfig>
     <fields>
       <fieldconfig fieldExpr="identifier"/>
@@ -181,10 +183,10 @@
 
   <class className="org.intermine.model.bio.Homologue">
     <fields>
-      <fieldconfig fieldExpr="type"/>
       <fieldconfig fieldExpr="gene.primaryIdentifier" showInResults="false" showInInlineCollection="false" />
       <fieldconfig fieldExpr="homologue.primaryIdentifier"/>
       <fieldconfig fieldExpr="homologue.organism.shortName"/>
+      <fieldconfig fieldExpr="type"/>
     </fields>
   </class>
 
@@ -311,7 +313,9 @@
 
   <class className="org.intermine.model.bio.OntologyTerm">
     <headerconfig>
-      <titles mainTitles="identifier|name" subTitles="ontology.name" />
+      <titles>
+      <title mainTitles="identifier|name" subTitles="ontology.name" />
+      </titles>
     </headerconfig>
     <fields>
       <fieldconfig fieldExpr="identifier"/>
@@ -329,7 +333,9 @@
 
   <class className="org.intermine.model.bio.Organism">
     <headerconfig>
-      <titles mainTitles="name"/>
+      <titles>
+      <title mainTitles="name"/>
+      </titles>
     </headerconfig>
     <fields>
       <fieldconfig fieldExpr="name"/>
@@ -691,6 +697,24 @@
                      placement="summary"
                      types="Gene"/>
 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinStructureATMDisplayer"
+                     jspName="model/proteinStructureATMDisplayer.jsp"
+                     replacesFields="atm"
+                     placement="summary"
+                     types="ProteinStructure"/>
+
+     <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinSequenceDisplayer"
+                     jspName="model/proteinSequenceDisplayer.jsp"
+                     replacesFields="sequence"
+                     placement="summary"
+                     types="Protein"/>
+
+     <reportdisplayer javaClass="org.intermine.bio.web.displayer.FlyBaseExpressionDisplayer"
+                     jspName="model/flybaseExpressionDisplayer.jsp"
+                     replacesFields=""
+                     placement="summary"
+                     types="Gene"/>
+
   </reportdisplayers>
 
    <widgets>
@@ -765,7 +789,7 @@
                                  filters="biological_process,cellular_component,molecular_function"
                                  filterLabel="Ontology"
                                  typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
-                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term-details.cgi?term=" />
+                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term=" />
 
       <enrichmentwidgetdisplayer id="prot_dom_enrichment" title="Protein Domain Enrichment"
                                  link="org.intermine.bio.web.widget.ProteinDomainURLQuery"
@@ -800,24 +824,24 @@
                                  description="Pathways enriched for genes in this list - data from KEGG and Reactome"
                                  typeClass="org.intermine.model.bio.Gene" />
 
-      <bagtabledisplayer id="orthologues" title="Orthologues" pathStrings="Gene.homologues[type=orthologue].homologue.organism"
-                         link="org.intermine.bio.web.widget.HomologueURLQuery"
-                         description="Counts of orthologues in other organisms for the genes in this list."
-                         displayFields="name"
-                         exportField="primaryIdentifier"
-                         typeClass="org.intermine.model.bio.Gene"
-                         columnTitle="Orthologues"
-                         style="height:435px;"/>
+       <bagtabledisplayer id="orthologues" title="Orthologues" pathStrings="Gene.homologues[type=orthologue].homologue.organism"
+                              link="org.intermine.bio.web.widget.HomologueURLQuery"
+                              description="Counts of orthologues in other organisms for the genes in this list."
+                              displayFields="name"
+                              exportField="primaryIdentifier"
+                              typeClass="org.intermine.model.bio.Gene"
+                              columnTitle="Orthologues"
+                              style="height:435px;"/>
 
-      <bagtabledisplayer id="interactions" title="Interactions"
-                         pathStrings="Gene.interactions.interactingGenes"
-                         link="org.intermine.bio.web.widget.InteractionURLQuery"
-                         description="Genes (from the list or not) that interact with genes in this list.  Counts may include the same interaction more than once if observed in multiple experiments."
-                         displayFields="primaryIdentifier"
-                         exportField="primaryIdentifier"
-                         typeClass="org.intermine.model.bio.Gene"
-                         columnTitle="Interactions"
-                         style="height:431px;"/>
+           <bagtabledisplayer id="interactions" title="Interactions"
+                              pathStrings="Gene.interactions.interactingGenes"
+                              link="org.intermine.bio.web.widget.InteractionURLQuery"
+                              description="Genes (from the list or not) that interact with genes in this list.  Counts may include the same interaction more than once if observed in multiple experiments."
+                              displayFields="primaryIdentifier"
+                              exportField="primaryIdentifier"
+                              typeClass="org.intermine.model.bio.Gene"
+                              columnTitle="Interactions"
+                              style="height:431px;"/>
 
     </widgets>
 </webconfig>

@@ -20,9 +20,15 @@ import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
+import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.intermine.webservice.client.core.ContentType;
+import org.intermine.webservice.client.core.MultiPartRequest;
 import org.intermine.webservice.client.core.Request;
 import org.intermine.webservice.client.core.Request.RequestType;
 import org.intermine.webservice.client.exceptions.BadRequestException;
@@ -33,6 +39,9 @@ import org.intermine.webservice.client.exceptions.ResourceNotFoundException;
 import org.intermine.webservice.client.exceptions.ServiceException;
 import org.intermine.webservice.client.exceptions.ServiceForbiddenException;
 import org.intermine.webservice.client.exceptions.ServiceUnavailableException;
+
+import org.json.JSONObject;
+import org.json.JSONException;
 
 /**
  * The HttpConnection is class wrapping implementation details of http connection and the
@@ -106,15 +115,22 @@ public class HttpConnection
     private void executeMethod() {
         HttpClient client = new HttpClient();
         client.getParams().setConnectionManagerTimeout(timeout);
-        String url = null;
+        String url = request.getEncodedUrl();
         if (request.getType() == RequestType.GET) {
-            executedMethod = new GetMethod(request.getUrl(true));
-            url = request.getUrl(true);
+            executedMethod = new GetMethod(url);
+        } else if (request.getType() == RequestType.DELETE) {
+            executedMethod = new DeleteMethod(url);
         } else {
-            PostMethod postMethod = new PostMethod(request.getServiceUrl());
-            setPostMethodParameters(postMethod, request.getParameterMap());
+            PostMethod postMethod;
+            if (request.getContentType() == ContentType.MULTI_PART_FORM) {
+                postMethod = new PostMethod(url);
+                setMultiPartPostEntity(postMethod, ((MultiPartRequest) request));
+            } else {
+                url = request.getServiceUrl();
+                postMethod = new PostMethod(url);
+                setPostMethodParameters(postMethod, request.getParameterMap());
+            }
             executedMethod = postMethod;
-            url = request.getServiceUrl();
         }
         // Provide custom retry handler is necessary
         executedMethod.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
@@ -125,11 +141,20 @@ public class HttpConnection
         try {
             // Execute the method.
             client.executeMethod(executedMethod);
-            checkResponse(url);
+            checkResponse();
         } catch (HttpException e) {
             throw new RuntimeException("Fatal protocol violation.", e);
         } catch (IOException e) {
             throw new RuntimeException("Fatal transport error connecting to " + url, e);
+        }
+    }
+
+    private void setMultiPartPostEntity(PostMethod postMethod, MultiPartRequest req) {
+        List<Part> parts = req.getParts();
+        if (!parts.isEmpty()) {
+            RequestEntity entity = new MultipartRequestEntity(
+                    req.getParts().toArray(new Part[1]), postMethod.getParams());
+            postMethod.setRequestEntity(entity);
         }
     }
 
@@ -172,17 +197,16 @@ public class HttpConnection
      * Called to check the response and generate an appropriate exception (on failure).
      * If the connection is not opened then it is opened and response checked.
      *
-     * @param url a URL to quote in any error messages
      * @throws ServiceException when an error happens
      */
-    protected void checkResponse(String url) {
+    protected void checkResponse() {
         if (executedMethod.getStatusCode() >= 300) {
             try {
                 handleErrorResponse();
             } catch (ServiceException e) {
-                throw new ServiceException("Error while accessing " + url, e);
+                throw new ServiceException("Error while accessing " + request, e);
             } catch (IOException e) {
-                throw new ServiceException("Error while accessing " + url, e);
+                throw new ServiceException("Error while accessing " + request, e);
             }
         }
     }
@@ -198,43 +222,70 @@ public class HttpConnection
      */
     protected void handleErrorResponse() throws IOException {
 
+        String message = executedMethod.getResponseBodyAsString();
+        try {
+            JSONObject jo = new JSONObject(message);
+            message = jo.getString("error");
+        } catch (JSONException e) {
+            // Pass
+        }
+
         switch (executedMethod.getStatusCode()) {
 
             case HttpURLConnection.HTTP_NOT_FOUND:
                 throw new ResourceNotFoundException(this);
 
             case HttpURLConnection.HTTP_BAD_REQUEST:
-                throw new BadRequestException(this);
-
+                if (message != null) {
+                    throw new BadRequestException(message);
+                } else {
+                    throw new BadRequestException(this);
+                }
             case HttpURLConnection.HTTP_FORBIDDEN:
-                throw new ServiceForbiddenException(this);
-
+                if (message != null) {
+                    throw new ServiceForbiddenException(message);
+                } else {
+                    throw new ServiceForbiddenException(this);
+                }
             case HttpURLConnection.HTTP_NOT_IMPLEMENTED:
                 throw new NotImplementedException(this);
 
             case HttpURLConnection.HTTP_INTERNAL_ERROR:
-                throw new InternalErrorException(this);
-
+                if (message != null) {
+                    throw new InternalErrorException(message);
+                } else {
+                    throw new InternalErrorException(this);
+                }
             case HttpURLConnection.HTTP_UNAVAILABLE:
                 throw new ServiceUnavailableException(this);
 
             default:
-                throw new ServiceException(this);
+                if (message != null) {
+                    throw new ServiceException(message);
+                } else {
+                    throw new ServiceException(this);
+                }
         }
     }
 
     /**
+     * Return the response body, ensuring that the connection is closed
+     * upon completion.
      * @return the response body body as the string
      */
     public String getResponseBodyAsString() {
         if (executedMethod == null) {
             throwNotConnectedException();
         }
+        String res = null;
         try {
-            return executedMethod.getResponseBodyAsString();
+            res = executedMethod.getResponseBodyAsString();
         } catch (IOException e) {
             throw new ServiceException(e);
+        } finally {
+            executedMethod.releaseConnection();
         }
+        return res;
     }
 
     /**

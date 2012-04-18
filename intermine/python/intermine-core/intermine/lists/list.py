@@ -29,7 +29,7 @@ class List(object):
         >>> print "The combination of the two lists has %d elements" % combined_list.size
         >>> print "The combination of the two lists has %d elements" % len(combined_list)
         >>>
-        >>> for row in combined_list.to_attribute_query().results():
+        >>> for row in combined_list:
         ...     print row
 
     OVERVIEW
@@ -81,6 +81,7 @@ class List(object):
             self._size = int(args["size"])
             self._date_created = args.get("dateCreated")
             self._is_authorized = args.get("authorized")
+            self._status = args.get("status")
 
             if self._is_authorized is None: self._is_authorized = True
 
@@ -113,6 +114,11 @@ class List(object):
     def title(self):
         """The fixed title of this list"""
         return self._title
+
+    @property
+    def status(self):
+        """The upgrade status of this list"""
+        return self._status
 
     @property
     def is_authorized(self):
@@ -203,29 +209,14 @@ class List(object):
         @rtype: intermine.query.Query
         """
         q = self._service.new_query()
-        q.add_view(self.list_type + ".id")
-        q.add_constraint(self.list_type, "IN", self.name)
-        return q
-
-    def to_attribute_query(self):
-        """
-        Construct a query to fetch information about the items in this list
-        ===================================================================
-
-        Return a query constrained to contain the objects in this list, with 
-        all the attributes of these objects selected for output as view columns
-        
-        @rtype: intermine.query.Query
-        """
-        q = self.to_query()
         attributes = q.model.get_class(self.list_type).attributes
-        q.clear_view()
         q.add_view(map(lambda x: self.list_type + "." + x.name, attributes))
+        q.add_constraint(self.list_type, "IN", self.name)
         return q
     
     def __iter__(self):
         """Return an iterator over the objects in this list, with all attributes selected for output"""
-        return iter(self.to_attribute_query())
+        return iter(self.to_query())
 
     def __getitem__(self, index):
         """Get a member of this list by index"""
@@ -239,7 +230,7 @@ class List(object):
         if i not in range(self.size):
             raise IndexError("%d is not a valid index for a list of size %d" % (index, self.size))
 
-        return self.to_attribute_query().first(start=i, row="jsonobjects")
+        return self.to_query().first(start=i, row="jsonobjects")
 
     def __and__(self, other):
         """
@@ -288,11 +279,8 @@ class List(object):
                 try:
                     ids = "\n".join(map(lambda x: '"' + x + '"', iter(content)))
                 except TypeError:
-                    try:
-                        uri = content.get_list_append_uri()
-                    except:
-                        content = content.to_query()
-                        uri = content.get_list_append_uri()
+                    content = self._manager._get_listable_query(content)
+                    uri = content.get_list_append_uri()
                     params = content.to_query_params()
                     params["listName"] = name
                     params["path"] = None
@@ -339,4 +327,31 @@ class List(object):
         self.delete()
         subtr.name = self.name
         return subtr
+
+    def add_tags(self, *tags):
+        """
+        Tag this list with one or more categories
+        =========================================
+
+        Calls the server to add these tags, and updates this lists tags.
+        """
+        self._tags = frozenset(self._manager.add_tags(self, tags))
+
+    def remove_tags(self, *tags):
+        """
+        Remove tags associated with this list.
+        ======================================
+
+        Calls the server to remove these tags, and updates this lists tags.
+        """
+        self._tags = frozenset(self._manager.remove_tags(self, tags))
+
+    def update_tags(self, *tags):
+        """
+        Remove tags associated with this list.
+        ======================================
+
+        Calls the server to remove these tags, and updates this lists tags.
+        """
+        self._tags = frozenset(self._manager.get_tags(self))
 

@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.output;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -27,6 +27,7 @@ public class XMLFormatter extends Formatter
     private final Stack<String> openElements = new Stack<String>();
 
     /** {@inheritDoc}} **/
+    @SuppressWarnings("rawtypes")
     @Override
     public String formatHeader(Map<String, Object> attributes) {
         StringBuilder sb = new  StringBuilder();
@@ -35,7 +36,13 @@ public class XMLFormatter extends Formatter
         sb.append("<ResultSet ");
         if (attributes != null) {
             for (String key : attributes.keySet()) {
-                sb.append(key + "=\"" + attributes.get(key) + "\" ");
+                if (attributes.get(key) instanceof Map) {
+                    for (Object subK: ((Map) attributes.get(key)).keySet()) {
+                        sb.append(subK + "=\"" + ((Map) attributes.get(key)).get(subK) + "\" ");
+                    }
+                } else {
+                    sb.append(key + "=\"" + attributes.get(key) + "\" ");
+                }
             }
         }
         sb.append(">");
@@ -74,15 +81,16 @@ public class XMLFormatter extends Formatter
         }
         while (!openElements.isEmpty()) {
             String openTag = openElements.pop();
-            if ("ResultSet".equals(openTag)) {continue;}
+            if ("ResultSet".equals(openTag)) {
+                continue;
+            }
             sb.append("</" + openTag + ">");
         }
         if (errorCode != Output.SC_OK) {
-            sb.append("<error><message>");
-            sb.append(StatusDictionary.getDescription(errorCode));
-            sb.append("</message>");
-            sb.append("<cause>").append(errorMessage);
-            sb.append("</cause></error>");
+            sb.append("<error>");
+            addElement(sb, "message", StatusDictionary.getDescription(errorCode));
+            addElement(sb, "cause", errorMessage);
+            sb.append("</error>");
         }
         sb.append("</ResultSet>");
         return sb.toString();

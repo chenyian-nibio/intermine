@@ -45,7 +45,7 @@ with 'Webservice::InterMine::Role::Serviced';
 with 'Webservice::InterMine::Role::Showable';
 
 use Moose::Util::TypeConstraints qw(match_on_type);
-use MooseX::Types::Moose         qw/ArrayRef Undef Bool/;
+use MooseX::Types::Moose         qw/ArrayRef Undef Bool Str/;
 use InterMine::Model::Types      qw/PathString/;
 use Webservice::InterMine::Types qw/
     Date ListFactory ResultIterator Query File
@@ -253,6 +253,20 @@ has 'date' => (
     is        => 'ro',
     coerce    => 1,
     predicate => 'has_date',
+);
+
+=head2 status
+
+The status of the list. Usable lists are "CURRENT", all other statuses
+mean that the user should log in to the web-app to resolve issues 
+caused by a data-base upgrade.
+
+=cut
+
+has status => (
+    isa => Str,
+    is  => 'ro',
+    predicate => 'has_status',
 );
 
 =head2 get_unmatched_ids
@@ -520,6 +534,11 @@ sub get_request_parameters {
     return $self->to_query->get_request_parameters;
 }
 
+sub get_list_request_parameters {
+    my $self = shift;
+    return $self->to_query->get_list_request_parameters;
+}
+
 =head2 build_query
 
 Return a L<Webservice::InterMine::Query> representing the elements of this
@@ -607,6 +626,50 @@ sub append {
     $self->add_unmatched_ids($new_list->get_unmatched_ids);
     $self->_set_size($new_list->size);
     return $self;
+}
+
+=head2 add_tags(@tags)
+
+Add the given tags to the list, updating this list on the server
+and changing the tags attribute of the object.
+
+=cut
+
+sub add_tags {
+    my $self = shift;
+    my @to_add = @_;
+    my @new_tags = $self->factory->add_tags($self, @to_add);
+    $self->tags->clear;
+    $self->tags->insert(@new_tags);
+}
+
+=head2 remove_tags(@tags)
+
+Remove the given tags from the list, updating this list on the server
+and changing the tags attribute of the object.
+
+=cut
+
+sub remove_tags {
+    my $self = shift;
+    my @to_remove = @_;
+    my @new_tags = $self->factory->remove_tags($self, @to_remove);
+    $self->tags->clear;
+    $self->tags->insert(@new_tags);
+}
+
+=head2 update_tags()
+
+Update the tags for this list to be up-to-date with those stored on
+the server.
+
+=cut
+
+sub update_tags {
+    my $self = shift;
+    my @new_tags = $self->factory->get_tags($self);
+    $self->tags->clear;
+    $self->tags->insert(@new_tags);
 }
 
 =head2 to_string

@@ -347,6 +347,7 @@ class Path(object):
         @type subclasses: dict
         """
         self.model = weakref.proxy(model)
+        self.subclasses = subclasses
         if isinstance(path, Class):
             self._string = path.name
             self.parts = [path]
@@ -359,6 +360,39 @@ class Path(object):
 
     def __repr__(self):
         return '<' + self.__module__ + "." + self.__class__.__name__ + ": " + self._string + '>'
+
+    def prefix(self):
+        """
+        The path one step above this path.
+        ==================================
+
+          >>> p1 = Path("Gene.exons.name", model)
+          >>> p2 = p1.prefix()
+          >>> print p2
+          ... Gene.exons
+
+        """
+        parts = self.parts
+        parts.pop()
+        if len(parts) < 1:
+            raise PathParseError(str(self) + " does not have a prefix")
+        s = ".".join(map(lambda x: x.name, parts))
+        return Path(s, self.model._unproxied(), self.subclasses)
+
+    def append(self, *elements):
+        """
+        Construct a new path by adding elements to the end of this one.
+        ===============================================================
+
+          >>> p1 = Path("Gene.exons", model)
+          >>> p2 = p1.append("name")
+          >>> print p2
+          ... Gene.exons.name
+
+        This is the inverse of prefix.
+        """
+        s = str(self) + "." + ".".join(elements)
+        return Path(s, self.model._unproxied(), self.subclasses)
 
     @property
     def root(self):
@@ -391,6 +425,7 @@ class Path(object):
             return self.end.type_class
         else:
             return None
+
     end_class = property(get_class)
     
     def is_reference(self):
@@ -418,21 +453,48 @@ class Path(object):
         """
         return isinstance(self.end, Attribute)
 
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __hash__(self):
+        i = hash(str(self))
+        return reduce(lambda a, b: a ^ b, [hash(k) ^ hash(v) for k, v in self.subclasses.items()], i) 
+
 class Column(object):
+    """
+    A representation of a path in a query that can be constrained
+    =============================================================
+
+    Column objects allow constraints to be constructed in something
+    close to a declarative style
+    """
 
     def __init__(self, path, model, subclasses={}, query=None):
         self._model = model
         self._query = query
         self._subclasses = subclasses
+        self.filter = self.where
         if isinstance(path, Path):
             self._path = path
         else:
             self._path = model.make_path(path, subclasses)
 
     def select(self, *cols):
+        """
+        Create a new query with this column as the base class, selecting the given fields.
+        """
         q = self._model.service.new_query(str(self))
         q.select(*cols)
         return q
+
+    def where(self, *args, **kwargs):
+        """
+        Create a new query based on this column, filtered with the given constraint.
+
+        also available as "filter"
+        """
+        q = self._model.service.new_query(str(self))
+        return q.where(*args, **kwargs)
 
     def __getattr__(self, name):
         cld = self._path.get_class()
@@ -467,6 +529,10 @@ class Column(object):
             return (str(self), "ONE OF", other)
         elif isinstance(other, List):
             return (str(self), "IN", other.name)
+        elif hasattr(other, "to_query"):
+            q = other.to_query()
+            l = q.service.create_list(q)
+            return(str(self), "IN", l.name)
         else:
             return (str(self), "=", other)
 
@@ -479,13 +545,43 @@ class Column(object):
             return (str(self), "NONE OF", other)
         elif isinstance(other, List):
             return (str(self), "NOT IN", other.name)
+        elif hasattr(other, "to_query"):
+            q = other.to_query()
+            l = q.service.create_list(q)
+            return(str(self), "NOT IN", l.name)
         else:
             return (str(self), "!=", other)
 
+    def __xor__(self, other):
+        if hasattr(other, "to_query"):
+            q = other.to_query()
+            l = q.service.create_list(q)
+            return(str(self), "NOT IN", l.name)
+        elif isinstance(other, List):
+            return (str(self), "NOT IN", other.name)
+        elif isinstance(other, list):
+            return (str(self), "NONE OF", other)
+
     def __lt__(self, other):
+        if hasattr(other, "to_query"):
+            q = other.to_query()
+            l = q.service.create_list(q)
+            return(str(self), "IN", l.name)
+        elif isinstance(other, List):
+            return (str(self), "IN", other.name)
+        elif isinstance(other, list):
+            return (str(self), "ONE OF", other)
         return (str(self), "<", other)
 
     def __le__(self, other):
+        if hasattr(other, "to_query"):
+            q = other.to_query()
+            l = q.service.create_list(q)
+            return(str(self), "IN", l.name)
+        elif isinstance(other, List):
+            return (str(self), "IN", other.name)
+        elif isinstance(other, list):
+            return (str(self), "ONE OF", other)
         return (str(self), "<=", other)
 
     def __gt__(self, other):
@@ -516,6 +612,9 @@ class Model(object):
     of the database schema. It can be used to introspect what 
     data is available and how it is inter-related
     """
+
+    NUMERIC_TYPES = frozenset(["int", "Integer", "float", "Float", "double", "Double", "long", "Long", "short", "Short"])
+
     def __init__(self, source, service=None):
         """
         Constructor
@@ -773,6 +872,9 @@ class Model(object):
                 current_class = None
      
         return descriptors 
+
+    def _unproxied(self):
+        return self
 
 class ModelError(ReadableException):
     pass

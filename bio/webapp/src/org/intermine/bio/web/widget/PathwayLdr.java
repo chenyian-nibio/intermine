@@ -11,8 +11,11 @@ package org.intermine.bio.web.widget;
  */
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.intermine.api.profile.InterMineBag;
@@ -50,10 +53,12 @@ public class PathwayLdr extends EnrichmentWidgetLdr
     private String dataset;
     private static final String KEGG = "KEGG pathways data set";
     private static final String REACTOME = "Reactome data set";
+    private static final String ALL_DATASETS = "All datasets";
+    private static final Set<String> FILTERS
+        = new HashSet<String>(Arrays.asList(KEGG, REACTOME, ALL_DATASETS));
 
     /**
-     * @param extraAttribute the main ontology to filter by (biological_process, molecular_function,
-     * or cellular_component)
+     * @param extraAttribute the main data-set to filter by (KEGG, or Reactome)
      * @param bag list of objects for this widget
      * @param os object store
      */
@@ -61,7 +66,36 @@ public class PathwayLdr extends EnrichmentWidgetLdr
         this.bag = bag;
         taxonIds = BioUtil.getOrganisms(os, bag, false, "taxonId");
         model = os.getModel();
-        dataset = extraAttribute;
+        dataset = null;
+        if (extraAttribute == null) {
+            dataset = KEGG;
+        } else {
+            if (FILTERS.contains(extraAttribute)) {
+                dataset = extraAttribute;
+            } else {
+                // Accept any initial substring of the data-set names
+                // so "reactome", "kegg", and "all" are valid
+                for (String ds : FILTERS) {
+                    if (ds.toLowerCase().startsWith(extraAttribute.toLowerCase())) {
+                        dataset = ds;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (dataset == null) {
+            throw new RuntimeException("filter must be one of " + FILTERS
+                    + ", not \"" + extraAttribute + "\"");
+        }
+    }
+
+    /**
+     * Allows the webservice to provide the available filter values.
+     * @return A list of available filters.
+     */
+    public static List<String> getAvailableFilters() {
+        return new ArrayList<String>(FILTERS);
     }
 
     /**
@@ -118,11 +152,12 @@ public class PathwayLdr extends EnrichmentWidgetLdr
             cs.addConstraint(new BagConstraint(qfGeneId, ConstraintOp.IN, bag.getOsb()));
         }
 
+        // can't be null, we need a way to determine if a gene is unique
+        cs.addConstraint(new SimpleConstraint(qfPrimaryIdentifier, ConstraintOp.IS_NOT_NULL));
+
         Query q = new Query();
 
-        if ("KEGG".equals(dataset) || "Reactome".equals(dataset)) {
-
-            String datasetTitle = ("KEGG".equals(dataset) ? KEGG : REACTOME);
+        if (KEGG.equals(dataset) || REACTOME.equals(dataset)) {
 
             QueryClass qcDataset = new QueryClass(DataSet.class);
             QueryField qfDataset = new QueryField(qcDataset, "name");
@@ -133,7 +168,7 @@ public class PathwayLdr extends EnrichmentWidgetLdr
             // dataset (if user selects)
             QueryExpression c10 = new QueryExpression(QueryExpression.LOWER, qfDataset);
             cs.addConstraint(new SimpleConstraint(c10, ConstraintOp.EQUALS,
-                                                  new QueryValue(datasetTitle.toLowerCase())));
+                                                  new QueryValue(dataset.toLowerCase())));
 
             q.addFrom(qcDataset);
         }

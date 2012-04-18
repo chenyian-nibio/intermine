@@ -36,6 +36,8 @@ import org.intermine.model.userprofile.Tag;
 import org.intermine.pathquery.Path;
 import org.intermine.pathquery.PathConstraint;
 import org.intermine.pathquery.PathException;
+import org.intermine.template.TemplateComparator;
+import org.intermine.template.TemplateQuery;
 
 /**
  * A TemplateManager provides access to all global and/or user templates and methods to fetch them
@@ -48,6 +50,7 @@ public class TemplateManager
 
     private static final TemplateComparator TEMPLATE_COMPARATOR = new TemplateComparator();
     private final Profile superProfile;
+    @SuppressWarnings("unused")
     private final Model model;
     private final TagManager tagManager;
     private TemplateTracker templateTracker;
@@ -81,7 +84,7 @@ public class TemplateManager
      * @param templateName name of the template to fetch
      * @return the template or null
      */
-    public TemplateQuery getGlobalTemplate(String templateName) {
+    public ApiTemplate getGlobalTemplate(String templateName) {
         return getGlobalTemplates().get(templateName);
     }
 
@@ -91,7 +94,7 @@ public class TemplateManager
      * @param templateName name of the template to fetch
      * @return the template or null
      */
-    public TemplateQuery getUserTemplate(Profile profile, String templateName) {
+    public ApiTemplate getUserTemplate(Profile profile, String templateName) {
         return profile.getSavedTemplates().get(templateName);
     }
 
@@ -102,7 +105,7 @@ public class TemplateManager
      * @param templateName name of the template to fetch
      * @return the template or null
      */
-    public TemplateQuery getUserOrGlobalTemplate(Profile profile, String templateName) {
+    public ApiTemplate getUserOrGlobalTemplate(Profile profile, String templateName) {
         return getUserAndGlobalTemplates(profile).get(templateName);
     }
 
@@ -115,7 +118,7 @@ public class TemplateManager
      * @param scope user, global or all templates
      * @return the template or null
      */
-    public TemplateQuery getTemplate(Profile profile, String templateName, String scope) {
+    public ApiTemplate getTemplate(Profile profile, String templateName, String scope) {
         if (scope.equals(Scope.GLOBAL)) {
             return getGlobalTemplate(templateName);
         } else if (scope.equals(Scope.USER)) {
@@ -134,9 +137,9 @@ public class TemplateManager
      * @param profile the user to fetch templates
      * @return a map of template name to template query, the map will be empty if no templates found
      */
-    public Map<String, TemplateQuery> getUserAndGlobalTemplates(Profile profile) {
+    public Map<String, ApiTemplate> getUserAndGlobalTemplates(Profile profile) {
         // where name collisions occur user templates take precedence
-        Map<String, TemplateQuery> allTemplates = new HashMap<String, TemplateQuery>();
+        Map<String, ApiTemplate> allTemplates = new HashMap<String, ApiTemplate>();
 
         allTemplates.putAll(getGlobalTemplates());
         allTemplates.putAll(profile.getSavedTemplates());
@@ -150,9 +153,9 @@ public class TemplateManager
      * @param profile The user to fetch templates for.
      * @return A map of templates and their names.
      */
-    public Map<String, TemplateQuery> getWorkingTemplates(Profile profile) {
-        Map<String, TemplateQuery> allTemplates = getUserAndGlobalTemplates(profile);
-        Map<String, TemplateQuery> workingTemplates = new TreeMap<String, TemplateQuery>();
+    public Map<String, ApiTemplate> getWorkingTemplates(Profile profile) {
+        Map<String, ApiTemplate> allTemplates = getUserAndGlobalTemplates(profile);
+        Map<String, ApiTemplate> workingTemplates = new TreeMap<String, ApiTemplate>();
         filterOutBrokenTemplates(allTemplates, workingTemplates);
         return workingTemplates;
     }
@@ -162,16 +165,16 @@ public class TemplateManager
      * to work with the mine in their current state.
      * @return A map of templates and their names.
      */
-    public Map<String, TemplateQuery> getWorkingTemplates() {
-        Map<String, TemplateQuery> publicTemplates = getGlobalTemplates();
-        Map<String, TemplateQuery> workingTemplates = new TreeMap<String, TemplateQuery>();
+    public Map<String, ApiTemplate> getWorkingTemplates() {
+        Map<String, ApiTemplate> publicTemplates = getGlobalTemplates();
+        Map<String, ApiTemplate> workingTemplates = new TreeMap<String, ApiTemplate>();
         filterOutBrokenTemplates(publicTemplates, workingTemplates);
         return workingTemplates;
     }
 
-    private void filterOutBrokenTemplates(Map<String, TemplateQuery> in,
-            Map<String, TemplateQuery> out) {
-        for (Entry<String, TemplateQuery> pair: in.entrySet()) {
+    private void filterOutBrokenTemplates(Map<String, ApiTemplate> in,
+            Map<String, ApiTemplate> out) {
+        for (Entry<String, ApiTemplate> pair: in.entrySet()) {
             if (pair.getValue().isValid()) {
                 out.put(pair.getKey(), pair.getValue());
             }
@@ -185,11 +188,12 @@ public class TemplateManager
      * @param allClasses the type of report page and superclasses
      * @return a list of template queries
      */
-    public List<TemplateQuery> getReportPageTemplatesForAspect(String aspect,
+    @SuppressWarnings("unchecked")
+    public List<ApiTemplate> getReportPageTemplatesForAspect(String aspect,
             Set<String> allClasses) {
-        List<TemplateQuery> templates = new ArrayList<TemplateQuery>();
-        List<TemplateQuery> aspectTemplates = getAspectTemplates(aspect);
-        for (TemplateQuery template : aspectTemplates) {
+        List<ApiTemplate> templates = new ArrayList<ApiTemplate>();
+        List<ApiTemplate> aspectTemplates = getAspectTemplates(aspect);
+        for (ApiTemplate template : aspectTemplates) {
             if (isValidReportTemplate(template, allClasses)) {
                 templates.add(template);
             }
@@ -205,7 +209,7 @@ public class TemplateManager
      * @param classes the class of the report page and its superclasses
      * @return true if template should be displayed on the report page
      */
-    private boolean isValidReportTemplate(TemplateQuery template, Collection<String> classes) {
+    private boolean isValidReportTemplate(ApiTemplate template, Collection<String> classes) {
 
         // must be tagged to be on report page
         if (!hasTag(superProfile, TagNames.IM_REPORT, template)) {
@@ -245,7 +249,7 @@ public class TemplateManager
      * @param aspect name of aspect tag
      * @return a list of template queries
      */
-    public List<TemplateQuery> getAspectTemplates(String aspect) {
+    public List<ApiTemplate> getAspectTemplates(String aspect) {
         return getAspectTemplates(aspect, null);
     }
 
@@ -256,7 +260,7 @@ public class TemplateManager
      * @param aspectTag name of aspect tag
      * @return a list of template queries
      */
-    public List<TemplateQuery> getAspectTemplates(String aspectTag, Integer size) {
+    public List<ApiTemplate> getAspectTemplates(String aspectTag, Integer size) {
 
         int i = 0;
         String aspect = aspectTag;
@@ -264,8 +268,8 @@ public class TemplateManager
             aspect = AspectTagUtil.getAspect(aspectTag);
         }
 
-        List<TemplateQuery> aspectTemplates = new ArrayList<TemplateQuery>();
-        Map<String, TemplateQuery> globalTemplates = getValidGlobalTemplates();
+        List<ApiTemplate> aspectTemplates = new ArrayList<ApiTemplate>();
+        Map<String, ApiTemplate> globalTemplates = getValidGlobalTemplates();
 
         List<Tag> tags = tagManager.getTags(null, null, TagTypes.TEMPLATE,
                 superProfile.getUsername());
@@ -290,9 +294,9 @@ public class TemplateManager
      * tagged as public and are valid for the current data model.
      * @return a map from template name to template query
      */
-    public Map<String, TemplateQuery> getValidGlobalTemplates() {
-        Map<String, TemplateQuery> validTemplates = new HashMap<String, TemplateQuery>();
-        for (Map.Entry<String, TemplateQuery> entry : getGlobalTemplates().entrySet()) {
+    public Map<String, ApiTemplate> getValidGlobalTemplates() {
+        Map<String, ApiTemplate> validTemplates = new HashMap<String, ApiTemplate>();
+        for (Map.Entry<String, ApiTemplate> entry : getGlobalTemplates().entrySet()) {
             if (entry.getValue().isValid()) {
                 validTemplates.put(entry.getKey(), entry.getValue());
             }
@@ -305,7 +309,7 @@ public class TemplateManager
      * tagged as public.
      * @return a map from template name to template query
      */
-    public Map<String, TemplateQuery> getGlobalTemplates() {
+    public Map<String, ApiTemplate> getGlobalTemplates() {
         return getTemplatesWithTag(superProfile, TagNames.IM_PUBLIC);
     }
 
@@ -315,7 +319,7 @@ public class TemplateManager
      * @param filterOutAdmin if true, filter out templates tagged with IM_ADMIN
      * @return a map from template name to template query
      */
-    public Map<String, TemplateQuery> getGlobalTemplates(boolean filterOutAdmin) {
+    public Map<String, ApiTemplate> getGlobalTemplates(boolean filterOutAdmin) {
         return getTemplatesWithTag(superProfile, TagNames.IM_PUBLIC, filterOutAdmin);
     }
 
@@ -324,9 +328,9 @@ public class TemplateManager
      * these are Superuser templates that have been tagged with TagNames.IM_CONVERTER.
      * @return a list of conversion template queries
      */
-    public List<TemplateQuery> getConversionTemplates() {
-        List<TemplateQuery> conversionTemplates = new ArrayList<TemplateQuery>();
-        Map<String, TemplateQuery> templatesMap =
+    public List<ApiTemplate> getConversionTemplates() {
+        List<ApiTemplate> conversionTemplates = new ArrayList<ApiTemplate>();
+        Map<String, ApiTemplate> templatesMap =
                 getTemplatesWithTag(superProfile, TagNames.IM_CONVERTER);
         if (templatesMap.size() > 0) {
             conversionTemplates.addAll(templatesMap.values());
@@ -341,7 +345,7 @@ public class TemplateManager
      * @param tag the tag to search for
      * @return a map from template name to template query
      */
-    private Map<String, TemplateQuery> getTemplatesWithTag(Profile profile, String tag) {
+    private Map<String, ApiTemplate> getTemplatesWithTag(Profile profile, String tag) {
         return getTemplatesWithTag(profile, tag, false);
     }
 
@@ -353,12 +357,12 @@ public class TemplateManager
      * @param filterOutAdmin if true, filter out templates tagged with IM_ADMIN
      * @return a map from template name to template query
      */
-    private Map<String, TemplateQuery> getTemplatesWithTag(Profile profile, String tag,
+    private Map<String, ApiTemplate> getTemplatesWithTag(Profile profile, String tag,
             boolean filterOutAdmin) {
-        Map<String, TemplateQuery> templatesWithTag = new HashMap<String, TemplateQuery>();
+        Map<String, ApiTemplate> templatesWithTag = new HashMap<String, ApiTemplate>();
 
-        for (Map.Entry<String, TemplateQuery> entry : profile.getSavedTemplates().entrySet()) {
-            TemplateQuery template = entry.getValue();
+        for (Map.Entry<String, ApiTemplate> entry : profile.getSavedTemplates().entrySet()) {
+            ApiTemplate template = entry.getValue();
             List<Tag> tags = tagManager.getTags(tag, template.getName(), TagTypes.TEMPLATE,
                     profile.getUsername());
             if (tags.size() > 0) {
@@ -372,7 +376,7 @@ public class TemplateManager
         return templatesWithTag;
     }
 
-    private boolean hasTag(Profile profile, String tagName, TemplateQuery template) {
+    private boolean hasTag(Profile profile, String tagName, ApiTemplate template) {
         List<Tag> tags = tagManager.getTags(tagName, template.getName(), TagTypes.TEMPLATE,
                 profile.getUsername());
         if (tags.size() > 0) {
@@ -422,13 +426,14 @@ public class TemplateManager
         }
         return mostPopularTemplateOrder;
     }
+
     /**
      * Return the template list for a particular aspect given in input, ordered by rank descendant
      * @param aspectTag name of aspect tag
      * @param size maximum number of templates to return
      * @return List of template names
      */
-    public List<TemplateQuery> getPopularTemplatesByAspect(String aspectTag, Integer size) {
+    public List<ApiTemplate> getPopularTemplatesByAspect(String aspectTag, Integer size) {
         return getPopularTemplatesByAspect(aspectTag, size, null, null);
     }
 
@@ -441,9 +446,9 @@ public class TemplateManager
      * @param sessionId the session id
      * @return List of template names
      */
-    public List<TemplateQuery> getPopularTemplatesByAspect(String aspectTag, Integer size,
+    public List<ApiTemplate> getPopularTemplatesByAspect(String aspectTag, Integer size,
                                                            String userName, String sessionId) {
-        List<TemplateQuery> templates = getAspectTemplates(aspectTag, null);
+        List<ApiTemplate> templates = getAspectTemplates(aspectTag, null);
         List<String> mostPopularTemplateNames;
         if (userName != null && sessionId != null) {
             mostPopularTemplateNames = getMostPopularTemplateOrder(userName, sessionId, null);

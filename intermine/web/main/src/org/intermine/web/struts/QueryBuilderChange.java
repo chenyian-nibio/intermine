@@ -23,7 +23,6 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.actions.DispatchAction;
-import org.intermine.api.template.TemplateQuery;
 import org.intermine.metadata.ClassDescriptor;
 import org.intermine.pathquery.Node;
 import org.intermine.pathquery.OrderDirection;
@@ -32,6 +31,7 @@ import org.intermine.pathquery.PathConstraint;
 import org.intermine.pathquery.PathConstraintLoop;
 import org.intermine.pathquery.PathConstraintSubclass;
 import org.intermine.pathquery.PathQuery;
+import org.intermine.template.TemplateQuery;
 import org.intermine.web.logic.Constants;
 import org.intermine.web.logic.config.FieldConfig;
 import org.intermine.web.logic.config.FieldConfigHelper;
@@ -316,13 +316,17 @@ public class QueryBuilderChange extends DispatchAction
 
         String pathName = request.getParameter("path");
         PathQuery query = SessionMethods.getQuery(session);
+        if (query.getView().contains(pathName)) {
+            return new ForwardParameters(mapping.findForward("query")).forward();
+        }
         Path path = query.makePath(pathName);
 
         // If an object has been selected, select its fields instead
         if (path.isRootPath() || path.endIsReference() || path.endIsCollection()) {
             ClassDescriptor cld = path.getEndClassDescriptor();
             for (FieldConfig fc : FieldConfigHelper.getClassFieldConfigs(webConfig, cld)) {
-                Path pathToAdd = query.makePath(path.toStringNoConstraints() + "." + fc.getFieldExpr());
+                Path pathToAdd = query.makePath(path.toStringNoConstraints()
+                        + "." + fc.getFieldExpr());
 
                 if (pathToAdd.endIsAttribute()
                         && (!query.getView().contains(pathToAdd.getNoConstraintsString()))

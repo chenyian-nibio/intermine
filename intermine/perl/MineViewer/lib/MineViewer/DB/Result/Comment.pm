@@ -22,15 +22,15 @@ __PACKAGE__->table("comments");
 
 =head1 ACCESSORS
 
-=head2 comment_id
+=head2 id
 
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 gene
+=head2 item
 
-  data_type: 'integer'
+  data_type: 'text'
   is_foreign_key: 1
   is_nullable: 1
 
@@ -42,29 +42,29 @@ __PACKAGE__->table("comments");
 =cut
 
 __PACKAGE__->add_columns(
-  "comment_id",
+  "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "gene",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "item",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
   "value",
   { data_type => "text", is_nullable => 0 },
 );
-__PACKAGE__->set_primary_key("comment_id");
+__PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 gene
+=head2 item
 
 Type: belongs_to
 
-Related object: L<MineViewer::DB::Result::Gene>
+Related object: L<MineViewer::DB::Result::Item>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "gene",
-  "MineViewer::DB::Result::Gene",
-  { gene_id => "gene" },
+  "item",
+  "MineViewer::DB::Result::Item",
+  { identifer => "item" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -74,8 +74,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-05-12 15:10:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6sFrrNxuE1NQE2EgbkL49w
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-10-10 18:16:03
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v5wlzZOfdLyC30PH2ggrYQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

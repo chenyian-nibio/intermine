@@ -22,6 +22,9 @@
   </tbody>
 </table>
 
+<c:choose>
+  <c:when test="${ratGenes != null && !empty(ratGenes)}">
+
 <script type="text/javascript" charset="utf-8">
 function generateDiseases(jSONObject, target) {
    var url;
@@ -46,18 +49,28 @@ function generateDiseases(jSONObject, target) {
 (function() {
     AjaxServices.getRatDiseases('${ratGenes}', function(diseases) {
         jQuery("#mine-rat-disease h3").removeClass('loading');
-
+        if (diseases) {
             var jSONObject = jQuery.parseJSON(diseases);
             if (jSONObject && jSONObject['results'].length > 0) {
                generateDiseases(jSONObject, "#intermine_rat_disease");
             } else {
               jQuery("#intermine_rat_disease").html("<p>No diseases found.</p>");
             }
-
+       }
      });
 })();
 
 </script>
+
+</c:when>
+<c:otherwise>
+  <!-- no rat homologues for this gene -->
+  <script type="text/javascript">
+    jQuery("#mine-rat-disease h3").removeClass('loading');
+    jQuery("#intermine_rat_disease").html("<p>No diseases found.</p>");
+  </script>
+</c:otherwise>
+</c:choose>
 
 </div>
 <!-- /diseaseDisplayer.jsp -->

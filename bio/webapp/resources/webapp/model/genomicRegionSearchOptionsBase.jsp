@@ -13,127 +13,122 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://flymine.org/imutil" prefix="imutil" %>
-
+<%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
 
 <!--  genomicRegionSearchOptionsBase.jsp -->
 
 <html:xhtml />
 
-<link type="text/css" rel="stylesheet" href="model/jquery_ui/css/smoothness/jquery-ui-1.8.13.custom.css"/>
+<c:choose>
+    <c:when test='${webData == "Chromosome location information is missing"}'>
+        <div  class="altmessage" align="center" >
+           <br>Chromsome location information is not available, region search is disabled.</br>
+        </div>
+    </c:when>
+    <c:otherwise>
 
-<script type="text/javascript" src="model/jquery_qtip/jquery.qtip-1.0.js"></script>
-<script type="text/javascript" src="model/genomic_region_search/genomic_region_search_options_base.js"></script>
-<script type="text/javascript" src="model/genomic_region_search/${optionsJavascript}.js"></script>
-<script type="text/javascript" src="model/jquery_ui/jquery-ui-1.8.13.custom.min.js"></script>
-<script type="text/javascript">
+        <link type="text/css" rel="stylesheet" href="model/jquery_ui/css/smoothness/jquery-ui-1.8.13.custom.css"/>
 
-    // webData must be defined in base jsp first, and customized page can make use of it.
-    var webDataJSON = jQuery.parseJSON('${webData}');
+        <script type="text/javascript" src="model/jquery_qtip/jquery.qtip-1.0.js"></script>
+        <script type="text/javascript" src="model/genomic_region_search/genomic_region_search_options_base.js"></script>
+        <script type="text/javascript" src="model/genomic_region_search/${optionsJavascript}.js"></script>
+        <script type="text/javascript" src="model/jquery_ui/jquery-ui-1.8.13.custom.min.js"></script>
+        <script type="text/javascript">
+            // webData must be defined in base jsp first, and customized page can make use of it.
+            var webDataJSON = jQuery.parseJSON('${webData}');
 
-    // genomic region examples read from web.properties
-    var exampleSpans = "${WEB_PROPERTIES['genomicRegionSearch.defaultSpans']}";
+            // genomic region examples read from web.properties
+            var exampleSpans = "${WEB_PROPERTIES['genomicRegionSearch.defaultSpans']}";
 
-    // Set value to textarea#pasteInput
-    jQuery(document).ready(function () {
-        if ('${galaxyIntervalData}') {
-            jQuery("#pasteInput").val('${galaxyIntervalData}');
-            switchInputs('paste','file');
-            jQuery('#isInterBaseCoordinate').attr('checked', true);
-            // Add galaxy imported data information on top
-            jQuery('#grs-options-body').before('<div id="grs-options-info" class="topBar info" style="padding-left:34px;"><a href="#" onclick="javascript:jQuery(\'#grs-options-info\').hide(\'slow\');return false">Hide</a>${galaxyFetchDataSuccess}<br></div>');
-        } else {
-            if ('${galaxyFetchDataError}') {
-                // Add galaxy imported data error on top
-                jQuery('#grs-options-body').before('<div id="grs-options-error" class="topBar errors" style="padding-left:34px;"><a href="#" onclick="javascript:jQuery(\'#grs-options-error\').hide(\'slow\');return false">Hide</a>${galaxyFetchDataError}<br></div>');
-            }
-        }
-    });
-
-    jQuery(function() {
-        jQuery( "#extendSlider" ).slider({
-            range: "min",
-            value: 0,
-            min: 0,
-            max: 10000,
-            slide: function( event, ui ) {
-                var valToDisplay = ui.value + " bp";
-                if (ui.value >= 1000) {
-                    valToDisplay = ui.value/1000 + " kbp";
+            // Set value to textarea#pasteInput
+            jQuery(document).ready(function () {
+                if ('${galaxyIntervalData}') {
+                    jQuery("#pasteInput").val('${galaxyIntervalData}');
+                    switchInputs('paste','file');
+                    jQuery('#isInterBaseCoordinate').attr('checked', true);
+                    // Add galaxy imported data information on top
+                    jQuery('#grs-options-body').before('<div id="grs-options-info" class="topBar info" style="padding-left:34px;"><a href="#" onclick="javascript:jQuery(\'#grs-options-info\').hide(\'slow\');return false">Hide</a>${galaxyFetchDataSuccess}<br></div>');
+                } else {
+                    if ('${galaxyFetchDataError}') {
+                        // Add galaxy imported data error on top
+                        jQuery('#grs-options-body').before('<div id="grs-options-error" class="topBar errors" style="padding-left:34px;"><a href="#" onclick="javascript:jQuery(\'#grs-options-error\').hide(\'slow\');return false">Hide</a>${galaxyFetchDataError}<br></div>');
+                    }
                 }
+            });
+        </script>
 
-                jQuery( "#extendLength" ).html( valToDisplay );
-                jQuery( "#extendedRegionSize" ).val( ui.value );
-            }
-        });
-        jQuery( "#extendLength" ).html( jQuery( "#extendSlider" ).slider( "value" ) + " bp");
-    });
+        <div id="grs-options-body" align="center" style="padding-top: 20px;">
+            <im:boxarea titleKey="genomicRegionSearch.title" stylename="plainbox" fixedWidth="85%" titleStyle="font-size: 1.2em; text-align: center;">
+              <div class="body">
+                <html:form action="/genomicRegionSearchAction" method="POST" enctype="multipart/form-data">
 
-</script>
+                  <p>${WEB_PROPERTIES['genomicRegionSearch.caption']}</p>
 
-<div id="grs-options-body" align="center" style="padding-top: 20px;">
-    <im:boxarea titleKey="genomicRegionSearch.title" stylename="plainbox" fixedWidth="85%" titleStyle="font-size: 1.2em; text-align: center;">
-      <div class="body">
-        <html:form action="/genomicRegionSearchAction" method="POST" enctype="multipart/form-data">
+                  <br/>
+                  <a id="region-help-link" href="#">Genome coordinates help</a>
+                  <script type="text/javascript">
+                    jQuery('#region-help-link').click(function(e) {
+                        jQuery('#region-help').slideToggle('slow');
+                        e.preventDefault();
+                        });
+                  </script>
 
-          <p>${WEB_PROPERTIES['genomicRegionSearch.caption']}</p>
+                  <div id="region-help" style="display:none">
+                     ${WEB_PROPERTIES['genomicRegionSearch.howTo']}
+                  </div>
+                  <br/>
+                  <br/>
+                  <ol id="optionlist">
 
-          <br/>
-          <a id="region-help-link" href="#">Genome coordinates help</a>
-          <script type="text/javascript">
-            jQuery('#region-help-link').click(function(e) {
-                jQuery('#region-help').slideToggle('slow');
-                e.preventDefault();
-                });
-          </script>
+                    <li id="genomicRegionInput">
+                       <%-- textarea --%>
+                       <span>Type/Paste in genomic regions in</span>
+                       <span id="baseCorRadioSpan"><html:radio property="dataFormat" styleId="isNotInterBaseCoordinate" value="isNotInterBaseCoordinate">&nbsp;base coordinate</html:radio></span>
+                       <span id="interBaseCorRadioSpan"><html:radio property="dataFormat" styleId="isInterBaseCoordinate" value="isInterBaseCoordinate">&nbsp;interbase coordinate</html:radio></span>
 
-          <div id="region-help" style="display:none">
-             ${WEB_PROPERTIES['genomicRegionSearch.howTo']}
-          </div>
-          <br/>
-          <br/>
-          <ol id="optionlist">
+                       <%-- example span --%>
+                       <div style="text-align:left;">
+                           <html:link href="" onclick="javascript:loadExample(exampleSpans);return false;">
+                             (click to see an example)<img src="images/disclosed.gif" title="Click to Show example"/>
+                           </html:link>
+                       </div>
+                       <html:textarea styleId="pasteInput" property="pasteInput" rows="10" cols="60" onclick="if(this.value != ''){switchInputs('paste','file');}else{openInputs();}" onkeyup="if(this.value != ''){switchInputs('paste','file');}else{openInputs();}" />
+                       <br>
 
-            <li id="genomicRegionInput">
-               <%-- textarea --%>
-               <span>Type/Paste in genomic regions in</span>
-               <span id="baseCorRadioSpan"><html:radio property="dataFormat" styleId="isNotInterBaseCoordinate" value="isNotInterBaseCoordinate">&nbsp;base coordinate</html:radio></span>
-               <span id="interBaseCorRadioSpan"><html:radio property="dataFormat" styleId="isInterBaseCoordinate" value="isInterBaseCoordinate">&nbsp;interbase coordinate</html:radio></span>
+                       <%-- file input --%>
+                       <span>or Upload genomic regions from a .txt file...</span>
+                       <br>
+                       <html:file styleId="fileInput" property="fileInput" onchange="switchInputs('file','paste');" onkeydown="switchInputs('file','paste');" size="28" />
+                       <html:hidden styleId="whichInput" property="whichInput" />
+                    </li>
+                    <br>
 
-               <%-- example span --%>
-               <div style="text-align:left;">
-                   <html:link href="" onclick="javascript:loadExample(exampleSpans);return false;">
-                     (click to see an example)<img src="images/disclosed.gif" title="Click to Show example"/>
-                   </html:link>
-               </div>
-               <html:textarea styleId="pasteInput" property="pasteInput" rows="10" cols="60" onclick="if(this.value != ''){switchInputs('paste','file');}else{openInputs();}" onkeyup="if(this.value != ''){switchInputs('paste','file');}else{openInputs();}" />
-               <br>
+                    <li id="genomicRegionFlanking">
+                       <span>Extend your regions at both sides: <i><b id="extendLength"></b></i></span>
+                       <html:hidden styleId="extendedRegionSize" property="extendedRegionSize" value="0" />
 
-               <%-- file input --%>
-               <span>or Upload genomic regions from a .txt file...</span>
-               <br>
-               <html:file styleId="fileInput" property="fileInput" onchange="switchInputs('file','paste');" onkeydown="switchInputs('file','paste');" size="28" />
-               <html:hidden styleId="whichInput" property="whichInput" />
-            </li>
-            <br>
+                       <tiles:insert name="genomicRegionSearchOptionsExtentionNonLinearSlider.jsp">
+                          <tiles:put name="sliderIdentifier" value="regionExtention" />
+                          <tiles:put name="defaultValue" value="0" />
+                       </tiles:insert>
+                    </li>
 
-            <li id="genomicRegionFlanking">
-               <span>Extend your regions at both sides: <i><b id="extendLength"></b></i></span>
-               <div id="extendSlider" style="width:70%;margin-top:5px">
-               </div>
-               <html:hidden styleId="extendedRegionSize" property="extendedRegionSize" value="0" />
-            </li>
+                  </ol>
 
-          </ol>
+                  <div align="right">
+                     <%-- reset button --%>
+                     <input type="button" onclick="resetInputs()" value="Reset" />
+                     <%-- <html:submit onclick="javascript: return validateBeforeSubmit();">Search</html:submit> --%>
+                     <input type="button" onclick="javascript: if(validateBeforeSubmit()) jQuery('form#genomicRegionSearchForm').submit();" value="Search" />
+                  </div>
 
-          <div align="right">
-             <%-- reset button --%>
-             <input type="button" onclick="resetInputs()" value="Reset" />
-             <html:submit onclick="javascript: return validateBeforeSubmit();">Search</html:submit>
-          </div>
+                </html:form>
+              </div>
+            </im:boxarea>
+        </div>
 
-        </html:form>
-      </div>
-    </im:boxarea>
-</div>
+    </c:otherwise>
+</c:choose>
+
 
 <!--  /genomicRegionSearchOptionsBase.jsp -->

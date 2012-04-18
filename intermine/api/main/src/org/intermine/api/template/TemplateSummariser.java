@@ -24,6 +24,7 @@ import org.intermine.model.userprofile.SavedTemplateQuery;
 import org.intermine.model.userprofile.TemplateSummary;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
+import org.intermine.objectstore.ObjectStoreSummary;
 import org.intermine.objectstore.ObjectStoreWriter;
 import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.ContainsConstraint;
@@ -33,6 +34,7 @@ import org.intermine.objectstore.query.QueryObjectReference;
 import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.pathquery.Path;
 import org.intermine.pathquery.PathException;
+import org.intermine.template.TemplateQuery;
 
 /**
  * This class manages summaries of possible values for editable constraints for template queries.
@@ -46,17 +48,19 @@ public class TemplateSummariser
     protected ObjectStoreWriter osw;
     protected Map<TemplateQuery, HashMap<String, List<Object>>> possibleValues
         = new IdentityHashMap<TemplateQuery, HashMap<String, List<Object>>>();
-    private static final int MAX_SUMMARY = 200;
+    protected final int maxSummaryValues;
 
     /**
      * Construct a TemplateSummariser.
      *
      * @param os ObjectStore containing production data
      * @param osw ObjectStoreWriter containing ProfileManager data
+     * @param oss A summary of the ObjectStore
      */
-    public TemplateSummariser(ObjectStore os, ObjectStoreWriter osw) {
+    public TemplateSummariser(ObjectStore os, ObjectStoreWriter osw, ObjectStoreSummary oss) {
         this.os = os;
         this.osw = osw;
+        this.maxSummaryValues = oss.getMaxValues();
     }
 
     /**
@@ -65,7 +69,7 @@ public class TemplateSummariser
      * @param templateQuery a TemplateQuery to summarise
      * @throws ObjectStoreException if something goes wrong
      */
-    public void summarise(TemplateQuery templateQuery) throws ObjectStoreException {
+    public void summarise(ApiTemplate templateQuery) throws ObjectStoreException {
         HashMap<String, List<Object>> templatePossibleValues = possibleValues.get(templateQuery);
         if (templatePossibleValues == null) {
             templatePossibleValues = new HashMap<String, List<Object>>();
@@ -80,9 +84,9 @@ public class TemplateSummariser
             }
             Query q = TemplatePrecomputeHelper.getPrecomputeQuery(templateQuery, null, node);
             LOG.info("Summarising template " + templateQuery.getName() + " by running query: " + q);
-            List<ResultsRow<Object>> results = os.execute(q, 0, MAX_SUMMARY, true, false,
+            List<ResultsRow<Object>> results = os.execute(q, 0, maxSummaryValues, true, false,
                     ObjectStore.SEQUENCE_IGNORE);
-            if (results.size() < MAX_SUMMARY) {
+            if (results.size() < maxSummaryValues) {
                 if (path.endIsAttribute() || results.isEmpty()) {
                     List<Object> values = new ArrayList<Object>();
                     for (ResultsRow<Object> row : results) {
@@ -146,7 +150,7 @@ public class TemplateSummariser
      * @param templateQuery a TemplateQuery
      * @return a boolean
      */
-    public boolean isSummarised(TemplateQuery templateQuery) {
+    public boolean isSummarised(ApiTemplate templateQuery) {
         return getPossibleValues(templateQuery) != null;
     }
 
@@ -158,7 +162,7 @@ public class TemplateSummariser
      * @param path the path that is being constrained
      * @return a List of possible values
      */
-    public List<Object> getPossibleValues(TemplateQuery templateQuery, String path) {
+    public List<Object> getPossibleValues(ApiTemplate templateQuery, String path) {
         Map<String, List<Object>> templatePossibleValues = getPossibleValues(templateQuery);
         if (templatePossibleValues != null) {
             return templatePossibleValues.get(path);
@@ -172,7 +176,7 @@ public class TemplateSummariser
      * @param templateQuery a TemplateQuery
      * @return a Map from String path to List
      */
-    public Map<String, List<Object>> getPossibleValues(TemplateQuery templateQuery) {
+    public Map<String, List<Object>> getPossibleValues(ApiTemplate templateQuery) {
         HashMap<String, List<Object>> templatePossibleValues = possibleValues.get(templateQuery);
         if (templateQuery != null && templatePossibleValues == null) {
             SavedTemplateQuery template = templateQuery.getSavedTemplateQuery();

@@ -12,7 +12,6 @@ import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.ProfileManager;
 import org.intermine.api.profile.SavedQuery;
-import org.intermine.api.template.TemplateQuery;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.userprofile.UserProfile;
@@ -30,6 +29,7 @@ import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.objectstore.query.SingletonResults;
 import org.intermine.pathquery.Constraints;
 import org.intermine.pathquery.PathQuery;
+import org.intermine.template.TemplateQuery;
 import org.intermine.web.logic.Constants;
 import org.intermine.web.logic.session.SessionMethods;
 
@@ -62,7 +62,7 @@ public class ModifyBagActionTest extends MockStrutsTestCase
             profileManager = new ProfileManager(os, userProfileOSW);
 
             Profile profile = new Profile(profileManager, "modifyBagActionTest", userId, "pass",
-                                          new HashMap(), new HashMap(), new HashMap(), true);
+                                          new HashMap(), new HashMap(), new HashMap(), true, false);
             profileManager.createProfile(profile);
 
             //Get the realUserId

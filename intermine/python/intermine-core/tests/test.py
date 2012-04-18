@@ -115,7 +115,9 @@ class TestService(WebserviceTest): # pragma: no cover
 
     def testVersion(self):
         """The service should have a version"""
-        self.assertEqual(self.s.version, 100)
+        from numbers import Number
+        v = self.s.version
+        self.assertTrue(isinstance(v, Number))
 
     def testRelease(self):
         """The service should have a release"""
@@ -139,6 +141,86 @@ class TestQuery(WebserviceTest): # pragma: no cover
     expected_ternary = '[<TernaryConstraint: Employee LOOKUP Susan>, <TernaryConstraint: Employee.department.manager LOOKUP John IN Wernham-Hogg>]'
     expected_subclass = "[<SubClassConstraint: Department.employees ISA Manager>]"
 
+    XML_1 = """
+        <query model="testmodel" view="Employee.name Employee.age">
+        </query>
+        """
+    EXPECTED_VIEWS_1 = ["Employee.name", "Employee.age"]
+
+    XML_2 = """
+        <query model="testmodel" 
+            view="Department.employees.name Department.employees.age Department.employees.seniority"
+            >
+            <constraint path="Department.employees" type="Manager"/>
+        </query>
+        """
+
+    EXPECTED_VIEWS_2 = ["Department.employees.name",
+        "Department.employees.age", "Department.employees.seniority"]
+
+    XML_3 = """
+        <query model="testmodel" 
+            view="Department.employees.name Department.employees.age Department.employees.seniority"
+            >
+            <constraint path="Department.employees" type="Manager"/>
+            <constraint path="Department.name" op="=" value="foo"/>
+        </query>
+        """
+
+    XML_4 = """
+        <query model="testmodel" 
+            view="Department.employees.name Department.employees.age Department.employees.seniority"
+            sortOrder="Department.employees.age asc"
+            >
+            <constraint path="Department.employees" type="Manager"/>
+            <constraint path="Department.name" op="=" value="foo"/>
+        </query>
+        """
+
+    XML_5 = """
+        <query model="testmodel" 
+            view="Department.employees.name Department.employees.age Department.employees.seniority"
+            sortOrder="Department.employees.age asc"
+            >
+            <pathDescription description="Should be a manager" pathString="Department.employees"/>
+            <constraint path="Department.employees" type="Manager"/>
+            <constraint path="Department.name" op="=" value="foo"/>
+        </query>
+        """
+
+    XML_6 = """
+        <query model="testmodel" 
+            view="Department.employees.name Department.employees.age Department.employees.salary"
+            sortOrder="Department.employees.salary asc"
+            >
+            <pathDescription description="The Company" pathString="Department.employees.company"/>
+            <pathDescription description="Should be a CEO" pathString="Department.employees"/>
+            <constraint path="Department.employees" type="CEO"/>
+            <constraint path="Department.employees.company" op="LOOKUP" value="foo"/>
+        </query>
+        """
+
+    EXPECTED_VIEWS_6 = ["Department.employees.name",
+        "Department.employees.age", "Department.employees.salary"]
+
+    XML_7 = """
+        <query model="testmodel" 
+            view="Department.employees.seniority Department.employees.age Department.employees.salary"
+            sortOrder="Department.employees.salary asc"
+            >
+            <pathDescription description="The Company" pathString="Department.employees.company"/>
+            <pathDescription description="Should be a CEO" pathString="Department.employees"/>
+            <constraint path="Department.employees" type="CEO"/>
+            <constraint path="Department.employees.company" op="LOOKUP" value="foo"/>
+        </query>
+        """
+
+    EXPECTED_VIEWS_7 = ["Department.employees.seniority",
+        "Department.employees.age", "Department.employees.salary"]
+
+    CONSTRAINTS_COUNT_3 = 2
+
+
     def setUp(self):
         if self.service is None:
             self.__class__.service = Service(self.get_test_root())
@@ -149,6 +231,40 @@ class TestQuery(WebserviceTest): # pragma: no cover
             pass
         list_dict = {"service": None, "manager": DummyManager(), "name": "my-list", "title": None, "type": "Employee", "size": 10}
         self.l = List(**list_dict)
+
+    def testFromXML(self):
+        q1 = self.service.new_query(xml = TestQuery.XML_1)
+        self.assertEqual(q1.views, TestQuery.EXPECTED_VIEWS_1)
+
+        q2 = self.service.new_query(xml = TestQuery.XML_2)
+        self.assertEqual(q2.views, TestQuery.EXPECTED_VIEWS_2)
+
+        q3 = self.service.new_query(xml = TestQuery.XML_3)
+        self.assertEqual(q3.views, TestQuery.EXPECTED_VIEWS_2)
+        self.assertEqual(len(q3.constraints), TestQuery.CONSTRAINTS_COUNT_3)
+
+        q4 = self.service.new_query(xml = TestQuery.XML_4)
+        self.assertEqual(q4.views, TestQuery.EXPECTED_VIEWS_2)
+        self.assertEqual(len(q4.constraints), TestQuery.CONSTRAINTS_COUNT_3)
+        self.assertEqual(str(q4.get_sort_order()), "Department.employees.age asc")
+
+        q5 = self.service.new_query(xml = TestQuery.XML_5)
+        self.assertEqual(q5.views, TestQuery.EXPECTED_VIEWS_2)
+        self.assertEqual(len(q5.constraints), TestQuery.CONSTRAINTS_COUNT_3)
+        self.assertEqual(str(q5.get_sort_order()), "Department.employees.age asc")
+        self.assertEqual(len(q5.path_descriptions), 1)
+
+        q6 = self.service.new_query(xml = TestQuery.XML_6)
+        self.assertEqual(q6.views, TestQuery.EXPECTED_VIEWS_6)
+        self.assertEqual(len(q6.constraints), TestQuery.CONSTRAINTS_COUNT_3)
+        self.assertEqual(str(q6.get_sort_order()), "Department.employees.salary asc")
+        self.assertEqual(len(q6.path_descriptions), 2)
+
+        q7 = self.service.new_query(xml = TestQuery.XML_7)
+        self.assertEqual(q7.views, TestQuery.EXPECTED_VIEWS_7)
+        self.assertEqual(len(q7.constraints), TestQuery.CONSTRAINTS_COUNT_3)
+        self.assertEqual(str(q7.get_sort_order()), "Department.employees.salary asc")
+        self.assertEqual(len(q7.path_descriptions), 2)
 
     def testAddViews(self):
         """Queries should be able to add legal views, and complain about illegal ones"""
@@ -197,11 +313,20 @@ class TestQuery(WebserviceTest): # pragma: no cover
         self.q.add_sort_order("Employee.fullTime", "desc")
         self.assertEqual(str(self.q.get_sort_order()), "Employee.fullTime desc")
         self.q.add_sort_order("Employee.age", "asc")
-        self.assertEqual(str(self.q.get_sort_order()), "Employee.fullTime desc,Employee.age asc")
+        self.assertEqual(str(self.q.get_sort_order()), "Employee.fullTime desc Employee.age asc")
+        self.q.add_sort_order("Employee.end", "desc")
+        self.assertEqual(str(self.q.get_sort_order()), "Employee.fullTime desc Employee.age asc Employee.end desc")
         self.assertRaises(ModelError, self.q.add_sort_order, "Foo", "asc")
         self.assertRaises(TypeError,  self.q.add_sort_order, "Employee.name", "up")
-        self.assertRaises(QueryError, self.q.add_sort_order, "Employee.id", "desc")
+        self.assertRaises(QueryError, self.q.add_sort_order, "Employee.department.name", "desc")
 
+    def testUCSortOrder(self):
+        """Sort-Order directions should be accepted in upper case"""
+        self.q.add_view("Employee.name", "Employee.age", "Employee.fullTime")
+        self.q.add_sort_order("Employee.age", "ASC")
+        self.assertEqual(str(self.q.get_sort_order()), "Employee.age asc")
+        self.q.add_sort_order("Employee.fullTime", "DESC")
+        self.assertEqual(str(self.q.get_sort_order()), "Employee.age asc Employee.fullTime desc")
 
     def testConstraintPathProblems(self):
         """Queries should not add constraints with bad paths to themselves"""
@@ -327,14 +452,16 @@ class TestQuery(WebserviceTest): # pragma: no cover
         except ConstraintError, ex:
             self.assertEqual(ex.message, "'Manager' is not a subclass of 'Department.company.CEO'")
 
-    def testLogic(self):
+    def testStringLogic(self):
         """Queries should be able to parse good logic strings"""
+
         a = self.q.add_constraint("Employee.name", "IS NOT NULL")
         b = self.q.add_constraint("Employee.age", ">", 10)
         c = self.q.add_constraint("Employee.department", "LOOKUP", "Sales", "Wernham-Hogg")
         d = self.q.add_constraint("Employee.department.employees.name", "ONE OF", 
             ["John", "Paul", "Mary"])
         self.q.add_constraint("Employee.department.employees", "Manager")
+        
         self.assertEqual(str(self.q.get_logic()), "A and B and C and D")
         self.q.set_logic("(B or C) and (A or D)")
         self.assertEqual(str(self.q.get_logic()), "(B or C) and (A or D)")
@@ -342,6 +469,40 @@ class TestQuery(WebserviceTest): # pragma: no cover
         self.assertEqual(str(self.q.get_logic()), "B and (C or A) and D")
         self.q.set_logic("(A and B) or (A and C and D)")
         self.assertEqual(str(self.q.get_logic()), "(A and B) or (A and C and D)")
+
+    def testIrrelevantCodeStripping(self):
+        """Should be able to recover from queries that have irrelevant codes in their logic"""
+
+        a = self.q.add_constraint("Employee.name", "IS NOT NULL")
+        b = self.q.add_constraint("Employee.age", ">", 10)
+        c = self.q.add_constraint("Employee.department", "LOOKUP", "Sales", "Wernham-Hogg")
+        d = self.q.add_constraint("Employee.department.employees.name", "ONE OF", 
+            ["John", "Paul", "Mary"])
+        self.q.add_constraint("Employee.department.employees", "Manager")
+
+        self.q._set_questionable_logic("A and B or C or D and E")
+        self.assertEqual(str(self.q.get_logic()), "A and (B or C or D)")
+        self.q._set_questionable_logic("E and A and B or C or D")
+        self.assertEqual(str(self.q.get_logic()), "A and (B or C or D)")
+        self.q._set_questionable_logic("A and B and E or C or D")
+        self.assertEqual(str(self.q.get_logic()), "A and B and (C or D)")
+        self.q._set_questionable_logic("A and B or X and J or Z and E or C or D")
+        self.assertEqual(str(self.q.get_logic()), "A and B and (C or D)")
+        self.q._set_questionable_logic("A and B or X and (J or Z and E or C) or D")
+        self.assertEqual(str(self.q.get_logic()), "(A and B and C) or D")
+        self.q._set_questionable_logic("A or (B or X and J or Z and E or C) or D")
+        self.assertEqual(str(self.q.get_logic()), "A or (B and C) or D")
+
+    def testObjectLogic(self):
+        """Queries should be able to set logic from object methods"""
+
+        a = self.q.add_constraint("Employee.name", "IS NOT NULL")
+        b = self.q.add_constraint("Employee.age", ">", 10)
+        c = self.q.add_constraint("Employee.department", "LOOKUP", "Sales", "Wernham-Hogg")
+        d = self.q.add_constraint("Employee.department.employees.name", "ONE OF", 
+            ["John", "Paul", "Mary"])
+        self.q.add_constraint("Employee.department.employees", "Manager")
+
         self.q.set_logic(a + b + c + d)
         self.assertEqual(str(self.q.get_logic()), "A and B and C and D")
         self.q.set_logic(a & b & c & d)
@@ -393,6 +554,7 @@ class TestQuery(WebserviceTest): # pragma: no cover
         self.q.set_logic("(A and B) or (A and C and D) and (E or F)")
         expected ='<query constraintLogic="((A and B) or (A and C and D)) and (E or F)" longDescription="" model="testmodel" name="" sortOrder="Employee.age asc" view="Employee.name Employee.age Employee.department.name"><join path="Employee.department" style="OUTER"/><constraint code="A" op="IS NOT NULL" path="Employee.name"/><constraint code="B" op="&gt;" path="Employee.age" value="10"/><constraint code="C" extraValue="Wernham-Hogg" op="LOOKUP" path="Employee.department" value="Sales"/><constraint code="D" op="ONE OF" path="Employee.department.employees.name"><value>John</value><value>Paul</value><value>Mary</value></constraint><constraint code="E" loopPath="Employee" op="=" path="Employee.department.manager"/><constraint code="F" op="IN" path="Employee" value="some list of employees"/><constraint path="Employee.department.employees" type="Manager"/></query>'        
         self.assertEqual(expected, self.q.to_xml())
+        self.assertEqual(expected, self.q.clone().to_xml()) # Clones must produce identical XML
 
     def testSugaryQueryConstruction(self):
         """Test use of operation coercion which is similar to SQLAlchemy"""
@@ -666,14 +828,57 @@ class TestQueryResults(WebserviceTest): # pragma: no cover
             q_res = self.query.all("rr")
             t_res = self.template.all("rr")
             for results in [q_res, t_res]:
-                assertEqual(results[0]["age"], 'bar')
-                assertEqual(results[1]["Employee.age"], 1.23)
-                assertEqual(results[2][0], True)
+                assertEqual(results[0]["age"], 'bar') # Can index by short path
+                assertEqual(results[1]["Employee.age"], 1.23) # or by full path
+                assertEqual(results[2][0], True) # or by numerical index
                 assertEqual(len(results), 3)
                 for row in results:
                     assertEqual(len(row), 3)
         self.do_unpredictable_test(logic)
 
+    def testResultRowIterability(self):
+        """Result rows should iterate as lists"""
+        def logic():
+            q_res = self.query.all("rr")
+            t_res = self.template.all("rr")
+            for results in [q_res, t_res]:
+                # 'in' as test of iterability
+                self.assertTrue("bar" in results[0])
+                self.assertTrue(1.23 in results[1])
+                self.assertTrue(True in results[2])
+                # Should be able to actually iterate
+                count = 0
+                for val in results[0]:
+                    count += 1
+                    self.assertTrue(0 < count < 4)
+
+        self.do_unpredictable_test(logic)
+
+    def testResultRowDictBehaviour(self):
+        """Result rows should allow iteration using items() and iterkeys()"""
+        def logic():
+            q_res = self.query.all("rr")
+            t_res = self.template.all("rr")
+            for results in [q_res, t_res]:
+                r = results[0]
+                count = 0
+                for (k, v) in r.items():
+                    count += 1
+                    self.assertTrue(0 < count < 4)
+                count = 0
+                self.assertEqual([("Employee.name", 'foo'), ("Employee.age", 'bar'), ("Employee.id", 'baz')], r.items())
+                for (k, v) in r.iteritems():
+                    count += 1
+                    self.assertTrue(0 < count < 4)
+                self.assertEqual([pair for pair in r.iteritems()], r.items())
+                self.assertEqual(r.keys(), self.query.views)
+                self.assertEqual(r.values(), r.to_l())
+                self.assertEqual(zip(r.values(), r.keys()), zip(r.itervalues(), r.iterkeys()))
+                self.assertTrue(r.has_key("age"))
+                self.assertTrue(r.has_key("Employee.age"))
+                self.assertTrue(not r.has_key("Employee.foo"))
+
+        self.do_unpredictable_test(logic)
 
     def testResultsDict(self):
         """Should be able to get results as one dictionary per row"""
@@ -687,6 +892,10 @@ class TestQueryResults(WebserviceTest): # pragma: no cover
             self.assertEqual(self.template.get_results_list("dict"), expected)
 
         self.do_unpredictable_test(logic)
+
+class MinimalResultsTest(TestQueryResults):
+
+    PATH = "/testservice/legacyjsonrows"
 
 class TestTSVResults(WebserviceTest): # pragma: no cover
 
@@ -769,9 +978,6 @@ class TestResultObjects(WebserviceTest): # pragma: no cover
                 assertEqual(len(departments[-1].employees), 5)
 
                 for idx in [0, -1]:
-                    assertEqual(departments[idx].manager, None) # Unrequested refs are none, even if they would otherwise have had a value
-                    assertEqual(departments[idx].company.name, None) # Unrequested attrs are none
-                    assertEqual(departments[idx].company.contractors, []) # Unrequested collections are empty
                     self.assertRaises(ModelError, lambda: departments[idx].foo) # Model errors are thrown for illegal field access
                     self.assertRaises(ModelError, lambda: departments[idx].company.foo)
 

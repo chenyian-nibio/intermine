@@ -77,9 +77,9 @@ public class JSONFormatter extends Formatter {
             Map<String, String> kvPairs = (Map<String, String>) attributes.get(KEY_KV_PAIRS);
             for (Entry<String, String> pair: kvPairs.entrySet()) {
                 sb.append("\""
-                        + StringEscapeUtils.escapeJavaScript(pair.getKey())
+                        + StringEscapeUtils.escapeJava(pair.getKey())
                         + "\":"
-                        + quoteValue(StringEscapeUtils.escapeJavaScript(pair.getValue()))
+                        + quoteValue(StringEscapeUtils.escapeJava(pair.getValue()))
                         + ",");
             }
         }
@@ -125,14 +125,14 @@ public class JSONFormatter extends Formatter {
         Iterator<String> iter = resultRow.iterator();
         String first = iter.next();
         if (shouldQuote && !"".equals(first)) {
-            first = "\"" + first + "\"";
+            first = quoteValue(first);
         }
 
         StringBuffer buffer = new StringBuffer(first);
         while (iter.hasNext()) {
             String next = iter.next();
             if (shouldQuote && !"".equals(next)) {
-                next = "\"" + next + "\"";
+                next = quoteValue(next);
             }
             buffer.append(",").append(next);
         }

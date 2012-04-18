@@ -17,18 +17,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import junit.framework.TestCase;
 
 import org.intermine.api.InterMineAPI;
+import org.intermine.api.bag.AdditionalConverter;
 import org.intermine.api.bag.BagQuery;
 import org.intermine.api.bag.BagQueryConfig;
 import org.intermine.api.config.ClassKeyHelper;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.ProfileManager;
-import org.intermine.api.template.SwitchOffAbility;
-import org.intermine.api.template.TemplateQuery;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
@@ -56,6 +56,8 @@ import org.intermine.pathquery.PathConstraintNull;
 import org.intermine.pathquery.PathConstraintSubclass;
 import org.intermine.pathquery.PathException;
 import org.intermine.pathquery.PathQuery;
+import org.intermine.template.SwitchOffAbility;
+import org.intermine.template.TemplateQuery;
 import org.intermine.web.logic.query.DisplayConstraint;
 import org.intermine.web.logic.query.DisplayConstraintFactory;
 import org.intermine.web.logic.query.DisplayConstraint.DisplayConstraintOption;
@@ -80,16 +82,15 @@ public class DisplayConstraintTest extends TestCase
 
         pm = new ProfileManager(os, uosw);
         superUser = new Profile(pm, "superUser", null, "password",
-            new HashMap(), new HashMap(), new HashMap(), true);
+            new HashMap(), new HashMap(), new HashMap(), true, true);
         pm.createProfile(superUser);
-        pm.setSuperuser("superUser");
 
         testUser = new Profile(pm, "testUser", null, "password",
-            new HashMap(), new HashMap(), new HashMap(), true);
+            new HashMap(), new HashMap(), new HashMap(), true, false);
         pm.createProfile(testUser);
 
         emptyUser = new Profile(pm, "emptyUser", null, "password",
-            new HashMap(), new HashMap(), new HashMap(), true);
+            new HashMap(), new HashMap(), new HashMap(), true, false);
         pm.createProfile(emptyUser);
 
         initializeDisplayConstraints();
@@ -521,7 +522,7 @@ public class DisplayConstraintTest extends TestCase
 
         public MokaBagQueryConfig() {
             super(new HashMap<String, List<BagQuery>>(), new HashMap<String, List<BagQuery>>(),
-                  new HashMap<String, Map<String, String[]>>());
+                  new HashMap<String, Set<AdditionalConverter>>());
             this.setConnectField("department");
             this.setConstrainField("name");
             this.setExtraConstraintClassName("org.intermine.model.testmodel.Department");

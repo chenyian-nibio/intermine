@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import junit.framework.Test;
@@ -27,6 +28,7 @@ import org.intermine.model.userprofile.UserProfile;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreFactory;
+import org.intermine.objectstore.ObjectStoreSummary;
 import org.intermine.objectstore.ObjectStoreWriter;
 import org.intermine.objectstore.ObjectStoreWriterFactory;
 import org.intermine.objectstore.StoreDataTestCase;
@@ -40,6 +42,7 @@ import org.intermine.objectstore.query.SingletonResults;
 import org.intermine.pathquery.Constraints;
 import org.intermine.pathquery.PathConstraint;
 import org.intermine.pathquery.PathQuery;
+import org.intermine.template.TemplateQuery;
 
 /**
  * Tests for the TemplateSummariser.
@@ -56,6 +59,7 @@ public class TemplateSummariserTest extends StoreDataTestCase
         super(arg);
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -64,7 +68,7 @@ public class TemplateSummariserTest extends StoreDataTestCase
         uosw =  ObjectStoreWriterFactory.getObjectStoreWriter("osw.userprofile-test");
         pm = new ProfileManager(os, uosw);
         profile = new Profile(pm, "testUser", null, "password", new HashMap(),
-                new HashMap(), new HashMap(), null, true);
+                new HashMap(), new HashMap(), null, true, false);
         pm.createProfile(profile);
 
         TemplateQuery twoConstraints = new TemplateQuery("twoConstraints", "twoConstraints", "", new PathQuery(model));
@@ -75,7 +79,7 @@ public class TemplateSummariserTest extends StoreDataTestCase
         PathConstraint depCon = Constraints.greaterThan("Employee.department.name", "Finance");
         twoConstraints.addConstraint(depCon);
         twoConstraints.setEditable(depCon, true);
-        profile.saveTemplate("template", twoConstraints);
+        profile.saveTemplate("template", new ApiTemplate(twoConstraints));
     }
 
     @Override
@@ -94,7 +98,7 @@ public class TemplateSummariserTest extends StoreDataTestCase
         SimpleConstraint sc = new SimpleConstraint(qf, ConstraintOp.EQUALS, new QueryValue(username));
         q.setConstraint(sc);
         SingletonResults res = uosw.executeSingleton(q);
-        Iterator resIter = res.iterator();
+        Iterator<?> resIter = res.iterator();
         while (resIter.hasNext()) {
             InterMineObject o = (InterMineObject) resIter.next();
             uosw.delete(o);
@@ -116,9 +120,19 @@ public class TemplateSummariserTest extends StoreDataTestCase
         return buildSuite(TemplateSummariserTest.class);
     }
 
+    public void testMaxValues() throws Exception {
+        Properties ossConfig = new Properties();
+        ossConfig.put("max.field.values", "10");
+        ObjectStoreSummary oss = new ObjectStoreSummary(ossConfig);
+        TemplateSummariser summariser = new TemplateSummariser(os, uosw, oss);
+        assertEquals(10, summariser.maxSummaryValues);
+    }
+
     public void test1() throws Exception {
-        TemplateQuery t = profile.getSavedTemplates().get("template");
-        TemplateSummariser summariser = new TemplateSummariser(os, uosw);
+        Properties ossConfig = new Properties();
+        ObjectStoreSummary oss = new ObjectStoreSummary(ossConfig);
+        ApiTemplate t = profile.getSavedTemplates().get("template");
+        TemplateSummariser summariser = new TemplateSummariser(os, uosw, oss);
         assertFalse(summariser.isSummarised(t));
         summariser.summarise(t);
         assertTrue(summariser.isSummarised(t));

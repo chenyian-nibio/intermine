@@ -5,6 +5,7 @@
 <%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="im" %>
+<%@ taglib uri="/WEB-INF/functions.tld" prefix="imf" %>
 
 <!-- table.jsp -->
 
@@ -34,7 +35,6 @@
 //]]>-->
 </script>
 <script type="text/javascript" src="js/table.js" ></script>
-
     <div class="body">
       <div class="resultsTableTemplateHeader">
 
@@ -44,7 +44,7 @@
            a bag) - see #1031 --%>
         <c:if test="${empty param.bagName}">
           <div>
-            <fmt:message key="results.templateTitle"/>:
+            <h3><fmt:message key="results.templateConstraints"/></h3>
             <span class="templateTitleBold">
             <c:choose>
               <c:when test="${!empty param.templateQueryTitle}">
@@ -71,11 +71,46 @@
          </c:choose>
          </div>
      </c:if>
-
-     <c:if test="${!empty param.bagName}">
-       <div><strong id="numberOfResults">${resultsTable.estimatedSize}</strong> results for list:  <c:out value="${param.bagName}"/></div>
-     </c:if>
-
+     <c:if test="${!empty templateQuery}">
+     <div>
+     <span class="parameterValues">
+      <c:forEach items="${dcl}" var="dec" >
+        <c:if test="${dec.switchable != 'off'}">
+          <c:out value="${imf:formatPathStr(dec.endClassName, INTERMINE_API, WEBCONFIG)}" />
+          <c:set var="fieldDisplay" value="${imf:formatField(dec.path.path, WEBCONFIG)}" />
+          <c:if test="${!empty fieldDisplay}">
+              &gt;&nbsp;${fieldDisplay}
+          </c:if>
+          &nbsp;${dec.selectedOp.label}
+          <c:if test="${!empty dec.selectedValue && !dec.nullSelected}">
+              &nbsp;${dec.selectedValue}
+          </c:if>
+          <c:if test="${!empty dec.multiValuesAsString}">
+              &nbsp;${dec.multiValuesAsString}
+          </c:if>
+          <c:if test="${!empty dec.selectedExtraValue}">
+              IN&nbsp;${dec.selectedExtraValue}
+          </c:if>
+          <br/>
+        </c:if>
+      </c:forEach>
+      </span>
+      </div>
+      </c:if>
+      <c:choose>
+        <c:when test="${!empty templateQuery || !empty param.templateQueryTitle}">
+         <c:if test="${empty param.bagName}">
+           <h3><fmt:message key="results.templateTitle"/></h3>
+           Total rows: <span id="top-estimated-size">${resultsTable.estimatedSize}</span>
+         </c:if>
+        </c:when>
+        <c:when test="${!empty param.bagName}">
+          <div><strong id="numberOfResults"><span id="top-estimated-size">${resultsTable.estimatedSize}</span></strong> results for list:  <c:out value="${param.bagName}"/></div>
+        </c:when>
+        <c:otherwise>
+          Total rows: <span id="top-estimated-size">${resultsTable.estimatedSize}</span>
+        </c:otherwise>
+      </c:choose>
        </div>
      </div>
 
@@ -163,14 +198,25 @@
 
     <li id="tool_bar_li_addtolist" class="tb_button inactive"><img src="images/add.png" width="15" height="13" alt="Add"><html:link linkName="#">Add to List</html:link></li>
     <li id="tool_bar_li_addcolumn" class="tb_button"><img src="images/addcol.png" width="9" height="13" alt="Addcol"><html:link linkName="#">Add Column</html:link></li>
-    <li id="tool_bar_li_export" class="tb_button"><img src="images/export.png" width="12" height="13" alt="Export"><html:link linkName="#">Export</html:link></li>
+
+    <%-- export buttons --%>
+
+    <li id="toolbar-export">
+      <c:set var="results_page" value="results" scope="request"/> <%-- this is a results page --%>
+      <c:set var="tableName" value="${param.table}" scope="request"/>
+      <c:set var="pagedTable" value="${resultsTable}" scope="request"/> <!-- This is not used by ExportController-->
+      <tiles:get name="export.tile"/>
+    </li>
+
+    <%-- /export buttons --%>
+
     <li class="tool_bar_link" style="padding:2px">
 
 <html:form action="/changeTableSize">
 
   <%-- Page size controls --%>
   <span style="float:left;padding:4px 5px 0 10px;"><fmt:message key="results.changepagesize"/></span>
-    <html:select property="pageSize" onchange="changePageSize()" value="${resultsTable.pageSize}">
+    <html:select style="float:left;" property="pageSize" onchange="changePageSize()" value="${resultsTable.pageSize}">
     <html:option value="10">10</html:option>
     <html:option value="25">25</html:option>
     <html:option value="50">50</html:option>
@@ -237,14 +283,7 @@
   <a href="javascript:hideMenu('tool_bar_item_addtolist')" >Cancel</a>
 </div>
 
-<%-- Export --%>
-<div id="tool_bar_item_export" style="display:none;width:370px" class="tool_bar_item">
-    <c:set var="tableName" value="${param.table}" scope="request"/>
-    <c:set var="pagedTable" value="${resultsTable}" scope="request"/> <!-- This is not used by ExportController-->
-    <tiles:get name="export.tile"/>
-    <hr>
-  <a href="javascript:hideMenu('tool_bar_item_export')" ><fmt:message key="confirm.cancel"/></a>
-</div>
+
 <div style="clear:both"></div>
 <div class="results collection-table nowrap nomargin">
 <tiles:insert name="resultsTable.tile">

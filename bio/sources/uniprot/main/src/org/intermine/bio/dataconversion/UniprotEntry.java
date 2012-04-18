@@ -39,10 +39,11 @@ public class UniprotEntry
     private String primaryAccession, uniprotAccession, primaryIdentifier;
     private String sequence, md5checksum;
     private Map<String, List<String>> collections = new HashMap<String, List<String>>();
-    private Map<String, String> evidenceCodeToRef = new HashMap<String, String>();
+    private Map<String, String> pubEvidenceCodeToRef = new HashMap<String, String>();
     private boolean isDuplicate = false;
     private Map<String, Set<String>> dbrefs = new HashMap<String, Set<String>>();
     private Map<String, Set<String>> geneNames = new HashMap<String, Set<String>>();
+    private Map<String, String> goTermToEvidenceCode = new HashMap<String, String>();
 
     // map of gene designation (normally the primary name) to dbref (eg. FlyBase, FBgn001)
     // this map is used when there is more than one gene but the dbref is needed to set an
@@ -72,7 +73,7 @@ public class UniprotEntry
     public List<String> getEnsemblProteinIds() {
     	return ensemblProteinIds;
     }
-    
+
     /**
      * constructor used for non-isoform entries
      */
@@ -377,20 +378,15 @@ public class UniprotEntry
     /**
      * @return the isFragmant
      */
-    public boolean isFragment() {
-        return isFragment;
+    public String isFragment() {
+        return Boolean.toString(isFragment);
     }
 
     /**
-     * @param isFragment the isFragmant to set
+     * dev can configure converter to load these or not.  default is to ignore fragments
+     * @param isFragment true of the protein is a fragment
      */
-    public void setFragment(String isFragment) {
-        if ("true".equals(isFragment)) {
-            this.isFragment = true;
-        }
-    }
-
-    private void setFragment(boolean isFragment) {
+    public void setFragment(boolean isFragment) {
         this.isFragment = isFragment;
     }
 
@@ -672,11 +668,27 @@ public class UniprotEntry
     }
 
     /**
+     * @param goTerm go term
+     * @return evidence code for this go term
+     */
+    public String getGOEvidence(String goTerm) {
+        return goTermToEvidenceCode.get(goTerm);
+    }
+
+    /**
+     * @param goTerm go term
+     * @param code evidence code, eg. NAS
+     */
+    public void addGOEvidence(String goTerm, String code) {
+        goTermToEvidenceCode.put(goTerm, code);
+    }
+
+    /**
      * @param code the evidence code
      * @param pubRefId id representing publication object
      */
-    public void addEvidence(String code, String pubRefId) {
-        evidenceCodeToRef.put(code, pubRefId);
+    public void addPubEvidence(String code, String pubRefId) {
+        pubEvidenceCodeToRef.put(code, pubRefId);
     }
 
     /**
@@ -684,7 +696,7 @@ public class UniprotEntry
      * @return the refId for publication associated with this evidence code
      */
     public String getPubRefId(String code) {
-        return evidenceCodeToRef.get(code);
+        return pubEvidenceCodeToRef.get(code);
     }
 
     /**
@@ -738,6 +750,13 @@ public class UniprotEntry
      */
     public Map<String, Set<String>> getDbrefs() {
         return dbrefs;
+    }
+
+    /**
+     * @return value of db reference currently being processed, eg. GO:001
+     */
+    public String getDbref() {
+        return dbref.value;
     }
 
     /**
@@ -913,6 +932,4 @@ public class UniprotEntry
         entry.setGOTerms(collections.get("goTerms"));
         return entry;
     }
-
-
 }

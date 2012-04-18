@@ -40,7 +40,7 @@ use constant {
     METHOD => 'FTP',
     
 };
-my %GOA_TAXA = (flybase => 'fb', wormbase => 'wb', mgi => 'mgi', sgd => 'sgd');
+my %GOA_TAXA = (flybase => 'fb', wormbase => 'wb', mgi => 'mgi', human => 'goa_human');
 my %UNIPROT_TAXA = ( '7165' => 'agp' );
 sub field2_of { return [ split( /\t/, shift ) ]->[1] || '' }
 my $order = sub { field2_of($a) cmp field2_of($b) };
@@ -58,7 +58,6 @@ my $uniprot_cleaner = sub {
         }
     }
     close $fh;
-    rename($file, $self->get_destination_dir->file('downloaded_' . basename($file) ));
     $self->debug("Writing extracted buffers to files");
     while (my ($taxon, $suffix) = each %UNIPROT_TAXA) {
         if ($lines_for{$taxon}) {
@@ -71,6 +70,7 @@ my $uniprot_cleaner = sub {
             $self->debug("No data extracted for $taxon");
         }
     }
+    unlink $file;
 };
 
 my $goa_cleaner = sub {
@@ -92,7 +92,6 @@ sub BUILD {
             HOST       => "ftp.geneontology.org",
             REMOTE_DIR => "pub/go/ontology",
             FILE       => "gene_ontology.obo",
-            SUB_DIR    => ["go"],
         }
     );
 

@@ -6,6 +6,11 @@
   
   <import file="${tests.xml.basedir}/library.xml"/>
   <import file="${tests.xml.basedir}/task.xml"/>
+
+  <target name="-init-live-test">
+    <property name="test.excludes" value=""/>
+  </target>
+
   
   <target name="-pre-init" depends="library.-pre-init">
     <!-- emma properties -->
@@ -15,7 +20,7 @@
     <property name="build.instrumented.dir" location="${build.dir}/instrumented"/>
     <!-- junit task properties -->
     <property name="test.results.dir" location="${build.dir}/test/results"/>
-    <property name="test.excludes" location=""/>
+    <property name="test.excludes" value="**/Live*.class"/>
     <property name="test.includes" value="**/*Test.class"/>
     <condition property="test.fork" value="yes" else="no">
       <and><equals arg1="${emma.enabled}" arg2="true" casesensitive="false"/></and>
@@ -79,7 +84,9 @@
       </report>
     </emma>
   </target>
-  
+
+  <target name="live-test" depends=" -init-live-test, -init-properties, init-test, library.default, -pre-test, instrument, do-test, test-report, coverage-report, -post-test"/>
+
   <target name="test" depends="-init-properties, init-test, library.default, -pre-test, instrument, do-test, test-report, coverage-report, -post-test"/>
   
   <target name="test-all" depends="init, -init-deps, jar">
@@ -88,6 +95,25 @@
   </target>
   
   <target name="default" depends="test"/>
+
+  <!-- RUN LIVE TESTS -->
+
+  <target name="ensure-test-name" unless="test">
+      <fail message="You must run this target with -Dtest=TestName"/>
+  </target>
+
+  <target name="onetest" description="Runs the test you specify on the command 
+      line with -Dtest=" depends="ensure-test-name, -init-properties, init-test, library.default, -pre-test, instrument, do-test, test-report, coverage-report, -post-test, ensure-test-name">
+      <junit printsummary="withOutAndErr" fork="yes"> 
+          <classpath refid="classpath" />
+          <formatter type="plain" usefile="false"/>
+          <batchtest>
+              <fileset dir="${src}">
+                  <include name="**/${test}.java"/>
+              </fileset>
+          </batchtest>
+      </junit>
+  </target>
   
   <!-- CLEAN -->
   
@@ -98,6 +124,7 @@
   <!-- MACRO DEFINITIONS -->
   
   <target name="-init-macrodef-junit">
+    <echoproperties/>
     <macrodef name="junit" uri="http://www.intermine.org/ns/im-tests-proj/1">
     <attribute name="includes" default="${test.includes}"/>
     <attribute name="excludes" default="${test.excludes}"/>

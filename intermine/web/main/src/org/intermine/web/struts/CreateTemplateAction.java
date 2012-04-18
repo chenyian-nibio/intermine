@@ -10,6 +10,9 @@ package org.intermine.web.struts;
  *
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,22 +20,26 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
+import org.apache.struts.action.ActionMessages;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.query.WebResultsExecutor;
 import org.intermine.api.search.SearchRepository;
 import org.intermine.api.tag.TagTypes;
-import org.intermine.api.template.TemplateQuery;
-import org.intermine.api.tracker.TrackerDelegate;
+import org.intermine.api.template.ApiTemplate;
 import org.intermine.api.util.NameUtil;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.pathquery.PathConstraint;
 import org.intermine.pathquery.PathConstraintLookup;
+import org.intermine.template.TemplateQuery;
 import org.intermine.web.logic.Constants;
+import org.intermine.web.logic.query.DisplayConstraint;
+import org.intermine.web.logic.query.DisplayConstraintFactory;
 import org.intermine.web.logic.session.SessionMethods;
 
 /**
@@ -65,9 +72,21 @@ public class CreateTemplateAction extends InterMineAction
         final InterMineAPI im = SessionMethods.getInterMineAPI(session);
         Profile profile = SessionMethods.getProfile(session);
         TemplateQuery template = (TemplateQuery) SessionMethods.getQuery(session);
-        WebResultsExecutor webResultsExecutor = im.getWebResultsExecutor(profile);
+        String prevTemplateName = (String) session.getAttribute(Constants.PREV_TEMPLATE_NAME);
 
         boolean seenProblem = false;
+        TemplateSettingsForm tsf = (TemplateSettingsForm) form;
+        ActionErrors errors = tsf.validate(mapping, request);
+        saveErrors(request, (ActionMessages) errors);
+        if (errors != null) {
+            return mapping.findForward("query");
+        }
+        template.setDescription(tsf.getDescription());
+        template.setName(tsf.getName());
+        template.setTitle(tsf.getTitle());
+        template.setComment(tsf.getComment());
+
+        WebResultsExecutor webResultsExecutor = im.getWebResultsExecutor(profile);
 
         // Check whether query has at least one constraint and at least one output
         if (template.getView().size() == 0) {
@@ -93,9 +112,8 @@ public class CreateTemplateAction extends InterMineAction
         boolean isNewTemplate = (session.getAttribute(Constants.NEW_TEMPLATE) != null
             && ((Boolean) session.getAttribute(Constants.NEW_TEMPLATE)).booleanValue())
             ? true : false;
-        String prevTemplateName = (String) session.getAttribute(Constants.PREV_TEMPLATE_NAME);
         if (profile.getSavedTemplates().containsKey(template.getName())
-                && (isNewTemplate
+            && (isNewTemplate
                 || (prevTemplateName != null && !prevTemplateName.equals(template.getName())))) {
             recordError(new ActionMessage("errors.createtemplate.existing", template.getName()),
                     request);
@@ -155,30 +173,34 @@ public class CreateTemplateAction extends InterMineAction
 
         recordMessage(new ActionMessage(key, template.getName()), request);
 
+        ApiTemplate toSave = new ApiTemplate(template);
         if (isNewTemplate) {
-            profile.saveTemplate(template.getName(), template);
+            profile.saveTemplate(template.getName(), toSave);
         } else {
             String oldTemplateName = (prevTemplateName != null)
                 ? prevTemplateName : template.getName();
-            profile.updateTemplate(oldTemplateName, template);
-            session.removeAttribute(Constants.PREV_TEMPLATE_NAME);
+            profile.updateTemplate(oldTemplateName, toSave);
             im.getTrackerDelegate().updateTemplateName(oldTemplateName, template.getName());
         }
 
-        // If superuser then rebuild shared templates
-        if (SessionMethods.isSuperUser(session)) {
-            ServletContext servletContext = session.getServletContext();
-            SearchRepository tr = SessionMethods.getGlobalSearchRepository(servletContext);
-            if (!isNewTemplate) {
-                tr.webSearchableUpdated(template, TagTypes.TEMPLATE);
-            } else {
-                tr.webSearchableAdded(template, TagTypes.TEMPLATE);
-            }
-        }
         session.removeAttribute(Constants.NEW_TEMPLATE);
         session.removeAttribute(Constants.PREV_TEMPLATE_NAME);
 
-        SessionMethods.loadQuery(template, request.getSession(), response);
-        return mapping.findForward("query");
+        SessionMethods.loadQuery(toSave, request.getSession(), response);
+        if ("SAVE".equals(tsf.getActionType())) {
+            return mapping.findForward("query");
+        } else {
+            //prepare display constraint list to display  parameter values
+            //edited by the user in the result page
+            DisplayConstraintFactory factory =  new DisplayConstraintFactory(im, null);
+            DisplayConstraint displayConstraint = null;
+            List<DisplayConstraint> displayConstraintList = new ArrayList<DisplayConstraint>();
+            for (PathConstraint pathConstraint : template.getEditableConstraints()) {
+                displayConstraint = factory.get(pathConstraint, profile, template);
+                displayConstraintList.add(displayConstraint);
+            }
+            session.setAttribute("dcl", displayConstraintList);
+            return mapping.findForward("run");
+        }
     }
 }

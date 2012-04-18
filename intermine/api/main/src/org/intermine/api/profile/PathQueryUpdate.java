@@ -9,9 +9,9 @@ package org.intermine.api.profile;
  * information or http://www.gnu.org/copyleft/lesser.html.
  *
  */
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.query.ConstraintOp;
@@ -28,97 +28,98 @@ import org.intermine.pathquery.PathConstraintSubclass;
 import org.intermine.pathquery.PathException;
 import org.intermine.pathquery.PathQuery;
 
-public class PathQueryUpdate {
-    private PathQuery pathQuery;
-    private PathQuery newPathQuery;
-    private Model oldModel;
+/**
+ * Update a pathquery with a new model
+ * @author butano
+ *
+ */
+public class PathQueryUpdate
+{
+    protected PathQuery pathQuery;
+    protected PathQuery newPathQuery;
+    protected Model oldModel;
+    protected boolean isUpdated = false;
 
-    public PathQueryUpdate(PathQuery pathQuery, Model newModel, Model oldModel) {
+    public PathQueryUpdate() {
+    }
+
+    /**
+     * Construct a PathQueryUpdate to update a pathquery given i input with a new model
+     * @param pathQuery
+     * @param newModel
+     * @param oldModel
+     */
+    public PathQueryUpdate(PathQuery pathQuery, Model oldModel) {
         this.pathQuery = pathQuery;
         this.oldModel = oldModel;
-        this.newPathQuery = new PathQuery(newModel);
+        this.newPathQuery = new PathQuery(pathQuery.getModel());
     }
 
-    public synchronized List<String> updateWithRenamedClass(
-            String prevClass, String newClass) throws PathException {
-            // Update view paths
-            updateView(prevClass, newClass, null, null);
-            // Update constraints
-            updateConstraints(prevClass, newClass, null, null);
-            // Update outer join paths
-            updateOuterJoins(prevClass, newClass, null, null);
-            // Update description paths
-            updateDescriptionsPath(prevClass, newClass, null, null);
-            // Update order by paths
-            updateOrderByPath(prevClass, newClass, null, null);
+    /**
+     * Return a new pathquery updated to a new model
+     * @return the new pathquery
+     */
+    public PathQuery getUpdatedPathQuery() {
+        return newPathQuery;
+    }
 
-            List<String> problems = newPathQuery.verifyQuery();
-            return problems;
-        }
+    /**
+     * Return true if the pathquery has been updated
+     * @return true if the pathquery has been updated, false otherwise
+     */
+    public boolean isUpdated() {
+        return isUpdated;
+    }
 
-    public synchronized List<String> updateWithRenamedField(String cls, String prevField,
-            String newField) throws PathException {
-            // Update view paths
-            updateView(cls, null, prevField, newField);
-            // Update constraints
-            updateConstraints(cls, null, prevField, newField);
-            // Update outer join paths
-            updateOuterJoins(cls, null, prevField, newField);
-            // Update description paths
-            updateDescriptionsPath(cls, null, prevField, newField);
-            // Update order by paths
-            updateOrderByPath(cls, null, prevField, newField);
+    /**
+     * Update path
+     * @param renamedClasses
+     * @param renamedFields
+     * @return
+     * @throws PathException
+     */
+    public synchronized List<String> update(Map<String, String> renamedClasses,
+        Map<String, String> renamedFields) throws PathException {
+        // Update view paths
+        updateView(renamedClasses, renamedFields);
+        // Update constraints
+        updateConstraints(renamedClasses, renamedFields);
+        // Update outer join paths
+        updateOuterJoins(renamedClasses, renamedFields);
+        // Update description paths
+        updateDescriptionsPath(renamedClasses, renamedFields);
+        // Update order by paths
+        updateOrderByPath(renamedClasses, renamedFields);
 
-            List<String> problems = newPathQuery.verifyQuery();
-            return problems;
-        }
+        List<String> problems = newPathQuery.verifyQuery();
+        return problems;
+    }
 
-    private void updateView (String cls, String newClass, String prevField, String newField)
+    private void updateView (Map<String, String> renamedClasses, Map<String, String> renamedFields)
         throws PathException {
-        String viewPath = "";
         Path p;
-        List<String> view = pathQuery.getView();
-        List<String> newView = new ArrayList<String>();
-        for (int index = 0; index < view.size(); index++) {
-            viewPath = view.get(index);
-            p = new Path(oldModel, viewPath);
-            if ((newField == null && p.startContainsClass(cls))
-                || (newField != null && p.elementsContainField(cls, prevField))) {
-                if (newField == null) {
-                    viewPath = viewPath.replace(cls, newClass);
-                } else {
-                    viewPath = viewPath.replace(prevField, newField);
-                }
-                newView.add(index, viewPath);
-            }
+        for (String viewPath : pathQuery.getView()) {
+            viewPath = getPathUpdated(viewPath, renamedClasses, renamedFields);
+            newPathQuery.addView(viewPath);
         }
-        newPathQuery.addViews(newView);
     }
 
-    private void updateConstraints(String cls, String newClass, String prevField, String newField)
+    protected void updateConstraints (Map<String, String> renamedClasses, Map<String, String> renamedFields)
         throws PathException {
         String path, newPath;
         Path p;
-        PathConstraint newPathConstraint;
-        Map<PathConstraint, String> constraints = pathQuery.getConstraints();
-        for (PathConstraint pathConstraint : constraints.keySet()) {
+        for (PathConstraint pathConstraint : pathQuery.getConstraints().keySet()) {
             path = pathConstraint.getPath();
-            newPath = path;
-            p = new Path(oldModel, path);
-            if ((newField == null && p.startContainsClass(cls))
-                || (newField != null && p.elementsContainField(cls, prevField))) {
-                if (newField == null) {
-                    newPath = path.replace(cls, newClass);
-                } else {
-                    newPath = path.replace(prevField, newField);
-                }
-            newPathConstraint = createPathConstraint(pathConstraint, path);
-            newPathQuery.addConstraint(newPathConstraint);
+            newPath = getPathUpdated(path, renamedClasses, renamedFields);
+            if (!newPath.equals(path)) {
+                newPathQuery.addConstraint(createPathConstraint(pathConstraint, newPath));
+            } else {
+                newPathQuery.addConstraint(pathConstraint);
+            }
         }
     }
-}
 
-    private PathConstraint createPathConstraint(PathConstraint pathConstraint, String newPath) {
+    protected PathConstraint createPathConstraint(PathConstraint pathConstraint, String newPath) {
         PathConstraint newPathConstraint = null;
         ConstraintOp op = pathConstraint.getOp();
         if (pathConstraint instanceof PathConstraintAttribute) {
@@ -143,66 +144,70 @@ public class PathQueryUpdate {
         return newPathConstraint;
     }
 
-    private void updateOuterJoins(String cls, String newClass, String prevField, String newField)
-        throws PathException {
+    private void updateOuterJoins(Map<String, String> renamedClasses,
+        Map<String, String> renamedFields) throws PathException {
         Path p;
         Map<String, OuterJoinStatus> outerJoinStatus = pathQuery.getOuterJoinStatus();
         String newJoinPath;
         for (String joinPath : outerJoinStatus.keySet()) {
-            p = new Path(oldModel, joinPath);
-            newJoinPath = joinPath;
-            if ((newField == null && p.startContainsClass(cls))
-                || (newField != null && p.elementsContainField(cls, prevField))) {
-                if (newField == null) {
-                    newJoinPath = joinPath.replace(cls, newClass);
-                } else {
-                    newJoinPath = joinPath.replace(prevField, newField);
-                }
-                newPathQuery.setOuterJoinStatus(newJoinPath, outerJoinStatus.get(joinPath));
-            }
+            newJoinPath = getPathUpdated(joinPath, renamedClasses, renamedFields);
+            newPathQuery.setOuterJoinStatus(newJoinPath, outerJoinStatus.get(joinPath));
         }
     }
 
-    private void updateDescriptionsPath(String cls, String newClass, String prevField,
-            String newField) throws PathException {
+    private void updateDescriptionsPath(Map<String, String> renamedClasses,
+        Map<String, String> renamedFields) throws PathException {
         Path p;
         Map<String, String> descriptions = pathQuery.getDescriptions();
         String newDescriptionPath;
         for (String descPath : descriptions.keySet()) {
-            p = new Path(oldModel, descPath);
-            newDescriptionPath = descPath;
-            if ((newField == null && p.startContainsClass(cls))
-                || (newField != null && p.elementsContainField(cls, prevField))) {
-                if (newField == null) {
-                    newDescriptionPath = descPath.replace(cls, newClass);
-                } else {
-                    newDescriptionPath = descPath.replace(prevField, newField);
-                }
-            }
+            newDescriptionPath = getPathUpdated(descPath, renamedClasses, renamedFields);
             newPathQuery.setDescription(newDescriptionPath, descriptions.get(descPath));
-         }
+        }
     }
 
-    private void updateOrderByPath(String cls, String newClass, String prevField, String newField)
-        throws PathException {
+    private void updateOrderByPath(Map<String, String> renamedClasses,
+        Map<String, String> renamedFields) throws PathException {
         String orderPath, newOrderPath;
         Path p;
-        OrderElement orderElement;
-        List<OrderElement> orderBy = pathQuery.getOrderBy();
-        for (int index = 0; index < orderBy.size(); index++) {
-            orderElement = (OrderElement) orderBy.get(index);
+        for (OrderElement orderElement : pathQuery.getOrderBy()) {
             orderPath = orderElement.getOrderPath();
-            newOrderPath = orderPath;
-            p = new Path(oldModel, orderPath);
-            if ((newField == null && p.startContainsClass(cls))
-                || (newField != null && p.elementsContainField(cls, prevField))) {
-                if (newField == null) {
-                    newOrderPath = orderPath.replace(cls, newClass);
-                } else {
-                    newOrderPath = orderPath.replace(prevField, newField);
-                }
+            newOrderPath = getPathUpdated(orderPath, renamedClasses, renamedFields);
+            if (!newOrderPath.equals(orderPath)) {
+                newPathQuery.addOrderBy(new OrderElement(newOrderPath,
+                                        orderElement.getDirection()));
+            } else {
+                newPathQuery.addOrderBy(orderElement);
             }
-            newPathQuery.addOrderBy(new OrderElement(newOrderPath, orderElement.getDirection()));
         }
+    }
+
+    protected String getPathUpdated(String path, Map<String, String> renamedClasses,
+        Map<String, String> renamedFields) throws PathException {
+        Path p = new Path(oldModel, path);
+        String pathUpdated = path;
+        for (String key : renamedFields.keySet()) {
+            int dotIndex = key.indexOf(".");
+            String cls = key.substring(0, dotIndex);
+            String prevField = key.substring(dotIndex + 1);
+            List<Integer> elementContainingField = p.getElementsContainingField(cls, prevField);
+            if (!elementContainingField.isEmpty()) {
+                for (int index : elementContainingField) {
+                    p.getElements().set(index, renamedFields.get(key));
+                }
+                pathUpdated = p.toStringNoConstraints();
+                isUpdated = true;
+            }
+        }
+        for (Entry<String, String> entry : renamedClasses.entrySet()) {
+            String cls = entry.getKey();
+            String newClass = entry.getValue();
+            if (p.startContainsClass(cls)) {
+                pathUpdated = pathUpdated.replace(cls, newClass);
+                isUpdated = true;
+                break;
+            }
+        }
+        return pathUpdated;
     }
 }

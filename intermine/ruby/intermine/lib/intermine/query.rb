@@ -430,6 +430,9 @@ module InterMine::PathQuery
         #     puts r.to_h # Materialize the row an a Hash
         #   end
         #
+        # This method is now deprecated and will be removed in version 1
+        # Please use Query#rows
+        #
         def each_row(start=nil, size=nil)
             start = start.nil? ? @start : start
             size  = size.nil? ? @size : size
@@ -447,6 +450,9 @@ module InterMine::PathQuery
         #     end
         #   end
         #
+        # This method is now deprecated and will be removed in version 1
+        # Please use Query#results
+        #
         def each_result(start=nil, size=nil)
             start = start.nil? ? @start : start
             size  = size.nil? ? @size : size
@@ -462,7 +468,7 @@ module InterMine::PathQuery
             return results_reader.get_size
         end
 
-        # Returns an Array of ResultRow objects containing the 
+        # Returns an Enumerable of ResultRow objects containing the 
         # data returned by running this query, starting at the given offset and 
         # containing up to the given maximum size.
         #
@@ -477,15 +483,12 @@ module InterMine::PathQuery
         def rows(start=nil, size=nil)
             start = start.nil? ? @start : start
             size  = size.nil? ? @size : size
-            res = []
-            results_reader(start, size).each_row {|row|
-                res << row
-            }
-            res
+            return Results::RowReader.new(@url, self, start, size)
         end
 
         # Return objects corresponding to the type of data requested, starting 
-        # at the given row offset.
+        # at the given row offset. Returns an Enumerable of InterMineObject,
+        # where each value is read one at a time from the connection. 
         #
         #  genes = query.results
         #  genes.last.symbol
@@ -494,11 +497,50 @@ module InterMine::PathQuery
         def results(start=nil, size=nil)
             start = start.nil? ? @start : start
             size  = size.nil? ? @size : size
-            res = []
-            results_reader(start, size).each_result {|row|
-                res << row
-            }
-            res
+            return Results::ObjectReader.new(@url, self, start, size)
+        end
+
+        # Return an Enumerable of summary items starting at the given offset.
+        #
+        #  summary = query.summary_items("chromosome.primaryIdentifier")
+        #  top_chromosome = summary[0]["item"]
+        #  no_in_top_chrom = summary[0]["count"]
+        #
+        # This can be made more efficient by passing in a size - ie, if 
+        # you only want the top item, pass in an offset of 0 and a size of 1
+        # and only that row will be fetched.
+        #
+        def summaries(path, start=0, size=nil)
+            q = self.clone
+            q.add_views(path)
+            return Results::SummaryReader.new(@url, q, start, size, path)
+        end
+
+        # Return a summary for a column as a Hash
+        #
+        # For numeric values the hash has four keys: "average", "stdev", "min", and "max". 
+        #
+        #  summary = query.summarise("length")
+        #  puts summary["average"]
+        #
+        # For non-numeric values, the hash will have each possible value as a key, and the
+        # count of the occurrences of that value in this query's result set as the 
+        # corresponding value:
+        # 
+        #  summary = query.summarise("chromosome.primaryIdentifier")
+        #  puts summary["2L"]
+        #
+        # To limit the size of the result set you can use start and size as per normal 
+        # queries - this has no real effect with numeric queries, which always return the 
+        # same information.
+        #
+        def summarise(path, start=0, size=nil)
+            t = make_path(add_prefix(path)).end_type
+            if InterMine::Metadata::Model::NUMERIC_TYPES.include? t
+                return Hash[summaries(path, start, size).first.map {|k, v| [k, v.to_f]}]
+            else
+                return Hash[summaries(path, start, size).map {|sum| [sum["item"], sum["count"]]}]
+            end
         end
 
         # Return all result record objects returned by running this query.
@@ -573,12 +615,14 @@ module InterMine::PathQuery
                 y = add_prefix(x)
                 if y.end_with?("*")
                     prefix = y.chomp(".*")
-                    path = InterMine::Metadata::Path.new(prefix, @model, subclasses)
-                    attrs = path.end_cd.attributes.map {|x| prefix + "." + x.name}
+                    path = make_path(prefix)
+                    attrs = path.end_cd.attributes.map {|x| 
+                        prefix + "." + x.name
+                    }
                     add_views(attrs)
                 else
-                    path = InterMine::Metadata::Path.new(y, @model, subclasses)
-                    path = InterMine::Metadata::Path.new(y.to_s + ".id", @model, subclasses) unless path.is_attribute?
+                    path = make_path(y)
+                    path = make_path(y.to_s + ".id") unless path.is_attribute?
                     if @root.nil?
                         @root = path.rootClass
                     end
@@ -586,6 +630,10 @@ module InterMine::PathQuery
                 end
             end
             return self
+        end
+
+        def make_path(path)
+            return InterMine::Metadata::Path.new(path, @model, subclasses)
         end
 
         alias add_to_select add_views
@@ -1596,9 +1644,37 @@ module InterMine::PathQuery
             return p
         end
 
+        # Returns an Enumerable of ResultRow objects containing the 
+        # data returned by running this query, starting at the given offset and 
+        # containing up to the given maximum size.
+        #
+        # The webservice enforces a maximum page-size of 10,000,000 rows,
+        # independent of any size you specify - this can be obviated with paging
+        # for large result sets.
+        #
+        #   names = template.rows("A" => "eve").map {|r| r["name"]}
+        #
+        def rows(params = {}, start=0, size=nil)
+            runner = (params.empty?) ? self : get_adjusted(params)
+            return self.class.superclass.instance_method(:rows).bind(runner).call(start, size)
+        end
+
         def each_row(params = {}, start=0, size=nil)
             runner = (params.empty?) ? self : get_adjusted(params)
             runner.results_reader(start, size).each_row {|r| yield r}
+        end
+
+        # Return objects corresponding to the type of data requested, starting 
+        # at the given row offset. Returns an Enumerable of InterMineObject,
+        # where each value is read one at a time from the connection. 
+        #
+        #  template.results("A" => "eve").each {|gene|
+        #      puts gene.symbol
+        #  }
+        #
+        def results(params = {}, start=0, size=nil)
+            runner = (params.empty?) ? self : get_adjusted(params)
+            return self.class.superclass.instance_method(:results).bind(runner).call(start, size)
         end
 
         def each_result(params = {}, start=0, size=nil) 
@@ -1606,11 +1682,58 @@ module InterMine::PathQuery
             runner.results_reader(start, size).each_result {|r| yield r}
         end
 
+        # Return an Enumerable of summary items starting at the given offset.
+        #
+        #  summary = template.summary_items("chromosome.primaryIdentifier", {"A" => "Pentose Phosphate Pathway"})
+        #  top_chromosome = summary[0]["item"]
+        #  no_in_top_chrom = summary[0]["count"]
+        #
+        # This can be made more efficient by passing in a size - ie, if 
+        # you only want the top item, pass in an offset of 0 and a size of 1
+        # and only that row will be fetched.
+        #
+        def summaries(path, params = {}, start=0, size=nil)
+            runner = (params.empty?) ? self : get_adjusted(params)
+            return self.class.superclass.instance_method(:summaries).bind(runner).call(path, start, size)
+        end
+
+        # Return a summary for a column as a Hash
+        #
+        # For numeric values the hash has four keys: "average", "stdev", "min", and "max". 
+        #
+        #  summary = template.summarise("length", {"A" => "eve"})
+        #  puts summary["average"]
+        #
+        # For non-numeric values, the hash will have each possible value as a key, and the
+        # count of the occurrences of that value in this query's result set as the 
+        # corresponding value:
+        # 
+        #  summary = template.summarise("chromosome.primaryIdentifier", {"A" => "eve"})
+        #  puts summary["2L"]
+        #
+        # To limit the size of the result set you can use start and size as per normal 
+        # queries - this has no real effect with numeric queries, which always return the 
+        # same information.
+        #
+        def summarise(path, params={}, start=0, size=nil)
+            t = make_path(add_prefix(path)).end_type
+            if InterMine::Metadata::Model::NUMERIC_TYPES.include? t
+                return Hash[summaries(path, params, start, size).first.map {|k, v| [k, v.to_f]}]
+            else
+                return Hash[summaries(path, params, start, size).map {|sum| [sum["item"], sum["count"]]}]
+            end
+        end
+
+        # Return the number of result rows this query will return in its current state. 
+        # This makes a very small request to the webservice, and is the most efficient 
+        # method of getting the size of the result set.
         def count(params = {})
             runner = (params.empty?) ? self : get_adjusted(params)
             runner.results_reader.get_size
         end
 
+        # Return a clone of the current template. Changes made to the clone will not effect
+        # the cloned query.
         def clone
             other = super
             other.instance_variable_set(:@constraints, @constraints.map {|c| c.clone})

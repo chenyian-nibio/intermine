@@ -92,7 +92,7 @@ div.box { margin-top:10px; }
 div.feature h3 { border-top-width:1px; border-top-style:solid; }
 div.feature ul li { float:left; margin:0 5px 0 0; padding-left:5px; }
 div.feature ul li.first { padding-left:0; border:0; }
-div.feature.convert form h3 { margin-top:10px; }
+/*div.feature.convert form h3 { margin-top:10px; }*/
 
 /* results table preview */
 #preview-table { cursor:pointer; }
@@ -199,6 +199,8 @@ div.template.table div.templateDetails { margin:0 !important; width:100%; }
 #friendlyMines ul li a { background:url("../images/icons/external_link.png") no-repeat right; padding-right:10px;
   white-space:nowrap; }
 #friendlyMines ul li.toggler a { background:none; text-decoration:underline; }
+
+div.orthologues a { white-space:nowrap; margin-right:10px; }
 
 @media only screen and (max-width:1024px) {
     div.container_12 { width:100%; margin-left:0%; margin-right:0%; }

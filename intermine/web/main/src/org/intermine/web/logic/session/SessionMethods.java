@@ -32,6 +32,7 @@ import org.apache.log4j.Logger;
 import org.apache.struts.Globals;
 import org.apache.struts.util.MessageResources;
 import org.intermine.api.InterMineAPI;
+import org.intermine.api.profile.BagState;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.ProfileManager;
@@ -39,8 +40,8 @@ import org.intermine.api.profile.SavedQuery;
 import org.intermine.api.query.WebResultsExecutor;
 import org.intermine.api.results.WebResults;
 import org.intermine.api.search.SearchRepository;
-import org.intermine.api.template.TemplateQuery;
 import org.intermine.api.util.NameUtil;
+import org.intermine.api.template.ApiTemplate;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.objectstore.ObjectStore;
@@ -52,6 +53,7 @@ import org.intermine.objectstore.query.ResultsInfo;
 import org.intermine.pathquery.PathException;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.pathquery.PathQueryBinding;
+import org.intermine.template.TemplateQuery;
 import org.intermine.web.autocompletion.AutoCompleter;
 import org.intermine.web.logic.Constants;
 import org.intermine.web.logic.aspects.Aspect;
@@ -65,6 +67,7 @@ import org.intermine.web.logic.results.ReportObjectFactory;
 import org.intermine.web.logic.results.WebState;
 import org.intermine.web.struts.LoadQueryAction;
 import org.intermine.web.struts.TemplateAction;
+import org.json.JSONException;
 
 /**
  * Business logic that interacts with session data. These methods are generally
@@ -101,6 +104,7 @@ public final class SessionMethods
         protected boolean done = false;
         protected boolean error = false;
 
+        @SuppressWarnings("unused")
         protected boolean isDone() {
             return done;
         }
@@ -237,7 +241,7 @@ public final class SessionMethods
      * @param response the response
      */
     public static void loadQuery(PathQuery query, HttpSession session,
-            @SuppressWarnings("unused") HttpServletResponse response) {
+            HttpServletResponse response) {
         // Depending on the class, load PathQuery or TemplateQuery
         if (query instanceof TemplateQuery) {
             TemplateQuery template = (TemplateQuery) query;
@@ -378,7 +382,7 @@ public final class SessionMethods
      * @param message The message to store
      */
     private static void recordMessage(String message, String attrib, HttpSession session) {
-        @SuppressWarnings("unchecked") Set<String> set = (Set<String>) session.getAttribute(attrib);
+        Set<String> set = (Set<String>) session.getAttribute(attrib);
         if (set == null) {
             set = Collections.synchronizedSet(new LinkedHashSet<String>());
             session.setAttribute(attrib, set);
@@ -457,7 +461,7 @@ public final class SessionMethods
         ProfileManager pm = im.getProfileManager();
         session.setAttribute(Constants.PROFILE, new Profile(pm, null, null, null,
                     new HashMap<String, SavedQuery>(), new HashMap<String, InterMineBag>(),
-                    new HashMap<String, TemplateQuery>(), null, true));
+                    new HashMap<String, ApiTemplate>(), null, true, false));
         session.setAttribute(Constants.RESULTS_TABLE_SIZE, Constants.DEFAULT_TABLE_SIZE);
     }
 
@@ -619,7 +623,7 @@ public final class SessionMethods
     /**
      * Return the Map of currently running queries from the session.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private static Map<String, QueryMonitor> getRunningQueries(final HttpSession session) {
         Map queries = (Map) session.getAttribute(Constants.RUNNING_QUERIES);
         if (queries == null) {
@@ -730,6 +734,7 @@ public final class SessionMethods
      */
     @SuppressWarnings("unchecked")
     public static void setResultsTable(HttpSession session, String identifier, PagedTable table) {
+        @SuppressWarnings("rawtypes")
         Map<String, PagedTable> tables = (Map) session.getAttribute(Constants.TABLE_MAP);
         if (tables == null) {
             tables = Collections.synchronizedMap(new LRUMap(100));
@@ -911,7 +916,6 @@ public final class SessionMethods
      * @param servletContext a ServletContext object
      * @return a Map
      */
-    @SuppressWarnings("unchecked")
     public static Map<String, Aspect> getAspects(ServletContext servletContext) {
         return (Map<String, Aspect>) servletContext.getAttribute(Constants.ASPECTS);
     }
@@ -937,6 +941,16 @@ public final class SessionMethods
     }
 
     /**
+     * Returns the web properties.
+     *
+     * @param request The current HTTP request.
+     * @return a Properties object
+     */
+    public static Properties getWebProperties(HttpServletRequest request) {
+        return getWebProperties(request.getSession().getServletContext());
+    }
+
+    /**
      * Sets the web properties in the session.
      *
      * @param servletContext a ServletContext object
@@ -954,6 +968,16 @@ public final class SessionMethods
      */
     public static PathQuery getQuery(HttpSession session) {
         return (PathQuery) session.getAttribute(Constants.QUERY);
+    }
+
+    /**
+     * Returns the PathQuery on the session.
+     *
+     * @param request The the current request.
+     * @return a PathQuery for the current user from the session
+     */
+    public static PathQuery getQuery(HttpServletRequest request) {
+        return (PathQuery) request.getSession().getAttribute(Constants.QUERY);
     }
 
     /**
@@ -1058,7 +1082,6 @@ public final class SessionMethods
      * @param servletContext the ServletContext
      * @return a Set of aspect names
      */
-    @SuppressWarnings("unchecked")
     public static Set<String> getCategories(ServletContext servletContext) {
         return (Set<String>) servletContext.getAttribute(Constants.CATEGORIES);
     }
@@ -1077,9 +1100,10 @@ public final class SessionMethods
      * Sets the blocking error codes into the servlet context.
      *
      * @param servletContext the ServletContext
-     * @param errorKey the Set of error codes
+     * @param errorKey the Map of error codes and replacement value
      */
-    public static void setErrorOnInitialiser(ServletContext servletContext, Set<String> errorKey) {
+    public static void setErrorOnInitialiser(ServletContext servletContext,
+                                             Map<String, String> errorKey) {
         servletContext.setAttribute(Constants.INITIALISER_KEY_ERROR, errorKey);
     }
 
@@ -1087,20 +1111,21 @@ public final class SessionMethods
      * Gets the blocking error codes from the servlet context.
      *
      * @param servletContext the ServletContext
-     * @return a Set of blocking error codes
+     * @return a Map of blocking error codes and replacement value
      */
-    public static Set<String> getErrorOnInitialiser(ServletContext servletContext) {
+    public static Map<String, String> getErrorOnInitialiser(ServletContext servletContext) {
         return (servletContext.getAttribute(Constants.INITIALISER_KEY_ERROR) != null)
-               ? (Set<String>) servletContext.getAttribute(Constants.INITIALISER_KEY_ERROR) : null;
+               ? (Map<String, String>) servletContext
+                 .getAttribute(Constants.INITIALISER_KEY_ERROR) : null;
     }
 
     /**
      * Return true if exists blocking errors
      * @param servletContext the ServletContext
-     * @return
+     * @return Whether or not there are blocking errors.
      */
     public static boolean isErrorOnInitialiser(ServletContext servletContext) {
-        Set<String> errorKeys = SessionMethods.getErrorOnInitialiser(servletContext);
+        Map<String, String> errorKeys = SessionMethods.getErrorOnInitialiser(servletContext);
         if (errorKeys != null && !errorKeys.isEmpty()) {
             return true;
         }
@@ -1112,8 +1137,8 @@ public final class SessionMethods
      * @param session session
      * @return SavedBagsStatus
      */
-    public static Map<String, String> getNotCurrentSavedBagsStatus(HttpSession session) {
-        return (Map<String, String>) session.getAttribute(Constants.SAVED_BAG_STATUS);
+    public static Map<String, Map<String, Object>> getNotCurrentSavedBagsStatus(HttpSession session) {
+        return (Map<String, Map<String, Object>>) session.getAttribute(Constants.SAVED_BAG_STATUS);
     }
 
     /**
@@ -1128,23 +1153,45 @@ public final class SessionMethods
      * object to put in the session
      */
     public static void setNotCurrentSavedBagsStatus(HttpSession session, Profile profile) {
-        Map<String, String> savedBagsStatus = new HashedMap();
+        @SuppressWarnings("unchecked")
+        Map<String, Map<String, Object>> savedBagsStatus = new HashedMap();
         Map<String, InterMineBag> savedBags = profile.getSavedBags();
-        for (InterMineBag bag : savedBags.values()) {
-            if (!bag.isCurrent()) {
-                savedBagsStatus.put(bag.getName(), bag.getState());
+        synchronized (savedBags) {
+            for (InterMineBag bag : savedBags.values()) {
+                if (!bag.isCurrent()) {
+                	Map<String, Object> bagAttributes = new HashMap<String, Object>();
+                	String bagState = bag.getState();
+                	bagAttributes.put("status", bagState);
+                	if (bagState.equals(BagState.CURRENT.toString())) {
+                		try {
+                			bagAttributes.put("size", bag.getSize());
+                		} catch (ObjectStoreException e) {
+                			// nothing serious happens here...
+                		}
+                	}
+                    savedBagsStatus.put(bag.getName(), bagAttributes);
+                }
             }
         }
         session.setAttribute(Constants.SAVED_BAG_STATUS, savedBagsStatus);
     }
 
-	public static void setOpenIdProviders(ServletContext ctx, Set<String> providers) {
-		ctx.setAttribute(Constants.OPENID_PROVIDERS, providers);
-	}
+    /**
+     * Set the set of supported Open-ID providers to use.
+     * @param ctx The Servlet-Context
+     * @param providers The providers we accept.
+     */
+    public static void setOpenIdProviders(ServletContext ctx, Set<String> providers) {
+        ctx.setAttribute(Constants.OPENID_PROVIDERS, providers);
+    }
 
-	@SuppressWarnings("unchecked")
-	public static Set<String> getOpenIdProviders(HttpSession session) {
-		ServletContext ctx = session.getServletContext();
-		return (Set<String>) ctx.getAttribute(Constants.OPENID_PROVIDERS);
-	}
+    /**
+     * Get the set of accepted Open-ID providers.
+     * @param session The session to use for lookups
+     * @return The set of open-id providers.
+     */
+    public static Set<String> getOpenIdProviders(HttpSession session) {
+        ServletContext ctx = session.getServletContext();
+        return (Set<String>) ctx.getAttribute(Constants.OPENID_PROVIDERS);
+    }
 }

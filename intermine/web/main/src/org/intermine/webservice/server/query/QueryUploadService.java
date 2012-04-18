@@ -19,10 +19,8 @@ import java.util.Set;
 import java.util.List;
 import java.util.HashSet;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.intermine.api.InterMineAPI;
@@ -49,8 +47,12 @@ public class QueryUploadService extends WebService
     public static final String QUERIES_PARAMETER = "xml";
     /** The key for the version parameter **/
     public static final String VERSION_PARAMETER = "version";
-    public static final String USAGE = 
-          "\nQuery Upload Service:\n" 
+
+    /**
+     * The usage string to school recalcitrant users with.
+     */
+    public static final String USAGE =
+          "\nQuery Upload Service:\n"
         + "==========================\n"
         + "Parameters:\n"
         + QUERIES_PARAMETER + ": XML representation of template(s)\n"
@@ -66,8 +68,7 @@ public class QueryUploadService extends WebService
     }
 
     @Override
-    protected void execute(HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
+    protected void execute() throws Exception {
         if (!isAuthenticated()) {
             throw new BadRequestException("Not authenticated" + USAGE);
         }
@@ -87,7 +88,7 @@ public class QueryUploadService extends WebService
         Map<String, PathQuery> queries;
         Map<String, SavedQuery> toSave = new HashMap<String, SavedQuery>();
         try {
-            queries = PathQueryBinding.unmarshal(r, version);
+            queries = PathQueryBinding.unmarshalPathQueries(r, version);
         } catch (RuntimeException e) {
             throw new ServiceException("Error parsing queries", e);
         }
