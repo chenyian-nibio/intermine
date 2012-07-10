@@ -15,9 +15,9 @@
   <ul>
     <li>going to the home page</li>
     <li>using the quicksearch</li>
-    <li>or Contact us at support [at] flymine.org</li>
+    <li>or Contact us at targetmine [at] nibio.go.jp</li>
   </ul>
 </div>
-<img border="0" src="model/images/progress1.gif" title="Sorry..."/>
+<img border="0" src="/targetmine/model/images/oops.png" title="Sorry..."/>
 
 <!-- /pagenotfound.jsp -->

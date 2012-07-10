@@ -29,6 +29,7 @@ import org.intermine.xml.full.Item;
 /**
  * 
  * @author chenyian
+ * 2012/04/23 modified
  */
 public class PubchemConverter extends BioFileConverter {
 	private static final Logger LOG = Logger.getLogger(PubchemConverter.class);
@@ -50,20 +51,20 @@ public class PubchemConverter extends BioFileConverter {
 		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
 	}
 
-	private File meshFile;
+	private File nameFile;
 
-	public void setMeshFile(File file) {
-		this.meshFile = file;
+	public void setNameFile(File file) {
+		this.nameFile = file;
 	}
 
-	private Map<String, String> meshNameMap = new HashMap<String, String>();
+	private Map<String, String> cidNameMap = new HashMap<String, String>();
 
-	private void getMeshName() throws Exception {
+	private void getCompoundName() throws Exception {
 		Iterator<String[]> iterator = FormattedTextParser
-				.parseTabDelimitedReader(new BufferedReader(new FileReader(meshFile)));
+				.parseTabDelimitedReader(new BufferedReader(new FileReader(nameFile)));
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
-			meshNameMap.put(cols[0], cols[1]);
+			cidNameMap.put(cols[0], cols[1]);
 		}
 	}
 
@@ -73,7 +74,7 @@ public class PubchemConverter extends BioFileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
-		getMeshName();
+		getCompoundName();
 		Iterator<String[]> iterator = FormattedTextParser
 				.parseTabDelimitedReader(new BufferedReader(reader));
 
@@ -92,12 +93,13 @@ public class PubchemConverter extends BioFileConverter {
 			Item item = createItem("PubChemCompound");
 			item.setAttribute("identifier", String.format("PubChem: %s", cid));
 			item.setAttribute("pubChemCid", cid);
-			String name = meshNameMap.get(cid);
-			// TODO chenyian: if name is not available, use identifier instead
-			if (name != null) {
-//				item.setAttribute("name", name + " (MeSH)");
-				item.setAttribute("name", name);
+			String name = cidNameMap.get(cid);
+			// if name is not available, use identifier instead; should not happen.
+			if (name == null) {
+				name = String.format("PubChem: %s", cid);
+				LOG.error(String.format("Compound name not found. cid: %s", cid));
 			}
+			item.setAttribute("name", name);
 			item.setReference("compoundGroup", getCompoundGroup(inchiKey, name));
 			store(item);
 		}
@@ -113,9 +115,11 @@ public class PubchemConverter extends BioFileConverter {
 			compoundGroupMap.put(inchiKey, ret);
 		}
 		// randomly pick one name
-		// TODO chenyian: if name is not available, use identifier instead
-		if (nameMap.get(inchiKey) == null && name != null) {
-			nameMap.put(inchiKey, name);
+		if (nameMap.get(inchiKey) == null) {
+			// actually, this should not happen.
+			if (!name.startsWith("PubChem:")) {
+				nameMap.put(inchiKey, name);
+			}
 			ret.setAttribute("name", name);
 		}
 		return ret;

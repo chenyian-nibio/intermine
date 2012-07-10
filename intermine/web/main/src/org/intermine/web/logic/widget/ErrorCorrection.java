@@ -137,106 +137,63 @@ public final class ErrorCorrection
      * This correction is the less stringent than the Bonferroni, and therefore tolerates more
      * false positives.
      *
-     * Corrected p-value = p-value*(n/rank)
+     * Corrected p-value = p-value*(n/(n-rank+1))
      *  *
-     *  1) The p-values of each gene are ranked from the smallest to largest.
-     *  2) The p-value is multiplied by the total number of tests divided by its rank.
+     *  1) The p-values of each gene are ranked from the largest to smallest.
+     *  2) The p-value is multiplied by the total number of tests divided by total number of tests 
+     *     minus its rank plus 1.
      *
      * @param max maximum value to display
      */
-    private static Map<String, BigDecimal> calculateBenjaminiHochberg(
-            Map<String, BigDecimal> results, int numberOfTests, Double max) {
+	private static Map<String, BigDecimal> calculateBenjaminiHochberg(
+			Map<String, BigDecimal> results, int numberOfTests, Double max) {
 
-    	// chenyian: 
-    	numberOfTests = results.size();
-    	
-        Map<String, BigDecimal> adjustedResults = new HashMap<String, BigDecimal>();
-        Map<String, BigDecimal> sortedResults = sortMapDesc(results);
-        
-        BigDecimal lastValue = ONE;
-        int i = 0;
-        int rank = 0;
+		Map<String, BigDecimal> adjustedResults = new HashMap<String, BigDecimal>();
+		Map<String, BigDecimal> sortedResults = sortMapDesc(results);
 
-        for (Entry<String, BigDecimal> entry : sortedResults.entrySet()) {
+		BigDecimal lastValue = null;
+		BigDecimal lastAdjustedP = null;
+		int i = 1;
+		BigDecimal index = ONE;
 
-            BigDecimal p = entry.getValue();
+		for (Entry<String, BigDecimal> entry : sortedResults.entrySet()) {
 
-            BigDecimal adjustedP;
-			// largest value is not adjusted
-			if (i == 0) {
-				adjustedP = p;
-			} else {
-            // if the p-value is not the same as previous, sync the rank
-	            if (p.compareTo(lastValue) != 0) {
-	            	rank = i;
-	            }
-	            double m = numberOfTests / (numberOfTests - rank);
-	            adjustedP = p.multiply(new BigDecimal(m));
-            }
-			
-            // p-value can't be over 1
-            if (adjustedP.compareTo(ONE) > 0) {
-                adjustedP = ONE;
-            }
+			BigDecimal p = entry.getValue();
 
-            // only report if value <= maximum
-            if (adjustedP.doubleValue() <= max.doubleValue()) {
-                adjustedResults.put(entry.getKey(), adjustedP);
-            } 
+			// if the p-value is not the same as previous, sync the rank
+			// index = n-rank+1
+			if (lastValue == null || p.compareTo(lastValue) != 0) {
+				index = new BigDecimal(numberOfTests - i + 1);
+			}
 
-            // to compare if next value is the same
-            lastValue = p;
+			// n/index
+			BigDecimal m = new BigDecimal(numberOfTests).divide(index, MathContext.DECIMAL128);
 
-            i++;
-        }
-        return adjustedResults;
-    }
-    // chenyian: intermine v0.98 new implement, to be confirmed if it is correct (2011/10/11) 
-//    private static Map<String, BigDecimal> calculateBenjaminiHochberg(
-//            Map<String, BigDecimal> results, int numberOfTests, Double max) {
-//
-//        Map<String, BigDecimal> adjustedResults = new HashMap<String, BigDecimal>();
-//        Map<String, BigDecimal> sortedResults = sortMap(results);
-//
-//        BigDecimal lastValue = null;
-//        int i = 1;
-//        BigDecimal index = ONE;
-//
-//        for (Entry<String, BigDecimal> entry : sortedResults.entrySet()) {
-//
-//            BigDecimal p = entry.getValue();
-//
-//            // if the p-value is not the same as previous, sync the rank
-//            if (lastValue == null || p.compareTo(lastValue) != 0) {
-//                index = new BigDecimal(i);
-//            }
-//
-//            // n/rank
-//            BigDecimal m = new BigDecimal(numberOfTests).divide(index, MathContext.DECIMAL128);
-//
-//            // p-value*(n/rank)
-//            BigDecimal adjustedP = p.multiply(m, MathContext.DECIMAL128);
-//
-//            // p-value can't be over 1
-//            if (adjustedP.compareTo(ONE) > 0) {
-//                adjustedP = ONE;
-//            }
-//
-//            // only report if value <= maximum
-//            if (adjustedP.doubleValue() <= max.doubleValue()) {
-//                adjustedResults.put(entry.getKey(), adjustedP);
-//            } else {
-//                // p-values are in ascending order, on first large number we can stop
-//                return adjustedResults;
-//            }
-//
-//            // to compare if next value is the same
-//            lastValue = p;
-//
-//            i++;
-//        }
-//        return adjustedResults;
-//    }
+			// p-value*(n/rank)
+			BigDecimal adjustedP = p.multiply(m, MathContext.DECIMAL128);
+
+			// chenyian: The adjusted p-value cannot greater than previous one 
+			if (lastAdjustedP != null && adjustedP.compareTo(lastAdjustedP) > 0) {
+				adjustedP = lastAdjustedP;
+			}
+			// p-value can't be over 1
+			if (adjustedP.compareTo(ONE) > 0) {
+				adjustedP = ONE;
+			}
+
+			// only report if value <= maximum
+			if (adjustedP.doubleValue() <= max.doubleValue()) {
+				adjustedResults.put(entry.getKey(), adjustedP);
+			}
+
+			// to compare if next value is the same
+			lastValue = p;
+			lastAdjustedP = adjustedP;
+
+			i++;
+		}
+		return adjustedResults;
+	}
 
     /**
      * Calculates the Bonferroni and Holm correction of the false discovery rate.

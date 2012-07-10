@@ -52,6 +52,8 @@ public class StitchConverter extends BioFileConverter {
 	private Map<String, String> compoundMap = new HashMap<String, String>();
 	private Map<String, String> pubChemCompoundMap = new HashMap<String, String>();
 
+	private Set<String> interactiondSet = new HashSet<String>();
+
 	// get id map from integrated data
 	private Map<String, Set<String>> primaryIdMap;
 	private String osAlias = null;
@@ -102,7 +104,9 @@ public class StitchConverter extends BioFileConverter {
 
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
-			String cid = cols[0].substring(3).replaceAll("^0*", "");
+			// example CID010939283 CID110928783
+			// the first digit is not a part of pubchem identifier
+			String cid = cols[0].substring(4).replaceAll("^0*", "");
 			// String ensemblId = cols[1].substring(cols[1].indexOf(".") + 1);
 			String ensemblId = StringUtils.substringAfter(cols[1], ".");
 			Set<String> uniprotIds = primaryIdMap.get(ensemblId);
@@ -111,6 +115,10 @@ public class StitchConverter extends BioFileConverter {
 				// only experiment data will be integrated
 				String evidence = "experimental";
 				if (Integer.valueOf(cols[2]).intValue() < THRESHOLD) {
+					count++;
+					continue;
+				}
+				if (interactiondSet.contains(ensemblId + "-" + cid)){
 					count++;
 					continue;
 				}
@@ -125,6 +133,7 @@ public class StitchConverter extends BioFileConverter {
 				}
 
 				store(si);
+				interactiondSet.add(ensemblId + "-" + cid);
 			} else {
 				count++;
 				// LOG.info(String.format("Uniprot ID for '%s' was not found.", ensemblId));
@@ -162,6 +171,7 @@ public class StitchConverter extends BioFileConverter {
 		if (ret == null) {
 			Item item = createItem("PubChemCompound");
 			item.setAttribute("pubChemCid", cid);
+			item.setAttribute("identifier", String.format("PubChem: %s", cid));
 
 			Set<String> chebiIds = chebiIdMap.get(cid);
 			if (chebiIds != null) {
@@ -235,7 +245,7 @@ public class StitchConverter extends BioFileConverter {
 		if (compoundMapFile == null) {
 			throw new NullPointerException("compoundMapFile property not set");
 		}
-		
+
 		chebiIdMap = new HashMap<String, Set<String>>();
 
 		try {

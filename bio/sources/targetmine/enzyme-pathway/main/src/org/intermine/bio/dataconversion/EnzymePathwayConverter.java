@@ -72,7 +72,8 @@ public class EnzymePathwayConverter extends FileConverter {
 				if (ecPathwayMap.get(ecNumber) == null) {
 					ecPathwayMap.put(ecNumber, new HashSet<String>());
 				}
-				ecPathwayMap.get(ecNumber).add(pathway.substring(7));
+//				ecPathwayMap.get(ecNumber).add(pathway.substring(7));
+				ecPathwayMap.get(ecNumber).add(pathway.substring(5));
 			}
 		}
 		// create Enzymes and Pathways

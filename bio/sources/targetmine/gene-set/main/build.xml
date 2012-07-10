@@ -1,0 +1,4 @@
+<project name="gene-set-tasks" default="default" basedir=".">
+  <description>build gene-set tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

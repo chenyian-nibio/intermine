@@ -8,7 +8,7 @@ import org.intermine.bio.util.BioUtil;
 import org.intermine.metadata.Model;
 import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.Organism;
-import org.intermine.model.bio.Protein;
+import org.intermine.model.bio.Pathway;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.query.BagConstraint;
 import org.intermine.objectstore.query.ConstraintOp;
@@ -23,53 +23,60 @@ import org.intermine.objectstore.query.QueryFunction;
 import org.intermine.objectstore.query.QueryObjectReference;
 import org.intermine.web.logic.widget.EnrichmentWidgetLdr;
 
-public class ProteinOmimDataLoader extends EnrichmentWidgetLdr {
-	private static final Logger LOG = Logger.getLogger(ProteinOmimDataLoader.class);
+/**
+ * 
+ * @author chenyian
+ *
+ */
+public class GeneSetDataLoader extends EnrichmentWidgetLdr {
+	private static final Logger LOG = Logger.getLogger(GeneSetDataLoader.class);
 
 	private Model model;
 
-	public ProteinOmimDataLoader(InterMineBag bag, ObjectStore os, String extraAttribute) {
+	public GeneSetDataLoader(InterMineBag bag, ObjectStore os, String extraAttribute) {
 		this.bag = bag;
 		organisms = BioUtil.getOrganisms(os, bag, false);
 		//  having attributes lowercase increases the chances the indexes will be used
 		for (String s : organisms) {
 			organismsLower.add(s.toLowerCase());
 		}
+		model = os.getModel();
 	}
 
 	@Override
 	public Query getQuery(String action, List<String> keys) {
 		// classes for FROM clause
-		QueryClass qcProtein = new QueryClass(Protein.class);
 		QueryClass qcGene = new QueryClass(Gene.class);
-		QueryClass qcDisease;
+		QueryClass qcPathway = new QueryClass(Pathway.class);
 		QueryClass qcOrganism = new QueryClass(Organism.class);
+		QueryClass qcGeneSetCluster;
 		try {
-			qcDisease = new QueryClass(Class.forName(model.getPackageName()
-					+ ".Disease"));
+			qcGeneSetCluster = new QueryClass(Class.forName(model.getPackageName()
+					+ ".GeneSetCluster"));
 		} catch (ClassNotFoundException e) {
 			LOG.error("Error rendering gene set enrichment widget", e);
 			return null;
 		}
 
 		// fields for SELECT clause
-		QueryField qfProteinId = new QueryField(qcProtein, "id");
+		QueryField qfGeneId = new QueryField(qcGene, "id");
 		QueryField qfOrganismName = new QueryField(qcOrganism, "name");
-		QueryField qfOmimId = new QueryField(qcDisease, "omimId");
-		QueryField qfOmimTitle = new QueryField(qcDisease, "title");
-		QueryField qfPrimaryIdentifier = new QueryField(qcProtein, "primaryIdentifier");
+		QueryField qfPathwayId = new QueryField(qcPathway, "identifier");
+		QueryField qfPathwayName = new QueryField(qcPathway, "name");
+		QueryField qfGscId = new QueryField(qcGeneSetCluster, "identifier");
+		QueryField qfNcbiGeneNumber= new QueryField(qcGene, "ncbiGeneNumber");
 
 		// constraints
 		ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
 
 		// constrain genes to be in subset of list the user selected
 		if (keys != null) {
-			cs.addConstraint(new BagConstraint(qfOmimId, ConstraintOp.IN, keys));
+			cs.addConstraint(new BagConstraint(qfGscId, ConstraintOp.IN, keys));
 		}
 
 		// constrain genes to be in list
 		if (!action.startsWith("population")) {
-			cs.addConstraint(new BagConstraint(qfProteinId, ConstraintOp.IN, bag.getOsb()));
+			cs.addConstraint(new BagConstraint(qfGeneId, ConstraintOp.IN, bag.getOsb()));
 		}
 
 		// organism in our list
@@ -80,54 +87,55 @@ public class ProteinOmimDataLoader extends EnrichmentWidgetLdr {
 		QueryObjectReference qor = new QueryObjectReference(qcGene, "organism");
 		cs.addConstraint(new ContainsConstraint(qor, ConstraintOp.CONTAINS, qcOrganism));
 
-		// gene.diseases = disease
-		QueryCollectionReference qcr = new QueryCollectionReference(qcGene, "diseases");
-		cs.addConstraint(new ContainsConstraint(qcr, ConstraintOp.CONTAINS, qcDisease));
+		// gene.pathways = pathway
+		QueryCollectionReference qcr = new QueryCollectionReference(qcGene, "pathways");
+		cs.addConstraint(new ContainsConstraint(qcr, ConstraintOp.CONTAINS, qcPathway));
 
-		// constrain on proteins?
-		QueryCollectionReference c10 = new QueryCollectionReference(qcProtein, "genes");
-		cs.addConstraint(new ContainsConstraint(c10, ConstraintOp.CONTAINS, qcGene));
+		// pathway.geneSetClusters = GeneSetCluster
+		QueryCollectionReference qcrGsc = new QueryCollectionReference(qcPathway, "geneSetClusters");
+		cs.addConstraint(new ContainsConstraint(qcrGsc, ConstraintOp.CONTAINS, qcGeneSetCluster));
 
 		Query q = new Query();
 		q.setDistinct(true);
 
 		// from statement
-		q.addFrom(qcProtein);
 		q.addFrom(qcGene);
-		q.addFrom(qcDisease);
+		q.addFrom(qcPathway);
 		q.addFrom(qcOrganism);
-
+		q.addFrom(qcGeneSetCluster);
+		
 		// add constraints to query
 		q.setConstraint(cs);
 
 		// needed for the 'not analysed' number
 		if (action.equals("analysed")) {
-			q.addToSelect(qfProteinId);
+			q.addToSelect(qfGeneId);
 			// export query
 			// needed for export button on widget
 		} else if (action.equals("export")) {
-			q.addToSelect(qfOmimId);
-			q.addToSelect(qfPrimaryIdentifier);
-			q.addToOrderBy(qfOmimId);
+			q.addToSelect(qfGscId);
+			q.addToSelect(qfPathwayId);
+			q.addToSelect(qfPathwayName);
+			q.addToSelect(qfNcbiGeneNumber);
+			q.addToOrderBy(qfGscId);
 			// total queries
 			// needed for enrichment calculations
 		} else if (action.endsWith("Total")) {
-			q.addToSelect(qfProteinId);
+			q.addToSelect(qfGeneId);
 			Query subQ = q;
 			q = new Query();
 			q.addFrom(subQ);
 			q.addToSelect(new QueryFunction()); // gene count
 			// needed for enrichment calculations
 		} else {
-			q.addToSelect(qfOmimId);
-			q.addToGroupBy(qfOmimId);
+			q.addToSelect(qfGscId);
+			q.addToGroupBy(qfGscId);
 			q.addToSelect(new QueryFunction()); // gene count
 			if (action.equals("sample")) {
-				q.addToSelect(qfOmimTitle);
-				q.addToGroupBy(qfOmimTitle);
+				q.addToSelect(qfGscId);
+				q.addToGroupBy(qfGscId);
 			}
 		}
 		return q;
-	}	
-	
+	}
 }

@@ -62,7 +62,7 @@ public class StitchPostProcess extends PostProcessor {
 			InterMineObject compoundGroup = (InterMineObject) rr.get(1);
 
 			InterMineObject cgi = (InterMineObject) DynamicUtil.simpleCreateObject(model
-					.getClassDescriptorByName("CompoundGroupInteraction").getType());
+					.getClassDescriptorByName("ProteinCompoundGroupInteraction").getType());
 
 			cgi.setFieldValue("protein", protein);
 			cgi.setFieldValue("compoundGroup", compoundGroup);
@@ -80,7 +80,7 @@ public class StitchPostProcess extends PostProcessor {
 		}
 
 		osw.commitTransaction();
-		System.out.println(i + " CompoundGroupInteraction created.");
+		System.out.println(i + " ProteinCompoundGroupInteraction created.");
 	}
 
 	protected static Results findProteinCompoundGroup(ObjectStore os) throws ObjectStoreException {

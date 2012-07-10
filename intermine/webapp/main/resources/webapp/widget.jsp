@@ -54,8 +54,8 @@
     <li>
     <label>Multiple Hypothesis Test Correction</label>
     <select name="errorCorrection" id="errorCorrection${widget.id}" onchange="getProcessEnrichmentWidgetConfig('${widget.id}','${bag.name}');">
-      <option value="Holm-Bonferroni">Holm-Bonferroni</option>
       <option value="Benjamini Hochberg">Benjamini and Hochberg</option>
+      <option value="Holm-Bonferroni">Holm-Bonferroni</option>
       <option value="Bonferroni">Bonferroni</option>
       <option value="None">None</option>
     </select>
@@ -64,6 +64,8 @@
     <label>Maximum value to display</label>
     <select name="max" id="max${widget.id}" onchange="getProcessEnrichmentWidgetConfig('${widget.id}','${bag.name}')">
       <option value="0.05">0.05</option>
+      <option value="0.005">0.005</option>
+      <option value="0.01">0.01</option>
       <option value="0.10">0.10</option>
       <option value="1.00">1.00</option>
     </select>

@@ -84,8 +84,8 @@
     </intro-text>
     <tile-name>model/diseaseAspect.jsp</tile-name>
 <!-- chenyian: disable for external server 
--->
     <aspect-source name="OMIM" url="http://www.ncbi.nlm.nih.gov/omim/"/>
+-->
     <aspect-source name="Disease Ontology Wiki" url="http://do-wiki.nubic.northwestern.edu/index.php" />
   </aspect>
 

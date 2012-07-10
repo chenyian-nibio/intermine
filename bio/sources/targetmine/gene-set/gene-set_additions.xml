@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="Pathway" is-interface="true" >
+		<attribute name="identifier" type="java.lang.String"/>
+		<collection name="geneSetClusters" referenced-type="GeneSetCluster" reverse-reference="pathways"/>
+	</class>
+	<class name="GeneSetCluster" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<collection name="pathways" referenced-type="Pathway" reverse-reference="geneSetClusters"/>
+	</class>
+</classes>

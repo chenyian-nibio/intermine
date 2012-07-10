@@ -38,7 +38,7 @@ my $databaseName = "production-target-chen";
 my $databaseUser = "intermine";
 my $backupPath = "/scratch/targetmine";
 #my $dumpCmd = "pg_dump -U $databaseUser $databaseName > $backupPath";
-my $dumpCmd = "pg_dump -v -F c -U $databaseUser -f $backupPath";
+#my $dumpCmd = "pg_dump -v -F c -U $databaseUser -f $backupPath";
 
 #if ($#ARGV > 1) {
 #	die "Invalid arguments; too may arguments.";
@@ -57,6 +57,12 @@ if (-e $projectXmlFile) {
 } else {
     die "Can't find a file named $projectXmlFile check that you are in the root directory of the chosen mine.\n";
 }
+
+my $dbhost = "";
+if ($argvs{'hostip'}) {
+	$dbhost = " -h $argvs{'hostip'}";
+}
+my $dumpCmd = "pg_dump -v -F c $dbhost -U $databaseUser -f $backupPath";
 
 my $parser = new XML::DOM::Parser;
 my $doc = $parser->parsefile ($projectXmlFile);

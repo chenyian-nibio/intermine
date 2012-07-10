@@ -13,6 +13,7 @@
     <source name="uniprot" type="uniprot">
       <property name="uniprot.organisms" value="7227 9606 10090 10116"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/uniprot/split"/>
+      <!--property name="createinterpro" value="true"/-->
     </source>
     <source name="go-annotation" type="go-annotation" dump="true">
       <property name="ontologyfile" location="/data/bio/db/Targetmine/go-annotation/gene_ontology.obo"/>
@@ -120,7 +121,6 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ligand_expo" />
       <property name="src.data.dir.includes" value="cc-to-pdb.tdd" />
       <property name="inchiKeyFile" value="/data/bio/db/Targetmine/ligand_expo/Components-inchikey.ich" />
-      <property name="hetNameFile" value="/data/bio/db/Targetmine/ligand_expo/het_name.txt" />
     </source>
     <source name="amadeus" type="metazoan" dump="true">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/metazoan" />
@@ -151,14 +151,20 @@
     <source name="so" type="so">
       <property name="src.data.file" location="../../bio/sources/so/so.obo"/>
     </source>
+  	<!--Intermine default : End-->
     <source name="reactome" type="biopax3">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/reactome/lv3"/>
       <property name="src.data.dir.includes" value="*.owl"/>
     </source>
-  	<!--Intermine default : End-->
     <source name="nci-pathway" type="nci-pathway">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/nci-pathway"/>
       <property name="src.data.dir.includes" value="*.tab"/>
+    </source>
+    <!--
+    -->
+    <source name="gene-set" type="gene-set">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_set_cluster"/>
+      <property name="src.data.dir.includes" value="lt600.combined.cluster"/>
     </source>
     <source name="stitch" type="stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
@@ -168,8 +174,8 @@
     </source>
     <source name="pubchem" type="pubchem">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pubchem" />
-      <property name="src.data.dir.includes" value="cid-inchikey" />
-      <property name="meshFile" value="/data/bio/db/Targetmine/pubchem/CID-MeSH" />
+      <property name="src.data.dir.includes" value="cid-inchikeys" />
+      <property name="nameFile" value="/data/bio/db/Targetmine/pubchem/cid-names" />
     </source>
     <source name="chebi-db" type="chebi-db">
       <property name="source.db.name" value="chebi-db"/>
@@ -206,14 +212,10 @@
     </source>
     -->
   	<!--Intermine default -->
-  	<source name="update-publications" type="update-publications">
-      <!-- this source finds the publication ids (pubmed ids) in the
-           objectstore, retrieves the details of the publication from Entrez
-           into an InterMine format XML file, loads that file into a target
-           items DB, then into the final objectstore -->
+    <source name="update-publications" type="update-publications">
       <property name="src.data.file" location="build/publications.xml"/>
     </source>
-<!--Added by Chen: End   -->
+    <!--Added by Chen: End   -->
 
   </sources>
 

@@ -55,16 +55,6 @@ public class DrugBankPostProcess extends PostProcessor {
 		Results results = findProteinCompoundGroup(osw.getObjectStore());
 		osw.beginTransaction();
 
-		// temporary
-//		DataSource dataSource = (DataSource) DynamicUtil.createObject(Collections
-//				.singleton(DataSource.class));
-//		dataSource.setName("DrugBank");
-//		osw.store(dataSource);
-//		dataSet = (DataSet) DynamicUtil.createObject(Collections.singleton(DataSet.class));
-//		dataSet.setName("DrugBank");
-//		dataSet.setDataSource(dataSource);
-//		osw.store(dataSet);
-
 		Iterator<?> resIter = results.iterator();
 		int i = 0;
 		while (resIter.hasNext()) {
@@ -73,7 +63,7 @@ public class DrugBankPostProcess extends PostProcessor {
 			InterMineObject compoundGroup = (InterMineObject) rr.get(1);
 
 			InterMineObject cgi = (InterMineObject) DynamicUtil.simpleCreateObject(model
-					.getClassDescriptorByName("CompoundGroupInteraction").getType());
+					.getClassDescriptorByName("ProteinCompoundGroupInteraction").getType());
 
 			cgi.setFieldValue("protein", protein);
 			cgi.setFieldValue("compoundGroup", compoundGroup);
@@ -91,7 +81,7 @@ public class DrugBankPostProcess extends PostProcessor {
 		}
 
 		osw.commitTransaction();
-		System.out.println(i + " CompoundGroupInteraction created.");
+		System.out.println(i + " ProteinCompoundGroupInteraction created.");
 	}
 
 	protected static Results findProteinCompoundGroup(ObjectStore os) throws ObjectStoreException {

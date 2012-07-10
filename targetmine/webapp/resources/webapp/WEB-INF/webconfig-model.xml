@@ -111,7 +111,9 @@
 
   <class className="org.intermine.model.bio.OntologyTerm">
     <headerconfig>
-      <titles mainTitles="identifier|name" subTitles="ontology.name" />
+      <titles>
+        <title mainTitles="identifier|name" subTitles="ontology.name" />
+      </titles>
     </headerconfig>
     <fields>
       <fieldconfig fieldExpr="identifier"/>
@@ -129,7 +131,9 @@
 
   <class className="org.intermine.model.bio.Organism">
     <headerconfig>
-      <titles mainTitles="name"/>
+      <titles>
+        <title mainTitles="name"/>
+      </titles>
     </headerconfig>
     <fields>
       <fieldconfig fieldExpr="name"/>
@@ -187,7 +191,7 @@
 
   <class className="org.intermine.model.bio.GOAnnotation">
     <fields>
-      <fieldconfig fieldExpr="subject.secondaryIdentifier"/>
+      <fieldconfig fieldExpr="subject.primaryIdentifier"/>
       <fieldconfig fieldExpr="subject.name"/>
       <fieldconfig fieldExpr="subject.symbol"/>
       <fieldconfig fieldExpr="ontologyTerm.identifier" />
@@ -262,7 +266,13 @@
       <fieldconfig fieldExpr="subClass" showInSummary="false"/>
     </fields>
   </class>
-
+<!-- chenyian
+  <class className="org.intermine.model.bio.GeneSetCluster">
+    <fields>
+      <fieldconfig fieldExpr="identifier" />
+    </fields>
+  </class>
+-->
   <class className="org.intermine.model.bio.Homologue">
     <fields>
       <fieldconfig fieldExpr="type"/>
@@ -412,7 +422,7 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.CompoundGroupInteraction">
+  <class className="org.intermine.model.bio.ProteinCompoundGroupInteraction">
     <fields>
       <fieldconfig fieldExpr="protein.primaryAccession"/>
       <fieldconfig fieldExpr="protein.name"/>
@@ -496,7 +506,14 @@
                                  filters="All datasets,KEGG,Reactome,NCI" 
                                  filterLabel="DataSet" 
                                  typeClass="org.intermine.model.bio.Gene" />
+
 <!--
+      <enrichmentwidgetdisplayer id="gene_set_enrichment" title="Gene Set Cluster Enrichment"
+                                 link="org.intermine.bio.web.widget.GeneSetURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.GeneSetDataLoader"
+                                 label="Gene Set Cluster"
+                                 description="Gene Set Cluster enriched for genes in this list."
+                                 typeClass="org.intermine.model.bio.Gene" />
       <graphdisplayer id="pathway_distribution" title="Pathway Distribution"
 								link="org.intermine.bio.web.widget.PathwayGraphURLGenerator"
 								domainLabel="Pathway"

@@ -2,9 +2,10 @@ package org.intermine.bio.web.widget;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.bio.util.BioUtil;
-import org.intermine.model.bio.Disease;
+import org.intermine.metadata.Model;
 import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.Organism;
 import org.intermine.objectstore.ObjectStore;
@@ -28,6 +29,10 @@ import org.intermine.web.logic.widget.EnrichmentWidgetLdr;
  */
 public class OmimDataLoader extends EnrichmentWidgetLdr {
 
+	private static final Logger LOG = Logger.getLogger(OmimDataLoader.class);
+
+	private Model model;
+
 	public OmimDataLoader(InterMineBag bag, ObjectStore os, String extraAttribute) {
 		this.bag = bag;
 		organisms = BioUtil.getOrganisms(os, bag, false);
@@ -35,14 +40,22 @@ public class OmimDataLoader extends EnrichmentWidgetLdr {
 		for (String s : organisms) {
 			organismsLower.add(s.toLowerCase());
 		}
+		model = os.getModel();
 	}
 	
 	@Override
 	public Query getQuery(String action, List<String> keys) {
 		// classes for FROM clause
 		QueryClass qcGene = new QueryClass(Gene.class);
-		QueryClass qcDisease = new QueryClass(Disease.class);
+		QueryClass qcDisease;
 		QueryClass qcOrganism = new QueryClass(Organism.class);
+		try {
+			qcDisease = new QueryClass(Class.forName(model.getPackageName()
+					+ ".Disease"));
+		} catch (ClassNotFoundException e) {
+			LOG.error("Error rendering gene set enrichment widget", e);
+			return null;
+		}
 
 		// fields for SELECT clause
 		QueryField qfGeneId = new QueryField(qcGene, "id");

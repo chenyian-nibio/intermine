@@ -146,7 +146,7 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 				continue;
 			}
 			if (fileName.endsWith(".pathways")) {
-				String pathwayName = line[1].substring(0, line[1].indexOf(" - "));
+				String pathwayName = line[1].substring(0, line[1].lastIndexOf(" - "));
 				Item pathway = getPathway(line[0].substring(5));
 				pathway.setAttribute("name", pathwayName);
 			} else if (fileName.endsWith(".pathway_genes")) {

@@ -28,8 +28,9 @@ import org.intermine.xml.full.Item;
 
 /**
  * 
- * @author Chen Yian
+ * @author Chen Yi-An
  * @since 2009/6/24
+ * @refactoring 2012/5/14
  */
 public class LigandExpoConverter extends BioFileConverter {
 
@@ -37,11 +38,9 @@ public class LigandExpoConverter extends BioFileConverter {
 
 	//
 	private static final String DATASET_TITLE = "Ligand Expo";
-	private static final String DATA_SOURCE_NAME = "Protein Data Bank";
+	private static final String DATA_SOURCE_NAME = "RCSB Protein Data Bank";
 
 	private Map<String, String> structureMap = new HashMap<String, String>();
-
-	private Map<String, Item> hetGroupMap = new HashMap<String, Item>();
 
 	private Map<String, String> compoundGroupMap = new HashMap<String, String>();
 
@@ -63,12 +62,23 @@ public class LigandExpoConverter extends BioFileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
-		readHetNameFile();
+		readInchiKeyFile();
 
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
-			Item het = getHetGroup(cols[0]);
+
+			Item het = createItem("HetGroup");
+			het.setAttribute("hetId", cols[0]);
+			String name = hetNameMap.get(cols[0]);
+			if (name != null) {
+				het.setAttribute("name", name);
+			}
+			String inchiKey = inchiKeyMap.get(cols[0]);
+			if (inchiKey != null) {
+				het.setReference("compoundGroup", getCompoundGroup(inchiKey, name));
+			}
+			het.setAttribute("identifier", String.format("HetGroup: %s", cols[0]));
 
 			String allPdbId = cols[1];
 			StringUtils.chomp(allPdbId);
@@ -81,23 +91,8 @@ public class LigandExpoConverter extends BioFileConverter {
 				}
 				het.addToCollection("structures", getProteinStructure(pdbId));
 			}
+			store(het);
 		}
-		readInchiKeyFile();
-	}
-
-	private Item getHetGroup(String hetId) {
-		Item ret = hetGroupMap.get(hetId);
-		if (ret == null) {
-			ret = createItem("HetGroup");
-			ret.setAttribute("hetId", hetId);
-			String name = hetNameMap.get(hetId);
-			if (name != null) {
-				ret.setAttribute("name", name);
-			}
-			ret.setAttribute("identifier", String.format("HetGroup: %s", hetId));
-			hetGroupMap.put(hetId, ret);
-		}
-		return ret;
 	}
 
 	private String getProteinStructure(String pdbId) throws ObjectStoreException {
@@ -128,33 +123,7 @@ public class LigandExpoConverter extends BioFileConverter {
 	}
 
 	private Map<String, String> hetNameMap = new HashMap<String, String>();
-
-	private File hetNameFile;
-
-	public void setHetNameFile(File hetNameFile) {
-		this.hetNameFile = hetNameFile;
-	}
-
-	private void readHetNameFile() throws Exception {
-		LOG.info("Start to read hetNameFile......");
-
-		Iterator<String[]> iterator = FormattedTextParser
-				.parseTabDelimitedReader(new BufferedReader(new FileReader(hetNameFile)));
-
-		while (iterator.hasNext()) {
-			String[] cols = iterator.next();
-
-			if (StringUtils.isEmpty(cols[0])) {
-				LOG.info("Empty het id :" + cols[0]);
-				continue;
-			}
-			String name = cols[1].trim();
-			name = name.replaceAll("^[;|\"]", "");
-			name = name.replaceAll("[;|\"]$", "");
-
-			hetNameMap.put(cols[0].trim(), name);
-		}
-	}
+	private Map<String, String> inchiKeyMap = new HashMap<String, String>();
 
 	private File inchiKeyFile;
 
@@ -166,28 +135,29 @@ public class LigandExpoConverter extends BioFileConverter {
 		Iterator<String[]> iterator = FormattedTextParser
 				.parseTabDelimitedReader(new BufferedReader(new FileReader(inchiKeyFile)));
 
+		// Example:
+		// CXHHBNMLPJOKQD-UHFFFAOYSA-N 000 methyl hydrogen carbonate
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
+
+			// process het name
+			String name = cols[2].trim();
+			name = name.replaceAll("^[;|\"]", "");
+			name = name.replaceAll("[;|\"]$", "");
+			hetNameMap.put(cols[1].trim(), name);
 
 			// LOG.info(cols[0]);
 			if (StringUtils.isEmpty(cols[0])) {
 				LOG.info("Empty InChIKey for id :" + cols[1]);
 				continue;
 			}
-			Item hetGroup = getHetGroup(cols[1]);
 			String inchiKey = cols[0].substring(0, cols[0].indexOf("-"));
 			if (inchiKey.length() != 14) {
 				LOG.info(String.format("Bad InChIKey value: %s, %s .", cols[1], cols[0]));
 				continue;
 			}
-			hetGroup.setReference("compoundGroup", getCompoundGroup(inchiKey, hetNameMap
-					.get(cols[1])));
+			inchiKeyMap.put(cols[1], inchiKey);
 		}
-	}
-
-	@Override
-	public void close() throws Exception {
-		store(hetGroupMap.values());
 	}
 
 }

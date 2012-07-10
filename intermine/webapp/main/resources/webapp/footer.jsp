@@ -31,8 +31,9 @@
     <br/><br/>
     <p>Powered by</p>
     <a target="new" href="http://intermine.org" title="InterMine">
-        <img src="images/icons/intermine-footer-logo.png" alt="InterMine logo" />
+        <img src="/targetmine/images/icons/intermine-footer-logo.png" alt="InterMine logo" style="vertical-align: bottom;" />
     </a>
+    &nbsp;<span style="font-style: italic; color: #666">0.99</span>
 </div>
 
 </div>
