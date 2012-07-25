@@ -73,6 +73,14 @@ public class UniprotEntry
     public List<String> getEnsemblProteinIds() {
     	return ensemblProteinIds;
     }
+    // chenyian: for RefSeq protein ids
+    private List<String> refSeqProteinIds = new ArrayList<String>();
+    public void addRefSeqProteinId(String refSeqProteinId) {
+    	refSeqProteinIds.add(refSeqProteinId);
+    }
+    public List<String> getRefSeqProteinIds() {
+    	return refSeqProteinIds;
+    }
 
     /**
      * constructor used for non-isoform entries

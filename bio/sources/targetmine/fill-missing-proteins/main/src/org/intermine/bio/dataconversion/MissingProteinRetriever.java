@@ -155,7 +155,7 @@ public class MissingProteinRetriever {
 									// LOG.info("Create a protein object: " + ph.primaryIdentifier +
 									// ", "
 									// + ph.primaryAccession + " (" + ph.taxonId + ")");
-									LOG.info("Create a protein object: " + ph);
+//									LOG.info("Create a protein object: " + ph);
 									toStore.add(p);
 									createdProteinAccs.add(pAcc);
 								} else {

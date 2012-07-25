@@ -30,6 +30,7 @@
       <property name="gene2ensemblFile" value="/data/bio/db/Targetmine/gene_info/gene2ensembl"/>
       <property name="unigene.organisms" value="Dm Hs Rn Mm"/>
       <property name="gene2unigeneFile" value="/data/bio/db/Targetmine/gene_info/gene2unigene"/>
+      <property name="gene2accessionFile" value="/data/bio/db/Targetmine/gene_info/gene2accession"/>
     </source>
   	<source name="do-annotation" type="do-annotation" dump="true">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/do-annotation"/>

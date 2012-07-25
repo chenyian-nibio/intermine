@@ -51,10 +51,11 @@ public class GeneInfoConverter extends BioFileConverter {
 
 	private Map<String, String> chromosomeMap = new HashMap<String, String>();
 	private Map<String, Set<String>> transcriptMap;
-	private Map<String, Set<String>> translationMap;
 
 	private Map<String, Set<String>> unigeneMap;
 	private List<String> uniGeneSpecies;
+
+	private Map<String, Set<String>> accessionMap;
 
 	private Map<String, Map<String, String>> idMap;
 	private Map<String, String> synonyms = new HashMap<String, String>();
@@ -63,6 +64,19 @@ public class GeneInfoConverter extends BioFileConverter {
 
 	private File gene2ensemblFile;
 	private File gene2unigeneFile;
+	private File gene2accessionFile;
+
+	public void setGene2ensemblFile(File gene2ensemblFile) {
+		this.gene2ensemblFile = gene2ensemblFile;
+	}
+
+	public void setGene2unigeneFile(File gene2unigeneFile) {
+		this.gene2unigeneFile = gene2unigeneFile;
+	}
+
+	public void setGene2accessionFile(File gene2accessionFile) {
+		this.gene2accessionFile = gene2accessionFile;
+	}
 
 	public void setGeneinfoOrganisms(String taxonIds) {
 		this.taxonIds = new HashSet<String>(Arrays.asList(StringUtil.split(taxonIds, " ")));
@@ -136,6 +150,9 @@ public class GeneInfoConverter extends BioFileConverter {
 		if (unigeneMap == null) {
 			processGene2unigene();
 		}
+		if (accessionMap == null) {
+			processGene2accession();
+		}
 
 		Iterator<String[]> iterator = FormattedTextParser
 				.parseTabDelimitedReader(new BufferedReader(reader));
@@ -168,7 +185,7 @@ public class GeneInfoConverter extends BioFileConverter {
 			gene.setAttribute("description", desc);
 			gene.setReference("organism", getOrganism(taxId));
 			// check if the gene is micro RNA
-			if (type.equals("miscRNA") && dbXrefs.contains("miRBase:")){
+			if (type.equals("miscRNA") && dbXrefs.contains("miRBase:")) {
 				gene.setAttribute("type", "microRNA");
 			} else {
 				gene.setAttribute("type", type);
@@ -193,7 +210,7 @@ public class GeneInfoConverter extends BioFileConverter {
 						}
 						gene.setAttribute(idType, dbId);
 						// add synonym for identifier
-						String synId = getSynonym(geneRefId, dbId, "");
+						String synId = getSynonym(geneRefId, dbId);
 						if (synId != null) {
 							allSynonyms.add(synId);
 						}
@@ -203,7 +220,7 @@ public class GeneInfoConverter extends BioFileConverter {
 			}
 			if (!StringUtils.isEmpty(symbol) && !symbol.equals("-")) {
 				gene.setAttribute("symbol", symbol);
-				String synId = getSynonym(geneRefId, symbol, "");
+				String synId = getSynonym(geneRefId, symbol);
 				if (synId != null) {
 					allSynonyms.add(synId);
 				}
@@ -211,7 +228,7 @@ public class GeneInfoConverter extends BioFileConverter {
 			// add other synonyms
 			if (!cols[4].trim().equals("-")) {
 				for (String s : cols[4].trim().split("\\|")) {
-					String synId = getSynonym(geneRefId, s, "");
+					String synId = getSynonym(geneRefId, s);
 					if (synId != null) {
 						allSynonyms.add(synId);
 					}
@@ -223,23 +240,35 @@ public class GeneInfoConverter extends BioFileConverter {
 			// 2011/6/20
 			// Transcript and Translation classes are not really useful ...
 			// These identifiers (Ensembl, RefSeq) are set as synonyms
+			// 2012/7/13
+			// 1. Translation info should belong to protein class
+			// 2. It's convenient to store both RefSeq id w/wo version number
+			// eg. NM_xxxxxx.x and NM_xxxxxx
 			if (transcriptMap.get(geneId) != null) {
 				for (String pairs : transcriptMap.get(geneId)) {
 					for (String s : pairs.split("\\|")) {
-						String synId = getSynonym(geneRefId, s, "");
+						String synId = getSynonym(geneRefId, s);
 						if (synId != null) {
 							allSynonyms.add(synId);
+						}
+						if (s.contains(".")) {
+							synId = getSynonym(geneRefId, s.substring(0, s.indexOf(".")));
+							if (synId != null) {
+								allSynonyms.add(synId);
+							}
 						}
 					}
 				}
 			}
-			if (translationMap.get(geneId) != null) {
-				for (String pairs : translationMap.get(geneId)) {
-					for (String s : pairs.split("\\|")) {
-						String synId = getSynonym(geneRefId, s, "");
-						if (synId != null) {
-							allSynonyms.add(synId);
-						}
+			// 2012/7/17
+			// Add accession identifiers
+			// Due to the quantity of id, the identifiers would be stored without version number.
+			if (accessionMap.get(geneId) != null) {
+				for (String s : accessionMap.get(geneId)) {
+					String acc = s.contains(".") ? s.substring(0, s.indexOf(".")) : s;
+					String synId = getSynonym(geneRefId, acc);
+					if (synId != null) {
+						allSynonyms.add(synId);
 					}
 				}
 			}
@@ -248,7 +277,7 @@ public class GeneInfoConverter extends BioFileConverter {
 			// Include UniGene id as synonyms
 			if (unigeneMap.get(geneId) != null) {
 				for (String string : unigeneMap.get(geneId)) {
-					String synId = getSynonym(geneRefId, string, "");
+					String synId = getSynonym(geneRefId, string);
 					allSynonyms.add(synId);
 				}
 			}
@@ -260,6 +289,42 @@ public class GeneInfoConverter extends BioFileConverter {
 			store(gene);
 
 		}
+	}
+
+	private void processGene2accession() {
+		LOG.info("Parsing the file gene2accession......");
+		accessionMap = new HashMap<String, Set<String>>();
+
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(gene2accessionFile));
+			String line = reader.readLine();
+			while (line != null) {
+				String[] cols = line.split("\\t");
+				if (taxonIds.contains(cols[0].trim())) {
+					// only take the 4th column
+					if (!cols[3].trim().equals("-")) {
+						// ignore refseq ids
+						if (!cols[3].contains("_")) {
+							Set<String> identifierSet = accessionMap.get(cols[1]);
+							if (identifierSet == null) {
+								identifierSet = new HashSet<String>();
+								accessionMap.put(cols[1], identifierSet);
+							}
+							identifierSet.add(cols[3]);
+						}
+					}
+				}
+				line = reader.readLine();
+			}
+
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	private String getChromosome(String taxId, String no) throws ObjectStoreException {
@@ -293,8 +358,7 @@ public class GeneInfoConverter extends BioFileConverter {
 	}
 
 	// type and isPrimary are deprecated from v0.94
-	private String getSynonym(String subjectId, String value, String datasetRefId)
-			throws ObjectStoreException {
+	private String getSynonym(String subjectId, String value) throws ObjectStoreException {
 		String key = subjectId + value;
 		if (StringUtils.isEmpty(value)) {
 			return null;
@@ -315,7 +379,6 @@ public class GeneInfoConverter extends BioFileConverter {
 		LOG.info("Parsing the file gene2ensembl......");
 
 		transcriptMap = new HashMap<String, Set<String>>();
-		translationMap = new HashMap<String, Set<String>>();
 
 		// #Format: tax_id GeneID Ensembl_gene_identifier RNA_nucleotide_accession.version
 		// Ensembl_rna_identifier protein_accession.version Ensembl_protein_identifier (tab is used
@@ -324,7 +387,7 @@ public class GeneInfoConverter extends BioFileConverter {
 
 			Reader reader = new BufferedReader(new FileReader(gene2ensemblFile));
 			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
-			// generate gene -> transcrip/translation map
+			// generate gene -> transcript map
 			while (iterator.hasNext()) {
 				String[] cols = iterator.next();
 
@@ -337,14 +400,6 @@ public class GeneInfoConverter extends BioFileConverter {
 						}
 						transcriptSet.add(cols[3] + "|" + cols[4]);
 					}
-					if (!cols[5].equals("-")) {
-						Set<String> translationSet = translationMap.get(cols[1]);
-						if (translationSet == null) {
-							translationSet = new HashSet<String>();
-							translationMap.put(cols[1], translationSet);
-						}
-						translationSet.add(cols[5] + "|" + cols[6]);
-					}
 				}
 			}
 		} catch (FileNotFoundException e) {
@@ -355,14 +410,6 @@ public class GeneInfoConverter extends BioFileConverter {
 			throw new RuntimeException(e);
 		}
 
-	}
-
-	public void setGene2ensemblFile(File gene2ensemblFile) {
-		this.gene2ensemblFile = gene2ensemblFile;
-	}
-
-	public void setGene2unigeneFile(File gene2unigeneFile) {
-		this.gene2unigeneFile = gene2unigeneFile;
 	}
 
 	private void processGene2unigene() {

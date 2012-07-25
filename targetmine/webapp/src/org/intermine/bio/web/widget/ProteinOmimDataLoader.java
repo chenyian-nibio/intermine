@@ -35,6 +35,7 @@ public class ProteinOmimDataLoader extends EnrichmentWidgetLdr {
 		for (String s : organisms) {
 			organismsLower.add(s.toLowerCase());
 		}
+		model = os.getModel();
 	}
 
 	@Override
