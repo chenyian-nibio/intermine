@@ -19,9 +19,13 @@ import org.intermine.objectstore.query.ContainsConstraint;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
 import org.intermine.objectstore.query.QueryCollectionReference;
+import org.intermine.objectstore.query.QueryExpression;
+import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.QueryObjectReference;
+import org.intermine.objectstore.query.QueryValue;
 import org.intermine.objectstore.query.Results;
 import org.intermine.objectstore.query.ResultsRow;
+import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.postprocess.PostProcessor;
 import org.intermine.util.DynamicUtil;
 
@@ -86,33 +90,44 @@ public class StitchPostProcess extends PostProcessor {
 	protected static Results findProteinCompoundGroup(ObjectStore os) throws ObjectStoreException {
 		Query q = new Query();
 		QueryClass qcProtein = new QueryClass(Protein.class);
-		QueryClass qcStitchInteraction = new QueryClass(os.getModel().getClassDescriptorByName(
-				"StitchInteraction").getType());
-		QueryClass qcPubChemCompound = new QueryClass(os.getModel().getClassDescriptorByName(
-				"PubChemCompound").getType());
-		QueryClass qcCompoundGroup = new QueryClass(os.getModel().getClassDescriptorByName(
-				"CompoundGroup").getType());
+		QueryClass qcCompoundProteinInteraction = new QueryClass(os.getModel()
+				.getClassDescriptorByName("CompoundProteinInteraction").getType());
+		QueryClass qcCompound = new QueryClass(os.getModel().getClassDescriptorByName("Compound")
+				.getType());
+		QueryClass qcDataSet = new QueryClass(os.getModel().getClassDescriptorByName("DataSet")
+				.getType());
+		QueryClass qcCompoundGroup = new QueryClass(os.getModel()
+				.getClassDescriptorByName("CompoundGroup").getType());
+
+		QueryField qfDataSet = new QueryField(qcDataSet, "name");
 
 		q.addFrom(qcProtein);
-		q.addFrom(qcStitchInteraction);
-		q.addFrom(qcPubChemCompound);
+		q.addFrom(qcCompoundProteinInteraction);
+		q.addFrom(qcCompound);
 		q.addFrom(qcCompoundGroup);
+		q.addFrom(qcDataSet);
 
 		q.addToSelect(qcProtein);
 		q.addToSelect(qcCompoundGroup);
 
 		ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
 
-		// Protein.chemicalInteractions.compound.compoundGroup
-		QueryCollectionReference c1 = new QueryCollectionReference(qcProtein,
-				"chemicalInteractions");
-		cs.addConstraint(new ContainsConstraint(c1, ConstraintOp.CONTAINS, qcStitchInteraction));
+		// Protein.compounds.compound.compoundGroup
+		QueryCollectionReference c1 = new QueryCollectionReference(qcProtein, "compounds");
+		cs.addConstraint(new ContainsConstraint(c1, ConstraintOp.CONTAINS,
+				qcCompoundProteinInteraction));
 
-		QueryObjectReference r2 = new QueryObjectReference(qcStitchInteraction, "compound");
-		cs.addConstraint(new ContainsConstraint(r2, ConstraintOp.CONTAINS, qcPubChemCompound));
+		QueryObjectReference r2 = new QueryObjectReference(qcCompoundProteinInteraction, "compound");
+		cs.addConstraint(new ContainsConstraint(r2, ConstraintOp.CONTAINS, qcCompound));
 
-		QueryObjectReference r3 = new QueryObjectReference(qcPubChemCompound,
-				"compoundGroup");
+		QueryObjectReference r4 = new QueryObjectReference(qcCompoundProteinInteraction, "dataSet");
+		cs.addConstraint(new ContainsConstraint(r4, ConstraintOp.CONTAINS, qcDataSet));
+
+		QueryExpression qe2 = new QueryExpression(QueryExpression.LOWER, qfDataSet);
+		cs.addConstraint(new SimpleConstraint(qe2, ConstraintOp.EQUALS, new QueryValue("STITCH"
+				.toLowerCase())));
+
+		QueryObjectReference r3 = new QueryObjectReference(qcCompound, "compoundGroup");
 		cs.addConstraint(new ContainsConstraint(r3, ConstraintOp.CONTAINS, qcCompoundGroup));
 
 		q.setConstraint(cs);

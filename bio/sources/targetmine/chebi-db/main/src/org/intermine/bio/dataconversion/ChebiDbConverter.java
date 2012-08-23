@@ -27,13 +27,15 @@ import org.intermine.xml.full.Item;
 /**
  * 
  * @author chenyian
+ * 
+ * 2012/8/13 modified
  */
 public class ChebiDbConverter extends BioDBConverter {
 	private static final Logger LOG = Logger.getLogger(ChebiDbConverter.class);
 
-	// 
+	//
 	private static final String DATASET_TITLE = "ChEBI";
-	private static final String DATA_SOURCE_NAME = "ChEBI";
+	private static final String DATA_SOURCE_NAME = "EMBL-EBI";
 
 	private Map<String, Item> compoundGroupMap = new HashMap<String, Item>();
 
@@ -69,24 +71,33 @@ public class ChebiDbConverter extends BioDBConverter {
 		// while (res.next()) {
 		// }
 		Statement stmt = connection.createStatement();
+		String queryCasReg = "select distinct c1.id, da.accession_number " + " from compounds as c1 "
+				+ " join database_accession as da on da.compound_id = c1.id "
+				+ " where da.type = 'CAS Registry Number'";
+		ResultSet resCasReg = stmt.executeQuery(queryCasReg);
+		Map<String, String> casRegMap = new HashMap<String, String>();
+		while (resCasReg.next()) {
+			casRegMap.put(String.valueOf(resCasReg.getInt("c1.id")),
+					resCasReg.getString("da.accession_number"));
+		}
+
 		// String query = "SELECT compound_id, structure FROM structures WHERE type = 'InChIKey';";
-		String query = " select c1.name, c1.id, c1.parent_id, c2.name, s1.structure "
+		String queryNameInchi = " select c1.name, c1.id, c1.parent_id, c2.name, s1.structure "
 				+ " from compounds as c1 "
 				+ " left join structures as s1 on c1.id = s1.compound_id "
 				+ " left join compounds as c2 on c1.parent_id = c2.id "
 				+ " where s1.type='InChIKey' ";
-		ResultSet res = stmt.executeQuery(query);
+		ResultSet res = stmt.executeQuery(queryNameInchi);
 		while (res.next()) {
-			LOG.info(String
-					.format("id: %s, %s", res.getInt("c1.id"), res.getString("s1.structure")));
+//			LOG.info(String.format("id: %s, %s", res.getInt("c1.id"), res.getString("s1.structure")));
 
 			String chebiId = String.valueOf(res.getInt("c1.id"));
 			String name = res.getString("c1.name");
 
 			String structure = res.getString("s1.structure");
-			String inchiKey = structure.substring(structure.indexOf("=") + 1, structure
-					.indexOf("-"));
-			if (inchiKey.length() != 14) {
+			String inchiKey = structure.substring(structure.indexOf("=") + 1);
+			String compoundGroupId = inchiKey.substring(0, inchiKey.indexOf("-"));
+			if (compoundGroupId.length() != 14) {
 				LOG.info(String.format("Bad InChIKey value: %s, %s .", chebiId, structure));
 				continue;
 			}
@@ -99,28 +110,40 @@ public class ChebiDbConverter extends BioDBConverter {
 			Item item = createItem("ChebiCompound");
 			item.setAttribute("identifier", String.format("CHEBI: %s", chebiId));
 			item.setAttribute("chebiId", chebiId);
+			item.setAttribute("inchiKey", inchiKey);
 			item.setAttribute("name", name);
+			if (casRegMap.get(chebiId) != null) {
+				item.setAttribute("casRegistryNumber", casRegMap.get(chebiId));
+			}
 
-			item.setReference("compoundGroup", getCompoundGroup(inchiKey, name));
+			item.setReference("compoundGroup", getCompoundGroup(compoundGroupId, name));
 			store(item);
 
 		}
 	}
 
-	private Item getCompoundGroup(String inchiKey, String name) throws ObjectStoreException {
-		Item ret = compoundGroupMap.get(inchiKey);
+	/***
+	 * 
+	 * @param compoundGroupId the first 14-character of the InChIKey
+	 * @param name A name for the CompoundGroup
+	 * @return A CompoundGroup item
+	 * @throws ObjectStoreException
+	 */
+	private Item getCompoundGroup(String compoundGroupId, String name) throws ObjectStoreException {
+		Item ret = compoundGroupMap.get(compoundGroupId);
 		if (ret == null) {
 			ret = createItem("CompoundGroup");
-			ret.setAttribute("identifier", inchiKey);
-			compoundGroupMap.put(inchiKey, ret);
+			ret.setAttribute("identifier", compoundGroupId);
+			compoundGroupMap.put(compoundGroupId, ret);
 		}
-		if (nameMap.get(inchiKey) == null || nameMap.get(inchiKey).length() > name.length()) {
-			nameMap.put(inchiKey, name);
+		if (nameMap.get(compoundGroupId) == null
+				|| nameMap.get(compoundGroupId).length() > name.length()) {
+			nameMap.put(compoundGroupId, name);
 			ret.setAttribute("name", name);
 		}
 		return ret;
 	}
-	
+
 	@Override
 	public void close() throws Exception {
 		store(compoundGroupMap.values());

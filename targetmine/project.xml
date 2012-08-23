@@ -82,7 +82,7 @@
 
     <source name="drugbank" type="drugbank">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank"/>
-      <property name="src.data.dir.includes" value="drugbank.txt"/>
+      <property name="src.data.dir.includes" value="drugbank.xml"/>
     </source>
   	
     <source name="kegg-pathway" type="tm-kegg-pathway">
@@ -162,11 +162,11 @@
       <property name="src.data.dir.includes" value="*.tab"/>
     </source>
     <!--
-    -->
     <source name="gene-set" type="gene-set">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_set_cluster"/>
       <property name="src.data.dir.includes" value="lt600.combined.cluster"/>
     </source>
+    -->
     <source name="stitch" type="stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
       <property name="src.data.dir.includes" value="*.detailed.tsv" />
@@ -178,8 +178,11 @@
       <property name="src.data.dir.includes" value="cid-inchikeys" />
       <property name="nameFile" value="/data/bio/db/Targetmine/pubchem/cid-names" />
     </source>
-    <source name="chebi-db" type="chebi-db">
+    <source name="chebi" type="chebi-db">
       <property name="source.db.name" value="chebi-db"/>
+    </source>
+    <source name="chembl" type="chembl-db">
+      <property name="source.db.name" value="chembl-db"/>
     </source>
     <source name="gwas" type="gwas">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gwas/nhgri" />

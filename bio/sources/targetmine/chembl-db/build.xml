@@ -1,0 +1,5 @@
+<project name="chembl-db" default="default" basedir=".">
+  <description>build, test, package chembl-db</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

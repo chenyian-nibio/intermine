@@ -159,7 +159,10 @@
            </tr>
            <tr>
                <td></td>
-               <td class="label"><html:checkbox property="caseSensitive"/>&nbsp;<label><fmt:message key="bagBuild.caseSensitive"/></label></td>
+               <td class="label"><html:checkbox property="caseSensitive"/>&nbsp;<label><fmt:message key="bagBuild.caseSensitive"/></label>
+               <!--chenyian-->
+               <br/><html:checkbox property="removeVersionTag"/>&nbsp;<label><fmt:message key="bagBuild.removeVersionTag"/></label>
+               </td>
            </tr>
        </table>
 

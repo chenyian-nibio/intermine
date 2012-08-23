@@ -1,55 +1,43 @@
 <?xml version="1.0"?>
 <classes>
-	<class name="DrugProteinInteraction" is-interface="true">
-		<reference name="protein" referenced-type="Protein" reverse-reference="drugs"/>
-		<reference name="drug" referenced-type="Drug" reverse-reference="targetProteins"/>
+	<class name="CompoundProteinInteraction" is-interface="true">
+		<attribute name="ic50" type="java.lang.Float"/>
+		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
+		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
+		<reference name="dataSet" referenced-type="DataSet"/>
+    </class>
+	<class name="DrugBankInteraction" extends="CompoundProteinInteraction" is-interface="true">
 		<collection name="publications" referenced-type="Publication"/>
-		<collection name="dataSets" referenced-type="DataSet"/>
     </class>
 
 	<class name="Protein" is-interface="true">
-		<collection name="drugs" referenced-type="DrugProteinInteraction" reverse-reference="protein"/>
+		<collection name="compounds" referenced-type="CompoundProteinInteraction" reverse-reference="protein"/>
 		<collection name="compoundGroupInteractions" referenced-type="ProteinCompoundGroupInteraction" reverse-reference="protein"/>
     </class>
 
 	<class name="DrugType" is-interface="true">
 		<attribute name="name" type="java.lang.String"/>
     </class>
+	<class name="BrandName" is-interface="true">
+		<attribute name="name" type="java.lang.String"/>
+		<reference name="compound" referenced-type="Compound" />
+    </class>
 
-	<class name="Drug" extends="Compound" is-interface="true">
-		<attribute name="genericName" type="java.lang.String"/>
+	<class name="DrugCompound" extends="Compound" is-interface="true">
 		<attribute name="drugBankId" type="java.lang.String"/>
-		<attribute name="keggDrugId" type="java.lang.String"/>
 		<attribute name="description" type="java.lang.String"/>
-		<attribute name="casRegistryNumber" type="java.lang.String"/>
-		<reference name="hetGroup" referenced-type="HetGroup" reverse-reference="drugs"/>
-		<reference name="chebiCompound" referenced-type="ChebiCompound" reverse-reference="drugs"/>
-		<reference name="pubChemCompound" referenced-type="PubChemCompound" reverse-reference="drugs"/>
 		<reference name="protein" referenced-type="Protein" />
 		<collection name="drugTypes" referenced-type="DrugType"/>		
-		<collection name="brandNames" referenced-type="Synonym"/>
-		<collection name="targetProteins" referenced-type="DrugProteinInteraction" reverse-reference="drug"/>
-    </class>
-
-    <class name="ChebiCompound" extends="Compound" is-interface="true">
-		<attribute name="chebiId" type="java.lang.String"/>
-		<collection name="drugs" referenced-type="Drug" reverse-reference="chebiCompound"/>
-    </class>
-    
-    <class name="HetGroup" extends="Compound" is-interface="true">
-		<attribute name="hetId" type="java.lang.String"/>
-		<collection name="drugs" referenced-type="Drug" reverse-reference="hetGroup"/>
-    </class>
-
-	<class name="PubChemCompound" extends="Compound" is-interface="true">
-		<attribute name="pubChemCid" type="java.lang.String"/>
-		<collection name="drugs" referenced-type="Drug" reverse-reference="pubChemCompound"/>
+		<collection name="brandNames" referenced-type="BrandName" reverse-reference="compound"/>
     </class>
 
     <class name="Compound" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="inchiKey" type="java.lang.String"/>
+		<attribute name="casRegistryNumber" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
+		<collection name="targetProteins" referenced-type="CompoundProteinInteraction" reverse-reference="compound"/>
     </class>
 
     <class name="CompoundGroup" is-interface="true">

@@ -15,6 +15,7 @@ import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.xml.full.Item;
 
+@Deprecated
 public class DrugBankConverter extends BioFileConverter {
 	
 	private static Logger m_oLogger = Logger.getLogger(DrugBankConverter.class);

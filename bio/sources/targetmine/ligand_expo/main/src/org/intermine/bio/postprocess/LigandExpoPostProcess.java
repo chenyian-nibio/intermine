@@ -90,21 +90,21 @@ public class LigandExpoPostProcess extends PostProcessor {
 				.getClassDescriptorByName("ProteinStructureRegion").getType());
 		QueryClass qcPDBRegion = new QueryClass(os.getModel().getClassDescriptorByName("PDBRegion")
 				.getType());
-		QueryClass qcProteinChain = new QueryClass(os.getModel().getClassDescriptorByName(
-				"ProteinChain").getType());
-		QueryClass qcProteinStructure = new QueryClass(os.getModel().getClassDescriptorByName(
-				"ProteinStructure").getType());
-		QueryClass qcHetGroup = new QueryClass(os.getModel().getClassDescriptorByName("HetGroup")
-				.getType());
-		QueryClass qcCompoundGroup = new QueryClass(os.getModel().getClassDescriptorByName(
-				"CompoundGroup").getType());
+		QueryClass qcProteinChain = new QueryClass(os.getModel()
+				.getClassDescriptorByName("ProteinChain").getType());
+		QueryClass qcProteinStructure = new QueryClass(os.getModel()
+				.getClassDescriptorByName("ProteinStructure").getType());
+		QueryClass qcPDBCompound = new QueryClass(os.getModel()
+				.getClassDescriptorByName("PDBCompound").getType());
+		QueryClass qcCompoundGroup = new QueryClass(os.getModel()
+				.getClassDescriptorByName("CompoundGroup").getType());
 
 		q.addFrom(qcProtein);
 		q.addFrom(qcProteinStructureRegion);
 		q.addFrom(qcPDBRegion);
 		q.addFrom(qcProteinChain);
 		q.addFrom(qcProteinStructure);
-		q.addFrom(qcHetGroup);
+		q.addFrom(qcPDBCompound);
 		q.addFrom(qcCompoundGroup);
 
 		q.addToSelect(qcProtein);
@@ -127,10 +127,10 @@ public class LigandExpoPostProcess extends PostProcessor {
 		cs.addConstraint(new ContainsConstraint(r4, ConstraintOp.CONTAINS, qcProteinStructure));
 
 		QueryCollectionReference c5 = new QueryCollectionReference(qcProteinStructure,
-		"hetGroups");
-		cs.addConstraint(new ContainsConstraint(c5, ConstraintOp.CONTAINS, qcHetGroup));
-		
-		QueryObjectReference r6 = new QueryObjectReference(qcHetGroup, "compoundGroup");
+				"pdbCompounds");
+		cs.addConstraint(new ContainsConstraint(c5, ConstraintOp.CONTAINS, qcPDBCompound));
+
+		QueryObjectReference r6 = new QueryObjectReference(qcPDBCompound, "compoundGroup");
 		cs.addConstraint(new ContainsConstraint(r6, ConstraintOp.CONTAINS, qcCompoundGroup));
 
 		q.setConstraint(cs);

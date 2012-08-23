@@ -2,18 +2,21 @@
 <!-- This file details any extensions needed to the data model to store data from this source, everything else is automatically generated from the model description so this is all we need to do to add to the model. -->
 <classes>
    <class name="ProteinStructure" is-interface="true">
-        <collection name="hetGroups" referenced-type="HetGroup" reverse-reference="structures"/>
+        <collection name="pdbCompounds" referenced-type="PDBCompound" reverse-reference="structures"/>
    </class>
-   <class name="HetGroup" extends="Compound" is-interface="true">
+   <class name="PDBCompound" extends="Compound" is-interface="true">
      <attribute name="hetId" type="java.lang.String"/>
-     <collection name="structures" referenced-type="ProteinStructure" reverse-reference="hetGroups"/>
+     <collection name="structures" referenced-type="ProteinStructure" reverse-reference="pdbCompounds"/>
      <!-- To be extended -->
    </class>
 
     <class name="Compound" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="inchiKey" type="java.lang.String"/>
+		<attribute name="casRegistryNumber" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
+		<collection name="targetProteins" referenced-type="CompoundProteinInteraction" reverse-reference="compound"/>
     </class>
 
     <class name="CompoundGroup" is-interface="true">

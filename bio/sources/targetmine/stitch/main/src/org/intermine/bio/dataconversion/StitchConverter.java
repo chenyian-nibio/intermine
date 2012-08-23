@@ -1,10 +1,6 @@
 package org.intermine.bio.dataconversion;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +34,8 @@ import org.intermine.xml.full.Item;
 /**
  * 
  * @author chenyian
+ * 
+ *         refined the compound model on 2012/8/10
  */
 public class StitchConverter extends BioFileConverter {
 	// Threshold of evidence score (experimental) , 700 means 0.7
@@ -49,7 +47,6 @@ public class StitchConverter extends BioFileConverter {
 	private static final String DATA_SOURCE_NAME = "STITCH: Chemical-Protein Interactions";
 
 	private Map<String, String> proteinMap = new HashMap<String, String>();
-	private Map<String, String> compoundMap = new HashMap<String, String>();
 	private Map<String, String> pubChemCompoundMap = new HashMap<String, String>();
 
 	private Set<String> interactiondSet = new HashSet<String>();
@@ -90,11 +87,10 @@ public class StitchConverter extends BioFileConverter {
 		// should only generate once
 		if (primaryIdMap == null) {
 			getPrimaryIdMap();
-			// readUniprotIdMap();
 		}
-
-		if (chebiIdMap == null) {
-			readChebiMap();
+		if (primaryIdMap.isEmpty()) {
+			throw new RuntimeException(
+					"No primary id mapping found. Forget to load uniprot before loading stitch?");
 		}
 
 		Iterator<String[]> iterator = FormattedTextParser
@@ -118,21 +114,20 @@ public class StitchConverter extends BioFileConverter {
 					count++;
 					continue;
 				}
-				if (interactiondSet.contains(ensemblId + "-" + cid)){
+				if (interactiondSet.contains(ensemblId + "-" + cid)) {
 					count++;
 					continue;
 				}
-
-				Item si = createItem("StitchInteraction");
-				si.setAttribute("identifier", cols[0] + "_" + cols[1]);
-				si.setReference("compound", getPubChemCompound(cid));
-				si.setAttribute("score", cols[2]);
-				si.setAttribute("evidence", evidence);
 				for (String primaryIdentifier : uniprotIds) {
-					si.addToCollection("proteins", getProtein(primaryIdentifier));
+					Item si = createItem("StitchInteraction");
+					si.setAttribute("identifier", cols[0] + "_" + cols[1]);
+					si.setReference("compound", getPubChemCompound(cid));
+					si.setAttribute("score", cols[2]);
+					si.setAttribute("evidence", evidence);
+					si.setReference("protein", getProtein(primaryIdentifier));
+					store(si);
 				}
 
-				store(si);
 				interactiondSet.add(ensemblId + "-" + cid);
 			} else {
 				count++;
@@ -154,18 +149,6 @@ public class StitchConverter extends BioFileConverter {
 		return ret;
 	}
 
-	private String getChebiCompound(String chebiId) throws ObjectStoreException {
-		String ret = compoundMap.get(chebiId);
-		if (ret == null) {
-			Item item = createItem("ChebiCompound");
-			item.setAttribute("chebiId", chebiId);
-			store(item);
-			ret = item.getIdentifier();
-			compoundMap.put(chebiId, ret);
-		}
-		return ret;
-	}
-
 	private String getPubChemCompound(String cid) throws ObjectStoreException {
 		String ret = pubChemCompoundMap.get(cid);
 		if (ret == null) {
@@ -173,12 +156,6 @@ public class StitchConverter extends BioFileConverter {
 			item.setAttribute("pubChemCid", cid);
 			item.setAttribute("identifier", String.format("PubChem: %s", cid));
 
-			Set<String> chebiIds = chebiIdMap.get(cid);
-			if (chebiIds != null) {
-				for (String chebiId : chebiIds) {
-					item.addToCollection("chebiCompounds", getChebiCompound(chebiId));
-				}
-			}
 			store(item);
 			ret = item.getIdentifier();
 			pubChemCompoundMap.put(cid, ret);
@@ -205,9 +182,7 @@ public class StitchConverter extends BioFileConverter {
 		QueryCollectionReference synRef = new QueryCollectionReference(qcProtein, "synonyms");
 		cs.addConstraint(new ContainsConstraint(synRef, ConstraintOp.CONTAINS, qcSynonym));
 
-		cs
-				.addConstraint(new SimpleConstraint(qfValue, ConstraintOp.MATCHES, new QueryValue(
-						"ENS%")));
+		cs.addConstraint(new SimpleConstraint(qfValue, ConstraintOp.MATCHES, new QueryValue("ENS%")));
 
 		q.setConstraint(cs);
 
@@ -223,56 +198,6 @@ public class StitchConverter extends BioFileConverter {
 			}
 			primaryIdMap.get(rr.get(0)).add(rr.get(1));
 		}
-	}
-
-	// read in chebi id mapping file
-	private File compoundMapFile;
-	private Map<String, Set<String>> chebiIdMap;
-
-	public void setCompoundMapFile(File file) {
-		this.compoundMapFile = file;
-	}
-
-	/**
-	 * Read pubchem mapping file
-	 * 
-	 * <pre>
-	 * example:
-	 * 3       CHEBI:15941
-	 * </pre>
-	 */
-	private void readChebiMap() {
-		if (compoundMapFile == null) {
-			throw new NullPointerException("compoundMapFile property not set");
-		}
-
-		chebiIdMap = new HashMap<String, Set<String>>();
-
-		try {
-			Reader reader = new BufferedReader(new FileReader(compoundMapFile));
-			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
-
-			// skip header
-			iterator.next();
-
-			while (iterator.hasNext()) {
-				String[] cols = iterator.next();
-				// String cid = "CID" + StringUtils.leftPad(cols[0], 9, "0");
-				String cid = cols[0];
-				if (chebiIdMap.get(cid) == null) {
-					chebiIdMap.put(cid, new HashSet<String>());
-				}
-				chebiIdMap.get(cid).add(StringUtils.substringAfter(cols[1], ":"));
-			}
-
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
 	}
 
 }

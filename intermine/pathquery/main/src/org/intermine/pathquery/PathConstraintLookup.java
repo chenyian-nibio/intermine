@@ -60,6 +60,10 @@ public class PathConstraintLookup extends PathConstraint
      * @return a String
      */
     public String getExtraValue() {
+    	//chenyian: somehow we don'yt want to return 'null' directly
+    	if (extraValue == null) {
+    		return "";
+    	}
         return extraValue;
     }
 

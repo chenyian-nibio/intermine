@@ -1,0 +1,4 @@
+<project name="chembl-db-tasks" default="default" basedir=".">
+  <description>build chembl-db tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

@@ -309,11 +309,12 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.DrugProteinInteraction">
+  <class className="org.intermine.model.bio.CompoundProteinInteraction">
     <fields>
       <fieldconfig fieldExpr="protein.primaryAccession"/>
-      <fieldconfig fieldExpr="drug.drugBankId" />
-      <fieldconfig fieldExpr="drug.genericName" />
+      <fieldconfig fieldExpr="compound.identifier" />
+      <fieldconfig fieldExpr="compound.name" />
+      <fieldconfig fieldExpr="dataSet.name" />
     </fields>
   </class>
 
@@ -561,16 +562,6 @@
                                  typeClass="org.intermine.model.bio.Protein"
                                  externalLinkLabel="OMIM:" />
 
-<!-- 
-      <graphdisplayer id="omim_distribution" title="OMIM disease Distribution"
-								domainLabel="OMIM disease"
-								rangeLabel="Percentage(%)"
-								dataSetLoader="org.intermine.bio.web.widget.OmimDataSetLoader"
-								description="Bar chart for OMIM disease enrichment. Only top 10 diseases are shown."
-								graphType="BarChart"
-								typeClass="org.intermine.model.bio.Gene"  />
--->
-
       <enrichmentwidgetdisplayer id="do_enrichment" title="Disease Ontology Enrichment"
                                  link="org.intermine.bio.web.widget.DoURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.DoDataLoader"
@@ -579,24 +570,7 @@
                                  typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein" 
                                  externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/" />
 
-       <enrichmentwidgetdisplayer id="drug_enrichment" title="Drug Enrichment"
-                                 link="org.intermine.bio.web.widget.DrugURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.DrugDataLoader"
-                                 label="Drug"
-                                 description="Drugs enriched for proteins in this list."
-                                 externalLink="http://www.drugbank.ca/drugs/"
-                                 typeClass="org.intermine.model.bio.Protein"
-                                 externalLinkLabel="DrugBank:" />
-       <enrichmentwidgetdisplayer id="gene_drug_enrichment" title="Drug Enrichment"
-                                 link="org.intermine.bio.web.widget.DrugURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.GeneDrugDataLoader"
-                                 label="Drug"
-                                 description="Drugs enriched for genes in this list."
-                                 externalLink="http://www.drugbank.ca/drugs/"
-                                 typeClass="org.intermine.model.bio.Gene"
-                                 externalLinkLabel="DrugBank:" />
-
-       <enrichmentwidgetdisplayer id="structural_domain_enrichment" title="CATH classification Enrichment"
+      <enrichmentwidgetdisplayer id="structural_domain_enrichment" title="CATH classification Enrichment"
                                  link="org.intermine.bio.web.widget.StructuralDomainURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.StructuralDomainDataLoader"
                                  label="CATH classification"

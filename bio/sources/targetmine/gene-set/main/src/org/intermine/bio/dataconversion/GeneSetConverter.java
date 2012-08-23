@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -26,10 +27,10 @@ import org.intermine.xml.full.Item;
  * 
  * @author chneyian
  */
-public class GeneSetConverter extends BioFileConverter {
+public class GeneSetConverter extends FileConverter {
 	//
-	private static final String DATASET_TITLE = "Gene set clustering";
-	private static final String DATA_SOURCE_NAME = "TargetMine";
+//	private static final String DATASET_TITLE = "Gene set clustering";
+//	private static final String DATA_SOURCE_NAME = "TargetMine";
 
 	private Map<String, Item> pathwayMap = new HashMap<String, Item>();
 
@@ -42,7 +43,7 @@ public class GeneSetConverter extends BioFileConverter {
 	 *            the Model
 	 */
 	public GeneSetConverter(ItemWriter writer, Model model) {
-		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
+		super(writer, model);
 	}
 
 	/**

@@ -30,6 +30,8 @@ public class BuildBagForm extends ActionForm
     private String extraFieldValue;
     private String whichInput;
     private boolean caseSensitive = false;
+    // chenyian:
+    private boolean removeVersionTag = false;
 
     /**
      * Get the bag type
@@ -128,7 +130,16 @@ public class BuildBagForm extends ActionForm
         this.caseSensitive = caseSensitive;
     }
 
-    /**
+    // chenyian
+    public boolean getRemoveVersionTag() {
+		return removeVersionTag;
+	}
+
+	public void setRemoveVersionTag(boolean removeVersionTag) {
+		this.removeVersionTag = removeVersionTag;
+	}
+
+	/**
      * {@inheritDoc}
      */
     @Override
@@ -140,6 +151,8 @@ public class BuildBagForm extends ActionForm
         extraFieldValue = "";
         whichInput = "";
         setCaseSensitive(false);
+        // chenyian
+        setRemoveVersionTag(false);
     }
 
 }

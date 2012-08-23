@@ -585,7 +585,7 @@ public class WebserviceJavaCodeGenerator implements WebserviceCodeGenerator
         if ("PathConstraintLookup".equals(className)) {
             String value = ((PathConstraintLookup) pc).getValue();
             String extraValue = ((PathConstraintLookup) pc).getExtraValue();
-
+            // chenyian: an null extraValue will cause "null" string
             return "Constraints.lookup(\"" + path + "\", \"" + value + "\", \""
                     + extraValue + "\")";
         }

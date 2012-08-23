@@ -30,6 +30,7 @@ import org.intermine.xml.full.Item;
  * 
  * @author chenyian
  * 2012/04/23 modified
+ * 2012/08/13 modified
  */
 public class PubchemConverter extends BioFileConverter {
 	private static final Logger LOG = Logger.getLogger(PubchemConverter.class);
@@ -81,17 +82,19 @@ public class PubchemConverter extends BioFileConverter {
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
 			String cid = cols[0];
-			if (StringUtils.isEmpty(cols[1])) {
+			String inchiKey = cols[1];
+			if (StringUtils.isEmpty(inchiKey)) {
 				LOG.info("Empty InChIKey for id :" + cid);
 				continue;
 			}
-			String inchiKey = cols[1].substring(0, cols[1].indexOf("-"));
-			if (inchiKey.length() != 14) {
+			String compoundGroupId = inchiKey.substring(0, inchiKey.indexOf("-"));
+			if (compoundGroupId.length() != 14) {
 				LOG.info(String.format("Bad InChIKey value: %s, %s .", cid, cols[0]));
 				continue;
 			}
 			Item item = createItem("PubChemCompound");
 			item.setAttribute("identifier", String.format("PubChem: %s", cid));
+			item.setAttribute("inchiKey", inchiKey);
 			item.setAttribute("pubChemCid", cid);
 			String name = cidNameMap.get(cid);
 			// if name is not available, use identifier instead; should not happen.
@@ -100,7 +103,7 @@ public class PubchemConverter extends BioFileConverter {
 				LOG.error(String.format("Compound name not found. cid: %s", cid));
 			}
 			item.setAttribute("name", name);
-			item.setReference("compoundGroup", getCompoundGroup(inchiKey, name));
+			item.setReference("compoundGroup", getCompoundGroup(compoundGroupId, name));
 			store(item);
 		}
 	}

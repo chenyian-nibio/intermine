@@ -28,9 +28,9 @@ import org.intermine.xml.full.Item;
 
 /**
  * 
- * @author Chen Yi-An
+ * @author chenyian
  * @since 2009/6/24
- * @refactoring 2012/5/14
+ * 2012/8/15 modified
  */
 public class LigandExpoConverter extends BioFileConverter {
 
@@ -68,7 +68,7 @@ public class LigandExpoConverter extends BioFileConverter {
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
 
-			Item het = createItem("HetGroup");
+			Item het = createItem("PDBCompound");
 			het.setAttribute("hetId", cols[0]);
 			String name = hetNameMap.get(cols[0]);
 			if (name != null) {
@@ -76,9 +76,16 @@ public class LigandExpoConverter extends BioFileConverter {
 			}
 			String inchiKey = inchiKeyMap.get(cols[0]);
 			if (inchiKey != null) {
-				het.setReference("compoundGroup", getCompoundGroup(inchiKey, name));
+				het.setAttribute("inchiKey", inchiKey);
+
+				String compoundGroupId = inchiKey.substring(0, inchiKey.indexOf("-"));
+				if (compoundGroupId.length() == 14) {
+					het.setReference("compoundGroup", getCompoundGroup(compoundGroupId, name));
+				} else {
+					LOG.info(String.format("Bad InChIKey value: %s, %s .", cols[1], cols[0]));
+				}
 			}
-			het.setAttribute("identifier", String.format("HetGroup: %s", cols[0]));
+			het.setAttribute("identifier", String.format("PDBCompound: %s", cols[0]));
 
 			String allPdbId = cols[1];
 			StringUtils.chomp(allPdbId);
@@ -151,11 +158,7 @@ public class LigandExpoConverter extends BioFileConverter {
 				LOG.info("Empty InChIKey for id :" + cols[1]);
 				continue;
 			}
-			String inchiKey = cols[0].substring(0, cols[0].indexOf("-"));
-			if (inchiKey.length() != 14) {
-				LOG.info(String.format("Bad InChIKey value: %s, %s .", cols[1], cols[0]));
-				continue;
-			}
+			String inchiKey = cols[0];
 			inchiKeyMap.put(cols[1], inchiKey);
 		}
 	}

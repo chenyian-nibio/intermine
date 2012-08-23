@@ -1,0 +1,4 @@
+<project name="retrieve-publication-local-tasks" default="default" basedir=".">
+  <description>build retrieve-publication-local tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>
