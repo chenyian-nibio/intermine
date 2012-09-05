@@ -25,6 +25,7 @@ import org.intermine.objectstore.query.QueryValue;
 import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.web.logic.widget.EnrichmentWidgetLdr;
 
+@Deprecated
 public class ProteinPathwayDataLoader extends EnrichmentWidgetLdr {
 
 	private String dataset;

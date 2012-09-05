@@ -1,13 +1,12 @@
 package org.intermine.bio.web.widget;
 
-import org.apache.log4j.Logger;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.web.logic.widget.EnrichmentWidgetLdr;
 
 public class PathwayDataSetLoader extends EnrichmentGraphDataSetLoader {
 
-	private static final Logger LOG = Logger.getLogger(PathwayDataSetLoader.class);
+//	private static final Logger LOG = Logger.getLogger(PathwayDataSetLoader.class);
 
 	public PathwayDataSetLoader(InterMineBag bag, ObjectStore os, String extra) {
 		super();

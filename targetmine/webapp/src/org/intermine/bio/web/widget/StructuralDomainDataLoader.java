@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.bio.util.BioUtil;
 import org.intermine.metadata.Model;
+import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.Organism;
 import org.intermine.model.bio.Protein;
 import org.intermine.objectstore.ObjectStore;
@@ -42,8 +43,11 @@ public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
 
 	@Override
 	public Query getQuery(String action, List<String> keys) {
+		
+		String bagType = bag.getType();
 
 		// classes for FROM clause
+		QueryClass qcGene = new QueryClass(Gene.class);
 		QueryClass qcProtein = new QueryClass(Protein.class);
 		QueryClass qcStructuralDomainRegion;
 		QueryClass qcCathChild;
@@ -64,13 +68,21 @@ public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
 			// can't handle an exception thrown here.
 			return null;
 		}
-
+		
 		// fields for SELECT clause
-		QueryField qfProteinId = new QueryField(qcProtein, "id");
+		QueryField qfId = null;
+		QueryField qfDisplayId = null;
 		QueryField qfOrganismName = new QueryField(qcOrganism, "name");
 		QueryField qfCathCode = new QueryField(qcCathParent, "cathCode");
 		QueryField qfCathDescription = new QueryField(qcCathParent, "description");
-		QueryField qfPrimaryAccession = new QueryField(qcProtein, "primaryAccession");
+
+		if ("Protein".equals(bagType)) {
+			qfId = new QueryField(qcProtein, "id");
+			qfDisplayId = new QueryField(qcProtein, "primaryAccession");
+		} else if ("Gene".equals(bagType)) {
+			qfId = new QueryField(qcGene, "id");
+			qfDisplayId = new QueryField(qcGene, "ncbiGeneNumber");
+		}
 
 		// constraints
 		ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
@@ -84,7 +96,7 @@ public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
 
 		// constrain genes to be in list
 		if (!action.startsWith("population")) {
-			cs.addConstraint(new BagConstraint(qfProteinId, ConstraintOp.IN, bag.getOsb()));
+			cs.addConstraint(new BagConstraint(qfId, ConstraintOp.IN, bag.getOsb()));
 		}
 
 		// organism in our list
@@ -105,10 +117,18 @@ public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
 		QueryCollectionReference qcrParent = new QueryCollectionReference(qcCathChild, "parents");
 		cs.addConstraint(new ContainsConstraint(qcrParent, ConstraintOp.CONTAINS, qcCathParent));
 
+        if ("Gene".equals(bagType)) {
+            QueryCollectionReference qcr2 = new QueryCollectionReference(qcGene, "proteins");
+            cs.addConstraint(new ContainsConstraint(qcr2, ConstraintOp.CONTAINS, qcProtein));
+        }
+        
 		Query q = new Query();
 		q.setDistinct(true);
 
 		// from statement
+        if ("Gene".equals(bagType)) {
+        	q.addFrom(qcGene);
+        }
 		q.addFrom(qcProtein);
 		q.addFrom(qcStructuralDomainRegion);
 		q.addFrom(qcCathChild);
@@ -120,17 +140,17 @@ public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
 
 		// needed for the 'not analysed' number
 		if (action.equals("analysed")) {
-			q.addToSelect(qfProteinId);
+			q.addToSelect(qfId);
 			// export query
 			// needed for export button on widget
 		} else if (action.equals("export")) {
 			q.addToSelect(qfCathCode);
-			q.addToSelect(qfPrimaryAccession);
+			q.addToSelect(qfDisplayId);
 			q.addToOrderBy(qfCathCode);
 			// total queries
 			// needed for enrichment calculations
 		} else if (action.endsWith("Total")) { // n and N
-			q.addToSelect(qfProteinId);
+			q.addToSelect(qfId);
 			Query subQ = q;
 			q = new Query();
 			q.addFrom(subQ);
@@ -145,7 +165,7 @@ public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
 
             // subquery
             Query subq = q;
-            subq.addToSelect(qfProteinId);
+            subq.addToSelect(qfId);
             subq.addToSelect(qfCathCode);
 
             QueryField qfName = null;

@@ -24,6 +24,7 @@ import org.intermine.objectstore.query.QueryObjectReference;
 import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.web.logic.widget.EnrichmentWidgetLdr;
 
+@Deprecated
 public class GeneDrugDataLoader extends EnrichmentWidgetLdr {
 
 	private static final Logger LOG = Logger.getLogger(GeneDrugDataLoader.class);

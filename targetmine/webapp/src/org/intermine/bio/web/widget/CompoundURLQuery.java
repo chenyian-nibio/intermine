@@ -8,8 +8,8 @@ import org.intermine.pathquery.Constraints;
 import org.intermine.pathquery.OrderDirection;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.web.logic.widget.WidgetURLQuery;
-@Deprecated
-public class DrugURLQuery implements WidgetURLQuery {
+
+public class CompoundURLQuery implements WidgetURLQuery {
 
 	private ObjectStore os;
 	private InterMineBag bag;
@@ -20,7 +20,7 @@ public class DrugURLQuery implements WidgetURLQuery {
 	 * @param bag
 	 * @param key
 	 */
-	public DrugURLQuery(ObjectStore os, InterMineBag bag, String key) {
+	public CompoundURLQuery(ObjectStore os, InterMineBag bag, String key) {
 		super();
 		this.os = os;
 		this.bag = bag;
@@ -33,23 +33,23 @@ public class DrugURLQuery implements WidgetURLQuery {
 		PathQuery q = new PathQuery(os.getModel());
 		if (bagType.equals("Gene")) {
 			q.addViews("Gene.ncbiGeneNumber", "Gene.symbol", "Gene.name",
-					"Gene.proteins.drugs.drug.drugBankId", "Gene.proteins.drugs.drug.genericName");
+					"Gene.compounds.compound.identifier", "Gene.proteins.compounds.compound.name");
 			q.addConstraint(Constraints.in(bag.getType(), bag.getName()));
 			if (!showAll) {
 				String[] keys = key.split(",");
-				q.addConstraint(Constraints.oneOfValues("Gene.proteins.drugs.drug.drugBankId",
-						Arrays.asList(keys)));
+				q.addConstraint(Constraints.oneOfValues(
+						"Gene.proteins.compounds.compound.identifier", Arrays.asList(keys)));
 			}
 			q.addOrderBy("Gene.ncbiGeneNumber", OrderDirection.ASC);
 
 		} else if (bagType.equals("Protein")) {
 			q.addViews("Protein.primaryAccession", "Protein.name", "Protein.organism.name",
-					"Protein.drugs.drug.drugBankId", "Protein.drugs.drug.genericName");
+					"Protein.compounds.compound.identifier", "Protein.compounds.compound.name");
 			q.addConstraint(Constraints.in(bag.getType(), bag.getName()));
 			if (!showAll) {
 				String[] keys = key.split(",");
-				q.addConstraint(Constraints.oneOfValues("Protein.drugs.drug.drugBankId", Arrays
-						.asList(keys)));
+				q.addConstraint(Constraints.oneOfValues("Protein.compounds.compound.identifier",
+						Arrays.asList(keys)));
 			}
 			q.addOrderBy("Protein.primaryAccession", OrderDirection.ASC);
 		} else {

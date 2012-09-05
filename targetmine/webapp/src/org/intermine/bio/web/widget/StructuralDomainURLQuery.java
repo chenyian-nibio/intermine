@@ -30,21 +30,27 @@ public class StructuralDomainURLQuery implements WidgetURLQuery {
 
 	@Override
 	public PathQuery generatePathQuery(boolean showAll) throws PathException {
-		// String bagType = bag.getType();
+		String bagType = bag.getType();
+
+		String prefix = (bagType.equals("Protein") ? "Protein" : "Gene.proteins");
 
 		PathQuery q = new PathQuery(os.getModel());
-		q.addViews("Protein.primaryAccession", "Protein.name", "Protein.organism.name",
-				"Protein.structuralDomains.cathClassification.parents.cathCode",
-				"Protein.structuralDomains.cathClassification.parents.cathDomainName",
-				"Protein.structuralDomains.cathClassification.parents.description");
+		if (bagType.equals("Gene")) {
+			q.addViews("Gene.ncbiGeneNumber", "Gene.symbol");
+		}
+		q.addViews(prefix + ".primaryAccession", prefix + ".name", prefix + ".organism.shortName",
+				prefix + ".structuralDomains.cathClassification.parents.cathCode", prefix
+						+ ".structuralDomains.cathClassification.parents.cathDomainName", prefix
+						+ ".structuralDomains.cathClassification.parents.description");
 		q.addConstraint(Constraints.in(bag.getType(), bag.getName()));
 		if (!showAll) {
 			String[] keys = key.split(",");
-			q.addConstraint(Constraints.oneOfValues(
-					"Protein.structuralDomains.cathClassification.parents.cathCode", Arrays
-							.asList(keys)));
+			q.addConstraint(Constraints.oneOfValues(prefix
+					+ ".structuralDomains.cathClassification.parents.cathCode", Arrays.asList(keys)));
 		}
-		q.addOrderBy("Protein.primaryAccession", OrderDirection.ASC);
+
+		q.addOrderBy(prefix + ".structuralDomains.cathClassification.parents.cathCode",
+				OrderDirection.ASC);
 
 		return q;
 	}

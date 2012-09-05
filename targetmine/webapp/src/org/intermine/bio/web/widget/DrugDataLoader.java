@@ -28,6 +28,7 @@ import org.intermine.web.logic.widget.EnrichmentWidgetLdr;
  * @author chenyian
  *
  */
+@Deprecated
 public class DrugDataLoader extends EnrichmentWidgetLdr {
 	private static final Logger LOG = Logger.getLogger(DrugDataLoader.class);
     private Model model;

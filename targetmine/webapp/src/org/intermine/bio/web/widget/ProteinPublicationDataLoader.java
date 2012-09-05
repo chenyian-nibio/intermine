@@ -27,7 +27,7 @@ import org.intermine.web.logic.widget.EnrichmentWidgetLdr;
  * 
  * @author chenyian
  */
-
+@Deprecated
 public class ProteinPublicationDataLoader extends EnrichmentWidgetLdr {
 
 	/**

@@ -2,12 +2,13 @@ package org.intermine.bio.web.widget;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.bio.util.BioUtil;
+import org.intermine.metadata.Model;
 import org.intermine.model.bio.DataSet;
 import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.Organism;
-import org.intermine.model.bio.Pathway;
 import org.intermine.model.bio.Protein;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.query.BagConstraint;
@@ -25,42 +26,52 @@ import org.intermine.objectstore.query.QueryValue;
 import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.web.logic.widget.EnrichmentWidgetLdr;
 
-/**
- * 
- * @author chenyian
- *
- */
-public class PathwayDataLoader extends EnrichmentWidgetLdr {
-	
+public class CompoundDataLoader extends EnrichmentWidgetLdr {
+
+	private static final Logger LOG = Logger.getLogger(CompoundDataLoader.class);
+	private Model model;
 	private String dataset;
 
-	public PathwayDataLoader(InterMineBag bag, ObjectStore os, String extraAttribute) {
+	public CompoundDataLoader(InterMineBag bag, ObjectStore os, String extraAttribute) {
 		this.bag = bag;
 		organisms = BioUtil.getOrganisms(os, bag, false);
-		//  having attributes lowercase increases the chances the indexes will be used
+		// having attributes lowercase increases the chances the indexes will be used
 		for (String s : organisms) {
 			organismsLower.add(s.toLowerCase());
 		}
+		model = os.getModel();
 		dataset = extraAttribute;
 	}
 
 	@Override
 	public Query getQuery(String action, List<String> keys) {
-
+		
 		String bagType = bag.getType();
 
 		// classes for FROM clause
-		QueryClass qcProtein = new QueryClass(Protein.class);
 		QueryClass qcGene = new QueryClass(Gene.class);
-		QueryClass qcPathway = new QueryClass(Pathway.class);
+		QueryClass qcProtein = new QueryClass(Protein.class);
 		QueryClass qcOrganism = new QueryClass(Organism.class);
+		QueryClass qcCompoundProteinInteraction;
+		QueryClass qcCompound;
+
+		try {
+			qcCompoundProteinInteraction = new QueryClass(Class.forName(model.getPackageName()
+					+ ".CompoundProteinInteraction"));
+			qcCompound = new QueryClass(Class.forName(model.getPackageName() + ".Compound"));
+		} catch (ClassNotFoundException e) {
+			LOG.error("Error rendering compound enrichment widget", e);
+			return null;
+		}
 
 		// fields for SELECT clause
 		QueryField qfId = null;
 		QueryField qfDisplayId = null;
+//		QueryField qfProteinId = new QueryField(qcProtein, "id");
 		QueryField qfOrganismName = new QueryField(qcOrganism, "name");
-		QueryField qfPathwayId = new QueryField(qcPathway, "identifier");
-		QueryField qfPathwayName = new QueryField(qcPathway, "name");
+		QueryField qfCompoundId = new QueryField(qcCompound, "identifier");
+		QueryField qfCompoundName = new QueryField(qcCompound, "name");
+//		QueryField qfPrimaryAccession = new QueryField(qcProtein, "primaryAccession");
 
 		if ("Protein".equals(bagType)) {
 			qfId = new QueryField(qcProtein, "id");
@@ -75,7 +86,7 @@ public class PathwayDataLoader extends EnrichmentWidgetLdr {
 
 		// constrain genes to be in subset of list the user selected
 		if (keys != null) {
-			cs.addConstraint(new BagConstraint(qfPathwayId, ConstraintOp.IN, keys));
+			cs.addConstraint(new BagConstraint(qfCompoundId, ConstraintOp.IN, keys));
 		}
 
 		// constrain genes to be in list
@@ -88,51 +99,60 @@ public class PathwayDataLoader extends EnrichmentWidgetLdr {
 		cs.addConstraint(new BagConstraint(qe, ConstraintOp.IN, organismsLower));
 
 		// gene.organism = organism
-		QueryObjectReference qor = new QueryObjectReference(qcGene, "organism");
+		QueryObjectReference qor = new QueryObjectReference(qcProtein, "organism");
 		cs.addConstraint(new ContainsConstraint(qor, ConstraintOp.CONTAINS, qcOrganism));
 
-		// gene.pathways = pathway
-		QueryCollectionReference qcr = new QueryCollectionReference(qcGene, "pathways");
-		cs.addConstraint(new ContainsConstraint(qcr, ConstraintOp.CONTAINS, qcPathway));
+		// gene.publication = publication
+		QueryCollectionReference qcr = new QueryCollectionReference(qcProtein, "compounds");
+		cs.addConstraint(new ContainsConstraint(qcr, ConstraintOp.CONTAINS,
+				qcCompoundProteinInteraction));
 
-        if ("Protein".equals(bagType)) {
-            QueryCollectionReference c10 = new QueryCollectionReference(qcProtein, "genes");
-            cs.addConstraint(new ContainsConstraint(c10, ConstraintOp.CONTAINS, qcGene));
-        } 
+		QueryObjectReference qorCmp = new QueryObjectReference(qcCompoundProteinInteraction,
+				"compound");
+		cs.addConstraint(new ContainsConstraint(qorCmp, ConstraintOp.CONTAINS, qcCompound));
+
+        if ("Gene".equals(bagType)) {
+            QueryCollectionReference qcr2 = new QueryCollectionReference(qcGene, "proteins");
+            cs.addConstraint(new ContainsConstraint(qcr2, ConstraintOp.CONTAINS, qcProtein));
+        }
         
 		Query q = new Query();
 		q.setDistinct(true);
 
 		// from statement
-        if ("Protein".equals(bagType)) {
-        	q.addFrom(qcProtein);
+        if ("Gene".equals(bagType)) {
+        	q.addFrom(qcGene);
         }
-		q.addFrom(qcGene);
-		q.addFrom(qcPathway);
+		q.addFrom(qcProtein);
+		q.addFrom(qcCompoundProteinInteraction);
+		q.addFrom(qcCompound);
 		q.addFrom(qcOrganism);
-		
+
 		// constraint for dataset
 		if (!dataset.equals("All datasets")) {
 			String dataSetName = "";
-			if (dataset.equals("KEGG")){
-				dataSetName = "KEGG pathways data set";
-			} else if (dataset.equals("Reactome")){
-				dataSetName = "Reactome data set";
-			} else if (dataset.equals("NCI")){
-				dataSetName = "NCI-Nature data set";
+			if (dataset.equals("ChEMBL")) {
+				dataSetName = "ChEMBL";
+			} else if (dataset.equals("DrugBank")) {
+				dataSetName = "DrugBank";
+			} else if (dataset.equals("Stitch")) {
+				dataSetName = "STITCH";
+			} else if (dataset.equals("PDB")) {
+				dataSetName = "Ligand Expo";
 			}
-			
-            QueryClass qcDataset = new QueryClass(DataSet.class);
-            QueryField qfDataset = new QueryField(qcDataset, "name");
 
-            QueryCollectionReference qcr2 = new QueryCollectionReference(qcPathway, "dataSets");
-            cs.addConstraint(new ContainsConstraint(qcr2, ConstraintOp.CONTAINS, qcDataset));
+			QueryClass qcDataset = new QueryClass(DataSet.class);
+			QueryField qfDataset = new QueryField(qcDataset, "name");
 
-            QueryExpression qe2 = new QueryExpression(QueryExpression.LOWER, qfDataset);
-            cs.addConstraint(new SimpleConstraint(qe2, ConstraintOp.EQUALS,
-                                                  new QueryValue(dataSetName.toLowerCase())));
+			QueryObjectReference qor2 = new QueryObjectReference(
+					qcCompoundProteinInteraction, "dataSet");
+			cs.addConstraint(new ContainsConstraint(qor2, ConstraintOp.CONTAINS, qcDataset));
 
-            q.addFrom(qcDataset);
+			QueryExpression qe2 = new QueryExpression(QueryExpression.LOWER, qfDataset);
+			cs.addConstraint(new SimpleConstraint(qe2, ConstraintOp.EQUALS, new QueryValue(
+					dataSetName.toLowerCase())));
+
+			q.addFrom(qcDataset);
 		}
 
 		// add constraints to query
@@ -144,9 +164,9 @@ public class PathwayDataLoader extends EnrichmentWidgetLdr {
 			// export query
 			// needed for export button on widget
 		} else if (action.equals("export")) {
-			q.addToSelect(qfPathwayId);
+			q.addToSelect(qfCompoundId);
 			q.addToSelect(qfDisplayId);
-			q.addToOrderBy(qfPathwayId);
+			q.addToOrderBy(qfCompoundId);
 			// total queries
 			// needed for enrichment calculations
 		} else if (action.endsWith("Total")) {
@@ -157,12 +177,12 @@ public class PathwayDataLoader extends EnrichmentWidgetLdr {
 			q.addToSelect(new QueryFunction()); // gene count
 			// needed for enrichment calculations
 		} else {
-			q.addToSelect(qfPathwayId);
-			q.addToGroupBy(qfPathwayId);
+			q.addToSelect(qfCompoundId);
+			q.addToGroupBy(qfCompoundId);
 			q.addToSelect(new QueryFunction()); // gene count
 			if (action.equals("sample")) {
-				q.addToSelect(qfPathwayName);
-				q.addToGroupBy(qfPathwayName);
+				q.addToSelect(qfCompoundName);
+				q.addToGroupBy(qfCompoundName);
 			}
 		}
 		return q;
