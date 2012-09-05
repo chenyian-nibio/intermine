@@ -44,7 +44,11 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  * Differs from UniProtConverter in that this Converter creates proper protein items.
  * UniProtConverter creates protein objects, that are really uniprot entries.
+ * <p>
+ * For the convenience of upgrading TargetMine, the source was separated.
+ * </p>
  * @author Julie Sullivan
+ * @author chenyian - modified some parts to satisfied TargetMine's needs
  */
 public class UniprotConverter extends BioDirectoryConverter
 {
@@ -339,6 +343,16 @@ public class UniprotConverter extends BioDirectoryConverter
                     && getAttrValue(attrs, "position") != null) {
                 entry.addFeatureLocation("begin", getAttrValue(attrs, "position"));
                 entry.addFeatureLocation("end", getAttrValue(attrs, "position"));
+				// chenyian: retrieve IPI ids
+			} else if ("dbReference".equals(qName) && "IPI".equals(getAttrValue(attrs, "type"))) {
+				entry.addIpiId(getAttrValue(attrs, "id"));
+				// chenyian: retrieve RefSeq ids
+			} else if ("dbReference".equals(qName) && "RefSeq".equals(getAttrValue(attrs, "type"))) {
+				entry.addRefSeqProteinId(getAttrValue(attrs, "id"));
+				// chenyian: retrieve Ensembl protein ids
+			} else if ("property".equals(qName) && "dbReference".equals(previousQName)
+					&& "protein sequence ID".equals(getAttrValue(attrs, "type"))) {
+				entry.addEnsemblProteinId(getAttrValue(attrs, "value"));
             } else if (createInterpro && "dbReference".equals(qName)
                     && "InterPro".equals(getAttrValue(attrs, "type"))) {
                 entry.addAttribute(getAttrValue(attrs, "id"));
@@ -485,12 +499,14 @@ public class UniprotConverter extends BioDirectoryConverter
             } else if ("entry".equals(qName)) {
                 try {
                     processCommentEvidence(entry);
-                    Set<UniprotEntry> isoforms = processEntry(entry);
-                    if (isoforms != null) {
-                        for (UniprotEntry isoform : isoforms) {
-                            processEntry(isoform);
-                        }
-                    }
+					// chenyian: don't process isoforms
+					processEntry(entry);
+//                    Set<UniprotEntry> isoforms = processEntry(entry);
+//                    if (isoforms != null) {
+//                        for (UniprotEntry isoform : isoforms) {
+//                            processEntry(isoform);
+//                        }
+//                    }
                 } catch (ObjectStoreException e) {
                     throw new SAXException(e);
                 }
@@ -769,6 +785,19 @@ public class UniprotConverter extends BioDirectoryConverter
                 }
             }
 
+			// chenyian: IPI identifiers
+			for (String ipiId : entry.getIpiIds()) {
+				createSynonym(proteinRefId, ipiId, true);
+			}
+			// chenyian: RefSeq identifiers
+			for (String refSeqId : entry.getRefSeqProteinIds()) {
+				createSynonym(proteinRefId, refSeqId, true);
+			}
+			// chenyian: Ensembl protein identifiers
+			for (String ensemblProteinId : entry.getEnsemblProteinIds()) {
+				createSynonym(proteinRefId, ensemblProteinId, true);
+			}
+
             // store xrefs and other synonyms we've created elsewhere
             for (Item item : synonymsAndXrefs) {
                 if (item == null) {
@@ -812,7 +841,7 @@ public class UniprotConverter extends BioDirectoryConverter
             for (Map.Entry<String, Set<String>> dbref : dbrefs.entrySet()) {
                 String key = dbref.getKey();
                 Set<String> values = dbref.getValue();
-                if ("GO".equalsIgnoreCase(key)) {
+                if ("GO".equals(key)) {
                     for (String goTerm : values) {
                         String code = getGOEvidenceCode(entry.getGOEvidence(goTerm));
                         Item goEvidence = createItem("GOEvidence");

@@ -1,0 +1,5 @@
+<project name="tm-go-annotation" default="default" basedir=".">
+  <description>build, test, package tm-go-annotation</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

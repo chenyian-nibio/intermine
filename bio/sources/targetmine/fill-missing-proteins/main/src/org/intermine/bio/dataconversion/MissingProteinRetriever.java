@@ -44,7 +44,7 @@ public class MissingProteinRetriever {
 	protected static final int BATCH_SIZE = 200;
 
 	// number of times to try the same bacth from the server
-	private static final int MAX_TRIES = 5;
+//	private static final int MAX_TRIES = 5;
 
 	private Pattern SQ_PATTERN = Pattern.compile("SQ   SEQUENCE\\s+(\\d+) AA;\\s+(\\d+) MW;.*");
 
@@ -152,10 +152,6 @@ public class MissingProteinRetriever {
 									p.setAttribute("molecularWeight", ph.molecularWeight);
 									p.setAttribute("length", ph.length);
 
-									// LOG.info("Create a protein object: " + ph.primaryIdentifier +
-									// ", "
-									// + ph.primaryAccession + " (" + ph.taxonId + ")");
-//									LOG.info("Create a protein object: " + ph);
 									toStore.add(p);
 									createdProteinAccs.add(pAcc);
 								} else {
@@ -182,22 +178,10 @@ public class MissingProteinRetriever {
 						} else if (l.startsWith("DE")) {
 							String de = l.substring(5);
 							if (de.startsWith("RecName")) {
-								// Matcher matcher = NAME_PATTERN.matcher(de);
-								// if (matcher.matches()) {
-								// ph.name = matcher.group(1);
-								// }
 								ph.name = de.substring(de.indexOf("=") + 1, de.indexOf(";"));
 							} else if (de.startsWith("SubName") && ph.name == null) {
-								// Matcher matcher = NAME_PATTERN.matcher(de);
-								// if (matcher.matches()) {
-								// ph.name = matcher.group(1);
-								// }
 								ph.name = de.substring(de.indexOf("=") + 1, de.indexOf(";"));
 							} else if (de.trim().startsWith("EC=")) {
-								// Matcher matcher = EC_PATTERN.matcher(de);
-								// if (matcher.matches()) {
-								// ph.ecNumber = matcher.group(1);
-								// }
 								ph.ecNumber = de.substring(de.indexOf("=") + 1, de.indexOf(";"));
 							}
 						} else if (l.startsWith("SQ")) {
@@ -216,7 +200,6 @@ public class MissingProteinRetriever {
 					}
 					accIds.clear();
 					toStore.clear();
-					// break;
 				}
 			}
 
@@ -259,7 +242,7 @@ public class MissingProteinRetriever {
 
 		q.setConstraint(sc);
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		List<Protein> ret = (List<Protein>) ((List) os.executeSingleton(q));
 
 		return ret;

@@ -1,0 +1,5 @@
+<project name="tm-uniprot" default="default" basedir=".">
+  <description>build, test, package tm-uniprot</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

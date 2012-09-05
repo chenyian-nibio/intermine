@@ -1,0 +1,4 @@
+<project name="tm-uniprot-tasks" default="default" basedir=".">
+  <description>build tm-uniprot tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

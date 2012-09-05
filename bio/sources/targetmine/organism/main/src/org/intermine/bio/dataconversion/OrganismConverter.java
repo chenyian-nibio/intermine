@@ -138,7 +138,7 @@ public class OrganismConverter extends FileConverter {
 		return item.getIdentifier();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private List<String> getAllTaxonIds() throws Exception {
 		Query q = new Query();
 		QueryClass c = new QueryClass(Class.forName("org.intermine.model.bio." + processClass));

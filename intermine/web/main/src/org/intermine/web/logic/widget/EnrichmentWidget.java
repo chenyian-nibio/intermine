@@ -12,6 +12,7 @@ package org.intermine.web.logic.widget;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -231,13 +232,36 @@ public class EnrichmentWidget extends Widget
 
                 String label = labelToId.get(id);
                 if (config.getExternalLink() != null && !"".equals(config.getExternalLink())) {
-                    label += " <a href=\"" + config.getExternalLink() + id
-                             + "\" target=\"_new\" class=\"extlink\">[";
-                    if (config.getExternalLinkLabel() != null
-                        && !"".equals(config.getExternalLinkLabel())) {
-                        label += config.getExternalLinkLabel();
-                    }
-                    label += id + "]</a>";
+                	// chenyian: to allow external link for difference data set;
+                	// the value of externalLink should start with 'multi:' and the class
+                	// for generating external link tag was separated with a space.
+                	if (config.getExternalLink().startsWith("multi:")){
+                		String elClassName = config.getExternalLink().split(" ")[1];
+                		try {
+							Class<?> elc = Class.forName(elClassName);
+							Object instance = elc.newInstance();
+//							if (instance instanceof WidgetExternalLink) {
+//								WidgetExternalLink extLinkObj = (WidgetExternalLink) instance;
+//								String externalLink = extLinkObj.getExternalLink(id);
+//								label += externalLink;
+//							} else {
+//								LOG.error(elClassName + " is not a WidgetExternalLink class.");
+//							}
+							Method method = elc.getMethod("getExternalLink", String.class);
+							String extLink = (String) method.invoke(instance, id);
+							label += extLink;
+						} catch (Exception e) {
+							LOG.error(e.getMessage(), e);
+						}
+                	} else {
+                		label += " <a href=\"" + config.getExternalLink() + id
+                				+ "\" target=\"_new\" class=\"extlink\">[";
+                		if (config.getExternalLinkLabel() != null
+                				&& !"".equals(config.getExternalLinkLabel())) {
+                			label += config.getExternalLinkLabel();
+                		}
+                		label += id + "]</a>";
+                	}
                 }
                 row.add(new String[] {label});
 

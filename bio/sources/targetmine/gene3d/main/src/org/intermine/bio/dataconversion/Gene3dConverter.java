@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -29,7 +28,7 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class Gene3dConverter extends BioFileConverter {
-	private static final Logger LOG = Logger.getLogger(Gene3dConverter.class);
+//	private static final Logger LOG = Logger.getLogger(Gene3dConverter.class);
 	//
 	private static final String DATASET_TITLE = "Gene3D";
 	private static final String DATA_SOURCE_NAME = "Gene3D";

@@ -9,7 +9,6 @@ import org.apache.log4j.Logger;
 import org.intermine.bio.util.Constants;
 import org.intermine.metadata.ClassDescriptor;
 import org.intermine.metadata.Model;
-import org.intermine.model.bio.DataSet;
 import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.Pathway;
 import org.intermine.model.bio.Protein;

@@ -24,8 +24,11 @@ import org.intermine.xml.full.Item;
 
 /**
  * holder class representing an entry in uniprot xml
+ * <p>
+ * For the convenience of upgrading TargetMine, the source was separated.
+ * </p>
  * @author julie
- *
+ * @author chenyian - modified some parts to satisfied TargetMine's needs
  */
 public class UniprotEntry
 {
@@ -56,6 +59,31 @@ public class UniprotEntry
     private Item feature = null;
     private Dbref dbref = null;
     private Comment comment = null; //<comment><text> ... being processed
+
+    // chenyian: for IPI ids
+    private List<String> ipiIds = new ArrayList<String>();
+    public void addIpiId(String ipiId) {
+        ipiIds.add(ipiId);
+    }
+    public List<String> getIpiIds() {
+    	return ipiIds;
+    }
+    // chenyian: for Ensembl protein ids
+    private List<String> ensemblProteinIds = new ArrayList<String>();
+    public void addEnsemblProteinId(String ensemblProteinId) {
+    	ensemblProteinIds.add(ensemblProteinId);
+    }
+    public List<String> getEnsemblProteinIds() {
+    	return ensemblProteinIds;
+    }
+    // chenyian: for RefSeq protein ids
+    private List<String> refSeqProteinIds = new ArrayList<String>();
+    public void addRefSeqProteinId(String refSeqProteinId) {
+    	refSeqProteinIds.add(refSeqProteinId);
+    }
+    public List<String> getRefSeqProteinIds() {
+    	return refSeqProteinIds;
+    }
 
     /**
      * constructor used for non-isoform entries
