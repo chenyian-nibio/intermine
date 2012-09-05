@@ -37,6 +37,7 @@ public class ChemblDbConverter extends BioDBConverter {
 
 	private Map<String, String> nameMap = new HashMap<String, String>();
 	private Map<String, Set<String>> drugMap = new HashMap<String, Set<String>>();
+	private Map<String, Set<String>> synonymMap = new HashMap<String, Set<String>>();
 
 	private Map<String, String> proteinMap = new HashMap<String, String>();
 	private Map<String, String> compoundMap = new HashMap<String, String>();
@@ -76,8 +77,7 @@ public class ChemblDbConverter extends BioDBConverter {
 				+ " join assays as ass on ass.assay_id=act.assay_id "
 				+ " join assay2target as a2t on a2t.assay_id=ass.assay_id "
 				+ " where compound_name is not null " + " and standard_type  = 'IC50' "
-				+ " and standard_value <= 10 " + " and standard_units = 'nM' "
-				+ " and curated_by = 'Expert' ";
+				+ " and standard_units = 'nM' " + " and curated_by = 'Expert' ";
 		ResultSet resName = stmt.executeQuery(queryName);
 		while (resName.next()) {
 			String molId = String.valueOf(resName.getInt("cr.molregno"));
@@ -87,6 +87,11 @@ public class ChemblDbConverter extends BioDBConverter {
 			if (value == null || value.length() > name.length()) {
 				nameMap.put(molId, name);
 			}
+			// also save these names as synonyms
+			if (synonymMap.get(molId) == null) {
+				synonymMap.put(molId, new HashSet<String>());
+			}
+			synonymMap.get(molId).add(name);
 		}
 
 		String queryDrug = "select distinct molregno, trade_name " + " from formulations as fo "
@@ -101,20 +106,29 @@ public class ChemblDbConverter extends BioDBConverter {
 			}
 			drugMap.get(molId).add(tradeName);
 		}
+		String querySynonym = "select distinct molregno, synonyms "
+				+ " from molecule_synonyms where syn_type != 'RESEARCH_CODE'";
+		ResultSet resSynonym = stmt.executeQuery(querySynonym);
+		while (resSynonym.next()) {
+			String molId = String.valueOf(resSynonym.getInt("molregno"));
+			String synonym = resSynonym.getString("synonyms");
+			if (synonymMap.get(molId) == null) {
+				synonymMap.put(molId, new HashSet<String>());
+			}
+			synonymMap.get(molId).add(synonym);
+		}
 
-		// String query = "SELECT compound_id, structure FROM structures WHERE type = 'InChIKey';";
 		String queryInteraction = " select distinct md.molregno, md.chembl_id, md.molecule_type, "
-				+ " act.standard_value, td.protein_accession, docs.pubmed_id, cs.standard_inchi_key "
-				+ " from activities as act "
+				+ " act.standard_value, td.protein_accession, docs.pubmed_id, "
+				+ " cs.standard_inchi_key " + " from activities as act "
 				+ " join molecule_dictionary as md on md.molregno=act.molregno "
 				+ " join assays as ass on ass.assay_id=act.assay_id "
 				+ " join assay2target as a2t on a2t.assay_id=ass.assay_id "
 				+ " join target_dictionary as td on td.tid=a2t.tid "
 				+ " join docs on docs.doc_id=ass.doc_id "
 				+ " join compound_structures as cs on cs.molregno=md.molregno "
-				+ " where standard_type = 'IC50' " + " and standard_value <= 10 "
-				+ " and standard_units = 'nM' " + " and protein_accession is not null "
-				+ " and curated_by = 'Expert' ";
+				+ " where standard_type = 'IC50' " + " and standard_units = 'nM' "
+				+ " and protein_accession is not null " + " and curated_by = 'Expert' ";
 		ResultSet resInteraction = stmt.executeQuery(queryInteraction);
 		int i = 0;
 		while (resInteraction.next()) {
@@ -148,14 +162,26 @@ public class ChemblDbConverter extends BioDBConverter {
 				} else {
 					LOG.error(String.format("Bad InChIKey value: %s, %s .", chemblId, inchiKey));
 				}
+				Set<String> synonyms = synonymMap.get(molId);
+				if (synonyms != null) {
+					for (String s : synonyms) {
+						Item bn = createItem("CompoundSynonym");
+						bn.setAttribute("value", s);
+						bn.setReference("compound", compound);
+						store(bn);
+					}
+				}
+
 				Set<String> tradeNames = drugMap.get(molId);
 				if (tradeNames != null) {
 					compound.addToCollection("drugTypes", getDrugType("approved"));
 					for (String tn : tradeNames) {
-						Item bn = createItem("BrandName");
-						bn.setAttribute("name", tn);
-						bn.setReference("compound", compound);
-						store(bn);
+						if (!synonyms.contains(tn)) {
+							Item bn = createItem("CompoundSynonym");
+							bn.setAttribute("value", tn);
+							bn.setReference("compound", compound);
+							store(bn);
+						}
 					}
 				}
 
@@ -165,7 +191,6 @@ public class ChemblDbConverter extends BioDBConverter {
 				// LOG.info(chemblId +"; "+inchiKey+"; "+name+"; "+type);
 			}
 			item.setReference("compound", compoundRef);
-			
 
 			store(item);
 			i++;

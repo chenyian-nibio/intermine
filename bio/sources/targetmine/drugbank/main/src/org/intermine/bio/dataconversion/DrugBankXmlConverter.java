@@ -80,6 +80,7 @@ public class DrugBankXmlConverter extends BioFileConverter {
 			drugItem.setAttribute("identifier", String.format("DrugBank: %s", drugBankId));
 			String name = drug.getFirstChildElement("name", NAMESPACE_URI).getValue();
 			drugItem.setAttribute("name", name);
+			drugItem.setAttribute("genericName", name);
 			String casReg = drug.getFirstChildElement("cas-number", NAMESPACE_URI).getValue();
 			if (!StringUtils.isEmpty(casReg)) {
 				drugItem.setAttribute("casRegistryNumber", casReg);
@@ -136,10 +137,20 @@ public class DrugBankXmlConverter extends BioFileConverter {
 					"brand", NAMESPACE_URI);
 			for (int j = 0; j < brands.size(); j++) {
 				String brandName = brands.get(j).getValue();
-				Item bn = createItem("BrandName");
-				bn.setAttribute("name", brandName);
-				bn.setReference("compound", drugItem);
-				store(bn);
+				Item cs = createItem("CompoundSynonym");
+				cs.setAttribute("value", brandName);
+				cs.setReference("compound", drugItem);
+				store(cs);
+			}
+			// get synonyms
+			Elements synonyms = drug.getFirstChildElement("synonyms", NAMESPACE_URI).getChildElements(
+					"synonym", NAMESPACE_URI);
+			for (int j = 0; j < synonyms.size(); j++) {
+				String brandName = synonyms.get(j).getValue();
+				Item cs = createItem("CompoundSynonym");
+				cs.setAttribute("value", brandName);
+				cs.setReference("compound", drugItem);
+				store(cs);
 			}
 
 			drugItem.addToCollection("drugTypes", getDrugType(drug.getAttribute("type").getValue()));

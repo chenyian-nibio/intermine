@@ -188,20 +188,12 @@ public class GoConverter extends BioFileConverter
             }
             int readColumn = config.readColumn();
             String productId = array[readColumn];
-			// chenyian: to get rid of isoforms
-			if (array[0].startsWith("UniProt")) {
-				productId = productId.replaceFirst("-\\d+$", "");
-			}
 
             String goId = array[4];
             String qualifier = array[3];
             String strEvidence = array[6];
             String withText = array[7];
             if (StringUtils.isNotEmpty(strEvidence)) {
-				// chenyian: skip IEA annotation
-				if (strEvidence.equals("IEA")) {
-					continue;
-				}
                 storeEvidenceCode(strEvidence);
             } else {
                 throw new IllegalArgumentException("Evidence is a required column but not "
@@ -335,13 +327,9 @@ public class GoConverter extends BioFileConverter
 
         goAnnotation.addToCollection("dataSets", getDataset(dataSourceCode));
 
-//        if ("gene".equals(productType)) {
-//            addProductCollection(productIdentifier, goAnnotation.getIdentifier());
-//        }
-		// chenyian: add goAnnotation referene for protein also
-		if ("gene".equals(productType) || "protein".equals(productType)) {
-			addProductCollection(productIdentifier, goAnnotation.getIdentifier());
-		}
+        if ("gene".equals(productType)) {
+            addProductCollection(productIdentifier, goAnnotation.getIdentifier());
+        }
         Integer storedAnnotationId = store(goAnnotation);
         return storedAnnotationId;
     }

@@ -14,7 +14,6 @@
 
 	<class name="Protein" is-interface="true">
 		<collection name="compounds" referenced-type="CompoundProteinInteraction" reverse-reference="protein"/>
-		<collection name="compoundGroupInteractions" referenced-type="ProteinCompoundGroupInteraction" reverse-reference="protein"/>
     </class>
 
 	<class name="PubChemCompound" extends="Compound" is-interface="true">
@@ -28,22 +27,6 @@
 		<attribute name="name" type="java.lang.String"/>
 		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
 		<collection name="targetProteins" referenced-type="CompoundProteinInteraction" reverse-reference="compound"/>
-    </class>
-
-
-	<!-- For post processing; need the source pubchem to integrate CompoundGroup info -->	
-    <class name="CompoundGroup" is-interface="true">
-		<attribute name="identifier" type="java.lang.String"/>
-		<attribute name="name" type="java.lang.String"/>
-		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
-		<collection name="proteinInteractions" referenced-type="ProteinCompoundGroupInteraction" reverse-reference="compoundGroup" />
-    </class>
-
-	<class name="ProteinCompoundGroupInteraction" is-interface="true">
-		<attribute name="identifier" type="java.lang.String"/>
-		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="proteinInteractions"/>
-		<reference name="protein" referenced-type="Protein" reverse-reference="compoundGroupInteractions"/>
-		<reference name="dataSet" referenced-type="DataSet"/>
     </class>
 
 </classes>

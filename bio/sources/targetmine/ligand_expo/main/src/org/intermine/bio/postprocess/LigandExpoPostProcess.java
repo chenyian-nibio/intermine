@@ -38,10 +38,10 @@ public class LigandExpoPostProcess extends PostProcessor {
 
 	@Override
 	public void postProcess() throws ObjectStoreException {
-		createProteinCompoundGroupInteractions();
+		createPDBInteractions();
 	}
 
-	private void createProteinCompoundGroupInteractions() throws ObjectStoreException {
+	private void createPDBInteractions() throws ObjectStoreException {
 
 		dataSet = (DataSet) DynamicUtil.createObject(Collections.singleton(DataSet.class));
 		dataSet.setName("Ligand Expo");
@@ -51,7 +51,7 @@ public class LigandExpoPostProcess extends PostProcessor {
 			return;
 		}
 
-		Results results = findProteinCompoundGroup(osw.getObjectStore());
+		Results results = findProteinPDBCompound(osw.getObjectStore());
 		osw.beginTransaction();
 
 		Iterator<?> resIter = results.iterator();
@@ -59,31 +59,31 @@ public class LigandExpoPostProcess extends PostProcessor {
 		while (resIter.hasNext()) {
 			ResultsRow<?> rr = (ResultsRow<?>) resIter.next();
 			InterMineObject protein = (InterMineObject) rr.get(0);
-			InterMineObject compoundGroup = (InterMineObject) rr.get(1);
+			InterMineObject pdbCompound = (InterMineObject) rr.get(1);
 
-			InterMineObject cgi = (InterMineObject) DynamicUtil.simpleCreateObject(model
-					.getClassDescriptorByName("ProteinCompoundGroupInteraction").getType());
+			InterMineObject interaction = (InterMineObject) DynamicUtil.simpleCreateObject(model
+					.getClassDescriptorByName("PDBInteraction").getType());
 
-			cgi.setFieldValue("protein", protein);
-			cgi.setFieldValue("compoundGroup", compoundGroup);
-			cgi.setFieldValue("dataSet", dataSet);
+			interaction.setFieldValue("protein", protein);
+			interaction.setFieldValue("compound", pdbCompound);
+			interaction.setFieldValue("dataSet", dataSet);
 			try {
 				String primaryAcc = (String) protein.getFieldValue("primaryAccession");
-				String inchiKey = (String) compoundGroup.getFieldValue("identifier");
-				cgi.setFieldValue("identifier", String.format("%s_%s", primaryAcc, inchiKey));
+				String pdbCompoundId = (String) pdbCompound.getFieldValue("identifier");
+				interaction.setFieldValue("identifier", String.format("%s_%s", primaryAcc, pdbCompoundId));
 			} catch (IllegalAccessException e) {
 				throw new RuntimeException(e);
 			}
 
-			osw.store(cgi);
+			osw.store(interaction);
 			i++;
 		}
 
 		osw.commitTransaction();
-		System.out.println(i + " ProteinCompoundGroupInteraction created.");
+		System.out.println(i + " CompoundProteinInteractions created.");
 	}
 
-	protected static Results findProteinCompoundGroup(ObjectStore os) throws ObjectStoreException {
+	protected static Results findProteinPDBCompound(ObjectStore os) throws ObjectStoreException {
 		Query q = new Query();
 		QueryClass qcProtein = new QueryClass(Protein.class);
 		QueryClass qcProteinStructureRegion = new QueryClass(os.getModel()
@@ -96,8 +96,6 @@ public class LigandExpoPostProcess extends PostProcessor {
 				.getClassDescriptorByName("ProteinStructure").getType());
 		QueryClass qcPDBCompound = new QueryClass(os.getModel()
 				.getClassDescriptorByName("PDBCompound").getType());
-		QueryClass qcCompoundGroup = new QueryClass(os.getModel()
-				.getClassDescriptorByName("CompoundGroup").getType());
 
 		q.addFrom(qcProtein);
 		q.addFrom(qcProteinStructureRegion);
@@ -105,14 +103,13 @@ public class LigandExpoPostProcess extends PostProcessor {
 		q.addFrom(qcProteinChain);
 		q.addFrom(qcProteinStructure);
 		q.addFrom(qcPDBCompound);
-		q.addFrom(qcCompoundGroup);
 
 		q.addToSelect(qcProtein);
-		q.addToSelect(qcCompoundGroup);
+		q.addToSelect(qcPDBCompound);
 
 		ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
 
-		// Protein.chemicalInteractions.compound.compoundGroup
+		// Protein.structureRelatedRegion.pdbRegion.chain.structure.pdbCompound
 		QueryCollectionReference c1 = new QueryCollectionReference(qcProtein,
 				"structureRelatedRegion");
 		cs.addConstraint(new ContainsConstraint(c1, ConstraintOp.CONTAINS, qcProteinStructureRegion));
@@ -129,9 +126,6 @@ public class LigandExpoPostProcess extends PostProcessor {
 		QueryCollectionReference c5 = new QueryCollectionReference(qcProteinStructure,
 				"pdbCompounds");
 		cs.addConstraint(new ContainsConstraint(c5, ConstraintOp.CONTAINS, qcPDBCompound));
-
-		QueryObjectReference r6 = new QueryObjectReference(qcPDBCompound, "compoundGroup");
-		cs.addConstraint(new ContainsConstraint(r6, ConstraintOp.CONTAINS, qcCompoundGroup));
 
 		q.setConstraint(cs);
 

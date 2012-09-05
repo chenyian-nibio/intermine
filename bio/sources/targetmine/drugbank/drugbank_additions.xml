@@ -12,23 +12,24 @@
 
 	<class name="Protein" is-interface="true">
 		<collection name="compounds" referenced-type="CompoundProteinInteraction" reverse-reference="protein"/>
-		<collection name="compoundGroupInteractions" referenced-type="ProteinCompoundGroupInteraction" reverse-reference="protein"/>
     </class>
 
 	<class name="DrugType" is-interface="true">
 		<attribute name="name" type="java.lang.String"/>
     </class>
-	<class name="BrandName" is-interface="true">
-		<attribute name="name" type="java.lang.String"/>
-		<reference name="compound" referenced-type="Compound" />
+
+    <class name="CompoundSynonym" is-interface="true">
+        <attribute name="value" type="java.lang.String"/>
+        <reference name="compound" referenced-type="Compound" reverse-reference="synonyms"/>
+        <reference name="dataSet" referenced-type="DataSet"/>
     </class>
 
 	<class name="DrugCompound" extends="Compound" is-interface="true">
 		<attribute name="drugBankId" type="java.lang.String"/>
+		<attribute name="genericName" type="java.lang.String"/>
 		<attribute name="description" type="java.lang.String"/>
 		<reference name="protein" referenced-type="Protein" />
 		<collection name="drugTypes" referenced-type="DrugType"/>		
-		<collection name="brandNames" referenced-type="BrandName" reverse-reference="compound"/>
     </class>
 
     <class name="Compound" is-interface="true">
@@ -38,21 +39,13 @@
 		<attribute name="name" type="java.lang.String"/>
 		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
 		<collection name="targetProteins" referenced-type="CompoundProteinInteraction" reverse-reference="compound"/>
+		<collection name="synonyms" referenced-type="CompoundSynonym" reverse-reference="compound"/>
     </class>
 
     <class name="CompoundGroup" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
-		<collection name="proteinInteractions" referenced-type="ProteinCompoundGroupInteraction" reverse-reference="compoundGroup" />
-    </class>
-
-	<!-- For post processing -->	
-	<class name="ProteinCompoundGroupInteraction" is-interface="true">
-		<attribute name="identifier" type="java.lang.String"/>
-		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="proteinInteractions"/>
-		<reference name="protein" referenced-type="Protein" reverse-reference="compoundGroupInteractions"/>
-		<reference name="dataSet" referenced-type="DataSet"/>
     </class>
 
 </classes>

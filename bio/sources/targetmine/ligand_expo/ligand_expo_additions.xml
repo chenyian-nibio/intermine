@@ -23,19 +23,21 @@
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
-		<collection name="proteinInteractions" referenced-type="ProteinCompoundGroupInteraction" reverse-reference="compoundGroup" />
     </class>
 
 	<!-- For post processing -->	
-	<class name="ProteinCompoundGroupInteraction" is-interface="true">
-		<attribute name="identifier" type="java.lang.String"/>
-		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="proteinInteractions"/>
-		<reference name="protein" referenced-type="Protein" reverse-reference="compoundGroupInteractions"/>
+	<class name="CompoundProteinInteraction" is-interface="true">
+		<attribute name="ic50" type="java.lang.Float"/>
+		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
+		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
+    </class>
+	<class name="PDBInteraction" extends="CompoundProteinInteraction" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
     </class>
 
 	<class name="Protein" is-interface="true">
-		<collection name="compoundGroupInteractions" referenced-type="ProteinCompoundGroupInteraction" reverse-reference="protein"/>
+		<collection name="compounds" referenced-type="CompoundProteinInteraction" reverse-reference="protein"/>
     </class>
 
 </classes>
