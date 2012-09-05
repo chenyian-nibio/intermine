@@ -415,23 +415,6 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.StitchInteraction">
-    <fields>
-      <fieldconfig fieldExpr="compound.identifier"/>
-      <fieldconfig fieldExpr="score"/>
-      <fieldconfig fieldExpr="evidence"/>
-    </fields>
-  </class>
-
-  <class className="org.intermine.model.bio.ProteinCompoundGroupInteraction">
-    <fields>
-      <fieldconfig fieldExpr="protein.primaryAccession"/>
-      <fieldconfig fieldExpr="protein.name"/>
-      <fieldconfig fieldExpr="compoundGroup.identifier"/>
-      <fieldconfig fieldExpr="compoundGroup.name"/>
-    </fields>
-  </class>
-
   <class className="org.intermine.model.bio.CompoundGroup">
     <fields>
       <fieldconfig fieldExpr="identifier"/>
@@ -503,10 +486,12 @@
                                  link="org.intermine.bio.web.widget.TmPathwayURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.PathwayDataLoader"
                                  label="Pathway"
-                                 description="Pathways enriched for genes in this list."
+                                 description="Pathways enriched for items in this list."
                                  filters="All datasets,KEGG,Reactome,NCI" 
                                  filterLabel="DataSet" 
-                                 typeClass="org.intermine.model.bio.Gene" />
+                                 externalLink="multi: org.intermine.bio.web.widget.config.PathwayExternalLink" 
+                                 typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
+                                 />
 
 <!--
       <enrichmentwidgetdisplayer id="gene_set_enrichment" title="Gene Set Cluster Enrichment"
@@ -523,7 +508,6 @@
 								description="Bar chart for pathway enrichment. Only top 10 pathway are shown."
 								graphType="BarChart"
 								typeClass="org.intermine.model.bio.Gene"  />
--->
       <enrichmentwidgetdisplayer id="protein_pathway_enrichment" title="Pathway Enrichment"
                                  link="org.intermine.bio.web.widget.TmPathwayURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.ProteinPathwayDataLoader"
@@ -531,7 +515,20 @@
                                  description="Pathways enriched for proteins in this list."
                                  filters="All datasets,KEGG,Reactome,NCI"
                                  filterLabel="DataSet" 
+                                 externalLink="multi: org.intermine.bio.web.widget.config.PathwayExternalLink" 
                                  typeClass="org.intermine.model.bio.Protein" />
+-->
+
+      <enrichmentwidgetdisplayer id="compound_enrichment" title="Compound Enrichment"
+                                 link="org.intermine.bio.web.widget.CompoundURLQuery"
+                                 dataSetLoader="org.intermine.bio.web.widget.CompoundDataLoader"
+                                 label="Compounds"
+                                 description="Compounds enriched for items in this list."
+                                 filters="All datasets,ChEMBL,DrugBank,Stitch,PDB"
+                                 filterLabel="DataSet" 
+                                 externalLink="multi: org.intermine.bio.web.widget.config.CompoundExternalLink" 
+                                 typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
+                                 />
  
       <enrichmentwidgetdisplayer id="go_enrichment" title="Gene Ontology Enrichment"
                                  link="org.intermine.bio.web.widget.TmGoStatURLQuery"
@@ -541,14 +538,15 @@
                                  filters="biological_process,cellular_component,molecular_function"
                                  filterLabel="NS"
                                  typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
-                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term=" />
+                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term=" 
+                                 />
 
 <!-- chenyian: diable for external server 
 -->
       <enrichmentwidgetdisplayer id="omim_enrichment" title="OMIM Enrichment"
                                  link="org.intermine.bio.web.widget.OmimURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.OmimDataLoader"
-                                 label="Disease"
+                                 label="OMIM Disease"
                                  description="Disease enriched for genes in this list."
                                  externalLink="http://www.ncbi.nlm.nih.gov/omim/"
                                  typeClass="org.intermine.model.bio.Gene"
@@ -556,7 +554,7 @@
       <enrichmentwidgetdisplayer id="protein_omim_enrichment" title="OMIM Enrichment"
                                  link="org.intermine.bio.web.widget.OmimURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.ProteinOmimDataLoader"
-                                 label="Disease"
+                                 label="OMIM Disease"
                                  description="Disease enriched for proteins in this list."
                                  externalLink="http://www.ncbi.nlm.nih.gov/omim/"
                                  typeClass="org.intermine.model.bio.Protein"
@@ -566,18 +564,20 @@
                                  link="org.intermine.bio.web.widget.DoURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.DoDataLoader"
                                  label="DO Term"
-                                 description="Disease ontology enriched for genes in this list."
+                                 description="Disease ontology enriched for items in this list."
                                  typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein" 
-                                 externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/" />
+                                 externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/" 
+                                 />
 
       <enrichmentwidgetdisplayer id="structural_domain_enrichment" title="CATH classification Enrichment"
                                  link="org.intermine.bio.web.widget.StructuralDomainURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.StructuralDomainDataLoader"
                                  label="CATH classification"
-                                 description="Structural domains enriched for proteins in this list."
+                                 description="Structural domains enriched for items in this list."
                                  externalLink="http://www.cathdb.info/cathnode/"
-                                 typeClass="org.intermine.model.bio.Protein"
-                                 externalLinkLabel="CATH:" />
+                                 typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein" 
+                                 externalLinkLabel="CATH:" 
+                                 />
 
 </widgets>
 </webconfig>

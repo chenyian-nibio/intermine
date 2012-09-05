@@ -10,29 +10,36 @@
       <property name="src.data.file" location="/data/bio/db/Targetmine/go-annotation/obo/gene_ontology.obo"/>
     </source>
 <!--The file name of the source data has been changed, so I change the location which contains new data source -->
-    <source name="uniprot" type="uniprot">
-      <property name="uniprot.organisms" value="7227 9606 10090 10116"/>
+    <source name="uniprot" type="tm-uniprot">
+      <property name="uniprot.organisms" value="9606 10090 10116"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/uniprot/split"/>
       <!--property name="createinterpro" value="true"/-->
     </source>
-    <source name="go-annotation" type="go-annotation" dump="true">
+    <source name="go-annotation" type="tm-go-annotation">
       <property name="ontologyfile" location="/data/bio/db/Targetmine/go-annotation/gene_ontology.obo"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/go-annotation"/>
       <property name="src.data.dir.includes" value="gene_association*"/>
     </source>
+<!--
+    <source name="go-annotation" type="go-annotation">
+      <property name="ontologyfile" location="/data/bio/db/Targetmine/go-annotation/gene_ontology.obo"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/go-annotation"/>
+      <property name="src.data.dir.includes" value="gene_association*"/>
+    </source>
+-->
   	<source name="do" type="do">
       <property name="src.data.file" location="/data/bio/db/Targetmine/do/HumanDO.obo"/>
     </source>
     <source name="gene-info" type="gene-info">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_info"/>
       <property name="src.data.dir.includes" value="*.gene_info"/>
-      <property name="geneinfo.organisms" value="7227 9606 10090 10116"/>
+      <property name="geneinfo.organisms" value="9606 10090 10116"/>
       <property name="gene2ensemblFile" value="/data/bio/db/Targetmine/gene_info/gene2ensembl"/>
       <property name="unigene.organisms" value="Dm Hs Rn Mm"/>
       <property name="gene2unigeneFile" value="/data/bio/db/Targetmine/gene_info/gene2unigene"/>
       <property name="gene2accessionFile" value="/data/bio/db/Targetmine/gene_info/gene2accession"/>
     </source>
-  	<source name="do-annotation" type="do-annotation" dump="true">
+  	<source name="do-annotation" type="do-annotation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/do-annotation"/>
       <property name="src.data.dir.includes" value="do_rif.human.txt"/>
     </source>
@@ -50,10 +57,12 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ipi-ipc"/>
       <property name="src.data.dir.includes" value="ipi.*.IPC"/>
     </source>
+<!--
     <source name="integr8" type="integr8">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/integr8"/>
       <property name="src.data.dir.includes" value="*.IPC"/>
     </source>
+-->
     <source name="msd" type="msd">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/msd"/>
       <property name="src.data.dir.includes" value="*.lst"/>
