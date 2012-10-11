@@ -48,12 +48,19 @@ public class WebserviceJavaScriptCodeGenerator implements WebserviceCodeGenerato
                                                 + "constraint, which is currently not supported.";
     protected static final String LOOP_CONSTRAINT         = "Loop path constraint is not supported "
                                                               + "at the moment...";
+    // chenyian: InterMine doesn't host javascript library now, change the host to ourselves
     protected static final String SCRIPT_IMPORTS          =
           "<!-- You need to import the IMBedding client library - this is hosted at intermine.org for your convenience: -->" + ENDL
-          + "<script src=\"http://www.intermine.org/lib/imbedding/0.2/imbedding.js\" type=\"text/javascript\"></script>" + ENDL + ENDL
+          + "<script src=\"http://targetmine.nibio.go.jp/lib/imbedding/0.2/imbedding.js\" type=\"text/javascript\"></script>" + ENDL + ENDL
           + "<!-- We also need to import a stylesheet - you can choose from light, dark or bold-->" + ENDL
-          + "<link rel=\"stylesheet\" type=\"text/css\" title=\"light\" href=\"http://intermine.org/lib/imbedding/0.2/style/light.css\">" + ENDL
+          + "<link rel=\"stylesheet\" type=\"text/css\" title=\"light\" href=\"http://targetmine.nibio.go.jp/lib/imbedding/0.2/style/light.css\">" + ENDL
           + ENDL;
+//    protected static final String SCRIPT_IMPORTS          =
+//    		"<!-- You need to import the IMBedding client library - this is hosted at intermine.org for your convenience: -->" + ENDL
+//    		+ "<script src=\"http://www.intermine.org/lib/imbedding/0.2/imbedding.js\" type=\"text/javascript\"></script>" + ENDL + ENDL
+//    		+ "<!-- We also need to import a stylesheet - you can choose from light, dark or bold-->" + ENDL
+//    		+ "<link rel=\"stylesheet\" type=\"text/css\" title=\"light\" href=\"http://intermine.org/lib/imbedding/0.2/style/light.css\">" + ENDL
+//    		+ ENDL;
 
     protected static final String PRELUDE =
         "<!-- This is an automatically generated code snippet to run your query" + ENDL
