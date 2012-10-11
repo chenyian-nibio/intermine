@@ -44,6 +44,7 @@ public class ChemblDbConverter extends BioDBConverter {
 	private Map<String, String> publicationMap = new HashMap<String, String>();
 	private Map<String, String> compoundGroupMap = new HashMap<String, String>();
 	private Map<String, String> drugTypeMap = new HashMap<String, String>();
+	private Map<String, String> interactionMap = new HashMap<String, String>();
 
 	private Map<String, String> drugTypeTranslateMap = new HashMap<String, String>();
 
@@ -139,63 +140,74 @@ public class ChemblDbConverter extends BioDBConverter {
 			String pubmedId = String.valueOf(resInteraction.getInt("docs.pubmed_id"));
 			String inchiKey = String.valueOf(resInteraction.getString("cs.standard_inchi_key"));
 			float ic50 = resInteraction.getFloat("act.standard_value");
-			Item item = createItem("ChemblInteraction");
-			item.setAttribute("ic50", String.valueOf(ic50));
-			item.setReference("publication", getPublication(pubmedId));
-			item.setReference("protein", getProtein(uniprotId));
-
-			String compoundRef = compoundMap.get(chemblId);
-			if (compoundRef == null) {
-				Item compound = createItem("ChemblCompound");
-				compound.setAttribute("chemblId", chemblId);
-				compound.setAttribute("identifier", String.format("ChEMBL: %s", chemblId));
-				compound.setAttribute("inchiKey", inchiKey);
-				String name = nameMap.get(molId);
-				if (name == null) {
-					name = chemblId;
-				}
-				compound.setAttribute("name", name);
-				compound.addToCollection("drugTypes", getDrugType(drugTypeTranslateMap.get(type)));
-				String compoundGroupId = inchiKey.substring(0, inchiKey.indexOf("-"));
-				if (compoundGroupId.length() == 14) {
-					compound.setReference("compoundGroup", getCompoundGroup(compoundGroupId, name));
-				} else {
-					LOG.error(String.format("Bad InChIKey value: %s, %s .", chemblId, inchiKey));
-				}
-				Set<String> synonyms = synonymMap.get(molId);
-				if (synonyms != null) {
-					for (String s : synonyms) {
-						Item bn = createItem("CompoundSynonym");
-						bn.setAttribute("value", s);
-						bn.setReference("compound", compound);
-						store(bn);
+			String intId = uniprotId + "-" +chemblId;
+			String interactionRef = interactionMap.get(intId);
+			if (interactionRef == null) {
+				
+				Item item = createItem("ChemblInteraction");
+				item.setReference("protein", getProtein(uniprotId));
+				
+				String compoundRef = compoundMap.get(chemblId);
+				if (compoundRef == null) {
+					Item compound = createItem("ChemblCompound");
+					compound.setAttribute("chemblId", chemblId);
+					compound.setAttribute("identifier", String.format("ChEMBL: %s", chemblId));
+					compound.setAttribute("inchiKey", inchiKey);
+					String name = nameMap.get(molId);
+					if (name == null) {
+						name = chemblId;
 					}
-				}
-
-				Set<String> tradeNames = drugMap.get(molId);
-				if (tradeNames != null) {
-					compound.addToCollection("drugTypes", getDrugType("approved"));
-					for (String tn : tradeNames) {
-						if (!synonyms.contains(tn)) {
+					compound.setAttribute("name", name);
+					compound.addToCollection("drugTypes", getDrugType(drugTypeTranslateMap.get(type)));
+					String compoundGroupId = inchiKey.substring(0, inchiKey.indexOf("-"));
+					if (compoundGroupId.length() == 14) {
+						compound.setReference("compoundGroup", getCompoundGroup(compoundGroupId, name));
+					} else {
+						LOG.error(String.format("Bad InChIKey value: %s, %s .", chemblId, inchiKey));
+					}
+					Set<String> synonyms = synonymMap.get(molId);
+					if (synonyms != null) {
+						for (String s : synonyms) {
 							Item bn = createItem("CompoundSynonym");
-							bn.setAttribute("value", tn);
+							bn.setAttribute("value", s);
 							bn.setReference("compound", compound);
 							store(bn);
 						}
 					}
+					
+					Set<String> tradeNames = drugMap.get(molId);
+					if (tradeNames != null) {
+						compound.addToCollection("drugTypes", getDrugType("approved"));
+						for (String tn : tradeNames) {
+							if (!synonyms.contains(tn)) {
+								Item bn = createItem("CompoundSynonym");
+								bn.setAttribute("value", tn);
+								bn.setReference("compound", compound);
+								store(bn);
+							}
+						}
+					}
+					
+					store(compound);
+					compoundRef = compound.getIdentifier();
+					compoundMap.put(chemblId, compoundRef);
+					// LOG.info(chemblId +"; "+inchiKey+"; "+name+"; "+type);
 				}
-
-				store(compound);
-				compoundRef = compound.getIdentifier();
-				compoundMap.put(chemblId, compoundRef);
-				// LOG.info(chemblId +"; "+inchiKey+"; "+name+"; "+type);
+				item.setReference("compound", compoundRef);
+				
+				store(item);
+				interactionRef = item.getIdentifier();
+				interactionMap.put(intId, interactionRef);
+				i++;
 			}
-			item.setReference("compound", compoundRef);
-
-			store(item);
-			i++;
+			Item assay = createItem("ChemblAssay");
+			assay.setAttribute("ic50", String.valueOf(ic50));
+			assay.setReference("publication", getPublication(pubmedId));
+			assay.setReference("interaction", interactionRef);
+			store(assay);
 		}
-		System.out.println(i + "ChEMBL interaction were integrated.");
+//		System.out.println(i + "ChEMBL interaction were integrated.");
+		LOG.info(i + "ChEMBL interaction were integrated.");
 	}
 
 	private String getProtein(String uniprotId) throws ObjectStoreException {

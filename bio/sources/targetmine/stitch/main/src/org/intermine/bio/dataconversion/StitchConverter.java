@@ -155,6 +155,7 @@ public class StitchConverter extends BioFileConverter {
 			Item item = createItem("PubChemCompound");
 			item.setAttribute("pubChemCid", cid);
 			item.setAttribute("identifier", String.format("PubChem: %s", cid));
+			item.setAttribute("name", String.format("PubChem: %s", cid));
 
 			store(item);
 			ret = item.getIdentifier();

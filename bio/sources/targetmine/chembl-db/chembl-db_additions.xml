@@ -1,13 +1,21 @@
 <?xml version="1.0"?>
 <classes>
 	<class name="CompoundProteinInteraction" is-interface="true">
-		<attribute name="ic50" type="java.lang.Float"/>
 		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
 		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
+		<collection name="assay" referenced-type="CompoundProteinInteractionAssay" reverse-reference="interaction"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
     </class>
-	<class name="ChemblInteraction" extends="CompoundProteinInteraction" is-interface="true">
+	<class name="CompoundProteinInteractionAssay" is-interface="true">
+		<attribute name="ic50" type="java.lang.Float"/>
+		<reference name="interaction" referenced-type="CompoundProteinInteraction" reverse-reference="assay"/>
 		<reference name="publication" referenced-type="Publication"/>
+    </class>
+    
+	<class name="ChemblInteraction" extends="CompoundProteinInteraction" is-interface="true">
+    </class>
+
+	<class name="ChemblAssay" extends="CompoundProteinInteractionAssay" is-interface="true">
     </class>
 
 	<class name="Protein" is-interface="true">

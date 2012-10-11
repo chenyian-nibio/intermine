@@ -29,8 +29,10 @@ import org.intermine.xml.full.Item;
  */
 public class GeneSetConverter extends FileConverter {
 	//
-//	private static final String DATASET_TITLE = "Gene set clustering";
-//	private static final String DATA_SOURCE_NAME = "TargetMine";
+	// private static final String DATASET_TITLE = "Gene set clustering";
+	// private static final String DATA_SOURCE_NAME = "TargetMine";
+	
+	private Item dataSource;
 
 	private Map<String, Item> pathwayMap = new HashMap<String, Item>();
 
@@ -44,6 +46,14 @@ public class GeneSetConverter extends FileConverter {
 	 */
 	public GeneSetConverter(ItemWriter writer, Model model) {
 		super(writer, model);
+		dataSource = createItem("DataSource");
+		dataSource.setAttribute("name", "TargetMine");
+		try {
+			store(dataSource);
+		} catch (ObjectStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -53,6 +63,16 @@ public class GeneSetConverter extends FileConverter {
 	 */
 	public void process(Reader reader) throws Exception {
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
+		String[] header = iterator.next();
+		if (!header[0].equals("DataSet") || StringUtils.isEmpty(header[1])) {
+			throw new RuntimeException("Data set name is not set properly. "
+					+ "Check your data source. The first line should be 'DataSet\t[data set name]'");
+		}
+		Item dataSet = createItem("DataSet");
+		dataSet.setAttribute("name", header[1]);
+		dataSet.setReference("dataSource", dataSource);
+		store(dataSet);
+		
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
 			if (StringUtils.isEmpty(cols[0])) {
@@ -64,6 +84,7 @@ public class GeneSetConverter extends FileConverter {
 			for (String pid : pathwayIds) {
 				item.addToCollection("pathways", getPathway(pid));
 			}
+			item.setReference("dataSet", dataSet);
 			store(item);
 		}
 	}

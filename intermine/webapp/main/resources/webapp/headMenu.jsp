@@ -39,6 +39,9 @@
     <h1><html:link href="${WEB_PROPERTIES['project.sitePrefix']}/"><c:out value="${WEB_PROPERTIES['project.title']}" escapeXml="false"/></html:link></h1>
     <p id="version"><fmt:message key="header.version"/> <c:out value="${WEB_PROPERTIES['project.releaseVersion']}" escapeXml="false"/></span>
     <p><c:out value="${WEB_PROPERTIES['project.subTitle']}" escapeXml="false"/></p>
+    <!-- chenyian: temporary alert-->
+    <p style="border: 2px solid red; background: #EED; float: right; padding: 5px; font-weight: bold;">
+    Important! Please check the 'News & Updates'.</p>
   </div>
 
     <!-- Tab Menu -->
