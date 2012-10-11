@@ -9,16 +9,15 @@
     <source name="go" type="go">
       <property name="src.data.file" location="/data/bio/db/Targetmine/go-annotation/obo/gene_ontology.obo"/>
     </source>
-<!--The file name of the source data has been changed, so I change the location which contains new data source -->
     <source name="uniprot" type="tm-uniprot">
       <property name="uniprot.organisms" value="9606 10090 10116"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/uniprot/split"/>
-      <!--property name="createinterpro" value="true"/-->
     </source>
     <source name="go-annotation" type="tm-go-annotation">
       <property name="ontologyfile" location="/data/bio/db/Targetmine/go-annotation/gene_ontology.obo"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/go-annotation"/>
       <property name="src.data.dir.includes" value="gene_association*"/>
+      <property name="excludeComputational" value="true"/>
     </source>
 <!--
     <source name="go-annotation" type="go-annotation">
@@ -35,7 +34,7 @@
       <property name="src.data.dir.includes" value="*.gene_info"/>
       <property name="geneinfo.organisms" value="9606 10090 10116"/>
       <property name="gene2ensemblFile" value="/data/bio/db/Targetmine/gene_info/gene2ensembl"/>
-      <property name="unigene.organisms" value="Dm Hs Rn Mm"/>
+      <property name="unigene.organisms" value="Hs Rn Mm"/>
       <property name="gene2unigeneFile" value="/data/bio/db/Targetmine/gene_info/gene2unigene"/>
       <property name="gene2accessionFile" value="/data/bio/db/Targetmine/gene_info/gene2accession"/>
     </source>
@@ -86,7 +85,7 @@
     <source name="kegg-orthology" type="tm-kegg-orthology">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg/orthology"/>
       <property name="src.data.dir.includes" value="*" />
-      <property name="kegg.organisms" value="7227 9606 10090 10116"/>
+      <property name="kegg.organisms" value="9606 10090 10116"/>
     </source>
 
     <source name="drugbank" type="drugbank">
@@ -98,7 +97,7 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg/pathway"/>
       <property name="src.data.dir.includes" value="*"/>
       <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg/pathway_class"/>
-      <property name="kegg.organisms" value="7227 9606 10090 10116"	/>
+      <property name="kegg.organisms" value="9606 10090 10116"	/>
     </source>
     
  <!-- chenyian: disabled for external version 
@@ -156,7 +155,7 @@
     <source name="biogrid" type="biogrid">
 		<property name="src.data.dir" location="/data/bio/db/Targetmine/biogrid"/>
 		<property name="src.data.dir.includes" value="*psi25.xml"/>
-		<property name="biogrid.organisms" value="7227 9606 10090 10116"/>
+		<property name="biogrid.organisms" value="9606 10090 10116"/>
 	</source>
     <source name="so" type="so">
       <property name="src.data.file" location="../../bio/sources/so/so.obo"/>
@@ -171,11 +170,11 @@
       <property name="src.data.dir.includes" value="*.tab"/>
     </source>
     <!--
+    -->
     <source name="gene-set" type="gene-set">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_set_cluster"/>
-      <property name="src.data.dir.includes" value="lt600.combined.cluster"/>
+      <property name="src.data.dir.includes" value="lt600.*"/>
     </source>
-    -->
     <source name="stitch" type="stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
       <property name="src.data.dir.includes" value="*.detailed.tsv" />
@@ -210,7 +209,7 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/taxonomy"/>
       <property name="src.data.dir.includes" value="taxno.name"/>
       <property name="osAlias" value="os.production"/>
-      <property name="hasShortName" value="7227 9606 10090 10116"/>
+      <property name="hasShortName" value="9606 10090 10116"/>
       <property name="processClass" value="Organism"/>
     </source>
   	<source name="gene-pubmed" type="gene-pubmed">

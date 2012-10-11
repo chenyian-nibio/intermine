@@ -12,6 +12,7 @@ import org.intermine.model.bio.Organism;
 import org.intermine.model.bio.Protein;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.query.BagConstraint;
+import org.intermine.objectstore.query.Constraint;
 import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.ConstraintSet;
 import org.intermine.objectstore.query.ContainsConstraint;
@@ -26,13 +27,13 @@ import org.intermine.objectstore.query.QueryValue;
 import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.web.logic.widget.EnrichmentWidgetLdr;
 
-public class CompoundDataLoader extends EnrichmentWidgetLdr {
+public class ChemblDataLoader extends EnrichmentWidgetLdr {
 
-	private static final Logger LOG = Logger.getLogger(CompoundDataLoader.class);
+	private static final Logger LOG = Logger.getLogger(ChemblDataLoader.class);
 	private Model model;
-	private String dataset;
+	private Float cutOff;
 
-	public CompoundDataLoader(InterMineBag bag, ObjectStore os, String extraAttribute) {
+	public ChemblDataLoader(InterMineBag bag, ObjectStore os, String extraAttribute) {
 		this.bag = bag;
 		organisms = BioUtil.getOrganisms(os, bag, false);
 		// having attributes lowercase increases the chances the indexes will be used
@@ -40,24 +41,28 @@ public class CompoundDataLoader extends EnrichmentWidgetLdr {
 			organismsLower.add(s.toLowerCase());
 		}
 		model = os.getModel();
-		dataset = extraAttribute;
+		cutOff = Float.valueOf(extraAttribute);
 	}
 
 	@Override
 	public Query getQuery(String action, List<String> keys) {
-		
+
 		String bagType = bag.getType();
 
 		// classes for FROM clause
 		QueryClass qcGene = new QueryClass(Gene.class);
 		QueryClass qcProtein = new QueryClass(Protein.class);
 		QueryClass qcOrganism = new QueryClass(Organism.class);
+		QueryClass qcDataset = new QueryClass(DataSet.class);
 		QueryClass qcCompoundProteinInteraction;
+		QueryClass qcCompoundProteinInteractionAssay;
 		QueryClass qcCompound;
 
 		try {
 			qcCompoundProteinInteraction = new QueryClass(Class.forName(model.getPackageName()
 					+ ".CompoundProteinInteraction"));
+			qcCompoundProteinInteractionAssay = new QueryClass(Class.forName(model.getPackageName()
+					+ ".CompoundProteinInteractionAssay"));
 			qcCompound = new QueryClass(Class.forName(model.getPackageName() + ".Compound"));
 		} catch (ClassNotFoundException e) {
 			LOG.error("Error rendering compound enrichment widget", e);
@@ -70,6 +75,8 @@ public class CompoundDataLoader extends EnrichmentWidgetLdr {
 		QueryField qfOrganismName = new QueryField(qcOrganism, "name");
 		QueryField qfCompoundId = new QueryField(qcCompound, "identifier");
 		QueryField qfCompoundName = new QueryField(qcCompound, "name");
+		QueryField qfDataset = new QueryField(qcDataset, "name");
+		QueryField qfIc50 = new QueryField(qcCompoundProteinInteractionAssay, "ic50");
 
 		if ("Protein".equals(bagType)) {
 			qfId = new QueryField(qcProtein, "id");
@@ -108,50 +115,38 @@ public class CompoundDataLoader extends EnrichmentWidgetLdr {
 		QueryObjectReference qorCmp = new QueryObjectReference(qcCompoundProteinInteraction,
 				"compound");
 		cs.addConstraint(new ContainsConstraint(qorCmp, ConstraintOp.CONTAINS, qcCompound));
+		QueryObjectReference qorAssay = new QueryObjectReference(qcCompoundProteinInteraction,
+				"assay");
+		cs.addConstraint(new ContainsConstraint(qorAssay, ConstraintOp.CONTAINS,
+				qcCompoundProteinInteractionAssay));
+		cs.addConstraint(new SimpleConstraint(qfIc50, ConstraintOp.LESS_THAN_EQUALS,
+				new QueryValue(cutOff)));
 
-        if ("Gene".equals(bagType)) {
-            QueryCollectionReference qcr2 = new QueryCollectionReference(qcGene, "proteins");
-            cs.addConstraint(new ContainsConstraint(qcr2, ConstraintOp.CONTAINS, qcProtein));
-        }
-        
+		if ("Gene".equals(bagType)) {
+			QueryCollectionReference qcr2 = new QueryCollectionReference(qcGene, "proteins");
+			cs.addConstraint(new ContainsConstraint(qcr2, ConstraintOp.CONTAINS, qcProtein));
+		}
+
+		QueryObjectReference qor2 = new QueryObjectReference(qcCompoundProteinInteraction,
+				"dataSet");
+		cs.addConstraint(new ContainsConstraint(qor2, ConstraintOp.CONTAINS, qcDataset));
+
+		QueryExpression qe2 = new QueryExpression(QueryExpression.LOWER, qfDataset);
+		cs.addConstraint(new SimpleConstraint(qe2, ConstraintOp.EQUALS, new QueryValue("ChEMBL"
+				.toLowerCase())));
+
 		Query q = new Query();
 		q.setDistinct(true);
 
 		// from statement
-        if ("Gene".equals(bagType)) {
-        	q.addFrom(qcGene);
-        }
+		if ("Gene".equals(bagType)) {
+			q.addFrom(qcGene);
+		}
 		q.addFrom(qcProtein);
 		q.addFrom(qcCompoundProteinInteraction);
 		q.addFrom(qcCompound);
 		q.addFrom(qcOrganism);
-
-		// constraint for dataset
-		if (!dataset.equals("All datasets")) {
-			String dataSetName = "";
-			if (dataset.equals("ChEMBL")) {
-				dataSetName = "ChEMBL";
-			} else if (dataset.equals("DrugBank")) {
-				dataSetName = "DrugBank";
-			} else if (dataset.equals("Stitch")) {
-				dataSetName = "STITCH";
-			} else if (dataset.equals("PDB")) {
-				dataSetName = "Ligand Expo";
-			}
-
-			QueryClass qcDataset = new QueryClass(DataSet.class);
-			QueryField qfDataset = new QueryField(qcDataset, "name");
-
-			QueryObjectReference qor2 = new QueryObjectReference(
-					qcCompoundProteinInteraction, "dataSet");
-			cs.addConstraint(new ContainsConstraint(qor2, ConstraintOp.CONTAINS, qcDataset));
-
-			QueryExpression qe2 = new QueryExpression(QueryExpression.LOWER, qfDataset);
-			cs.addConstraint(new SimpleConstraint(qe2, ConstraintOp.EQUALS, new QueryValue(
-					dataSetName.toLowerCase())));
-
-			q.addFrom(qcDataset);
-		}
+		q.addFrom(qcDataset);
 
 		// add constraints to query
 		q.setConstraint(cs);

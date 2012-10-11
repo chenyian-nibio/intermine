@@ -9,24 +9,24 @@ import org.intermine.pathquery.OrderDirection;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.web.logic.widget.WidgetURLQuery;
 
-public class CompoundURLQuery implements WidgetURLQuery {
+public class ChemblURLQuery implements WidgetURLQuery {
 
 	private ObjectStore os;
 	private InterMineBag bag;
 	private String key;
 
-	/**
+	/***
 	 * @param os
 	 * @param bag
 	 * @param key
 	 */
-	public CompoundURLQuery(ObjectStore os, InterMineBag bag, String key) {
+	public ChemblURLQuery(ObjectStore os, InterMineBag bag, String key) {
 		super();
 		this.os = os;
 		this.bag = bag;
 		this.key = key;
 	}
-
+	
 	public PathQuery generatePathQuery(boolean showAll) {
 		String bagType = bag.getType();
 
@@ -34,7 +34,8 @@ public class CompoundURLQuery implements WidgetURLQuery {
 		if (bagType.equals("Gene")) {
 			q.addViews("Gene.ncbiGeneNumber", "Gene.symbol", "Gene.name",
 					"Gene.proteins.compounds.compound.identifier",
-					"Gene.proteins.compounds.compound.name");
+					"Gene.proteins.compounds.compound.name",
+					"Gene.proteins.compounds.assay.ic50");
 			q.addConstraint(Constraints.in(bag.getType(), bag.getName()));
 			if (!showAll) {
 				String[] keys = key.split(",");
@@ -45,7 +46,8 @@ public class CompoundURLQuery implements WidgetURLQuery {
 
 		} else if (bagType.equals("Protein")) {
 			q.addViews("Protein.primaryAccession", "Protein.name", "Protein.organism.name",
-					"Protein.compounds.compound.identifier", "Protein.compounds.compound.name");
+					"Protein.compounds.compound.identifier", "Protein.compounds.compound.name",
+					"Proteins.compounds.assay.ic50");
 			q.addConstraint(Constraints.in(bag.getType(), bag.getName()));
 			if (!showAll) {
 				String[] keys = key.split(",");
@@ -59,5 +61,4 @@ public class CompoundURLQuery implements WidgetURLQuery {
 
 		return q;
 	}
-
 }

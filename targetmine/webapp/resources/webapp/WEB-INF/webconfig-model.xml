@@ -499,6 +499,8 @@
                                  dataSetLoader="org.intermine.bio.web.widget.GeneSetDataLoader"
                                  label="Gene Set Cluster"
                                  description="Gene Set Cluster enriched for genes in this list."
+                                 filters="Hierarchical,Heuristic" 
+                                 filterLabel="DataSet" 
                                  typeClass="org.intermine.model.bio.Gene" />
       <graphdisplayer id="pathway_distribution" title="Pathway Distribution"
 								link="org.intermine.bio.web.widget.PathwayGraphURLGenerator"
@@ -508,23 +510,13 @@
 								description="Bar chart for pathway enrichment. Only top 10 pathway are shown."
 								graphType="BarChart"
 								typeClass="org.intermine.model.bio.Gene"  />
-      <enrichmentwidgetdisplayer id="protein_pathway_enrichment" title="Pathway Enrichment"
-                                 link="org.intermine.bio.web.widget.TmPathwayURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.ProteinPathwayDataLoader"
-                                 label="Pathways"
-                                 description="Pathways enriched for proteins in this list."
-                                 filters="All datasets,KEGG,Reactome,NCI"
-                                 filterLabel="DataSet" 
-                                 externalLink="multi: org.intermine.bio.web.widget.config.PathwayExternalLink" 
-                                 typeClass="org.intermine.model.bio.Protein" />
 -->
-
       <enrichmentwidgetdisplayer id="compound_enrichment" title="Compound Enrichment"
                                  link="org.intermine.bio.web.widget.CompoundURLQuery"
                                  dataSetLoader="org.intermine.bio.web.widget.CompoundDataLoader"
                                  label="Compounds"
                                  description="Compounds enriched for items in this list."
-                                 filters="All datasets,ChEMBL,DrugBank,Stitch,PDB"
+                                 filters="DrugBank,ChEMBL,Stitch,PDB"
                                  filterLabel="DataSet" 
                                  externalLink="multi: org.intermine.bio.web.widget.config.CompoundExternalLink" 
                                  typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
@@ -540,6 +532,7 @@
                                  typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term=" 
                                  />
+
 
 <!-- chenyian: diable for external server 
 -->
