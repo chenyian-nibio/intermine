@@ -52,10 +52,18 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/interpro"/>
       <property name="src.data.dir.includes" value="interpro.xml"/>
     </source>
+ <!--
     <source name="ipi-ipc" type="ipi-ipc">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ipi-ipc"/>
       <property name="src.data.dir.includes" value="ipi.*.IPC"/>
     </source>
+-->
+    <source name="protein2ipr" type="protein2ipr">
+		<property name="src.data.dir" location="/data/bio/db/Targetmine/interpro"/>
+		<property name="src.data.dir.includes" value="protein2ipr.dat"/>
+		<property name="organisms" value="9606 10090 10116"/>
+		<property name="osAlias" value="os.production"/>
+   </source>
 <!--
     <source name="integr8" type="integr8">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/integr8"/>
@@ -75,10 +83,11 @@
     <source name="cath-name" type="cath-name">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/cath"/>
       <property name="src.data.dir.includes" value="CathNames"/>
+      <property name="domainList" value="/data/bio/db/Targetmine/cath/CathDomainList"/>
     </source>
     <source name="gene3d" type="gene3d">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene3d"/>
-      <property name="src.data.dir.includes" value="gene3d.HRMD.txt"/>
+      <property name="src.data.dir.includes" value="gene3d.HRM.txt"/>
     </source>
 <!--
 -->
@@ -147,6 +156,11 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg" />
       <property name="src.data.dir.includes" value="ec.list" />
     </source>
+    <source name="drugebility" type="drugebility">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/drugebility" />
+      <property name="src.data.dir.includes" value="domain_drugebility.txt" />
+      <property name="domainDetails" value="/data/bio/db/Targetmine/drugebility/domain_details.txt" />
+    </source>
 
   	<!--Intermine default : Start-->
     <source name="psi-mi" type="psi-mi-ontology">
@@ -174,6 +188,7 @@
     <source name="gene-set" type="gene-set">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_set_cluster"/>
       <property name="src.data.dir.includes" value="lt600.*"/>
+      <property name="clusterName" value="/data/bio/db/Targetmine/gene_set_cluster/autoname.20121025.1.tsv"/>
     </source>
     <source name="stitch" type="stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
@@ -201,6 +216,7 @@
     <source name="irefindex" type="irefindex">
 		<property name="src.data.dir" location="/data/bio/db/Targetmine/irefindex"/>
 		<property name="src.data.dir.includes" value="*.mitab.*.txt"/>
+		<property name="osAlias" value="os.production"/>
 	</source>
   	<source name="fill-missing-proteins" type="fill-missing-proteins">
       <property name="src.data.file" location="build/proteins.txt"/>
@@ -214,7 +230,7 @@
     </source>
   	<source name="gene-pubmed" type="gene-pubmed">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/publication"/>
-      <property name="pubmed.organisms" value="7227 9606 10090 10116"/>
+      <property name="pubmed.organisms" value="9606 10090 10116"/>
       <property name="src.data.dir.includes" value="gene2pubmed"/>
     </source>
     <!-- testing, unfinished

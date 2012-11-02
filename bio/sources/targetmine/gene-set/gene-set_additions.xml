@@ -6,6 +6,7 @@
 	</class>
 	<class name="GeneSetCluster" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
 		<collection name="pathways" referenced-type="Pathway" reverse-reference="geneSetClusters"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
 	</class>

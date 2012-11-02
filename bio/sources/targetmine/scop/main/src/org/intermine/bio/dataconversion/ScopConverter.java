@@ -103,13 +103,13 @@ public class ScopConverter extends FileConverter {
 				oItem.setAttribute("type", "ScopFamily");
 			} else if ("dm".equals(strType)) {
 				// ScopProtein
-				oItem.setAttribute("type", "ScopDomain");
+				oItem.setAttribute("type", "ScopProtein");
 			} else if ("sp".equals(strType)) {
 				// ScopSpecies
 				oItem.setAttribute("type", "ScopSpecies");
 			} else if ("px".equals(strType)) {
 				// ScopDomain
-				oItem.setAttribute("type", "ScopProtein");
+				oItem.setAttribute("type", "ScopDomain");
 			}
 
 			oItem.setAttribute("sunid", a_strFields[0]);

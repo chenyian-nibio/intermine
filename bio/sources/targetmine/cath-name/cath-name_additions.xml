@@ -3,10 +3,19 @@
 <classes>
 	<class name="CathClassification" is-interface="true">
 	    <attribute name="cathCode" type="java.lang.String"/>
-	    <attribute name="cathDomainName" type="java.lang.String"/>
 	    <attribute name="description" type="java.lang.String"/>
 		<collection name="parents" referenced-type="CathClassification"/>
 	    <collection name="dataSets" referenced-type="DataSet" /> 
+	    <collection name="cathDomains" referenced-type="CathDomain" reverse-reference="cathSuperfamily" /> 
+	</class>
+	<class name="CathDomain" is-interface="true">
+	    <attribute name="cathDomainName" type="java.lang.String"/>
+	    <attribute name="domainLength" type="java.lang.Integer"/>
+	    <reference name="cathSuperfamily" referenced-type="CathClassification" reverse-reference="cathDomains"/>
+		<reference name="proteinStructure" referenced-type="ProteinStructure"/>
+	</class>
+	<class name="ProteinStructure" extends="MacroMolecularStructure" is-interface="true">
+		<attribute name="pdbId" type="java.lang.String"/>
 	</class>
 
 </classes>

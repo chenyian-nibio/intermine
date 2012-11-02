@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<classes>
+	<class name="ScopEntry" is-interface="true">
+		<attribute name="sunid" type="java.lang.Integer"/>
+	</class>
+	<class name="Druggability" is-interface="true">
+		<attribute name="ensembl" type="java.lang.Double"/>
+		<attribute name="tractable" type="java.lang.Boolean"/>
+		<attribute name="druggable" type="java.lang.Boolean"/>
+		<attribute name="primaryIdentifier" type="java.lang.String"/>
+		<collection name="proteins" referenced-type="Protein" reverse-reference="druggabilities"/>
+		<reference name="scopProtein" referenced-type="ScopEntry"/>
+		<reference name="proteinStructure" referenced-type="ProteinStructure" reverse-reference="druggabilities"/>
+	</class>
+	<class name="Protein" is-interface="true">
+		<collection name="druggabilities" referenced-type="Druggability" reverse-reference="proteins"/>
+    </class>
+	<class name="ProteinStructure" extends="MacroMolecularStructure" is-interface="true">
+		<attribute name="pdbId" type="java.lang.String"/>
+		<collection name="druggabilities" referenced-type="Druggability" reverse-reference="proteinStructure"/>
+	</class>
+
+</classes>

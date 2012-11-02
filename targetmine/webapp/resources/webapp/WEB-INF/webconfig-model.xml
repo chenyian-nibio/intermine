@@ -427,7 +427,6 @@
       <fieldconfig fieldExpr="start"/>
       <fieldconfig fieldExpr="end"/>
       <fieldconfig fieldExpr="cathClassification.cathCode"/>
-      <fieldconfig fieldExpr="cathClassification.cathDomainName"/>
       <fieldconfig fieldExpr="cathClassification.description"/>
     </fields>
   </class>
@@ -435,7 +434,6 @@
   <class className="org.intermine.model.bio.CathClassification">
     <fields>
       <fieldconfig fieldExpr="cathCode"/>
-      <fieldconfig fieldExpr="cathDomainName"/>
       <fieldconfig fieldExpr="description"/>
     </fields>
   </class>

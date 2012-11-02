@@ -10,6 +10,9 @@ package org.intermine.bio.dataconversion;
  *
  */
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,6 +37,8 @@ public class GeneSetConverter extends FileConverter {
 	
 	private Item dataSource;
 
+	private Map<String, String> clusterNameMap;
+	
 	private Map<String, Item> pathwayMap = new HashMap<String, Item>();
 
 	/**
@@ -62,6 +67,11 @@ public class GeneSetConverter extends FileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
+		
+		if (clusterNameMap == null) {
+			readClusterNameMap();
+		}
+		
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
 		String[] header = iterator.next();
 		if (!header[0].equals("DataSet") || StringUtils.isEmpty(header[1])) {
@@ -80,6 +90,7 @@ public class GeneSetConverter extends FileConverter {
 			}
 			Item item = createItem("GeneSetCluster");
 			item.setAttribute("identifier", cols[0]);
+			item.setAttribute("name", clusterNameMap.get(cols[0]));
 			String[] pathwayIds = cols[2].split(",");
 			for (String pid : pathwayIds) {
 				item.addToCollection("pathways", getPathway(pid));
@@ -87,6 +98,20 @@ public class GeneSetConverter extends FileConverter {
 			item.setReference("dataSet", dataSet);
 			store(item);
 		}
+	}
+
+	private void readClusterNameMap() throws Exception {
+		BufferedReader reader = new BufferedReader(new FileReader(clusterName));
+
+		clusterNameMap = new HashMap<String, String>();
+		
+		String line = reader.readLine();
+		while (line != null) {
+			String[] cols = line.split("\\t");
+			clusterNameMap.put(cols[0], cols[2]);
+			line = reader.readLine();
+		}
+		
 	}
 
 	private Item getPathway(String pathwayId) throws ObjectStoreException {
@@ -99,5 +124,12 @@ public class GeneSetConverter extends FileConverter {
 		}
 		return ret;
 	}
+	
+	private File clusterName;
+
+	public void setClusterName(File clusterName) {
+		this.clusterName = clusterName;
+	}
+	
 
 }

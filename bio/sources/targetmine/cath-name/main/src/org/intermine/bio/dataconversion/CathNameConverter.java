@@ -11,15 +11,19 @@ package org.intermine.bio.dataconversion;
  */
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
+import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.xml.full.Item;
 
 /**
@@ -34,6 +38,7 @@ public class CathNameConverter extends BioFileConverter {
 	private static final String DATA_SOURCE_NAME = "CATH";
 
 	private Map<String, Item> cathMap = new HashMap<String, Item>();
+	private Map<String, String> structureMap = new HashMap<String, String>();
 
 	/**
 	 * Constructor
@@ -71,6 +76,7 @@ public class CathNameConverter extends BioFileConverter {
 		}
 		store(cathMap.values());
 
+		parseCathDomainList();
 	}
 
 	private void createCathClassification(String nodeNumber, String cathDomainName,
@@ -80,20 +86,20 @@ public class CathNameConverter extends BioFileConverter {
 			item = createItem("CathClassification");
 			item.setAttribute("cathCode", nodeNumber);
 		}
-		item.setAttribute("cathDomainName", cathDomainName);
-		if (description != null && !description.equals("")){
+		if (description != null && !description.equals("")) {
 			item.setAttribute("description", description);
 		} else {
-			item.setAttribute("description", String.format("No name: %s", cathDomainName));
+			item.setAttribute("description", String.format(
+					"Not available. Representative protein domain: %s", cathDomainName));
 		}
 		// logical error here!!
 		item.addToCollection("parents", item);
 		String code = nodeNumber;
-		while (code.lastIndexOf(".") != -1){
+		while (code.lastIndexOf(".") != -1) {
 			code = code.substring(0, code.lastIndexOf("."));
 			item.addToCollection("parents", getCathParents(code));
 		}
-		
+
 		cathMap.put(nodeNumber, item);
 	}
 
@@ -107,18 +113,49 @@ public class CathNameConverter extends BioFileConverter {
 		}
 		return ret;
 	}
-
-	public static void main(String[] args) {
-		String line = "1.20.1000    1f5nA01    :Signaling Protein - Interferon-induced Guanylate-binding Protein 1; Chain A, domain 1";
-//		String line = "3.40.50.10210    1l5oA02    :";
-		Pattern pattern = Pattern.compile("^([\\d|\\.]+)\\s+(\\w+)\\s+:(.*)$");
-		Matcher matcher = pattern.matcher(line);
-		if (matcher.find()) {
-			String nodeNumber = matcher.group(1);
-			String cathDomainName = matcher.group(2);
-			String description = matcher.group(3);
-			System.out.println(nodeNumber + " / " + cathDomainName + " / " + description);
+	
+	private void parseCathDomainList() throws Exception {
+		BufferedReader reader = new BufferedReader(new FileReader(domainList));
+		
+		String line = reader.readLine();
+		while (line != null) {
+			if (!line.startsWith("#")) {
+				String[] cols = line.split("\\s+");
+				String cathDomainName = cols[0];
+				String cathCode = String.format("%s.%s.%s.%s", cols[1], cols[2], cols[3], cols[4]);
+				String domainLength = cols[10];
+				Item item = createItem("CathDomain");
+				item.setAttribute("cathDomainName", cathDomainName);
+				item.setAttribute("domainLength", domainLength);
+				item.setReference("cathSuperfamily", cathMap.get(cathCode));
+				
+				String pdbId = cathDomainName.substring(0, 4);
+				if (!StringUtils.isEmpty(pdbId)){
+					item.setReference("proteinStructure", getProteinStructure(pdbId));
+				}
+				
+				store(item);
+			}
+			line = reader.readLine();
 		}
-
 	}
+	
+	private File domainList;
+
+	public void setDomainList(File domainList) {
+		this.domainList = domainList;
+	}
+	
+	private String getProteinStructure(String identifier) throws ObjectStoreException {
+		String ret = structureMap.get(identifier);
+		if (ret == null) {
+			Item item = createItem("ProteinStructure");
+			item.setAttribute("pdbId", identifier);
+			ret = item.getIdentifier();
+			store(item);
+			structureMap.put(identifier, ret);
+		}
+		return ret;
+	}
+	
 }
