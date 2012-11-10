@@ -1,21 +1,42 @@
 <?xml version="1.0"?>
 
 <classes>
-	<class name="CathClassification" is-interface="true">
+	<class name="StructuralClassification" is-interface="true">
+		<attribute name="type" type="java.lang.String"/>
+		<attribute name="level" type="java.lang.String"/>
+		<attribute name="code" type="java.lang.String"/>
+		<attribute name="description" type="java.lang.String"/>
+		<reference name="structuralDomain" referenced-type="StructuralDomain" reverse-reference="structuralClassification"/>
+		<collection name="parents" referenced-type="StructuralClassification"/>
+	</class>
+
+	<class name="CathClassification" extends="StructuralClassification" is-interface="true">
 	    <attribute name="cathCode" type="java.lang.String"/>
-	    <attribute name="description" type="java.lang.String"/>
-		<collection name="parents" referenced-type="CathClassification"/>
-	    <collection name="dataSets" referenced-type="DataSet" /> 
-	    <collection name="cathDomains" referenced-type="CathDomain" reverse-reference="cathSuperfamily" /> 
 	</class>
-	<class name="CathDomain" is-interface="true">
-	    <attribute name="cathDomainName" type="java.lang.String"/>
+
+	<class name="StructuralDomain" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<reference name="structuralClassification" referenced-type="StructuralClassification" reverse-reference="structuralDomain"/>
+		<collection name="regions" referenced-type="StructuralRegion" reverse-reference="structuralDomain"/>
+	</class>
+
+	<class name="CathDomain" extends="StructuralDomain" is-interface="true">
 	    <attribute name="domainLength" type="java.lang.Integer"/>
-	    <reference name="cathSuperfamily" referenced-type="CathClassification" reverse-reference="cathDomains"/>
-		<reference name="proteinStructure" referenced-type="ProteinStructure"/>
 	</class>
-	<class name="ProteinStructure" extends="MacroMolecularStructure" is-interface="true">
-		<attribute name="pdbId" type="java.lang.String"/>
+
+	<class name="ProteinRegion" is-interface="true">
+		<attribute name="start" type="java.lang.Integer"/>
+		<attribute name="end" type="java.lang.Integer"/>
+	</class>
+
+	<class name="StructuralRegion" extends="ProteinRegion" is-interface="true">
+		<reference name="structuralDomain" referenced-type="StructuralDomain" reverse-reference="regions"/>
+		<reference name="proteinChain" referenced-type="ProteinChain" reverse-reference="structuralRegions"/>
+	</class>
+
+	<class name="ProteinChain" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<collection name="structuralRegions" referenced-type="StructuralRegion" reverse-reference="proteinChain"/>
 	</class>
 
 </classes>

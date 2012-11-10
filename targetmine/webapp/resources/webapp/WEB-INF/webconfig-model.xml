@@ -339,21 +339,45 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.ScopEntry">
+  <class className="org.intermine.model.bio.StructuralClassification">
     <fields>
       <fieldconfig fieldExpr="type" />
+      <fieldconfig fieldExpr="level" />
+      <fieldconfig fieldExpr="code" />
+      <fieldconfig fieldExpr="description" />
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.ScopClassification">
+    <fields>
+      <fieldconfig fieldExpr="level" />
       <fieldconfig fieldExpr="sunid" />
       <fieldconfig fieldExpr="sccs" />
       <fieldconfig fieldExpr="description" />
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.ScopRegion">
+  <class className="org.intermine.model.bio.CathClassification">
+    <fields>
+      <fieldconfig fieldExpr="level" />
+      <fieldconfig fieldExpr="cathCode" />
+      <fieldconfig fieldExpr="description" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.StructuralDomain">
+    <fields>
+      <fieldconfig fieldExpr="identifier" />
+      <fieldconfig fieldExpr="structuralClassification.code" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.StructuralRegion">
     <fields>
       <fieldconfig fieldExpr="start" />
       <fieldconfig fieldExpr="startInsertionCode" />
       <fieldconfig fieldExpr="end" />
       <fieldconfig fieldExpr="endInsertionCode" />
+      <fieldconfig fieldExpr="proteinChain.identifier" />
     </fields>
   </class>
 
@@ -428,13 +452,6 @@
       <fieldconfig fieldExpr="end"/>
       <fieldconfig fieldExpr="cathClassification.cathCode"/>
       <fieldconfig fieldExpr="cathClassification.description"/>
-    </fields>
-  </class>
-
-  <class className="org.intermine.model.bio.CathClassification">
-    <fields>
-      <fieldconfig fieldExpr="cathCode"/>
-      <fieldconfig fieldExpr="description"/>
     </fields>
   </class>
 

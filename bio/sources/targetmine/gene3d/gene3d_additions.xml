@@ -16,7 +16,9 @@
 	    <collection name="dataSets" referenced-type="DataSet" /> 
 	</class>
 	
-	<class name="CathClassification" is-interface="true">
+	<class name="StructuralClassification" is-interface="true">
+	</class>
+	<class name="CathClassification" extends="StructuralClassification" is-interface="true">
 	    <attribute name="cathCode" type="java.lang.String"/>
 	</class>
 

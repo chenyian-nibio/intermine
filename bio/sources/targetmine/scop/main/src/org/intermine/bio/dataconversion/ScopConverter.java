@@ -25,16 +25,28 @@ import org.intermine.xml.full.Item;
 /**
  * 
  * @author ishikawa
- * @author chenyian 2012.2.23 refactoring again
+ * @author chenyian 2012.2.23 refactoring; 2012.11.5 refactoring
  */
 public class ScopConverter extends FileConverter {
 
-//	private static Logger m_oLogger = Logger.getLogger(ScopConverter.class);
+	// private static Logger LOG = Logger.getLogger(ScopConverter.class);
 
-	// <sunid, Item of ScopEntry's subclasses or ProteinChainRegion>
-	private Map<Integer, Item> m_oScopEntryMap = new HashMap<Integer, Item>();
+	private static Map<String, String> levelMap = new HashMap<String, String>();
+	{
+		levelMap.put("cl", "Class");
+		levelMap.put("cf", "Fold");
+		levelMap.put("sf", "Superfamily");
+		levelMap.put("fa", "Family");
+		levelMap.put("dm", "Protein");
+		levelMap.put("sp", "Species");
+		levelMap.put("px", "Domain");
+	}
 
-	private HashMap<String, String> proteinChainMap = new HashMap<String, String>();
+	private Map<Integer, Item> scopEntryMap = new HashMap<Integer, Item>();
+
+//	private Map<Integer, String> domainIdMap = new HashMap<Integer, String>();
+
+	private Map<String, String> proteinChainMap = new HashMap<String, String>();
 
 	private Set<String> savedEntries = new HashSet<String>();
 
@@ -63,60 +75,40 @@ public class ScopConverter extends FileConverter {
 	 */
 	private void importDesFileToItems(Reader reader) throws IOException {
 
-		BufferedReader oBr = new BufferedReader(reader);
+		BufferedReader br = new BufferedReader(reader);
 
-		int iLineCount = 0;
+		int lineCount = 0;
 
-		while (oBr.ready()) {
-			iLineCount++;
-			String strLine = oBr.readLine();
+		while (br.ready()) {
+			lineCount++;
+			String line = br.readLine();
 
-			if (null == strLine || "".equals(strLine) || strLine.startsWith("#")) {
+			if (null == line || "".equals(line) || line.startsWith("#")) {
 				continue;
 			}
 
-			String[] a_strFields = strLine.split("\t");
+			String[] fields = line.split("\t");
 
-			if (a_strFields.length != 5) {
-				throw new IOException("dir.des.scop.txt is invalid. line:" + iLineCount + " "
-						+ strLine);
+			if (fields.length != 5) {
+				throw new IOException("Error reading dir.des.scop.txt. line:" + lineCount + " "
+						+ line);
 			}
 
-			Integer iSunId = Integer.valueOf(a_strFields[0]);
-			String strType = a_strFields[1];
-			String strSccs = a_strFields[2];
-			String strDescription = a_strFields[4];
+			Integer sunid = Integer.valueOf(fields[0]);
+			Item oItem = createItem("ScopClassification");
+			oItem.setAttribute("type", "SCOP");
+			oItem.setAttribute("level", levelMap.get(fields[1]));
 
-			Item oItem = createItem("ScopEntry");
+//			if (!fields[3].equals("-")) {
+//				domainIdMap.put(sunid, fields[3]);
+//			}
 
-			if ("cl".equals(strType)) {
-				// ScopClass
-				oItem.setAttribute("type", "ScopClass");
-			} else if ("cf".equals(strType)) {
-				// ScopFold
-				oItem.setAttribute("type", "ScopFold");
-			} else if ("sf".equals(strType)) {
-				// ScopSuperfamily
-				oItem.setAttribute("type", "ScopSuperFamily");
-			} else if ("fa".equals(strType)) {
-				// ScopFamily
-				oItem.setAttribute("type", "ScopFamily");
-			} else if ("dm".equals(strType)) {
-				// ScopProtein
-				oItem.setAttribute("type", "ScopProtein");
-			} else if ("sp".equals(strType)) {
-				// ScopSpecies
-				oItem.setAttribute("type", "ScopSpecies");
-			} else if ("px".equals(strType)) {
-				// ScopDomain
-				oItem.setAttribute("type", "ScopDomain");
-			}
+			oItem.setAttribute("code", fields[2]);
+			oItem.setAttribute("sunid", fields[0]);
+			oItem.setAttribute("sccs", fields[2]);
+			oItem.setAttribute("description", fields[4]);
 
-			oItem.setAttribute("sunid", a_strFields[0]);
-			oItem.setAttribute("sccs", strSccs);
-			oItem.setAttribute("description", strDescription);
-
-			m_oScopEntryMap.put(iSunId, oItem);
+			scopEntryMap.put(sunid, oItem);
 		}
 	}
 
@@ -146,19 +138,31 @@ public class ScopConverter extends FileConverter {
 			if (matcher.matches()) {
 				List<String> parentRefIds = new ArrayList<String>();
 				for (int i = 0; i < 7; i++) {
-					Item item = m_oScopEntryMap.get(Integer.valueOf(matcher.group(i + 1)));
-					if (i > 0) {
-						parentRefIds.add(m_oScopEntryMap.get(Integer.valueOf(matcher.group(i)))
-								.getIdentifier());
+					Integer identifier = Integer.valueOf(matcher.group(i + 1));
+					Item item = scopEntryMap.get(identifier);
+					if (savedEntries.contains(item.getIdentifier())) {
+						continue;
 					}
-					if (!savedEntries.contains(item.getIdentifier())) {
+					if (i > 0) {
+						parentRefIds.add(scopEntryMap.get(Integer.valueOf(matcher.group(i)))
+								.getIdentifier());
 						item.setCollection("parents", parentRefIds);
-						store(item);
-						savedEntries.add(item.getIdentifier());
 					}
 					if (i == 6) {
-						createScopRegion(cols[1], cols[2], item.getIdentifier());
+						Item domain = createItem("ScopDomain");
+//						String domainId = domainIdMap.get(identifier);
+//						if (domainId == null) {
+//							throw new RuntimeException("domainId is null: " + identifier);
+//						}
+						domain.setAttribute("identifier", identifier.toString());
+						domain.setReference("structuralClassification", item);
+						store(domain);
+						createStructuralRegion(cols[1], cols[2], domain.getIdentifier());
+
+						item.setReference("structuralDomain", domain.getIdentifier());
 					}
+					store(item);
+					savedEntries.add(item.getIdentifier());
 				}
 			} else {
 				throw new RuntimeException("Unexpected string format: " + cols[5]);
@@ -168,26 +172,26 @@ public class ScopConverter extends FileConverter {
 
 	}
 
-	private void createScopRegion(String pdbid, String chainRegion, String scopProteinRefId)
+	private void createStructuralRegion(String pdbid, String chainRegion, String domainRefId)
 			throws ObjectStoreException {
 		String[] regions = chainRegion.split(",");
 		for (String region : regions) {
 
 			String[] strChainFields = region.split(":");
-			Item scopRegion = createItem("ScopRegion");
+			Item item = createItem("StructuralRegion");
 
 			if (1 < strChainFields.length) {
 				Matcher matcher = regionPattern.matcher(strChainFields[1]);
 				if (matcher.matches()) {
-					scopRegion.setAttribute("start", matcher.group(1));
-					scopRegion.setAttribute("end", matcher.group(3));
+					item.setAttribute("start", matcher.group(1));
+					item.setAttribute("end", matcher.group(3));
 					String sic = matcher.group(2);
 					if (!sic.equals("")) {
-						scopRegion.setAttribute("startInsertionCode", sic);
+						item.setAttribute("startInsertionCode", sic);
 					}
 					String eic = matcher.group(4);
 					if (!eic.equals("")) {
-						scopRegion.setAttribute("endInsertionCode", eic);
+						item.setAttribute("endInsertionCode", eic);
 					}
 				} else {
 					throw new RuntimeException(String.format(
@@ -195,10 +199,10 @@ public class ScopConverter extends FileConverter {
 				}
 			}
 
-			scopRegion.setReference("scopClassification", scopProteinRefId);
-			scopRegion.setReference("chain", getProteinChain(pdbid, strChainFields[0]));
+			item.setReference("structuralDomain", domainRefId);
+			item.setReference("proteinChain", getProteinChain(pdbid, strChainFields[0]));
 
-			store(scopRegion);
+			store(item);
 		}
 
 	}

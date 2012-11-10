@@ -80,10 +80,11 @@
       <property name="clsFile" value="/data/bio/db/Targetmine/scop/dir.cla.scop.txt_1.75"/>
     </source>
 
-    <source name="cath-name" type="cath-name">
+    <source name="cath" type="cath-name">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/cath"/>
       <property name="src.data.dir.includes" value="CathNames"/>
       <property name="domainList" value="/data/bio/db/Targetmine/cath/CathDomainList"/>
+      <property name="domall" value="/data/bio/db/Targetmine/cath/CathDomall"/>
     </source>
     <source name="gene3d" type="gene3d">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene3d"/>

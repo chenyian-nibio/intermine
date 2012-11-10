@@ -1,23 +1,33 @@
 <?xml version="1.0"?>
 
 <classes>
-	<class name="ScopEntry" is-interface="true">
-		<attribute name="sunid" type="java.lang.Integer"/>
+	<class name="StructuralDomain" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<reference name="structuralClassification" referenced-type="StructuralClassification" reverse-reference="structuralDomain"/>
+		<collection name="regions" referenced-type="StructuralRegion" reverse-reference="structuralDomain"/>
 	</class>
+
+	<class name="ScopDomain" extends="StructuralDomain" is-interface="true">
+	</class>
+
 	<class name="Druggability" is-interface="true">
 		<attribute name="ensembl" type="java.lang.Double"/>
 		<attribute name="tractable" type="java.lang.Boolean"/>
 		<attribute name="druggable" type="java.lang.Boolean"/>
 		<attribute name="primaryIdentifier" type="java.lang.String"/>
+		<reference name="scopDomain" referenced-type="ScopDomain"/>
+		<reference name="proteinChain" referenced-type="ProteinChain" reverse-reference="druggabilities"/>
 		<collection name="proteins" referenced-type="Protein" reverse-reference="druggabilities"/>
-		<reference name="scopProtein" referenced-type="ScopEntry"/>
-		<reference name="proteinStructure" referenced-type="ProteinStructure" reverse-reference="druggabilities"/>
 	</class>
 	<class name="Protein" is-interface="true">
 		<collection name="druggabilities" referenced-type="Druggability" reverse-reference="proteins"/>
     </class>
-	<class name="ProteinStructure" extends="MacroMolecularStructure" is-interface="true">
+
+	<class name="ProteinChain" is-interface="true">
 		<attribute name="pdbId" type="java.lang.String"/>
+		<attribute name="chain" type="java.lang.String"/>
+		<attribute name="identifier" type="java.lang.String"/>
+		<collection name="structuralRegions" referenced-type="StructuralRegion" reverse-reference="proteinChain"/>
 		<collection name="druggabilities" referenced-type="Druggability" reverse-reference="proteinStructure"/>
 	</class>
 
