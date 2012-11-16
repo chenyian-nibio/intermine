@@ -1,0 +1,4 @@
+<project name="sifts-tasks" default="default" basedir=".">
+  <description>build sifts tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

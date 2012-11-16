@@ -88,8 +88,6 @@ public class LigandExpoPostProcess extends PostProcessor {
 		QueryClass qcProtein = new QueryClass(Protein.class);
 		QueryClass qcProteinStructureRegion = new QueryClass(os.getModel()
 				.getClassDescriptorByName("ProteinStructureRegion").getType());
-		QueryClass qcPDBRegion = new QueryClass(os.getModel().getClassDescriptorByName("PDBRegion")
-				.getType());
 		QueryClass qcProteinChain = new QueryClass(os.getModel()
 				.getClassDescriptorByName("ProteinChain").getType());
 		QueryClass qcProteinStructure = new QueryClass(os.getModel()
@@ -99,7 +97,6 @@ public class LigandExpoPostProcess extends PostProcessor {
 
 		q.addFrom(qcProtein);
 		q.addFrom(qcProteinStructureRegion);
-		q.addFrom(qcPDBRegion);
 		q.addFrom(qcProteinChain);
 		q.addFrom(qcProteinStructure);
 		q.addFrom(qcPDBCompound);
@@ -114,11 +111,8 @@ public class LigandExpoPostProcess extends PostProcessor {
 				"structureRelatedRegion");
 		cs.addConstraint(new ContainsConstraint(c1, ConstraintOp.CONTAINS, qcProteinStructureRegion));
 
-		QueryObjectReference r2 = new QueryObjectReference(qcProteinStructureRegion, "pdbRegion");
-		cs.addConstraint(new ContainsConstraint(r2, ConstraintOp.CONTAINS, qcPDBRegion));
-
-		QueryObjectReference r3 = new QueryObjectReference(qcPDBRegion, "chain");
-		cs.addConstraint(new ContainsConstraint(r3, ConstraintOp.CONTAINS, qcProteinChain));
+		QueryObjectReference r2 = new QueryObjectReference(qcProteinStructureRegion, "chain");
+		cs.addConstraint(new ContainsConstraint(r2, ConstraintOp.CONTAINS, qcProteinChain));
 
 		QueryObjectReference r4 = new QueryObjectReference(qcProteinChain, "structure");
 		cs.addConstraint(new ContainsConstraint(r4, ConstraintOp.CONTAINS, qcProteinStructure));

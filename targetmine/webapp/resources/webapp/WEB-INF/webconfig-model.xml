@@ -246,10 +246,10 @@
     <fields>
       <fieldconfig fieldExpr="start"/>
       <fieldconfig fieldExpr="end"/>
-      <fieldconfig fieldExpr="pdbRegion.start"/>
-      <fieldconfig fieldExpr="pdbRegion.end"/>
-      <fieldconfig fieldExpr="pdbRegion.chain.pdbId"/>
-      <fieldconfig fieldExpr="pdbRegion.chain.chain"/>
+      <fieldconfig fieldExpr="pdbSeqStart"/>
+      <fieldconfig fieldExpr="pdbSeqEnd"/>
+      <fieldconfig fieldExpr="chain.pdbId"/>
+      <fieldconfig fieldExpr="chain.chain"/>
     </fields>
   </class>
 
@@ -267,12 +267,12 @@
     </fields>
   </class>
 <!-- chenyian
+-->
   <class className="org.intermine.model.bio.GeneSetCluster">
     <fields>
       <fieldconfig fieldExpr="identifier" />
     </fields>
   </class>
--->
   <class className="org.intermine.model.bio.Homologue">
     <fields>
       <fieldconfig fieldExpr="type"/>
@@ -452,6 +452,15 @@
       <fieldconfig fieldExpr="end"/>
       <fieldconfig fieldExpr="cathClassification.cathCode"/>
       <fieldconfig fieldExpr="cathClassification.description"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.Druggability">
+    <fields>
+      <fieldconfig fieldExpr="primaryIdentifier"/>
+      <fieldconfig fieldExpr="ensembl"/>
+      <fieldconfig fieldExpr="tractable"/>
+      <fieldconfig fieldExpr="druggable"/>
+      <fieldconfig fieldExpr="proteinStructure.pdbId"/>
     </fields>
   </class>
 

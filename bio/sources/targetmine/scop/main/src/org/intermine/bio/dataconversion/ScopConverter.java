@@ -149,17 +149,7 @@ public class ScopConverter extends FileConverter {
 						item.setCollection("parents", parentRefIds);
 					}
 					if (i == 6) {
-						Item domain = createItem("ScopDomain");
-//						String domainId = domainIdMap.get(identifier);
-//						if (domainId == null) {
-//							throw new RuntimeException("domainId is null: " + identifier);
-//						}
-						domain.setAttribute("identifier", identifier.toString());
-						domain.setReference("structuralClassification", item);
-						store(domain);
-						createStructuralRegion(cols[1], cols[2], domain.getIdentifier());
-
-						item.setReference("structuralDomain", domain.getIdentifier());
+						createStructuralRegion(cols[1], cols[2], item.getIdentifier());
 					}
 					store(item);
 					savedEntries.add(item.getIdentifier());
@@ -172,7 +162,7 @@ public class ScopConverter extends FileConverter {
 
 	}
 
-	private void createStructuralRegion(String pdbid, String chainRegion, String domainRefId)
+	private void createStructuralRegion(String pdbid, String chainRegion, String referencefId)
 			throws ObjectStoreException {
 		String[] regions = chainRegion.split(",");
 		for (String region : regions) {
@@ -199,7 +189,7 @@ public class ScopConverter extends FileConverter {
 				}
 			}
 
-			item.setReference("structuralDomain", domainRefId);
+			item.setReference("structuralDomain", referencefId);
 			item.setReference("proteinChain", getProteinChain(pdbid, strChainFields[0]));
 
 			store(item);

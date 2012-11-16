@@ -1,16 +1,11 @@
 package org.intermine.bio.dataconversion;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.Reader;
 import java.text.DecimalFormat;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -29,9 +24,6 @@ public class DrugebilityConverter extends BioFileConverter {
 	private static final String DATASET_TITLE = "DrugEBIlity";
 	private static final String DATA_SOURCE_NAME = "EMBL-EBI";
 
-	private Map<String, Set<String>> uniprotIdMap;
-
-	private Map<String, String> proteinMap = new HashMap<String, String>();
 	private Map<String, String> scopEntryMap = new HashMap<String, String>();
 	private Map<String, String> structureMap = new HashMap<String, String>();
 
@@ -53,9 +45,6 @@ public class DrugebilityConverter extends BioFileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
-		if (uniprotIdMap == null) {
-			readProteinIdMap();
-		}
 		
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
 		// skip the header
@@ -65,16 +54,11 @@ public class DrugebilityConverter extends BioFileConverter {
 			Item item = createItem("Druggability");
 			// for external links to ChEMBL-DrugEBIlity
 			item.setAttribute("primaryIdentifier",cols[0]);
+			// the length of scop domain identifier is less than 7
 			if (cols[0].length() < 7) {
-				item.setReference("scopProtein", getScopEntry(cols[0]));
+				item.setReference("scopDomain", getScopClassification(cols[0]));
 			}
 			item.setReference("proteinStructure", getProteinStructure(cols[1]));
-			Set<String> uniprotIds = uniprotIdMap.get(cols[0]);
-			if (uniprotIds != null) {
-				for (String uniprotId : uniprotIds) {
-					item.addToCollection("proteins", getProtein(uniprotId));
-				}
-			}
 			DecimalFormat df = new DecimalFormat("0.00");
 			String formatted = df.format(Double.valueOf(cols[5]));
 			item.setAttribute("ensembl", formatted);
@@ -83,42 +67,6 @@ public class DrugebilityConverter extends BioFileConverter {
 			
 			store(item);
 		}
-		
-		
-	}
-
-	private void readProteinIdMap() throws Exception {
-		uniprotIdMap = new HashMap<String, Set<String>>();
-
-		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(new FileReader(
-				domainDetails));
-
-		// skip the header
-		iterator.next();
-		while (iterator.hasNext()) {
-			String[] cols = iterator.next();
-			if (StringUtils.isEmpty(cols[5])) {
-				continue;
-			}
-			
-			if (uniprotIdMap.get(cols[0]) == null ) {
-				uniprotIdMap.put(cols[0], new HashSet<String>());
-			}
-			uniprotIdMap.get(cols[0]).add(cols[5]);
-		}
-
-	}
-
-	private String getProtein(String identifier) throws ObjectStoreException {
-		String ret = proteinMap.get(identifier);
-		if (ret == null) {
-			Item item = createItem("Protein");
-			item.setAttribute("primaryAccession", identifier);
-			ret = item.getIdentifier();
-			store(item);
-			proteinMap.put(identifier, ret);
-		}
-		return ret;
 	}
 
 	private String getProteinStructure(String identifier) throws ObjectStoreException {
@@ -133,22 +81,16 @@ public class DrugebilityConverter extends BioFileConverter {
 		return ret;
 	}
 
-	private String getScopEntry(String identifier) throws ObjectStoreException {
+	private String getScopClassification(String identifier) throws ObjectStoreException {
 		String ret = scopEntryMap.get(identifier);
 		if (ret == null) {
-			Item item = createItem("ScopEntry");
+			Item item = createItem("ScopClassification");
 			item.setAttribute("sunid", identifier);
 			ret = item.getIdentifier();
 			store(item);
 			scopEntryMap.put(identifier, ret);
 		}
 		return ret;
-	}
-
-	private File domainDetails;
-
-	public void setDomainDetails(File domainDetails) {
-		this.domainDetails = domainDetails;
 	}
 
 }

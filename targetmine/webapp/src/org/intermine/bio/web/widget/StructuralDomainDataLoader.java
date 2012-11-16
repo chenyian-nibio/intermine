@@ -50,16 +50,13 @@ public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
 		QueryClass qcGene = new QueryClass(Gene.class);
 		QueryClass qcProtein = new QueryClass(Protein.class);
 		QueryClass qcStructuralDomainRegion;
-		QueryClass qcCathChild;
-		QueryClass qcCathParent;
+		QueryClass qcCathDomain;
 		QueryClass qcOrganism = new QueryClass(Organism.class);
 
 		try {
 			qcStructuralDomainRegion = new QueryClass(Class.forName(model.getPackageName()
 					+ ".StructuralDomainRegion"));
-			qcCathParent = new QueryClass(Class.forName(model.getPackageName()
-					+ ".CathClassification"));
-			qcCathChild = new QueryClass(Class.forName(model.getPackageName()
+			qcCathDomain = new QueryClass(Class.forName(model.getPackageName()
 					+ ".CathClassification"));
 		} catch (ClassNotFoundException e) {
 			LOG.error("Error rendering structural domain enrichment widget", e);
@@ -73,8 +70,8 @@ public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
 		QueryField qfId = null;
 		QueryField qfDisplayId = null;
 		QueryField qfOrganismName = new QueryField(qcOrganism, "name");
-		QueryField qfCathCode = new QueryField(qcCathParent, "cathCode");
-		QueryField qfCathDescription = new QueryField(qcCathParent, "description");
+		QueryField qfCathCode = new QueryField(qcCathDomain, "cathCode");
+		QueryField qfCathDescription = new QueryField(qcCathDomain, "description");
 
 		if ("Protein".equals(bagType)) {
 			qfId = new QueryField(qcProtein, "id");
@@ -113,9 +110,7 @@ public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
 				qcStructuralDomainRegion));
 		QueryObjectReference qorChild = new QueryObjectReference(qcStructuralDomainRegion,
 				"cathClassification");
-		cs.addConstraint(new ContainsConstraint(qorChild, ConstraintOp.CONTAINS, qcCathChild));
-		QueryCollectionReference qcrParent = new QueryCollectionReference(qcCathChild, "parents");
-		cs.addConstraint(new ContainsConstraint(qcrParent, ConstraintOp.CONTAINS, qcCathParent));
+		cs.addConstraint(new ContainsConstraint(qorChild, ConstraintOp.CONTAINS, qcCathDomain));
 
         if ("Gene".equals(bagType)) {
             QueryCollectionReference qcr2 = new QueryCollectionReference(qcGene, "proteins");
@@ -131,8 +126,7 @@ public class StructuralDomainDataLoader extends EnrichmentWidgetLdr {
         }
 		q.addFrom(qcProtein);
 		q.addFrom(qcStructuralDomainRegion);
-		q.addFrom(qcCathChild);
-		q.addFrom(qcCathParent);
+		q.addFrom(qcCathDomain);
 		q.addFrom(qcOrganism);
 
 		// add constraints to query

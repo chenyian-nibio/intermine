@@ -69,10 +69,14 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/integr8"/>
       <property name="src.data.dir.includes" value="*.IPC"/>
     </source>
--->
     <source name="msd" type="msd">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/msd"/>
       <property name="src.data.dir.includes" value="*.lst"/>
+    </source>
+-->
+    <source name="sifts" type="sifts">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/sifts"/>
+      <property name="src.data.dir.includes" value="pdb_chain_uniprot.lst"/>
     </source>
     <source name="scop" type="scop">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/scop"/>
@@ -111,7 +115,6 @@
     </source>
     
  <!-- chenyian: disabled for external version 
- -->
     <source name="protein-analysis" type="protein-analysis">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis"/>
       <property name="src.data.dir.includes" value="result.out"/>
@@ -125,6 +128,7 @@
       <property name="src.data.dir.includes" value="omim_phenotype_title"/>
       <property name="mim2geneFile" value="/data/bio/db/Targetmine/omim/mim2gene" />
     </source>
+ -->
 <!--Added by Chen: Start -->
 
     <source name="pdb_ext" type="pdb_ext">
@@ -160,7 +164,6 @@
     <source name="drugebility" type="drugebility">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/drugebility" />
       <property name="src.data.dir.includes" value="domain_drugebility.txt" />
-      <property name="domainDetails" value="/data/bio/db/Targetmine/drugebility/domain_details.txt" />
     </source>
 
   	<!--Intermine default : Start-->
@@ -185,12 +188,12 @@
       <property name="src.data.dir.includes" value="*.tab"/>
     </source>
     <!--
-    -->
     <source name="gene-set" type="gene-set">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_set_cluster"/>
       <property name="src.data.dir.includes" value="lt600.*"/>
       <property name="clusterName" value="/data/bio/db/Targetmine/gene_set_cluster/autoname.20121025.1.tsv"/>
     </source>
+    -->
     <source name="stitch" type="stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
       <property name="src.data.dir.includes" value="*.detailed.tsv" />

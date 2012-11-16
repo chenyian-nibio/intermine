@@ -6,6 +6,12 @@
   <description>Data mining system to find drug target proteins</description>
 
   <item>
+    <title>Update</title>
+    <link>news/2012/11/</link>
+    <description>build 20121115 released</description>
+    <pubDate>Fri, 16 Nov 2012 12:00:00 +0900</pubDate>
+  </item>
+  <item>
     <title>Important Data Fix</title>
     <link>news/2012/08/</link>
     <description>A new build 20120906 for fixing the erroneous GO annotations of genes.</description>

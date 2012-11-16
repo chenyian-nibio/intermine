@@ -153,27 +153,23 @@ public class CathNameConverter extends BioFileConverter {
 				item.setAttribute("level", "Domain");
 				item.setAttribute("code", cathId);
 				String code = cathCode;
+				item.addToCollection("parents", getCathParents(code));
 				while (code.lastIndexOf(".") != -1) {
 					code = code.substring(0, code.lastIndexOf("."));
 					item.addToCollection("parents", getCathParents(code));
 				}
 				item.setAttribute("description", String.format("CATH domain: %s", cathDomainName));
 
-				Item domain = createItem("CathDomain");
-				domain.setAttribute("identifier", cathDomainName);
-				domain.setAttribute("domainLength", domainLength);
-				domain.setReference("structuralClassification", item);
+				item.setAttribute("domainLength", domainLength);
 
-				item.setReference("structuralDomain", domain);
 				store(item);
-				store(domain);
 
 				String pdbId = cathDomainName.substring(0, 4);
 				String chainRegion = domainRegioinMap.get(cathDomainName);
 				if (chainRegion == null) {
 					throw new RuntimeException(cathDomainName);
 				}
-				createStructuralRegion(pdbId, chainId, chainRegion, domain.getIdentifier());
+				createStructuralRegion(pdbId, chainId, chainRegion, item.getIdentifier());
 			}
 		}
 	}
@@ -234,7 +230,7 @@ public class CathNameConverter extends BioFileConverter {
 	}
 
 	private void createStructuralRegion(String pdbId, String chainId, String chainRegion,
-			String domainRefId) throws ObjectStoreException {
+			String referenceId) throws ObjectStoreException {
 
 		String[] regions = chainRegion.split(SEGMENT_DELIMITER);
 		for (String region : regions) {
@@ -245,7 +241,7 @@ public class CathNameConverter extends BioFileConverter {
 			item.setAttribute("start", cols[0]);
 			item.setAttribute("end", cols[1]);
 
-			item.setReference("structuralDomain", domainRefId);
+			item.setReference("structuralDomain", referenceId);
 			item.setReference("proteinChain", getProteinChain(pdbId, chainId));
 
 			store(item);

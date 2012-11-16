@@ -6,22 +6,13 @@
 		<attribute name="level" type="java.lang.String"/>
 		<attribute name="code" type="java.lang.String"/>
 		<attribute name="description" type="java.lang.String"/>
-		<reference name="structuralDomain" referenced-type="StructuralDomain" reverse-reference="structuralClassification"/>
 		<collection name="parents" referenced-type="StructuralClassification"/>
+		<collection name="regions" referenced-type="StructuralRegion" reverse-reference="structuralDomain"/>
 	</class>
 
 	<class name="ScopClassification" extends="StructuralClassification" is-interface="true">
 		<attribute name="sccs" type="java.lang.String"/>
 		<attribute name="sunid" type="java.lang.Integer"/>
-	</class>
-
-	<class name="StructuralDomain" is-interface="true">
-		<attribute name="identifier" type="java.lang.String"/>
-		<reference name="structuralClassification" referenced-type="StructuralClassification" reverse-reference="structuralDomain"/>
-		<collection name="regions" referenced-type="StructuralRegion" reverse-reference="structuralDomain"/>
-	</class>
-
-	<class name="ScopDomain" extends="StructuralDomain" is-interface="true">
 	</class>
 
 	<class name="ProteinRegion" is-interface="true">
@@ -32,7 +23,7 @@
 	<class name="StructuralRegion" extends="ProteinRegion" is-interface="true">
 		<attribute name="startInsertionCode" type="java.lang.String"/>
 		<attribute name="endInsertionCode" type="java.lang.String"/>
-		<reference name="structuralDomain" referenced-type="StructuralDomain" reverse-reference="regions"/>
+		<reference name="structuralDomain" referenced-type="StructuralClassification" reverse-reference="regions"/>
 		<reference name="proteinChain" referenced-type="ProteinChain" reverse-reference="structuralRegions"/>
 	</class>
 

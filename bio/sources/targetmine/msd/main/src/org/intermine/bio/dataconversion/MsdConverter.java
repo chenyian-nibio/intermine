@@ -15,9 +15,13 @@ import org.intermine.xml.full.Item;
 
 /**
  * 
- * @author ishikawa
- * modified by chenyian
+ * @author ishikawa; chenyian
+ * <br/>
+ * @deprecated
+ * 2012/11/15 with the modification of the region model, 
+ * this parser (source) is replaced by sifts. 
  */
+@Deprecated
 public class MsdConverter extends FileConverter {
 	
 //	private static Logger m_oLogger = Logger.getLogger(MsdConverter.class);
@@ -64,7 +68,6 @@ public class MsdConverter extends FileConverter {
 			
 			Item oProteinStructure = getProteinStructure(a_strFields[0]);
 			Item oProtein = getProtein(a_strFields[2]);
-			// chenyian: add 2 new attributes, residue start and end
 			Item oPDBRegion = createPDBRegion(a_strFields[4], a_strFields[5],a_strFields[6], a_strFields[7]);
 			Item oProteinStructureRegion = createProteinStructureRegion(a_strFields[8], a_strFields[9]);
 			Item oProteinChain = getProteinChain( a_strFields[0], a_strFields[1] );

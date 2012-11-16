@@ -39,17 +39,16 @@ public class StructuralDomainURLQuery implements WidgetURLQuery {
 			q.addViews("Gene.ncbiGeneNumber", "Gene.symbol");
 		}
 		q.addViews(prefix + ".primaryAccession", prefix + ".name", prefix + ".organism.shortName",
-				prefix + ".structuralDomains.cathClassification.parents.cathCode", prefix
-						+ ".structuralDomains.cathClassification.parents.cathDomainName", prefix
-						+ ".structuralDomains.cathClassification.parents.description");
+				prefix + ".structuralDomains.cathClassification.cathCode", prefix
+						+ ".structuralDomains.cathClassification.description");
 		q.addConstraint(Constraints.in(bag.getType(), bag.getName()));
 		if (!showAll) {
 			String[] keys = key.split(",");
 			q.addConstraint(Constraints.oneOfValues(prefix
-					+ ".structuralDomains.cathClassification.parents.cathCode", Arrays.asList(keys)));
+					+ ".structuralDomains.cathClassification.cathCode", Arrays.asList(keys)));
 		}
 
-		q.addOrderBy(prefix + ".structuralDomains.cathClassification.parents.cathCode",
+		q.addOrderBy(prefix + ".structuralDomains.cathClassification.cathCode",
 				OrderDirection.ASC);
 
 		return q;
