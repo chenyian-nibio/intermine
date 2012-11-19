@@ -19,13 +19,6 @@
       <property name="src.data.dir.includes" value="gene_association*"/>
       <property name="excludeComputational" value="true"/>
     </source>
-<!--
-    <source name="go-annotation" type="go-annotation">
-      <property name="ontologyfile" location="/data/bio/db/Targetmine/go-annotation/gene_ontology.obo"/>
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/go-annotation"/>
-      <property name="src.data.dir.includes" value="gene_association*"/>
-    </source>
--->
   	<source name="do" type="do">
       <property name="src.data.file" location="/data/bio/db/Targetmine/do/HumanDO.obo"/>
     </source>
@@ -52,28 +45,13 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/interpro"/>
       <property name="src.data.dir.includes" value="interpro.xml"/>
     </source>
- <!--
-    <source name="ipi-ipc" type="ipi-ipc">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/ipi-ipc"/>
-      <property name="src.data.dir.includes" value="ipi.*.IPC"/>
-    </source>
--->
     <source name="protein2ipr" type="protein2ipr">
 		<property name="src.data.dir" location="/data/bio/db/Targetmine/interpro"/>
 		<property name="src.data.dir.includes" value="protein2ipr.dat"/>
 		<property name="organisms" value="9606 10090 10116"/>
 		<property name="osAlias" value="os.production"/>
-   </source>
-<!--
-    <source name="integr8" type="integr8">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/integr8"/>
-      <property name="src.data.dir.includes" value="*.IPC"/>
     </source>
-    <source name="msd" type="msd">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/msd"/>
-      <property name="src.data.dir.includes" value="*.lst"/>
-    </source>
--->
+
     <source name="sifts" type="sifts">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/sifts"/>
       <property name="src.data.dir.includes" value="pdb_chain_uniprot.lst"/>
@@ -94,8 +72,6 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene3d"/>
       <property name="src.data.dir.includes" value="gene3d.HRM.txt"/>
     </source>
-<!--
--->
     <source name="kegg-orthology" type="tm-kegg-orthology">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg/orthology"/>
       <property name="src.data.dir.includes" value="*" />
@@ -115,6 +91,7 @@
     </source>
     
  <!-- chenyian: disabled for external version 
+ -->
     <source name="protein-analysis" type="protein-analysis">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis"/>
       <property name="src.data.dir.includes" value="result.out"/>
@@ -128,7 +105,6 @@
       <property name="src.data.dir.includes" value="omim_phenotype_title"/>
       <property name="mim2geneFile" value="/data/bio/db/Targetmine/omim/mim2gene" />
     </source>
- -->
 <!--Added by Chen: Start -->
 
     <source name="pdb_ext" type="pdb_ext">
@@ -187,13 +163,13 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/nci-pathway"/>
       <property name="src.data.dir.includes" value="*.tab"/>
     </source>
-    <!--
+    <!-- chenyian: disable for external server
+    -->
     <source name="gene-set" type="gene-set">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_set_cluster"/>
       <property name="src.data.dir.includes" value="lt600.*"/>
       <property name="clusterName" value="/data/bio/db/Targetmine/gene_set_cluster/autoname.20121025.1.tsv"/>
     </source>
-    -->
     <source name="stitch" type="stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
       <property name="src.data.dir.includes" value="*.detailed.tsv" />
@@ -237,12 +213,6 @@
       <property name="pubmed.organisms" value="9606 10090 10116"/>
       <property name="src.data.dir.includes" value="gene2pubmed"/>
     </source>
-    <!-- testing, unfinished
-  	<source name="retrieve-publication-local" type="retrieve-publication-local">
-      <property name="source.db.name" value="pub-db"/>
-      <property name="osAlias" value="os.production"/>
-    </source>
-    -->
   	<!--Intermine default -->
     <source name="update-publications" type="update-publications">
       <property name="src.data.file" location="build/publications.xml"/>
