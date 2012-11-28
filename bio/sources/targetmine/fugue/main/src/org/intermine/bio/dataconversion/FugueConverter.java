@@ -1,4 +1,4 @@
-package jp.go.nibio.targetmine.dataconversion;
+package org.intermine.bio.dataconversion;
 
 import java.io.BufferedReader;
 import java.io.Reader;
