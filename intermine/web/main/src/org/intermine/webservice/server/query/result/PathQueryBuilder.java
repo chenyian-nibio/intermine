@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.query.result;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -11,13 +11,12 @@ package org.intermine.webservice.server.query.result;
  */
 
 import java.io.StringReader;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-
 import org.intermine.api.profile.BagState;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.pathquery.PathQuery;
@@ -70,7 +69,7 @@ public class PathQueryBuilder
                     PathQuery.USERPROFILE_VERSION);
 
             if (!pathQuery.isValid()) {
-                throw new BadRequestException("XML is well formatted but query contains errors: "
+                throw new BadRequestException("XML is well formatted but query contains errors:\n"
                         + formatMessage(pathQuery.verifyQuery()));
             }
 
@@ -90,27 +89,30 @@ public class PathQueryBuilder
             if (!missingBags.isEmpty()) {
                 throw new BadRequestException(
                         "The query XML is well formatted but you do not have access to the "
-                        + "following mentioned lists: " + missingBags
-                        + " query: " + xml);
+                        + "following mentioned lists:\n"
+                        + formatMessage(missingBags));
             }
             if (!toUpgrade.isEmpty()) {
                 throw new InternalErrorException(
                         "The query XML is well formatted, but the following lists"
-                        + " are not 'current', and need to be manually upgraded: " + toUpgrade);
+                        + " are not 'current', and need to be manually upgraded:\n"
+                        + formatMessage(toUpgrade));
             }
         } else {
             logger.debug("Received invalid xml: " + xml);
-            throw new BadRequestException(formatMessage(validator.getErrorsAndWarnings()));
+            throw new BadRequestException("Query does not pass XML validation:\n" 
+                    + formatMessage(validator.getErrorsAndWarnings()));
         }
     }
 
-    private String formatMessage(List<String> msgs) {
+    private String formatMessage(Collection<String> msgs) {
         StringBuilder sb = new StringBuilder();
         for (String msg : msgs) {
             sb.append(msg);
             if (!msg.endsWith(".")) {
                 sb.append(".");
             }
+            sb.append("\n");
         }
         return sb.toString();
     }

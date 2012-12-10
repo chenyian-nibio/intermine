@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.core;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -15,12 +15,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
+import org.intermine.api.InterMineAPI;
 import org.intermine.api.bag.BagManager;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
-import org.intermine.web.logic.session.SessionMethods;
 
 /**
  * Manager of public lists used by web service.
@@ -36,9 +34,9 @@ public class ListManager
      * ListManager constructor.
      * @param request request
      */
-    public ListManager(HttpServletRequest request) {
-        this.bagManager = SessionMethods.getInterMineAPI(request.getSession()).getBagManager();
-        this.profile = SessionMethods.getProfile(request.getSession());
+    public ListManager(InterMineAPI im, Profile profile) {
+        this.bagManager = im.getBagManager();
+        this.profile = profile;
     }
 
 
@@ -51,7 +49,7 @@ public class ListManager
         List<String> ret = new ArrayList<String>();
 
         Collection<InterMineBag> bags
-            = bagManager.getCurrentUserOrGlobalBagsContainingId(profile, objectId);
+            = bagManager.getCurrentBagsContainingId(profile, objectId);
 
         for (InterMineBag bag : bags) {
             ret.add(bag.getName());
@@ -67,13 +65,17 @@ public class ListManager
         Date waitUntil = new Date(System.currentTimeMillis() + MAX_WAIT);
         // Wait up to 20 secs for the bags to be updated.
         while (new Date().before(waitUntil)) {
-            if (!bagManager.isAnyBagNotCurrent(profile)) {
+            if (!bagManager.isAnyBagNotCurrentOrUpgrading(profile)) {
                 break;
             }
         }
-        return bagManager.getUserAndGlobalBags(profile).values();
+        return bagManager.getBags(profile).values();
     }
-    
+
+    /**
+     * Return true if there is at least one bag  in the 'to_upgrade' state.
+     * @return true if there are any bags to upgrade
+     */
     public boolean isAnyBagUnresolvable() {
         return bagManager.isAnyBagToUpgrade(profile);
     }
@@ -81,9 +83,10 @@ public class ListManager
     /**
      * Returns the current lists available to the current user which contain the
      * specified object.
+     * @param objectId the id of an InterMineObject to look up
      * @return A collection of lists.
      */
     public Collection<InterMineBag> getListsContaining(Integer objectId) {
-        return bagManager.getCurrentUserOrGlobalBagsContainingId(profile, objectId);
+        return bagManager.getCurrentBagsContainingId(profile, objectId);
     }
 }

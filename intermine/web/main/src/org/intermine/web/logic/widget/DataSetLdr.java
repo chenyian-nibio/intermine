@@ -1,7 +1,7 @@
 package org.intermine.web.logic.widget;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -10,8 +10,9 @@ package org.intermine.web.logic.widget;
  *
  */
 
+import java.util.List;
+
 import org.intermine.objectstore.query.Results;
-import org.jfree.data.general.Dataset;
 
 /**
  * An Interface which defines a frame
@@ -23,12 +24,6 @@ import org.jfree.data.general.Dataset;
 public interface DataSetLdr
 {
     /**
-     * Get the generated DataSet
-     * @return the dataset
-     */
-    Dataset getDataSet();
-
-    /**
      * Get the Results object
      * @return the results Object
      */
@@ -39,4 +34,10 @@ public interface DataSetLdr
      * @return the total number of objects analysed in this widget
      */
     int getWidgetTotal();
+
+    /**
+     * Return the result table that represents the data from this widget.
+     * @return The widget's data.
+     */
+    List<List<Object>> getResultTable();
 }

@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.template;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -13,22 +13,22 @@ package org.intermine.webservice.server.template;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.intermine.api.InterMineAPI;
+import org.intermine.api.profile.BadTemplateException;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.template.ApiTemplate;
 import org.intermine.template.TemplateQuery;
 import org.intermine.template.xml.TemplateQueryBinding;
-import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.webservice.server.WebService;
-import org.intermine.webservice.server.exceptions.ServiceException;
 import org.intermine.webservice.server.exceptions.BadRequestException;
+import org.intermine.webservice.server.exceptions.ServiceException;
+import org.intermine.webservice.server.exceptions.ServiceForbiddenException;
 
 /**
  * A service to enable templates to be uploaded programmatically.
@@ -59,6 +59,13 @@ public class TemplateUploadService extends WebService
     public TemplateUploadService(InterMineAPI im) {
         super(im);
     }
+    
+    @Override
+    protected void validateState() {
+        if (!getPermission().isRW()) {
+            throw new ServiceForbiddenException("This request does not have RW permission.");
+        }
+    }
 
     @Override
     protected void execute() throws Exception {
@@ -69,8 +76,7 @@ public class TemplateUploadService extends WebService
         if (templatesXML == null || "".equals(templatesXML)) {
             throw new ServiceException("No template XML data." + USAGE);
         }
-        HttpSession session = request.getSession();
-        Profile profile = SessionMethods.getProfile(session);
+        Profile profile = getPermission().getProfile();
 
         int version = getVersion(request);
         Reader r = new StringReader(templatesXML);
@@ -92,6 +98,8 @@ public class TemplateUploadService extends WebService
             try {
                 profile.saveTemplate(name, new ApiTemplate(templ));
                 this.output.addResultItem(Arrays.asList(name, "Success"));
+            } catch (BadTemplateException bte) {
+                throw new BadRequestException("The template has invalid name.");
             } catch (RuntimeException e) {
                 throw new ServiceException("Failed to save template: " + name, e);
             }

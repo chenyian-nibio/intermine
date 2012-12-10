@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.core;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -15,7 +15,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.intermine.api.results.ResultElement;
 import org.intermine.pathquery.ConstraintValueParser;
 import org.intermine.webservice.server.output.Output;
@@ -41,8 +40,6 @@ public class ResultProcessor
     public ResultProcessor() {
         // don't instantiate
     }
-    
-    private static final Logger LOG = Logger.getLogger(ResultProcessor.class);
 
     /**
      * Writes results to output.

@@ -1,7 +1,7 @@
 package org.intermine.web.logic.widget;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -12,6 +12,7 @@ package org.intermine.web.logic.widget;
 
 import java.util.List;
 
+import org.intermine.pathquery.PathQuery;
 import org.intermine.web.logic.widget.config.WidgetConfig;
 
 /**
@@ -41,7 +42,7 @@ public class HTMLWidget extends Widget
     }
 
     @Override
-    public List<List<String[]>> getFlattenedResults() {
+    public List<List<Object>> getResults() {
         return null;
     }
 
@@ -63,6 +64,11 @@ public class HTMLWidget extends Widget
     @Override
     public void setNotAnalysed(@SuppressWarnings("unused") int notAnalysed) {
         // nothing to do
+    }
+
+    @Override
+    public PathQuery getPathQuery() {
+        return null;
     }
 
 }

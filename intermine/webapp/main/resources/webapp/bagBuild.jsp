@@ -22,20 +22,20 @@
   </c:if>
 
    function switchInputs(open, close) {
-      jQuery('#' + open + 'Input').attr("disabled","");
-      jQuery('#' + close + 'Input').attr("disabled","disabled");
+      jQuery('#' + open + 'Input').attr("disabled", false);
+      jQuery('#' + close + 'Input').attr("disabled", false);
     }
 
     function resetInputs() {
-       jQuery('#fileInput').attr("disabled","");
-       jQuery('#pasteInput').attr("disabled","");
+       jQuery('#fileInput').attr("disabled", false);
+       jQuery('#pasteInput').attr("disabled", false);
        jQuery('#fileInput').val('');
        jQuery('#pasteInput').val('');
     }
 
     function openInputs() {
-       jQuery('#fileInput').attr("disabled","");
-       jQuery('#pasteInput').attr("disabled","");
+       jQuery('#fileInput').attr("disabled", false);
+       jQuery('#pasteInput').attr("disabled", false);
     }
 
     function loadExample() {
@@ -66,9 +66,9 @@
         el.disabled = false;
      }
      if (type.length > 0){
-        jQuery('#submitBag').attr('disabled', '');
+        jQuery('#submitBag').attr('disabled', false);
      } else {
-        jQuery('#submitBag').attr('disabled', 'disabled');
+        jQuery('#submitBag').attr('disabled', true);
      }
    }
 //]]>-->
@@ -159,10 +159,7 @@
            </tr>
            <tr>
                <td></td>
-               <td class="label"><html:checkbox property="caseSensitive"/>&nbsp;<label><fmt:message key="bagBuild.caseSensitive"/></label>
-               <!--chenyian-->
-               <br/><html:checkbox property="removeVersionTag"/>&nbsp;<label><fmt:message key="bagBuild.removeVersionTag"/></label>
-               </td>
+               <td class="label"><html:checkbox property="caseSensitive"/>&nbsp;<label><fmt:message key="bagBuild.caseSensitive"/></label></td>
            </tr>
        </table>
 

@@ -1,7 +1,7 @@
 package org.intermine.template;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -25,6 +26,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.intermine.pathquery.PathConstraint;
+import org.intermine.pathquery.PathConstraintLookup;
 import org.intermine.pathquery.PathConstraintLoop;
 import org.intermine.pathquery.PathConstraintSubclass;
 import org.intermine.pathquery.PathQuery;
@@ -436,6 +438,18 @@ public class TemplateQuery extends PathQuery
     }
 
     /**
+     * Return the template's title, or its name if it has no title.
+     */
+    @Override
+    public String getTitle() {
+        String title = super.getTitle();
+        if (title == null || "".equals(title)) {
+            return getName();
+        }
+        return title;
+    }
+
+    /**
      * Get the paths of all editable constraints in this template.
      *
      * @return the nodes
@@ -506,8 +520,27 @@ public class TemplateQuery extends PathQuery
         return res;
     }
 
+    public synchronized Map<PathConstraint, String> getRelevantConstraints() {
+        Map<PathConstraint, String> retVal
+            = new LinkedHashMap<PathConstraint, String>(getConstraints());
+        for (PathConstraint con: getConstraints().keySet()) {
+            if (getSwitchOffAbility(con) == SwitchOffAbility.OFF) {
+                retVal.remove(con);
+            }
+        }
+        return retVal;
+    }
+
+    protected Map<String, Object> getHeadAttributes() {
+        Map<String, Object> retVal = super.getHeadAttributes();
+        retVal.put("name", getName());
+        retVal.put("comment", getComment());
+        return retVal;
+    }
+
     /**
      * Returns a JSON string representation of the template query.
+     * TODO: !! fix confusion between toJson and toJSON !!
      * @return A string representation of the template query.
      */
     public synchronized String toJSON() {
@@ -543,36 +576,6 @@ public class TemplateQuery extends PathQuery
         sb.append("}");
         return sb.toString();
     }
-
-    private void addJsonProperty(StringBuffer sb, String key, Object value) {
-        if (value != null) {
-            if (!sb.toString().endsWith("{")) {
-                sb.append(",");
-            }
-            sb.append(formatKVPair(key, value));
-        }
-    }
-
-    private String formatKVPair(String key, Object value) {
-        if (value instanceof List) {
-            StringBuffer sb = new StringBuffer("[");
-            boolean needsSep = false;
-            for (Object obj: (List<?>) value) {
-                if (needsSep) {
-                    sb.append(",");
-                }
-                sb.append("\"" + StringEscapeUtils.escapeJava(obj.toString()) + "\"");
-                needsSep = true;
-            }
-            sb.append("]");
-            return "\"" + key + "\":" + sb.toString();
-        } else if (value instanceof String) {
-            String newValue = StringEscapeUtils.escapeJava((String) value);
-            return "\"" + key + "\":\""  + newValue + "\"";
-        }
-        throw new IllegalArgumentException(value + " must be either String or a list of strings");
-    }
-
     /**
      * Returns true if the TemplateQuery has been edited by the user and is therefore saved only in
      * the query history.
@@ -606,5 +609,21 @@ public class TemplateQuery extends PathQuery
     @Override
     public int hashCode() {
         return this.toXml().hashCode();
+    }
+
+    /**
+     * Verify templates don't contain non-editable lookup constraints
+     * @param template to validate
+     * @return true id the tempalte is valid
+     */
+    public boolean validateLookupConstraints() {
+        Map<PathConstraint, String> pathConstraints = getConstraints();
+        for (PathConstraint constraint : pathConstraints.keySet()) {
+            if (constraint instanceof PathConstraintLookup
+                && !editableConstraints.contains(constraint)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

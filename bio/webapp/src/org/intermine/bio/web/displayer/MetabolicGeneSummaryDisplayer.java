@@ -1,7 +1,7 @@
 package org.intermine.bio.web.displayer;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -89,58 +89,72 @@ public class MetabolicGeneSummaryDisplayer extends ReportDisplayer
 
     private Object arrayAtlasExpressionTissues(GeneSummary summary) {
         PathQuery query = new PathQuery(im.getModel());
-        query.addViews("Gene.atlasExpression.condition", "Gene.atlasExpression.expression");
+        query.addViews("Gene.atlasExpression.expression");
 
         query.addOrderBy("Gene.atlasExpression.pValue", OrderDirection.ASC);
 
         query.addConstraint(Constraints.eq("Gene.id", summary.getObjectId().toString()), "A");
-        query.addConstraint(Constraints.lessThan("Gene.atlasExpression.pValue", "1E-20"), "B");
+        query.addConstraint(Constraints.lessThan("Gene.atlasExpression.pValue", "1E-4"), "B");
         query.addConstraint(Constraints.eq("Gene.atlasExpression.type", "organism_part"), "D");
-        query.addConstraint(Constraints.greaterThan("Gene.atlasExpression.tStatistic", "10"), "E");
-        query.addConstraint(Constraints.lessThan("Gene.atlasExpression.tStatistic", "-10"), "F");
+        query.addConstraint(Constraints.greaterThan("Gene.atlasExpression.tStatistic", "4"), "E");
+        query.addConstraint(Constraints.lessThan("Gene.atlasExpression.tStatistic", "-4"), "F");
         query.addConstraint(Constraints.neq("Gene.atlasExpression.condition", "(empty)"), "G");
         query.setConstraintLogic("A and B and D and (E or F) and G");
 
         ExportResultsIterator results = summary.getExecutor().execute((PathQuery) query);
 
-        HashMap<String, String> tissues = new HashMap<String, String>();
+        Integer up = 0;
+        Integer down = 0;
         while (results.hasNext()) {
             List<ResultElement> item = results.next();
-            String tissue = item.get(0).getField().toString();
-            String regulation = item.get(1).getField().toString();
-            // obviously, we can have the same disease appear 2x (we will), but we don't care...
-            tissues.put(tissue, regulation);
+            String expression = item.get(0).getField().toString();
+            if ("UP".equals(expression)) {
+                up += 1;
+            } else {
+                down += 1;
+            }
         }
 
-        return tissues;
+        HashMap<String, Integer> map = new HashMap<String, Integer>();
+        map.put("up", up);
+        map.put("down", down);
+
+        return map;
     }
 
     private Object arrayAtlasExpressionDiseases(GeneSummary summary) {
         PathQuery query = new PathQuery(im.getModel());
-        query.addViews("Gene.atlasExpression.condition", "Gene.atlasExpression.expression");
+        query.addViews("Gene.atlasExpression.expression");
 
         query.addOrderBy("Gene.atlasExpression.pValue", OrderDirection.ASC);
 
         query.addConstraint(Constraints.eq("Gene.id", summary.getObjectId().toString()), "A");
-        query.addConstraint(Constraints.lessThan("Gene.atlasExpression.pValue", "1E-20"), "B");
+        query.addConstraint(Constraints.lessThan("Gene.atlasExpression.pValue", "1e-4"), "B");
         query.addConstraint(Constraints.eq("Gene.atlasExpression.type", "disease_state"), "D");
-        query.addConstraint(Constraints.greaterThan("Gene.atlasExpression.tStatistic", "10"), "E");
-        query.addConstraint(Constraints.lessThan("Gene.atlasExpression.tStatistic", "-10"), "F");
+        query.addConstraint(Constraints.greaterThan("Gene.atlasExpression.tStatistic", "4"), "E");
+        query.addConstraint(Constraints.lessThan("Gene.atlasExpression.tStatistic", "-4"), "F");
         query.addConstraint(Constraints.neq("Gene.atlasExpression.condition", "(empty)"), "G");
         query.setConstraintLogic("A and B and D and (E or F) and G");
 
         ExportResultsIterator results = summary.getExecutor().execute((PathQuery) query);
 
-        HashMap<String, String> diseases = new HashMap<String, String>();
+        Integer up = 0;
+        Integer down = 0;
         while (results.hasNext()) {
             List<ResultElement> item = results.next();
-            String disease = item.get(0).getField().toString();
-            String regulation = item.get(1).getField().toString();
-            // obviously, we can have the same disease appear 2x (we will), but we don't care...
-            diseases.put(disease, regulation);
+            String expression = item.get(0).getField().toString();
+            if ("UP".equals(expression)) {
+                up += 1;
+            } else {
+                down += 1;
+            }
         }
 
-        return diseases;
+        HashMap<String, Integer> map = new HashMap<String, Integer>();
+        map.put("up", up);
+        map.put("down", down);
+
+        return map;
     }
 
     /**

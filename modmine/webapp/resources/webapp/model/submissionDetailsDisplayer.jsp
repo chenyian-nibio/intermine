@@ -1,6 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@ taglib uri="http://jakarta.apache.org/taglibs/string-1.1" prefix="str" %>
 
 <!-- submissionDetailsDisplayer.jsp -->
 
@@ -12,7 +13,7 @@
 
 <c:choose>
   <c:when test="${not empty expType}">
-    <h2 style="font-weight: normal;">Experiment Type: <strong>${expType}</strong></h2>
+    <h2 style="font-weight: normal;">Technique: <strong>${expType}</strong></h2>
   </c:when>
   <c:otherwise>
     <h2 style="font-weight: normal;">Experiment Type: <i>not available</i></h2>
@@ -119,7 +120,10 @@
               </tr>
               <tr>
                 <td>Experiment:</td>
-                <td><html:link href="/${WEB_PROPERTIES['webapp.path']}/experiment.do?experiment=${experimentName}">${experimentName}</html:link></td>
+                <c:set var="nameForURL"/>
+                <str:encodeUrl var="nameForURL">${experimentName}</str:encodeUrl>
+
+                <td><html:link href="/${WEB_PROPERTIES['webapp.path']}/experiment.do?experiment=${nameForURL}">${experimentName}</html:link></td>
               </tr>
               <tr>
                 <td valign="top">Description:</td>

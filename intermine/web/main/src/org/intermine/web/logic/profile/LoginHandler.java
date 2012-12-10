@@ -1,7 +1,7 @@
 package org.intermine.web.logic.profile;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -26,6 +26,7 @@ import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.ProfileManager;
+import org.intermine.api.profile.ProfileManager.ApiPermission;
 import org.intermine.api.profile.SavedQuery;
 import org.intermine.api.util.NameUtil;
 import org.intermine.objectstore.ObjectStoreException;
@@ -61,7 +62,7 @@ public abstract class LoginHandler extends InterMineAction
         ProfileManager pm = SessionMethods.getInterMineAPI(session).getProfileManager();
         Profile profile = pm.getProfile(username);
         InterMineAPI im = SessionMethods.getInterMineAPI(session);
-        if (im.getBagManager().isAnyBagNotCurrent(profile)) {
+        if (im.getBagManager().isAnyBagNotCurrentOrUpgrading(profile)) {
             recordError(new ActionMessage("login.upgradeListStarted"), request);
         } else if (im.getBagManager().isAnyBagToUpgrade(profile)) {
             recordError(new ActionMessage("login.upgradeListManually"), request);
@@ -154,26 +155,41 @@ public abstract class LoginHandler extends InterMineAction
     }
 
     /**
-     * Initialise the profile in the session.
-     * @param session The current HTTP session.
-     * @param profile The current user's profile.
-     * @return The profile, fully ready to use.
+     * Does whatever needs to be done to a permissions object to get it ready
+     * for a life cyle in a web service request. At the moment, this just means
+     * determining if this is the super user, and running the bag upgrade
+     * thread.
+     *
+     * @param api
+     *            The InterMine API object.
+     * @param permission
+     *            The permission that needs setting up.
      */
-    public static Profile setUpProfile(HttpSession session, Profile profile) {
-        SessionMethods.setProfile(session, profile);
-        ProfileManager pm = SessionMethods.getInterMineAPI(session).getProfileManager();
-        if (profile.getUsername().equals(pm.getSuperuser())) {
-            session.setAttribute(Constants.IS_SUPERUSER, Boolean.TRUE);
+    public static void setUpPermission(InterMineAPI api,
+            ApiPermission permission) {
+        final ProfileManager pm = api.getProfileManager();
+        final Profile profile = permission.getProfile();
+        final String userName = profile.getUsername();
+        if (userName != null && userName.equals(pm.getSuperuser())) {
+            permission.addRole("SUPERUSER");
         }
-        SessionMethods.setNotCurrentSavedBagsStatus(session, profile);
-        InterMineAPI im = SessionMethods.getInterMineAPI(session);
+        Runnable upgrade = new UpgradeBagList(profile, api.getBagQueryRunner());
+        runBagUpgrade(upgrade, api, profile);
+
+    }
+
+    private static void runBagUpgrade(Runnable procedure, InterMineAPI api,
+            Profile profile) {
         Connection con = null;
         try {
-            con = ((ObjectStoreWriterInterMineImpl) pm.getProfileObjectStoreWriter())
-                                                             .getDatabase().getConnection();
-            if (im.getBagManager().isAnyBagNotCurrent(profile)
-                && !DatabaseUtil.isBagValuesEmpty(con)) {
-                new Thread(new UpgradeBagList(profile, im.getBagQueryRunner(), session)).start();
+            con = ((ObjectStoreWriterInterMineImpl) api.getProfileManager()
+                    .getProfileObjectStoreWriter()).getDatabase()
+                    .getConnection();
+            if (api.getBagManager().isAnyBagNotCurrent(profile)
+                    && !DatabaseUtil.isBagValuesEmpty(con)) {
+                Thread upgrade = new Thread(procedure);
+                upgrade.setDaemon(true);
+                upgrade.start();
             }
         } catch (SQLException sqle) {
             LOG.error("Problems retrieving the connection", sqle);
@@ -185,6 +201,22 @@ public abstract class LoginHandler extends InterMineAction
             } catch (SQLException sqle) {
             }
         }
+    }
+    /**
+     * Sets up a profile ready for a session in InterMine.
+     *
+     * @param session http session
+     * @param profile the user's profile (possibly anonymous and temporary)
+     * @return profile The profile all cleaned up and good to go.
+     */
+    public static Profile setUpProfile(HttpSession session, Profile profile) {
+        SessionMethods.setProfile(session, profile);
+        final InterMineAPI im = SessionMethods.getInterMineAPI(session);
+        if (profile.isSuperuser()) {
+            session.setAttribute(Constants.IS_SUPERUSER, Boolean.TRUE);
+        }
+        Runnable upgrade = new UpgradeBagList(profile, im.getBagQueryRunner());
+        runBagUpgrade(upgrade, im, profile);
         return profile;
     }
 

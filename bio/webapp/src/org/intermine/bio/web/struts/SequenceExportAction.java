@@ -1,7 +1,7 @@
 package org.intermine.bio.web.struts;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -92,7 +92,7 @@ public class SequenceExportAction extends InterMineAction
                 SeqIOTools.writeFasta(out, bioSequence);
             } else {
                 PrintWriter out = response.getWriter();
-                out.write("Sequnce information not availble for this sequence feature...");
+                out.write("Sequence information not availble for this sequence feature...");
                 out.flush();
             }
         }

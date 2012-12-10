@@ -2,6 +2,7 @@
 
 <classes>
     <class name="Gene" is-interface="true">
+        <attribute name="ncbiGeneId" type="java.lang.String"/>
         <collection name="snps" referenced-type="SNP" reverse-reference="gene"/>
     </class>
 

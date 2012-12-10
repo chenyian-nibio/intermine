@@ -1,7 +1,7 @@
 package org.intermine.objectstore.query.iql;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -56,6 +56,7 @@ import org.intermine.objectstore.query.QueryValue;
 import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.objectstore.query.SubqueryConstraint;
 import org.intermine.objectstore.query.SubqueryExistsConstraint;
+import org.intermine.objectstore.query.WidthBucketFunction;
 import org.intermine.util.DynamicUtil;
 import org.intermine.util.Util;
 
@@ -186,7 +187,11 @@ public class IqlQuery
         for (QueryOrderable qn : q.getOrderBy()) {
             retval.append(needComma ? ", " : " ORDER BY ");
             needComma = true;
-            retval.append(nodeToString(q, qn, newParameters, null));
+            if (q.getSelect().contains(qn) && qn instanceof QueryFunction) {
+                retval.append(q.getAliases().get(qn));
+            } else {
+                retval.append(nodeToString(q, qn, newParameters, null));
+            }
         }
         if (q.getLimit() != Integer.MAX_VALUE) {
             retval.append(" LIMIT " + q.getLimit());
@@ -260,6 +265,27 @@ public class IqlQuery
                     case QueryFunction.STDDEV:
                         retval = "STDDEV(";
                         break;
+                    case QueryFunction.CEIL:
+                        retval = "CEIL(";
+                        break;
+                    case QueryFunction.FLOOR:
+                        retval = "FLOOR(";
+                        break;
+                    case QueryFunction.ROUND:
+                        retval = "ROUND(";
+                        retval += nodeToString(q, qf.getParam(), parameters, null);
+                        retval += ", ";
+                        retval += nodeToString(q, qf.getParam2(), parameters, null);
+                        retval += ")";
+                        return retval;
+                    case QueryFunction.WIDTH_BUCKET:
+                        WidthBucketFunction wbf = (WidthBucketFunction) qf;
+                        retval = "WIDTH_BUCKET(";
+                        retval += nodeToString(q, wbf.getParam(), parameters, null) + ", ";
+                        retval += nodeToString(q, wbf.getMaxParam(), parameters, null) + ", ";
+                        retval += nodeToString(q, wbf.getMinParam(), parameters, null) + ", ";
+                        retval += nodeToString(q, wbf.getBinsParam(), parameters, null) + ")";
+                        return retval;
                     default:
                         throw (new IllegalArgumentException("Invalid QueryFunction operation: "
                                     + qf.getOperation()));
@@ -549,6 +575,9 @@ public class IqlQuery
                 case QueryExpression.DIVIDE:
                     retval += " / ";
                     break;
+                case QueryExpression.MODULO:
+                    retval += " % ";
+                    break;
                 default:
                     throw (new IllegalArgumentException("Invalid QueryExpression operation: "
                                 + qe.getOperation()));
@@ -773,6 +802,41 @@ public class IqlQuery
         ret.append(queryString);
         int i = 0;
         for (Object o : parameters) {
+            ret.append(" ")
+                .append(++i)
+                .append(": ")
+                .append(o.toString());
+        }
+        return ret.toString();
+    }
+
+    /**
+     * Return a string version of the IqlQuery but truncated the parameters (lists of bag contents)
+     * to the specified length.
+     *
+     * @param maxSize the maximum length
+     * @return a String version of the query
+     */
+    public String toStringTruncateParameters(int maxSize) {
+        StringBuffer ret = new StringBuffer();
+        ret.append(queryString);
+        int i = 0;
+        for (Object o : parameters) {
+            if (Collection.class.isAssignableFrom(o.getClass())) {
+                Collection<Object> col = (Collection<Object>) o;
+                if (col.size() > maxSize) {
+                    ArrayList<Object> truncated = new ArrayList<Object>();
+                    int counter = 0;
+                    for (Object element : col) {
+                        if (counter >= maxSize) {
+                            break;
+                        }
+                        truncated.add(element);
+                        counter++;
+                    }
+                    o = truncated.toString() + " (showing " + maxSize + " of " + col.size() + ")";
+                }
+            }
             ret.append(" ")
                 .append(++i)
                 .append(": ")

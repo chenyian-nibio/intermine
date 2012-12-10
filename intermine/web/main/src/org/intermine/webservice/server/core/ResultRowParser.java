@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.core;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -27,5 +27,5 @@ public interface ResultRowParser
      * @param resultsRow result row
      * @return list of strings
      */
-    List<String> parse(ResultsRow resultsRow);
+    List<String> parse(ResultsRow<?> resultsRow);
 }

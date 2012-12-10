@@ -1,7 +1,7 @@
 package org.intermine.api.query;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -34,6 +35,10 @@ import org.intermine.api.bag.BagQueryResult;
 import org.intermine.api.bag.BagQueryRunner;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.ProfileManager;
+import org.intermine.api.query.range.IntHelper;
+import org.intermine.api.query.range.StringHelper;
+import org.intermine.api.template.TemplateManager;
+import org.intermine.metadata.ClassDescriptor;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStore;
@@ -48,10 +53,12 @@ import org.intermine.objectstore.query.FromElement;
 import org.intermine.objectstore.query.OrderDescending;
 import org.intermine.objectstore.query.PathExpressionField;
 import org.intermine.objectstore.query.Query;
+import org.intermine.objectstore.query.QueryCast;
 import org.intermine.objectstore.query.QueryClass;
 import org.intermine.objectstore.query.QueryCloner;
 import org.intermine.objectstore.query.QueryCollectionPathExpression;
 import org.intermine.objectstore.query.QueryCollectionReference;
+import org.intermine.objectstore.query.QueryEvaluable;
 import org.intermine.objectstore.query.QueryExpression;
 import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.QueryFunction;
@@ -65,6 +72,8 @@ import org.intermine.objectstore.query.QuerySelectable;
 import org.intermine.objectstore.query.QueryValue;
 import org.intermine.objectstore.query.Queryable;
 import org.intermine.objectstore.query.SimpleConstraint;
+import org.intermine.objectstore.query.SubqueryExistsConstraint;
+import org.intermine.objectstore.query.WidthBucketFunction;
 import org.intermine.pathquery.LogicExpression;
 import org.intermine.pathquery.OrderDirection;
 import org.intermine.pathquery.OrderElement;
@@ -76,11 +85,12 @@ import org.intermine.pathquery.PathConstraintIds;
 import org.intermine.pathquery.PathConstraintLookup;
 import org.intermine.pathquery.PathConstraintLoop;
 import org.intermine.pathquery.PathConstraintMultiValue;
+import org.intermine.pathquery.PathConstraintMultitype;
 import org.intermine.pathquery.PathConstraintNull;
+import org.intermine.pathquery.PathConstraintRange;
 import org.intermine.pathquery.PathConstraintSubclass;
 import org.intermine.pathquery.PathException;
 import org.intermine.pathquery.PathQuery;
-import org.intermine.api.template.TemplateManager;
 import org.intermine.util.DynamicUtil;
 import org.intermine.util.PropertiesUtil;
 import org.intermine.util.TypeUtil;
@@ -267,16 +277,27 @@ public final class MainHelper
                                     ((QueryCollectionPathExpression) q).addFrom(qc);
                                 }
                             }
-                            if (path.endIsReference()) {
-                                andCs.addConstraint(new ContainsConstraint(
-                                            new QueryObjectReference(parentQc,
-                                                path.getLastElement()), ConstraintOp.CONTAINS,
-                                            qc));
-                            } else {
-                                andCs.addConstraint(new ContainsConstraint(
-                                            new QueryCollectionReference(parentQc,
-                                                path.getLastElement()), ConstraintOp.CONTAINS,
-                                            qc));
+                            boolean isNull = false;
+                            for (PathConstraint pc: pathQuery.getConstraintsForPath(stringPath)) {
+                                if (pc instanceof PathConstraintNull) {
+                                    if (pc.getOp() == ConstraintOp.IS_NULL) {
+                                        isNull = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!isNull) {
+                                if (path.endIsReference()) {
+                                    andCs.addConstraint(new ContainsConstraint(
+                                                new QueryObjectReference(parentQc,
+                                                    path.getLastElement()), ConstraintOp.CONTAINS,
+                                                qc));
+                                } else {
+                                    andCs.addConstraint(new ContainsConstraint(
+                                                new QueryCollectionReference(parentQc,
+                                                    path.getLastElement()), ConstraintOp.CONTAINS,
+                                                qc));
+                                }
                             }
                             queryBits.put(stringPath, qc);
                         } else {
@@ -359,13 +380,47 @@ public final class MainHelper
                                         pca.getOp(), new QueryValue(TypeUtil.stringToObject(
                                                 fieldType, pca.getValue()))));
                         }
+                    
                     } else if (constraint instanceof PathConstraintNull) {
                         // This is a null constraint. If it is on a class, then we need do nothing,
                         // as the mere presence of the constraint has caused the class to make it
                         // into the FROM list above.
+                        
+                        // TODO - make IS NULL also work on references and collections.
                         if (path.endIsAttribute()) {
                             codeToConstraint.put(code, new SimpleConstraint((QueryField) field,
                                         constraint.getOp()));
+                        } else if (path.endIsReference()) {
+                            String parent = path.getPrefix().getNoConstraintsString();
+                            QueryClass parentQc = (QueryClass) ((queryBits.get(parent)
+                                        instanceof QueryClass) ? queryBits.get(parent) : null);
+                            QueryObjectReference qr = new QueryObjectReference(parentQc, path.getLastElement());
+                            codeToConstraint.put(code, new ContainsConstraint(qr, constraint.getOp()));
+                        } else if (path.endIsCollection()) {
+                            String parent = path.getPrefix().getNoConstraintsString();
+                            QueryClass parentQC = (QueryClass) ((queryBits.get(parent)
+                                        instanceof QueryClass) ? queryBits.get(parent) : null);
+                            Query subQ = new Query();
+                            QueryCollectionReference qcr = new QueryCollectionReference(
+                                    parentQC, path.getLastElement());
+                            subQ.setDistinct(false);
+                            if (q instanceof Query) {
+                                Query mainQ = (Query) q;
+                                // Manually import the alias from the surrounding query.
+                                subQ.alias(parentQC, ((Query) q).getAliases().get(parentQC));
+                            } else {
+                                subQ.alias(parentQC, "default");
+                            }
+                            
+                            QueryClass pathFrom = new QueryClass(path.getEndType());
+                            subQ.addFrom(pathFrom);
+                            subQ.addToSelect(new QueryValue(1));
+                            subQ.setConstraint(new ContainsConstraint(qcr, ConstraintOp.CONTAINS, pathFrom));
+                            
+                            codeToConstraint.put(code, new SubqueryExistsConstraint(
+                                    ((constraint.getOp() == ConstraintOp.IS_NULL) ? ConstraintOp.DOES_NOT_EXIST : ConstraintOp.EXISTS),
+                                    subQ
+                                ));
                         }
                     } else if (constraint instanceof PathConstraintLoop) {
                         // We need to act if this is not a participating constraint - otherwise
@@ -388,8 +443,7 @@ public final class MainHelper
                         PathConstraintBag pcb = (PathConstraintBag) constraint;
                         InterMineBag bag = savedBags.get(pcb.getBag());
                         if (bag == null) {
-                            throw new ObjectStoreException("A bag (" + pcb.getBag()
-                                    + ") used by this query does not exist");
+                            throw new BagNotFound(pcb.getBag());
                         }
                         codeToConstraint.put(code, new BagConstraint((QueryNode) field, pcb.getOp(),
                                     bag.getOsb()));
@@ -397,6 +451,12 @@ public final class MainHelper
                         codeToConstraint.put(code, new BagConstraint(new QueryField(
                                         (QueryClass) field, "id"), constraint.getOp(),
                                     ((PathConstraintIds) constraint).getIds()));
+                    } else if (constraint instanceof PathConstraintRange) {
+                        PathConstraintRange pcr = (PathConstraintRange) constraint;
+                        codeToConstraint.put(code, makeRangeConstraint(q, (QueryNode) field, pcr));
+                    } else if (constraint instanceof PathConstraintMultitype) {
+                        PathConstraintMultitype pcmt = (PathConstraintMultitype) constraint;
+                        codeToConstraint.put(code, makeMultiTypeConstraint(pathQuery.getModel(), (QueryNode) field, pcmt));
                     } else if (constraint instanceof PathConstraintMultiValue) {
                         Class<?> fieldType = path.getEndType();
                         if (String.class.equals(fieldType)) {
@@ -557,6 +617,34 @@ public final class MainHelper
         }
     }
 
+    /**
+     * Construct a new multi-type constraint. 
+     * @param model The model to look for types within.
+     * @param field The subject of the constraint.
+     * @param pcmt The constraint itself.
+     * @return A constraint.
+     * @throws ObjectStoreException if the constraint names types that are not in the model.
+     */
+    protected static Constraint makeMultiTypeConstraint(
+            Model model,
+            QueryNode field,
+            PathConstraintMultitype pcmt) throws ObjectStoreException {
+        QueryField typeClass = new QueryField((QueryClass) field, "class");
+        ConstraintOp op = (pcmt.getOp() == ConstraintOp.ISA)
+                ? ConstraintOp.IN : ConstraintOp.NOT_IN;
+        Set<Class<?>> classes = new HashSet<Class<?>>();
+        for (String name: pcmt.getValues()) {
+            ClassDescriptor cd = model.getClassDescriptorByName(name);
+            if (cd == null) { // PathQueries should take care of this, but you know. 
+              throw new ObjectStoreException(
+                  String.format("%s is not a class in the %s model", name, model.getName()));
+            }
+            classes.add(cd.getType());
+        }
+
+        return new BagConstraint(typeClass, op, classes);
+    }
+
     private static Map<String, String> makeLoopsMap(Collection<PathConstraintLoop> constraints) {
         // A PathConstraintLoop should participate in this mechanism if it is an EQUALS constraint,
         // and its code is not inside an OR in the constraint logic.
@@ -689,8 +777,20 @@ public final class MainHelper
      */
     private static SimpleConstraint makeQueryStringConstraint(QueryField qf,
             PathConstraintAttribute c) {
-        QueryExpression qe = new QueryExpression(QueryExpression.LOWER, qf);
-        String lowerCaseValue = Util.wildcardUserToSql(c.getValue().toLowerCase());
+        QueryEvaluable qe;
+        String value;
+        ConstraintOp op = c.getOp();
+
+        // Perform case insensitive matches, unless asked specifically not to.
+        if (ConstraintOp.EXACT_MATCH.equals(op) || ConstraintOp.STRICT_NOT_EQUALS.equals(op)) {
+            qe = qf;
+            value = c.getValue();
+            op = (ConstraintOp.EXACT_MATCH.equals(op))
+                    ? ConstraintOp.EQUALS: ConstraintOp.NOT_EQUALS;
+        } else {
+            qe = new QueryExpression(QueryExpression.LOWER, qf);
+            value = Util.wildcardUserToSql(c.getValue().toLowerCase());
+        }
 
         // notes:
         //   - we always turn EQUALS into a MATCHES(LIKE) constraint and rely on Postgres
@@ -699,16 +799,15 @@ public final class MainHelper
         //     normal equals.  for example 'Dpse\GA10108' needs to be 'Dpse\\GA10108' for equals
         //     but 'Dpse\\\\GA10108' (and hence "Dpse\\\\\\\\GA10108" as a Java string because
         //     backslash must be quoted with a backslash)
-        if (ConstraintOp.EQUALS.equals(c.getOp())) {
-            return new SimpleConstraint(qe, ConstraintOp.MATCHES, new QueryValue(lowerCaseValue));
-        } else if (ConstraintOp.NOT_EQUALS.equals(c.getOp())) {
-            return new SimpleConstraint(qe, ConstraintOp.DOES_NOT_MATCH,
-                    new QueryValue(lowerCaseValue));
-        } else if (ConstraintOp.CONTAINS.equals(c.getOp())) {
+        if (ConstraintOp.EQUALS.equals(op)) {
+            return new SimpleConstraint(qe, ConstraintOp.MATCHES, new QueryValue(value));
+        } else if (ConstraintOp.NOT_EQUALS.equals(op)) {
+            return new SimpleConstraint(qe, ConstraintOp.DOES_NOT_MATCH, new QueryValue(value));
+        } else if (ConstraintOp.CONTAINS.equals(op)) {
             return new SimpleConstraint(qe, ConstraintOp.MATCHES,
-                    new QueryValue("%" + lowerCaseValue + "%"));
+                    new QueryValue("%" + value + "%"));
         } else {
-            return new SimpleConstraint(qe, c.getOp(), new QueryValue(lowerCaseValue));
+            return new SimpleConstraint(qe, op, new QueryValue(value));
         }
     }
 
@@ -716,10 +815,48 @@ public final class MainHelper
     /**
      * Make a SimpleConstraint for the given Date Constraint.  The time stored in the Date will be
      * ignored.  Example webapp constraints and the coresponding object store constraints:
-     * "&lt;= 2008-01-02"  --&gt;  "&gt;= 2008-01-02 23:59:59"
-     * " &gt; 2008-01-02"  --&gt;  " &lt; 2008-01-02 00:00:00"
-     * " &gt; 2008-01-02"  --&gt;   "&gt; 2008-01-02 23:59:59"
-     * "&gt;= 2008-01-02"  --&gt;   "&gt; 2008-01-02 00:00:00".
+     * <table>
+     *     <thead>
+     *       <tr>
+     *         <th>Webapp Version</th>
+     *         <th>ObjectStore Version</th>
+     *      </tr>
+     *  </thead>
+     *  <tbody>
+     *    <tr>
+     *      <td>
+     *          <code>&lt;= 2008-01-02</code>
+     *      </td>
+     *      <td>
+     *          <code>&gt;= 2008-01-02 23:59:59</code>
+     *         </td>
+     *     </tr>
+     *     <tr>
+     *      <td>
+     *          <code>&gt; 2008-01-02</code>
+     *      </td>
+     *      <td>
+     *          <code>&lt; 2008-01-02 00:00:00</code>
+     *         </td>
+     *     </tr>
+     *     <tr>
+     *      <td>
+     *          <code>&gt; 2008-01-02</code>
+     *      </td>
+     *      <td>
+     *          <code>&gt; 2008-01-02 23:59:59</code>
+     *         </td>
+     *     </tr>
+     *     <tr>
+     *      <td>
+     *          <code>&gt;= 2008-01-02</code>
+     *      </td>
+     *      <td>
+     *          <code>&gt; 2008-01-02 00:00:00</code>
+     *         </td>
+     *     </tr>
+     *   </tbody>
+     * </table>
      *
      * @param qf the QueryNode in the new query
      * @param c the webapp constraint
@@ -837,10 +974,16 @@ public final class MainHelper
      * @return the generated summary query
      * @throws ObjectStoreException if there is a problem creating the query
      */
-    public static Query makeSummaryQuery(PathQuery pathQuery, Map<String, InterMineBag> savedBags,
-            Map<String, QuerySelectable> pathToQueryNode, String summaryPath, ObjectStore os,
-            Map<String, List<FieldDescriptor>> classKeys, BagQueryConfig bagQueryConfig,
-            ProfileManager pm) throws ObjectStoreException {
+    public static Query makeSummaryQuery(
+            PathQuery pathQuery,
+            Map<String, InterMineBag> savedBags,
+            Map<String, QuerySelectable> pathToQueryNode,
+            String summaryPath,
+            ObjectStore os,
+            Map<String, List<FieldDescriptor>> classKeys,
+            BagQueryConfig bagQueryConfig,
+            ProfileManager pm,
+            boolean occurancesOnly) throws ObjectStoreException {
         TemplateManager templateManager = new TemplateManager(pm.getSuperuserProfile(),
                 os.getModel());
         BagQueryRunner bagQueryRunner = null;
@@ -848,9 +991,9 @@ public final class MainHelper
             bagQueryRunner = new BagQueryRunner(os, classKeys, bagQueryConfig, templateManager);
         }
         return MainHelper.makeSummaryQuery(pathQuery, summaryPath, savedBags, pathToQueryNode,
-                bagQueryRunner);
+                bagQueryRunner, occurancesOnly);
     }
-
+    
     /**
      * Generate a query from a PathQuery, to summarise a particular column of results.
      *
@@ -862,9 +1005,36 @@ public final class MainHelper
      * @return the generated summary query
      * @throws ObjectStoreException if there is a problem creating the query
      */
-    public static Query makeSummaryQuery(PathQuery pathQuery, String summaryPath,
-            Map<String, InterMineBag> savedBags, Map<String, QuerySelectable> pathToQueryNode,
-            BagQueryRunner bagQueryRunner) throws ObjectStoreException {
+    public static Query makeSummaryQuery(
+            PathQuery pathQuery,
+            String summaryPath,
+            Map<String, InterMineBag> savedBags,
+            Map<String, QuerySelectable> pathToQueryNode,
+            BagQueryRunner bagQueryRunner)
+            throws ObjectStoreException {
+        return makeSummaryQuery(pathQuery, summaryPath, savedBags, pathToQueryNode, bagQueryRunner, false);
+    }
+
+    /**
+     * Generate a query from a PathQuery, to summarise a particular column of results.
+     *
+     * @param pathQuery the PathQuery
+     * @param summaryPath a String path of the column to summarise
+     * @param savedBags the current saved bags map
+     * @param pathToQueryNode Map, into which columns to display will be placed
+     * @param bagQueryRunner a BagQueryRunner to execute bag queries
+     * @param occurancesOnly Force summary to take form of item summary if true.
+     * @return the generated summary query
+     * @throws ObjectStoreException if there is a problem creating the query
+     */
+    public static Query makeSummaryQuery(
+            PathQuery pathQuery,
+            String summaryPath,
+            Map<String, InterMineBag> savedBags,
+            Map<String, QuerySelectable> pathToQueryNode,
+            BagQueryRunner bagQueryRunner,
+            boolean occurancesOnly)
+            throws ObjectStoreException {
         Map<String, QuerySelectable> origPathToQueryNode = new HashMap<String, QuerySelectable>();
         Query subQ = null;
         subQ = makeQuery(pathQuery, savedBags, origPathToQueryNode, bagQueryRunner, null);
@@ -884,12 +1054,16 @@ public final class MainHelper
             subQ.addToSelect(selectEntry.getValue(), selectEntry.getKey());
         }
         return recursiveMakeSummaryQuery(origPathToQueryNode, summaryPath, subQ, oldSelect,
-                pathToQueryNode);
+                pathToQueryNode, occurancesOnly);
     }
 
-    private static Query recursiveMakeSummaryQuery(Map<String, QuerySelectable>
-            origPathToQueryNode, String summaryPath, Query subQ, Set<QuerySelectable> oldSelect,
-            Map<String, QuerySelectable> pathToQueryNode) {
+    private static Query recursiveMakeSummaryQuery(
+            Map<String, QuerySelectable>
+            origPathToQueryNode,
+            String summaryPath,
+            Query subQ, Set<QuerySelectable> oldSelect,
+            Map<String, QuerySelectable> pathToQueryNode,
+            boolean occurancesOnly) {
         QueryField qf = (QueryField) origPathToQueryNode.get(summaryPath);
         try {
             if ((qf == null) || (!subQ.getFrom().contains(qf.getFromElement()))) {
@@ -978,7 +1152,7 @@ public final class MainHelper
                             QueryHelper.addAndConstraint(tempSubQ, qope.getConstraint());
                         }
                         return recursiveMakeSummaryQuery(origPathToQueryNode, summaryPath, tempSubQ,
-                                new HashSet<QuerySelectable>(qope.getSelect()), pathToQueryNode);
+                                new HashSet<QuerySelectable>(qope.getSelect()), pathToQueryNode, occurancesOnly);
                     } else if (qs instanceof QueryCollectionPathExpression) {
                         QueryCollectionPathExpression qcpe = (QueryCollectionPathExpression) qs;
                         QueryClass firstQc = qcpe.getDefaultClass();
@@ -1008,13 +1182,14 @@ public final class MainHelper
                             QueryHelper.addAndConstraint(tempSubQ, qcpe.getConstraint());
                         }
                         return recursiveMakeSummaryQuery(origPathToQueryNode, summaryPath, tempSubQ,
-                                new HashSet<QuerySelectable>(qcpe.getSelect()), pathToQueryNode);
+                                new HashSet<QuerySelectable>(qcpe.getSelect()), pathToQueryNode, occurancesOnly);
                     }
                 } catch (IllegalArgumentException e2) {
                     // Ignore it - we are searching for a working branch of the query
                 }
             }
-            throw new IllegalArgumentException("Cannot find path in query", e);
+            throw new IllegalArgumentException(
+                    "Cannot find path (" + summaryPath + ") in query", e);
         }
 
         Query q = new Query();
@@ -1028,23 +1203,8 @@ public final class MainHelper
         String className = DynamicUtil.getFriendlyName(((QueryClass) origQf.getFromElement())
                 .getType());
 
-        if ((summaryType == Long.class) || (summaryType == Integer.class)
-                || (summaryType == Short.class) || (summaryType == Byte.class)
-                || (summaryType == Float.class) || (summaryType == Double.class)
-                || (summaryType == BigDecimal.class)
-                && (!SummaryConfig.summariseAsOccurrences(className + "." + fieldName))) {
-            QueryNode min = new QueryFunction(qf, QueryFunction.MIN);
-            QueryNode max = new QueryFunction(qf, QueryFunction.MAX);
-            QueryNode avg = new QueryFunction(qf, QueryFunction.AVERAGE);
-            QueryNode stddev = new QueryFunction(qf, QueryFunction.STDDEV);
-            q.addToSelect(min);
-            q.addToSelect(max);
-            q.addToSelect(avg);
-            q.addToSelect(stddev);
-            pathToQueryNode.put("Minimum", min);
-            pathToQueryNode.put("Maximum", max);
-            pathToQueryNode.put("Average", avg);
-            pathToQueryNode.put("Standard Deviation", stddev);
+        if (!occurancesOnly && isNumeric(summaryType) && (!SummaryConfig.summariseAsOccurrences(className + "." + fieldName))) {
+            return getHistogram(subQ, qf, pathToQueryNode);
         } else if ((summaryType == String.class) || (summaryType == Boolean.class)
                 || (summaryType == Long.class) || (summaryType == Integer.class)
                 || (summaryType == Short.class) || (summaryType == Byte.class)
@@ -1062,6 +1222,226 @@ public final class MainHelper
             throw new IllegalArgumentException("Cannot summarise this column");
         }
         return q;
+    }
+    
+    private static boolean isNumeric(Class<?> summaryType) {
+        return (summaryType == Long.class) || (summaryType == Integer.class)
+                || (summaryType == Short.class) || (summaryType == Byte.class)
+                || (summaryType == Float.class) || (summaryType == Double.class)
+                || (summaryType == BigDecimal.class);
+    }
+
+    /**
+     * Produce a histogram query for a numerical column.
+     * 
+     * In addition to the bucket number and the count for each bucket, each row also includes
+     * the general statistics previously supplied for backwards compatibility.
+     * 
+     * BASIC IDEA:
+     * <pre>
+     * select bq.max, bq.min, sum(bq.c) as total, bq.bucket, from (
+     *     select count(*) as c,
+     *            q1.value as val,
+     *            width_bucket(q1.value, q2.min, (q2.max * 1.01), 10) as bucket,
+     *            q2.max as max,
+     *            q2.min as min
+     *     from (select v.value from values as v) as vals,
+     *          (select max(v.value) as max, min(v.value) as min from values as v) as stats
+     *     group by vals.value, stats.min, stats.max order by bucket, vals.value
+     * ) as bq 
+     * group by bq.bucket, bq.max, bq.min
+     * order by bq.bucket;
+     * </pre>
+     *  
+     * @param subq The source of the data.
+     * @param qf The field that contains the numerical information we are interested in.
+     * @param pathToQueryNode The map to update with names of columns.
+     * @return A query that when run will return a result set where each row has a bin number
+     *         where 1 <= binNumber <= configuredMaxNoOfBins and a number of items in the data
+     *         set that belong in the given bin.
+     */
+    private static Query getHistogram(
+            Query source,
+            QueryField qf,
+            Map<String, QuerySelectable> pathToQueryNode) {
+
+        // Inner 1
+        Query vq = new Query();
+        vq.addFrom(source);
+        vq.addToSelect(qf);
+        vq.setDistinct(false);
+
+        // Inner 2
+        Query statsq = new Query();
+        statsq.addFrom(source);
+        QueryFunction min = new QueryFunction(qf, QueryFunction.MIN);
+        QueryFunction max = new QueryFunction(qf, QueryFunction.MAX);
+        QueryFunction avg = new QueryFunction(qf, QueryFunction.AVERAGE);
+        QueryFunction stddev = new QueryFunction(qf, QueryFunction.STDDEV);
+        QueryEvaluable bins = new QueryValue(SummaryConfig.getNumberOfBins());
+
+        Class<?> summaryType = qf.getType();
+        if (summaryType == Long.class || summaryType == Integer.class) {
+            bins = new QueryExpression(
+                bins, QueryExpression.LEAST,
+                new QueryExpression(max, QueryExpression.SUBTRACT, min)
+            );
+        }
+
+        statsq.addToSelect(min);
+        statsq.addToSelect(max);
+        statsq.addToSelect(avg);
+        statsq.addToSelect(stddev);
+        statsq.addToSelect(bins);
+
+        // Inner 3
+        Query bucketq = new Query();
+        bucketq.setDistinct(false);
+        QueryFunction count = new QueryFunction();
+        QueryField val = new QueryField(vq, qf);
+        QueryField maxval = new QueryField(statsq, max);
+        QueryField minval = new QueryField(statsq, min);
+        QueryField meanval = new QueryField(statsq, avg);
+        QueryField devval = new QueryField(statsq, stddev);
+        QueryExpression upperBound = new QueryExpression(
+                new QueryCast(maxval, BigDecimal.class),
+                QueryExpression.MULTIPLY,
+                new QueryCast(new QueryValue(new Double(1.01)), BigDecimal.class));
+        QueryField noOfBuckets = new QueryField(statsq, bins);
+
+        QueryFunction bucket = new WidthBucketFunction(val, minval, upperBound, noOfBuckets);
+        bucketq.addFrom(vq);
+        bucketq.addFrom(statsq);
+        bucketq.addToSelect(count);
+        bucketq.addToSelect(val);
+        bucketq.addToSelect(maxval);
+        bucketq.addToSelect(minval);
+        bucketq.addToSelect(meanval);
+        bucketq.addToSelect(devval);
+        bucketq.addToSelect(bucket);
+        bucketq.addToSelect(noOfBuckets);
+        
+        bucketq.addToGroupBy(val);
+        bucketq.addToGroupBy(maxval);
+        bucketq.addToGroupBy(minval);
+        bucketq.addToGroupBy(meanval);
+        bucketq.addToGroupBy(devval);
+        bucketq.addToGroupBy(noOfBuckets);
+        bucketq.addToOrderBy(bucket);
+        bucketq.addToOrderBy(val);
+
+        // Outer
+        Query q = new Query();
+        QueryField bmax = new QueryField(bucketq, maxval);
+        QueryField bmin = new QueryField(bucketq, minval);
+        QueryField bmean = new QueryField(bucketq, meanval);
+        QueryField bdev = new QueryField(bucketq, devval);
+        QueryField bbucket = new QueryField(bucketq, bucket);
+        QueryFunction bucketTotal = new QueryFunction(
+                new QueryField(bucketq, count), QueryFunction.SUM);
+        QueryField buckets = new QueryField(bucketq, noOfBuckets);
+        q.addFrom(bucketq);
+
+        q.addToSelect(bmin);
+        q.addToSelect(bmax);
+        q.addToSelect(bmean);
+        q.addToSelect(bdev);
+        q.addToSelect(buckets);
+        q.addToSelect(bbucket);
+        q.addToSelect(bucketTotal);
+
+        q.addToGroupBy(bmin);
+        q.addToGroupBy(bmax);
+        q.addToGroupBy(bmean);
+        q.addToGroupBy(bdev);
+        q.addToGroupBy(bbucket);
+        q.addToGroupBy(buckets);
+
+        q.addToOrderBy(bbucket);
+
+        pathToQueryNode.put("Minimum", bmin);
+        pathToQueryNode.put("Maximum", bmax);
+        pathToQueryNode.put("Average", bmean);
+        pathToQueryNode.put("Standard Deviation", bdev);
+        pathToQueryNode.put("Buckets", bucketTotal);
+        pathToQueryNode.put("Bucket", bbucket);
+        pathToQueryNode.put("Occurances", bucketTotal);
+
+        return q;
+    }
+    
+    public static void loadHelpers(Properties props) {
+        RangeConfig.loadHelpers(props);
+    }
+    
+    protected static final class RangeConfig
+    {
+        private RangeConfig() {
+            // Restricted constructor.
+        }
+        
+        protected static Map<Class<?>, RangeHelper> rangeHelpers;
+        
+        static {
+            init();
+        }
+        
+        protected static void reset() {
+            init();
+        }
+        
+        private static void init() {
+            rangeHelpers = new HashMap<Class<?>, RangeHelper>();
+            // Default basic helpers.
+            rangeHelpers.put(int.class, new IntHelper());
+            rangeHelpers.put(Integer.class, new IntHelper());
+            rangeHelpers.put(String.class, new StringHelper());
+            loadHelpers(PropertiesUtil.getProperties());
+        }
+        
+        protected static void loadHelpers(Properties allProps) {
+            Properties props = PropertiesUtil.getPropertiesStartingWith("pathquery.range.", allProps);
+            for (String key: props.stringPropertyNames()) {
+                String[] parts = key.split("\\.", 3);
+                if (parts.length != 3) {
+                    throw new IllegalStateException(
+                        "Property names must be in the format pathquery.range.${FullyQualifiedClassName}, got '" + key + "'"
+                    );
+                }
+                String targetTypeName = parts[2];
+                Class<?> targetType;
+                try {
+                     targetType = Class.forName(targetTypeName);
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException("Cannot find class named in config: '" + key + "'", e);
+                }
+                String helperName = props.getProperty(key);
+                Class<RangeHelper> helperType;
+                try {
+                    helperType = (Class<RangeHelper>) Class.forName(helperName);
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException("Cannot find class named in congfig: '" + helperName + "'");
+                }
+                RangeHelper helper;
+                try {
+                    helper = helperType.newInstance();
+                } catch (InstantiationException e) {
+                    throw new RuntimeException("Could not instantiate range helper for '" + key + "'", e);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException("Could not instantiate range helper for '" + key + "'", e);
+                }
+                rangeHelpers.put(targetType, helper);
+                LOG.info("ADDED RANGE HELPER FOR " + targetType + " (" + helperType.getName() + ")");
+            }
+        }
+        
+        public static boolean hasHelperForType(Class<?> type) {
+            return rangeHelpers.containsKey(type);
+        }
+        
+        public static RangeHelper getHelper(Class<?> type) {
+            return rangeHelpers.get(type);
+        }
     }
 
     /**
@@ -1106,6 +1486,29 @@ public final class MainHelper
         public static boolean summariseAsOccurrences(String fieldName) {
             return config.contains(fieldName);
         }
+
+        /**
+         * Returns the number of bins to split a histogram into.
+         * @return The number of bins.
+         */
+        public static Integer getNumberOfBins() {
+            return Integer.valueOf(
+                    PropertiesUtil.getProperties().getProperty("querySummary.no-of-bins", "20"));
+        }
+    }
+
+    public static Constraint makeRangeConstraint(
+            Queryable q,
+            QueryNode node,
+            PathConstraintRange con) {
+        Class<?> type = node.getType();
+
+        if (RangeConfig.hasHelperForType(type)) {
+            RangeHelper helper = RangeConfig.getHelper(type);
+            
+            return helper.createConstraint(q, node, con);
+        }
+        throw new RuntimeException("No range constraints are possible for paths of type " + type.getName());
     }
 
 }

@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.model;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -19,27 +19,20 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-
 import org.intermine.api.InterMineAPI;
 import org.intermine.metadata.AttributeDescriptor;
 import org.intermine.metadata.ClassDescriptor;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.metadata.Model;
-
 import org.intermine.pathquery.Path;
 import org.intermine.pathquery.PathException;
-
 import org.intermine.util.StringUtil;
-
+import org.intermine.web.context.InterMineContext;
 import org.intermine.web.logic.WebUtil;
-
 import org.intermine.web.logic.config.WebConfig;
 import org.intermine.web.logic.export.ResponseUtil;
-
-import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.webservice.server.WebService;
 import org.intermine.webservice.server.WebServiceRequestParser;
-
 import org.intermine.webservice.server.exceptions.InternalErrorException;
 import org.intermine.webservice.server.exceptions.ResourceNotFoundException;
 import org.intermine.webservice.server.output.JSONFormatter;
@@ -111,7 +104,8 @@ public class ModelService extends WebService
      */
     @Override
     protected void execute() {
-        Model model = this.im.getModel();
+        final Model model = this.im.getModel();
+        final WebConfig config = InterMineContext.getWebConfig();
         if (formatIsJSON()) {
             ResponseUtil.setJSONHeader(response, FILE_BASE_NAME + ".json");
             Map<String, Object> attributes = new HashMap<String, Object>();
@@ -131,6 +125,7 @@ public class ModelService extends WebService
                 Map<String, String> kvPairs = new HashMap<String, String>();
                 kvPairs.put("name", getNodeName(node));
                 kvPairs.put("id", node.toStringNoConstraints());
+                kvPairs.put("display", WebUtil.formatPath(node, config));
                 kvPairs.put("type", "class");
                 attributes.put(JSONFormatter.KEY_KV_PAIRS, kvPairs);
                 attributes.put(JSONFormatter.KEY_INTRO, "\"fields\":[");
@@ -144,7 +139,7 @@ public class ModelService extends WebService
     }
 
     private String getNodeName(Path node) {
-        WebConfig webConfig = SessionMethods.getWebConfig(request);
+        WebConfig webConfig = InterMineContext.getWebConfig();
         if (node.isRootPath()) {
             return WebUtil.formatPath(node, webConfig);
         } else {

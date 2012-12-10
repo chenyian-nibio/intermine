@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -71,14 +71,14 @@ public class CreateTemplateAction extends InterMineAction
         HttpSession session = request.getSession();
         final InterMineAPI im = SessionMethods.getInterMineAPI(session);
         Profile profile = SessionMethods.getProfile(session);
-        TemplateQuery template = (TemplateQuery) SessionMethods.getQuery(session);
+        ApiTemplate template = new ApiTemplate((TemplateQuery) SessionMethods.getQuery(session));
         String prevTemplateName = (String) session.getAttribute(Constants.PREV_TEMPLATE_NAME);
 
         boolean seenProblem = false;
         TemplateSettingsForm tsf = (TemplateSettingsForm) form;
         ActionErrors errors = tsf.validate(mapping, request);
         saveErrors(request, (ActionMessages) errors);
-        if (errors != null) {
+        if (!errors.isEmpty()) {
             return mapping.findForward("query");
         }
         template.setDescription(tsf.getDescription());
@@ -140,24 +140,14 @@ public class CreateTemplateAction extends InterMineAction
             }
         }
 
-        boolean foundEditableConstraint = false;
-        boolean foundNonEditableLookup = false;
-        for (PathConstraint c : template.getConstraints().keySet()) {
-            if (template.isEditable(c)) {
-                foundEditableConstraint = true;
-            } else if (c instanceof PathConstraintLookup) {
-                foundNonEditableLookup = true;
-            }
-        }
-
         // template must have at least one editable constrain
-        if (!foundEditableConstraint) {
+        if (template.getEditableConstraints().isEmpty()) {
             recordError(new ActionMessage("errors.createtemplate.noconstraints"), request);
             seenProblem = true;
         }
 
         // template cannot have non-editable LOOKUP constraints
-        if (foundNonEditableLookup) {
+        if (!template.validateLookupConstraints()) {
             recordError(new ActionMessage("errors.createtemplate.noneditablelookup"), request);
             seenProblem = true;
         }
@@ -173,20 +163,20 @@ public class CreateTemplateAction extends InterMineAction
 
         recordMessage(new ActionMessage(key, template.getName()), request);
 
-        ApiTemplate toSave = new ApiTemplate(template);
+        //ApiTemplate toSave = new ApiTemplate(template);
         if (isNewTemplate) {
-            profile.saveTemplate(template.getName(), toSave);
+            profile.saveTemplate(template.getName(), template);
         } else {
             String oldTemplateName = (prevTemplateName != null)
                 ? prevTemplateName : template.getName();
-            profile.updateTemplate(oldTemplateName, toSave);
+            profile.updateTemplate(oldTemplateName, template);
             im.getTrackerDelegate().updateTemplateName(oldTemplateName, template.getName());
         }
 
         session.removeAttribute(Constants.NEW_TEMPLATE);
         session.removeAttribute(Constants.PREV_TEMPLATE_NAME);
 
-        SessionMethods.loadQuery(toSave, request.getSession(), response);
+        SessionMethods.loadQuery(template, request.getSession(), response);
         if ("SAVE".equals(tsf.getActionType())) {
             return mapping.findForward("query");
         } else {

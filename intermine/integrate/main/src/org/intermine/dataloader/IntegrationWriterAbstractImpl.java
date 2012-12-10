@@ -1,7 +1,7 @@
 package org.intermine.dataloader;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -144,7 +144,7 @@ public abstract class IntegrationWriterAbstractImpl implements IntegrationWriter
             if (obj instanceof ProxyReference) {
                 LOG.error("IDMAP CONTENTS:" + idMap.toString());
                 throw new IllegalArgumentException("Given a ProxyReference, but id not in ID Map."
-                        + " Source object ID: " + obj.getId()
+                        + " Source object ID: " + obj.toString()
                         + (idMap.size() < 100 ? ", idMap = " : ""));
             }
             if ((obj.getId() == null) || ignoreDuplicates) {

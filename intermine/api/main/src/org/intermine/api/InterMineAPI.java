@@ -1,7 +1,7 @@
 package org.intermine.api;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -23,6 +23,7 @@ import org.intermine.api.profile.ProfileManager;
 import org.intermine.api.profile.TagManager;
 import org.intermine.api.query.PathQueryExecutor;
 import org.intermine.api.query.WebResultsExecutor;
+import org.intermine.api.template.TemplateManager;
 import org.intermine.api.template.TemplateSummariser;
 import org.intermine.api.tracker.TrackerDelegate;
 import org.intermine.metadata.FieldDescriptor;
@@ -30,7 +31,6 @@ import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreSummary;
 import org.intermine.objectstore.ObjectStoreWriter;
-import org.intermine.api.template.TemplateManager;
 
 /**
  * InterMineAPI provides access to manager objects for the main parts of an InterMine application:
@@ -179,6 +179,9 @@ public class InterMineAPI
     }
 
     /**
+     * The bag-query runner is the object that performs look-up queries used when
+     * constructing bags from lists of identifiers, and in path-queries when
+     * LOOKUP constraints are used.
      * @return the bagQueryRunner
      */
     public BagQueryRunner getBagQueryRunner() {
@@ -193,6 +196,9 @@ public class InterMineAPI
     }
 
     /**
+     * The class keys are the list of fields used to identify objects in the data
+     * base, so for Employee it would include "name", and for Gene it would include
+     * "symbol".
      * @return the classKeys
      */
     public Map<String, List<FieldDescriptor>> getClassKeys() {
@@ -215,6 +221,8 @@ public class InterMineAPI
 
     /**
      * @return the linkRedirector
+     * The Link-Redirector generates links to objects within the database. If an external redirect
+     * has been configured, then a non-null string will be generated.
      */
     public LinkRedirectManager getLinkRedirector() {
         return linkRedirector;

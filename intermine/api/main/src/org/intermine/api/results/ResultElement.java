@@ -1,7 +1,7 @@
 package org.intermine.api.results;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -24,7 +24,7 @@ import org.intermine.util.Util;
  *
  * @author Xavier Watkins
  */
-public class ResultElement implements Serializable
+public class ResultElement implements Serializable, ResultCell
 {
     private static final long serialVersionUID = 1L;
     protected Object field;

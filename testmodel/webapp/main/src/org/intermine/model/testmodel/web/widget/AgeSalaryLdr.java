@@ -2,6 +2,8 @@ package org.intermine.model.testmodel.web.widget;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.intermine.api.profile.InterMineBag;
@@ -18,15 +20,13 @@ import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.pathquery.Constraints;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.web.logic.widget.DataSetLdr;
-import org.jfree.data.xy.CategoryTableXYDataset;
-import org.jfree.data.xy.XYDataset;
 
 public class AgeSalaryLdr implements DataSetLdr {
 
-    private final CategoryTableXYDataset dataset = new CategoryTableXYDataset();
     private final ObjectStore os;
     private Results results;
     private int total = 0;
+    private List<List<Object>> resultTable = new LinkedList<List<Object>>();
 
     public AgeSalaryLdr(InterMineBag bag, ObjectStore os, String extra) {
         super();
@@ -34,32 +34,50 @@ public class AgeSalaryLdr implements DataSetLdr {
         Query q = getQuery(bag);
         results = os.execute(q);
         Iterator<?> it = results.iterator();
+        List<Object> headers = new LinkedList<Object>();
+        headers.add("");
+        headers.add("Salary");
+        headers.add("Trend");
+        resultTable.add(headers);
+        List<List<Double>> points = new LinkedList<List<Double>>();
         while (it.hasNext()) {
             ResultsRow<?> row = (ResultsRow<?>) it.next();
             CEO ceo = (CEO) row.get(0);
-            dataset.add(ceo.getAge(), ceo.getSalary(), "Salary");
+
+            List<Object> rowList = new LinkedList<Object>();
+            List<Double> point = new LinkedList<Double>();
+            rowList.add(new Double(ceo.getAge()));
+            point.add(new Double(ceo.getAge()));
+            rowList.add(new Double(ceo.getSalary()));
+            point.add(new Double(ceo.getSalary()));
+            points.add(point);
+            resultTable.add(rowList);
+
             total++;
         }
+
+/*        LinearRegression regression = new LinearRegression(points);
+        for (int i = 1; i < resultTable.size(); i++) {
+            resultTable.get(i).add(regression.regress((Double) resultTable.get(i).get(0)));
+        }
+        */
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private Query getQuery(InterMineBag bag) {
         PathQuery pq = new PathQuery(os.getModel());
         pq.addViews("CEO.age", "CEO.salary");
-        pq.addConstraint(Constraints.in("CEO", bag.getName()));
         Map<String, InterMineBag> bags = new HashMap<String, InterMineBag>();
-        bags.put(bag.getName(), bag);
+        if (bag != null) {
+            pq.addConstraint(Constraints.in("CEO", bag.getName()));
+            bags.put(bag.getName(), bag);
+        }
         try {
             return MainHelper.makeQuery(pq, bags, new HashMap(), null, new HashMap());
         } catch (ObjectStoreException e) {
             e.printStackTrace();
         }
         return null;
-    }
-
-    @Override
-    public XYDataset getDataSet() {
-        return dataset;
     }
 
     @Override
@@ -70,6 +88,11 @@ public class AgeSalaryLdr implements DataSetLdr {
     @Override
     public int getWidgetTotal() {
         return total;
+    }
+
+    @Override
+    public List<List<Object>> getResultTable() {
+        return resultTable;
     }
 
 }

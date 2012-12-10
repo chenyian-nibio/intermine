@@ -25,7 +25,7 @@ use_ok($module);
 GET_SERVICE: {
     no warnings "deprecated";
     $service = eval {Webservice::InterMine->get_service(
-        'squirrel.flymine.org/intermine-test', 'intermine-test-user', 'intermine-test-user-password');};
+        'localhost/intermine-test', 'intermine-test-user', 'intermine-test-user-password');};
     die $@ if $@;
 }
 

@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -25,10 +24,9 @@ import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.bag.BagManager;
+import org.intermine.api.profile.BadTemplateException;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
-import org.intermine.api.search.SearchRepository;
-import org.intermine.api.tag.TagTypes;
 import org.intermine.api.template.ApiTemplate;
 import org.intermine.api.util.NameUtil;
 import org.intermine.pathquery.PathConstraint;
@@ -37,6 +35,7 @@ import org.intermine.pathquery.PathQuery;
 import org.intermine.template.TemplateQuery;
 import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.web.logic.template.TemplateHelper;
+import org.intermine.webservice.server.exceptions.BadRequestException;
 
 /**
  * Imports templates in XML format.
@@ -54,14 +53,11 @@ public class TemplatesImportAction extends InterMineAction
         throws Exception {
         HttpSession session = request.getSession();
         final InterMineAPI im = SessionMethods.getInterMineAPI(session);
-
-        ServletContext servletContext = session.getServletContext();
         Profile profile = SessionMethods.getProfile(session);
         TemplatesImportForm tif = (TemplatesImportForm) form;
-
         int deleted = 0, imported = 0, renamed = 0;
         BagManager bagManager = im.getBagManager();
-        Map<String, InterMineBag> allBags = bagManager.getUserAndGlobalBags(profile);
+        Map<String, InterMineBag> allBags = bagManager.getBags(profile);
 
         Map<String, TemplateQuery> templates = TemplateHelper.xmlToTemplateMap(tif.getXml(),
                 allBags, PathQuery.USERPROFILE_VERSION);
@@ -78,6 +74,7 @@ public class TemplatesImportAction extends InterMineAction
                 }
             }
             boolean validConstraints = true;
+            boolean validTemplate = true;
             for (TemplateQuery template : templates.values()) {
                 ApiTemplate apiTemplate = new ApiTemplate(template);
                 String templateName = apiTemplate.getName();
@@ -87,8 +84,14 @@ public class TemplatesImportAction extends InterMineAction
                 if (!templateName.equals(updatedName)) {
                     apiTemplate = renameTemplate(updatedName, apiTemplate);
                 }
-                if (validateLookupConstraints(template)) {
-                    profile.saveTemplate(apiTemplate.getName(), apiTemplate);
+                if (template.validateLookupConstraints() &&
+                    !template.getEditableConstraints().isEmpty()) {
+                    try {
+                        profile.saveTemplate(apiTemplate.getName(), apiTemplate);
+                    } catch (BadTemplateException bte) {
+                       validTemplate = false;
+                       continue;
+                    }
                     imported++;
                 } else {
                     validConstraints = false;
@@ -100,6 +103,9 @@ public class TemplatesImportAction extends InterMineAction
             if (!validConstraints) {
                 recordError(new ActionMessage("importTemplates.error.noneditablelookup"), request);
             }
+            if (!validTemplate) {
+                recordError(new ActionMessage("importTemplates.error.invalidname"), request);
+            }
 
             return new ForwardParameters(mapping.findForward("mymine"))
                 .addParameter("subtab", "templates").forward();
@@ -110,26 +116,8 @@ public class TemplatesImportAction extends InterMineAction
 
     // clone the template and set the new special-character-free name
     private ApiTemplate renameTemplate(String newName, ApiTemplate template) {
-
         ApiTemplate newTemplate = template.clone();
         newTemplate.setName(newName);
         return newTemplate;
-    }
-
-    /**
-     * Verify templates don't contain non-editable lookup constraints
-     * @param template to validate
-     * @return true id the tempalte is valid
-     */
-    private boolean validateLookupConstraints(TemplateQuery template) {
-        Map<PathConstraint, String> pathConstraints = template.getConstraints();
-
-        for (PathConstraint constraint : pathConstraints.keySet()) {
-            if (constraint instanceof PathConstraintLookup
-                && !template.getEditableConstraints().contains(constraint)) {
-                return false;
-            }
-        }
-        return true;
     }
 }

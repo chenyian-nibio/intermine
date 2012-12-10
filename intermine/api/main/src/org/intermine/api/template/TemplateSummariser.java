@@ -1,7 +1,7 @@
 package org.intermine.api.template;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -48,19 +48,18 @@ public class TemplateSummariser
     protected ObjectStoreWriter osw;
     protected Map<TemplateQuery, HashMap<String, List<Object>>> possibleValues
         = new IdentityHashMap<TemplateQuery, HashMap<String, List<Object>>>();
-    protected final int maxSummaryValues;
+    protected final int maxSummaryValues = 200;
 
     /**
      * Construct a TemplateSummariser.
      *
      * @param os ObjectStore containing production data
      * @param osw ObjectStoreWriter containing ProfileManager data
-     * @param oss A summary of the ObjectStore
+     * @param oss A summary of the ObjectStore - will be null
      */
     public TemplateSummariser(ObjectStore os, ObjectStoreWriter osw, ObjectStoreSummary oss) {
         this.os = os;
         this.osw = osw;
-        this.maxSummaryValues = oss.getMaxValues();
     }
 
     /**

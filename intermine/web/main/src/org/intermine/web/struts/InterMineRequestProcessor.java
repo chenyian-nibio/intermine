@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -122,7 +122,7 @@ public class InterMineRequestProcessor extends TilesRequestProcessor
                 String queryXml = (String) session.getAttribute("ser-query");
                 if (queryXml != null) {
                     BagManager bagManager = im.getBagManager();
-                    Map<String, InterMineBag> allBags = bagManager.getUserAndGlobalBags(profile);
+                    Map<String, InterMineBag> allBags = bagManager.getBags(profile);
                     PathQuery pq =
                         PathQueryBinding.unmarshalPathQuery(new StringReader(queryXml),
                                 PathQuery.USERPROFILE_VERSION);
@@ -173,6 +173,7 @@ public class InterMineRequestProcessor extends TilesRequestProcessor
      *
      * {@inheritDoc}
      */
+    @SuppressWarnings("rawtypes")
     protected void processForwardConfig(HttpServletRequest request, HttpServletResponse response,
             ForwardConfig forward) throws java.io.IOException, javax.servlet.ServletException {
         ForwardConfig forwardConfig = forward;
@@ -215,5 +216,5 @@ public class InterMineRequestProcessor extends TilesRequestProcessor
 
     private final Set<String> bots = Collections.unmodifiableSet(new HashSet<String>(
                 Arrays.asList("slurp", "bot", "spider", "crawl",
-                    "scooter", "ezooms", "archiver", "eventbox", "docomo", "nutch")));
+                    "scooter", "ezooms", "archiver", "eventbox", "docomo", "nutch", "grabber")));
 }

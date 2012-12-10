@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.lists;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -32,7 +32,7 @@ public abstract class CommutativeOperationService extends ListOperationService
 
     @Override
     protected ListInput getInput(HttpServletRequest request) {
-        return new CommutativeOperationInput(request, bagManager);
+        return new CommutativeOperationInput(request, bagManager, getPermission().getProfile());
     }
 
     @Override

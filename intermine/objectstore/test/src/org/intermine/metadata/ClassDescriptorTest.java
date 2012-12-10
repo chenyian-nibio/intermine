@@ -1,7 +1,7 @@
 package org.intermine.metadata;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -454,6 +454,14 @@ public class ClassDescriptorTest extends TestCase
 
         comp = ClassDescriptor.classInheritanceCompare(model, class2Name, class3Name);
         assertEquals(1, comp);
+    }
+
+    // SimpleObjects should inherit from java.lang.Object, normal classes don't inherit
+    public void testSimpleObjectClassDescriptors() throws Exception {
+        ClassDescriptor simpleObjectCld = new ClassDescriptor("package.name.Simple", "java.lang.Object", false,  new HashSet(), new HashSet(), new HashSet());
+        Model model = new Model("test", "package.name", new HashSet(Arrays.asList(new Object[] {simpleObjectCld})));
+        Set<String> expected = new HashSet<String>(Arrays.asList(new String[] {"java.lang.Object"}));
+        assertEquals(expected, simpleObjectCld.getSuperclassNames());
     }
 
 }

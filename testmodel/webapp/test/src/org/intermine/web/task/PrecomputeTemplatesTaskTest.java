@@ -1,7 +1,7 @@
 package org.intermine.web.task;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -93,6 +93,6 @@ public class PrecomputeTemplatesTaskTest extends TestCase
         List expIndexes = new ArrayList(Arrays.asList(new Object[] {qcEmp, qcDept, qfAge, qfName}));
         assertEquals(expIndexes.toString(), indexes.toString());
 
-        task.precompute(os, actualQ, indexes, "template");
+        task.precompute(actualQ, indexes, "template");
     }
 }

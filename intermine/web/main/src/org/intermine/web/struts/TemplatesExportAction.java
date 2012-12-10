@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -85,7 +85,7 @@ public class TemplatesExportAction extends TemplateAction
         }
         xml = XmlUtil.indentXmlSimple(xml);
 
-        response.setContentType("text/plain");
+        response.setContentType("text/plain; charset=utf-8");
         response.setHeader("Content-Disposition ", "inline; filename=template-queries.xml");
 
         PrintStream out = new PrintStream(response.getOutputStream());

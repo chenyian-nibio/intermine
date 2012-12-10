@@ -1,7 +1,7 @@
 package org.intermine.objectstore;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -81,7 +81,7 @@ public class ObjectStoreSummary
     public static final int DEFAULT_MAX_VALUES = 200;
 
     /**
-     * Construct a summary from by runnung queries in the ObjectStore.
+     * Construct a summary from by running queries in the ObjectStore.
      *
      * @param os the objectstore
      * @param configuration the configuration for summarization
@@ -271,7 +271,7 @@ public class ObjectStoreSummary
     public ObjectStoreSummary(Properties properties) {
         for (Map.Entry<Object, Object> entry: properties.entrySet()) {
             String key = (String) entry.getKey();
-            String value = (String) entry.getValue();
+            String value = ((String) entry.getValue()).trim();
             if (key.endsWith(CLASS_COUNTS_SUFFIX)) {
                 String className = key.substring(0, key.lastIndexOf("."));
                 classCountsMap.put(className, Integer.valueOf(value));

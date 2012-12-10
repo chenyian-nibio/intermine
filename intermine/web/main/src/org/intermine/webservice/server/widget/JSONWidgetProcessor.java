@@ -31,7 +31,7 @@ public class JSONWidgetProcessor extends WidgetProcessorImpl
         backingMap.put("title", widgetConfig.getTitle());
         backingMap.put("description", widgetConfig.getDescription());
         backingMap.put("targets", getClasses(widgetConfig.getTypeClass()));
-        backingMap.put("filters", getAvailableFilters(widgetConfig));
+        backingMap.put("filters", widgetConfig.getFilters());
         String widgetType = getWidgetType(widgetConfig);
         backingMap.put("widgetType", widgetType);
         if (widgetType.equals("chart")) {
@@ -45,7 +45,7 @@ public class JSONWidgetProcessor extends WidgetProcessorImpl
     private List<String> getClasses(String tc) {
         List<String> ret = new LinkedList<String>();
         for (String s: StringUtils.split(tc, ",")) {
-            ret.add(s.substring(s.lastIndexOf('.') + 1));
+            ret.add(s);
         }
         return ret;
     }

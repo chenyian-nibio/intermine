@@ -42,17 +42,10 @@
 <div class="body" align="center">
 <im:boxarea titleImage="templates-64.png" stylename="plainbox" fixedWidth="90%">
 <html:form action="/templateAction">
-    <%-- template title --%>
-    <h2 class="templateTitle">
-        <c:out value="${fn:replace(templateQuery.title,'-->','&nbsp;<img src=\"images/icons/green-arrow-24.png\" style=\"vertical-align:middle\">&nbsp;')}" escapeXml="false"/>
-        <tiles:insert name="setFavourite.tile">
-            <tiles:put name="name" value="${templateQuery.name}"/>
-            <tiles:put name="type" value="template"/>
-        </tiles:insert>
-    </h2>
 
-    <%-- description --%>
-    <div class="templateDescription">${templateQuery.description}</div>
+    <tiles:insert template="templateTitle.jsp">
+    </tiles:insert>
+
     <div class="templateFormContainer">
     <ol class="templateForm" id="constraintList">
         <%-- constraint list --%>
@@ -342,7 +335,7 @@
           <%-- For some reason, we are faking up the real sumbit actions with these buttons... --%>
           <div class="floatRight">
           <input type="button" onclick="jQuery('input#editQueryButton').click();" class="editQueryBuilder" value="<fmt:message key="template.submitToQuery"/>" />
-          <c:if test="${IS_SUPERUSER || scope == 'user'}">
+          <c:if test="${IS_OWNER}">
             <input type="button" onclick="jQuery('input#editTemplateButton').click();" class="editTemplate" value="<fmt:message key="template.submitToQueryEdit"/>" />
           </c:if>
           </div>
@@ -378,9 +371,6 @@
     <c:if test="${!empty builder}">
       <c:set var="webserviceLink" value="javascript:;"/>
     </c:if>
-    <td>
-      <a href="${webserviceLink}" title="Results from template queries can be embedded in other web pages">< embed results /></a>
-    </td>
     <td>
       <c:set var="permalink" value="permalink"/>
       <c:if test="${!empty builder && builder=='yes'}">

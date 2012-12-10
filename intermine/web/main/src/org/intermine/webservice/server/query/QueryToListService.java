@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.query;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.bag.BagManager;
 import org.intermine.api.bag.BagQueryResult;
+import org.intermine.api.bag.ClassKeysNotFoundException;
 import org.intermine.api.bag.UnknownBagTypeException;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
@@ -34,7 +35,6 @@ import org.intermine.objectstore.query.QuerySelectable;
 import org.intermine.pathquery.Path;
 import org.intermine.pathquery.PathException;
 import org.intermine.pathquery.PathQuery;
-import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.webservice.server.exceptions.BadRequestException;
 import org.intermine.webservice.server.exceptions.InternalErrorException;
 import org.intermine.webservice.server.exceptions.ServiceForbiddenException;
@@ -73,12 +73,15 @@ public class QueryToListService extends AbstractQueryService
             throw new ServiceForbiddenException("All requests to list operation services must"
                     + " be authenticated.");
         }
+        if (!getPermission().isRW()) {
+            throw new ServiceForbiddenException("This request does not have RW permission");
+        }
     }
 
     @Override
     protected void execute() throws Exception {
 
-        Profile profile = SessionMethods.getProfile(request.getSession());
+        Profile profile = getPermission().getProfile();
 
         String name = request.getParameter(NAME_PARAM);
         String description = request.getParameter(DESC_PARAM);
@@ -113,12 +116,12 @@ public class QueryToListService extends AbstractQueryService
         PathQuery pq = builder.getQuery();
         if (pq.getView().size() != 1) {
             throw new BadRequestException(
-                    "Queries to the query-to-list service can only have one output column");
+                "Queries to the query-to-list service can only have one output column");
         }
 
         if (!pq.getView().get(0).endsWith(".id")) {
             throw new BadRequestException(
-                    "Queries to the query-to-list service must have ids in their view");
+                "Queries to the query-to-list service must have ids in their view");
         }
         return pq;
     }
@@ -142,7 +145,7 @@ public class QueryToListService extends AbstractQueryService
         String tempName = name + TEMP;
 
         String viewPathString = pq.getView().get(0);
-        Path viewPath = new Path(pq.getModel(), viewPathString);
+        Path viewPath = pq.makePath(viewPathString);
         String type = viewPath.getLastClassDescriptor().getUnqualifiedName();
 
         try {
@@ -166,6 +169,8 @@ public class QueryToListService extends AbstractQueryService
         } catch (UnknownBagTypeException e) {
             output.addResultItem(Arrays.asList("0"));
             throw new InternalErrorException(e.getMessage(), e);
+        } catch (ClassKeysNotFoundException cke) {
+            throw new BadRequestException("Bag has not class key set", cke);
         } finally {
             if (profile.getSavedBags().containsKey(tempName)) {
                 profile.deleteBag(tempName);
@@ -183,7 +188,7 @@ public class QueryToListService extends AbstractQueryService
         Query ret;
         try {
             ret = MainHelper.makeQuery(pq,
-                bagManager.getUserAndGlobalBags(profile),
+                bagManager.getBags(profile),
                 new HashMap<String, QuerySelectable>(),
                 im.getBagQueryRunner(),
                 new HashMap<String, BagQueryResult>());

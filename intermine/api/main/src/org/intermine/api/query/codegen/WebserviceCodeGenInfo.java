@@ -1,7 +1,7 @@
 package org.intermine.api.query.codegen;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -9,6 +9,8 @@ package org.intermine.api.query.codegen;
  * information or http://www.gnu.org/copyleft/lesser.html.
  *
  */
+
+import java.util.Properties;
 
 import org.intermine.pathquery.PathQuery;
 import org.intermine.template.TemplateQuery;
@@ -27,7 +29,8 @@ public class WebserviceCodeGenInfo
     private String perlWSModuleVer;
     private boolean isPublic;
     private String userName;
-
+    private String resultTablesLib = null;
+    private String baseUrl = null;
 
 	/**
      * Constructor.
@@ -60,6 +63,21 @@ public class WebserviceCodeGenInfo
         this.perlWSModuleVer = null;
         this.isPublic = true;
         this.userName = null;
+    }
+
+    public void readWebProperties(Properties properties) {
+        if (properties != null) {
+            resultTablesLib = (String) properties.get("ws.imtables.provider");
+            baseUrl = properties.get("webapp.baseurl") + "/" + properties.get("webapp.path") + "/";
+        }
+    }
+
+    public String getResultsTablesLib() {
+        return resultTablesLib;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
     }
 
     /**

@@ -1,7 +1,7 @@
 package org.intermine.web.logic.config;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -35,6 +35,7 @@ import org.intermine.metadata.ClassDescriptor;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.metadata.Model;
 import org.intermine.pathquery.Path;
+import org.intermine.pathquery.PathConstraint;
 import org.intermine.pathquery.PathException;
 import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.web.logic.widget.config.EnrichmentWidgetConfig;
@@ -68,11 +69,10 @@ public class WebConfig
      * @return a WebConfig object
      * @throws SAXException if there is an error in the XML file
      * @throws IOException if there is an error reading the XML file
-     * @throws FileNotFoundException if the XML file doesn't exist
      * @throws ClassNotFoundException if a class is mentioned in the XML that isn't in the model
      */
     public static WebConfig parse(final ServletContext context, final Model model)
-        throws IOException, FileNotFoundException, SAXException, ClassNotFoundException {
+        throws IOException, SAXException, ClassNotFoundException {
 
         BasicConfigurator.configure();
 
@@ -419,8 +419,116 @@ public class WebConfig
     }
 
     /**
-     * Add a type to the WebConfig Map.  Use className as the key of the Map if fieldName of the
-     * Type is null, otherwise use the class name, a space, and the field name.
+     * Return the type associated to the simpleClassname
+     * @param simpleClassName
+     * @return
+     */
+    private Type getType(String simpleClassName) {
+        for (String type : types.keySet()) {
+            if (type.endsWith("." + simpleClassName)) {
+                return types.get(type);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Validate the content (the paths) in the widget config
+     * @param model the model used to validate the paths
+     * @return the message containing the errors or an empty String
+     */
+    public String validateWidgetsConfig(final Model model) {
+        WidgetConfig widget = null;
+        StringBuffer validationMessage = new StringBuffer();
+        for (String widgetId : widgets.keySet()) {
+            if (widgetId.contains(" ")) {
+                validationMessage.append("The id for the widget " + widgetId + " contains spaces.");
+            }
+            widget = widgets.get(widgetId);
+            //verify startClass
+            String startClass = widget.getStartClass();
+            if (startClass != null && !"".equals(startClass)) {
+                startClass = model.getPackageName() + "." + widget.getStartClass();
+                if (!model.getClassNames().contains(startClass)) {
+                    validationMessage = validationMessage.append("The attribute startClass for the"
+                                        + " widget " + widgetId + " is not in the model.");
+                }
+            }
+            //verify typeClass
+            String typeClass = widget.getTypeClass();
+            if (typeClass != null && !"".equals(typeClass)) {
+                if (!model.getClassNames().contains(model.getPackageName() + "."
+                                                    + widget.getTypeClass())) {
+                    validationMessage = validationMessage.append("The attribute typeClass for the "
+                                        + "widget " + widgetId + " is not in the model.");
+                }
+            }
+            //verify constraints (only path)
+            List<PathConstraint> pathConstraints = widget.getPathConstraints();
+            for (PathConstraint pathConstraint : pathConstraints) {
+                validateAttributePath(model, widget.getStartClass(), pathConstraint.getPath(),
+                                     "constraints", widgetId, validationMessage);
+            }
+            //verify views
+            String views = widget.getViews();
+            String simpleStartClass = widget.getStartClass();
+            if (views != null) {
+                if (!"".equals(views)) {
+                    String[] viewsBites = widget.getViews().split("\\s*,\\s*");
+                    if (widget instanceof TableWidgetConfig) {
+                        simpleStartClass = typeClass.substring(typeClass.lastIndexOf(".") + 1);
+                    }
+                    for (String viewPath : viewsBites) {
+                        validateAttributePath(model, simpleStartClass, viewPath, "views", widgetId,
+                                validationMessage);
+                    }
+                }
+            }
+            //verify enrich and enrichId for enrichement widgets
+            if (widget instanceof EnrichmentWidgetConfig) {
+                String enrich = ((EnrichmentWidgetConfig) widget).getEnrich();
+                validateAttributePath(model, widget.getStartClass(), enrich, "enrich", widgetId,
+                             validationMessage);
+                String enrichId = ((EnrichmentWidgetConfig) widget).getEnrichIdentifier();
+                if (enrichId != null) {
+                    validateAttributePath(model, widget.getStartClass(), enrichId,
+                                         "enrichIdentifier", widgetId, validationMessage);
+                }
+            }
+            //verify categoryPath and seriesPath for graph widgets
+            if (widget instanceof GraphWidgetConfig) {
+                String categoryPath = ((GraphWidgetConfig) widget).getCategoryPath();
+                validateAttributePath(model, widget.getStartClass(), categoryPath, "categoryPath",
+                                      widgetId, validationMessage);
+                String seriesPath = ((GraphWidgetConfig) widget).getSeriesPath();
+                if (!"".equals(seriesPath) && !"ActualExpectedCriteria".equals(seriesPath)) {
+                    validateAttributePath(model, widget.getStartClass(), seriesPath, "seriesPath",
+                                          widgetId, validationMessage);
+                }
+            }
+        }
+        return validationMessage.toString();
+    }
+
+    private void validateAttributePath(Model model, String startClass, String pathToValidate,
+                                       String label, String widgetId, StringBuffer validationMsg) {
+        Path path;
+        try {
+            path = new Path(model, startClass + "." + pathToValidate);
+            if (!path.endIsAttribute()) {
+                validationMsg.append("The path " + pathToValidate
+                        + " set in " + label + " for the widget " + widgetId
+                        + " is not an attribute.");
+            }
+        } catch (final PathException e) {
+            validationMsg.append("The path " + pathToValidate
+                    + " set in " + label + " for the widget " + widgetId
+                    + " is not in the model.");
+        }
+    }
+
+    /**
+     * Add a type to the WebConfig Map.
      *
      * @param type the Type to add
      */
@@ -428,7 +536,7 @@ public class WebConfig
         String typeString = type.getClassName();
         if (types.containsKey(typeString)) {
             throw new IllegalArgumentException("Type " + typeString
-                    + " defined more that once in webconfig-model.xml");
+                    + " defined more than once in webconfig-model.xml");
         } else {
             types.put(type.getClassName(), type);
         }
@@ -481,17 +589,19 @@ public class WebConfig
      * @param widget the widget
      */
     public void addWidget(final WidgetConfig widget) {
-        widgets.put(widget.getId(), widget);
-        final String[] widgetTypes = widget.getTypeClass().split(",");
-        for (final String widgetType: widgetTypes) {
-            final Type type = types.get(widgetType);
-            if (type == null) {
-                final String msg = "Invalid web config. " + widgetType + " is not a valid class. "
-                    + "Please correct the entry in the webconfig-model.xml for the "
-                    + widget.getId() + " widget.";
-                LOG.warn(msg);
-            } else {
-                type.addWidget(widget);
+        if (!widgets.containsKey(widget.getId())) {
+            widgets.put(widget.getId(), widget);
+            final String[] widgetTypes = widget.getTypeClass().split(",");
+            for (final String widgetType: widgetTypes) {
+                final Type type = getType(widgetType);
+                if (type == null) {
+                    final String msg = "Invalid web config. " + widgetType + " is not a valid "
+                        + "class. Please correct the entry in the webconfig-model.xml for the "
+                        + widget.getId() + " widget.";
+                    LOG.warn(msg);
+                } else {
+                    type.addWidget(widget);
+                }
             }
         }
     }
@@ -510,7 +620,6 @@ public class WebConfig
             reportDisplayerConfigs.add(reportDisplayerConfig);
         }
     }
-
 
     /**
      * Fetch config for the report page displayers.

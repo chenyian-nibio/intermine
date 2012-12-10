@@ -1,7 +1,7 @@
 package org.intermine.modelproduction;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -92,6 +92,10 @@ public final class ModelMerger
         try {
             Model newModel = new Model(original.getName(), original.getPackageName(),
                     new HashSet<ClassDescriptor>(newClasses.values()));
+            if (newModel.hasProblems()) {
+                throw new ModelMergerException("There were problems merging the model: "
+                        + newModel.getProblems());
+            }
             return newModel;
 
         } catch (MetaDataException err) {
@@ -244,7 +248,8 @@ public final class ModelMerger
     public static ClassDescriptor mergeClass(ClassDescriptor original, ClassDescriptor merge,
             Model originalModel, Set<ClassDescriptor> mergeClasses) throws ModelMergerException {
         if (merge.isInterface() != original.isInterface()) {
-            throw new ModelMergerException(original.getName() + ".isInterface/"
+            throw new ModelMergerException("Same class definition found as a class and interface "
+                    + original.getName() + ".isInterface/"
                     + original.isInterface() + " != " + merge.getName() + ".isInterface/"
                     + merge.isInterface());
         }

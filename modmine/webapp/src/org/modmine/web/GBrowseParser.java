@@ -1,7 +1,7 @@
 package org.modmine.web;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -36,7 +36,7 @@ public final class GBrowseParser
     private static final String GBROWSE_URL_END = "/?show_tracks=1";
     private static final String GBROWSE_ST_URL_END = "/?action=scan";
     private static final String GBROWSE_DEFAULT_URL =
-        "http://modencode.oicr.on.ca/fgb2/gbrowse/";
+            "http://modencode.oicr.on.ca/fgb2/gbrowse/";
     private static final String DCC_PREFIX = "modENCODE_";
     private static final String SEPARATOR = ";";
     // private static final String TRACK_SEPARATOR = "%1E";
@@ -115,15 +115,16 @@ public final class GBrowseParser
         }
     }
 
+
     /**
      * Method to read the list of GBrowse tracks for a given organism
      *
-     * @param organism (i.e. fly or worm)
-     * @return submissionTracksCache
+     * @param organism organism (i.e. fly or worm)
+     * @return map of submissions-tracks
      */
     public static Map<String, List<GBrowseTrack>> readTracks(String organism) {
         Map<String, List<GBrowseTrack>> submissionsToTracks =
-            new HashMap<String, List<GBrowseTrack>>();
+                new HashMap<String, List<GBrowseTrack>>();
         try {
             URL url = new URL(GBROWSE_BASE_URL + organism + GBROWSE_ST_URL_END);
             BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -151,7 +152,7 @@ public final class GBrowseParser
             // data source = 2482 2501
             // track source = 3355
             //
-            // TODO
+            // TODO--done? test!
             // in this case we should link only to the first data source
             // (nr of sources = nr of tracks according to peter ...)
             // wait for document on parsing and news about fgb2
@@ -160,6 +161,7 @@ public final class GBrowseParser
             StringBuffer trackName = new StringBuffer();
             StringBuffer toAppend = new StringBuffer();
             boolean hasSelected = false;
+            String[] dataSourceItems = null;
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("[")) {
                     LOG.debug("GB: " + line);
@@ -181,7 +183,7 @@ public final class GBrowseParser
                         } else {
                             // this is a token with subId
                             String subTrack = toAppend.toString()
-                                + token.substring(0, token.indexOf(SEPARATOR));
+                                    + token.substring(0, token.indexOf(SEPARATOR));
                             String dcc = token.substring(
                                     token.indexOf(SEPARATOR) + 1, token.length());
                             if (!StringUtils.isNumeric(dcc)) {
@@ -193,24 +195,41 @@ public final class GBrowseParser
                             LOG.debug("SUBTRACK: " + subTrack + "|" + dccId);
                             toAppend.setLength(0); // empty buffer
                             GBrowseTrack newTrack =
-                                new GBrowseTrack(organism, trackName.toString(), subTrack, dccId);
+                                    new GBrowseTrack(organism, trackName.toString(),
+                                            subTrack, dccId);
                             addToGBMap(submissionsToTracks, dccId, newTrack);
                         }
                     }
                 }
                 // added for tracks without subtrack
                 if (line.startsWith("data source") && hasSelected == false) {
-                    LOG.debug("GB: " + line);
                     String data = line.replace("data source = ", "");
-                    String[] result = data.split("\\s");
-                    for (String token : result) {
-                        String dccId = DCC_PREFIX + token;
+                    dataSourceItems = data.split("\\s");
+                }
+
+                if (line.startsWith("track source") && hasSelected == false
+                        && dataSourceItems.length >= 1) {
+                    String data = line.replace("track source = ", "");
+                    String[] tracks = data.split("\\s");
+                    if (tracks.length == dataSourceItems.length) {
+                        for (String token : dataSourceItems) {
+                            String dccId = DCC_PREFIX + token;
+                            GBrowseTrack newTrack =
+                                    new GBrowseTrack(organism, trackName.toString(),
+                                            trackName.toString(), dccId);
+                            LOG.debug("GBds: " + dccId + "|" + trackName.toString());
+                            addToGBMap(submissionsToTracks, dccId, newTrack);
+                        }
+                    } else {
+                        // assign only the first one, the other are related subs
+                        String dccId = DCC_PREFIX + dataSourceItems[0];
                         GBrowseTrack newTrack =
-                            new GBrowseTrack(organism, trackName.toString(), trackName.toString(),
-                                    dccId);
+                                new GBrowseTrack(organism, trackName.toString(),
+                                        trackName.toString(), dccId);
+                        LOG.debug("GBts: " + dccId + "|" + trackName.toString());
                         addToGBMap(submissionsToTracks, dccId, newTrack);
                     }
-
+                    dataSourceItems = null;
                 }
             }
             reader.close();
@@ -221,25 +240,28 @@ public final class GBrowseParser
     }
 
 
-//    /**
-//     * This method adds a GBrowse track to a map with
-//     * key = dccId
-//     * value = list of associated GBrowse tracks
-//     */
-//    private static void addToGBMap(
-//            Map<Integer, List<GBrowseTrack>> m,
-//            Integer key, GBrowseTrack value) {
-//        //
-//        List<GBrowseTrack> gbs = new ArrayList<GBrowseTrack>();
+
+
+
+//        /**
+//         * This method adds a GBrowse track to a map with
+//         * key = dccId
+//         * value = list of associated GBrowse tracks
+//         */
+//        private static void addToGBMap(
+//                Map<Integer, List<GBrowseTrack>> m,
+//                Integer key, GBrowseTrack value) {
+//            //
+//            List<GBrowseTrack> gbs = new ArrayList<GBrowseTrack>();
 //
-//        if (m.containsKey(key)) {
-//            gbs = m.get(key);
+//            if (m.containsKey(key)) {
+//                gbs = m.get(key);
+//            }
+//            if (!gbs.contains(value)) {
+//                gbs.add(value);
+//                m.put(key, gbs);
+//            }
 //        }
-//        if (!gbs.contains(value)) {
-//            gbs.add(value);
-//            m.put(key, gbs);
-//        }
-//    }
 
     /**
      * This method adds a GBrowse track to a map with

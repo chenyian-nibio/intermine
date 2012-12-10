@@ -1,7 +1,7 @@
 package org.intermine.bio.webservice;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -10,16 +10,16 @@ package org.intermine.bio.webservice;
  *
  */
 
-import org.intermine.web.logic.session.SessionMethods;
-import org.intermine.webservice.server.lists.ListServiceUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
+
 import org.intermine.api.InterMineAPI;
+import org.intermine.api.bag.ClassKeysNotFoundException;
 import org.intermine.api.bag.UnknownBagTypeException;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
@@ -29,9 +29,11 @@ import org.intermine.bio.web.model.GenomicRegion;
 import org.intermine.bio.webservice.GenomicRegionSearchListInput.GenomicRegionSearchInfo;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.query.Query;
+import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.webservice.server.exceptions.BadRequestException;
 import org.intermine.webservice.server.lists.ListInput;
 import org.intermine.webservice.server.lists.ListMakerService;
+import org.intermine.webservice.server.lists.ListServiceUtils;
 import org.intermine.webservice.server.output.JSONFormatter;
 import org.json.JSONException;
 
@@ -96,7 +98,8 @@ public class GenomicRegionSearchService extends ListMakerService
      * @throws UnknownBagTypeException
      */
     protected InterMineBag doListCreation(GenomicRegionSearchListInput input, Profile profile,
-        String type) throws ObjectStoreException, UnknownBagTypeException {
+        String type) throws ObjectStoreException, ClassKeysNotFoundException,
+        UnknownBagTypeException {
         final InterMineBag tempBag = profile.createBag(
                 input.getTemporaryListName(), type, input.getDescription(), im.getClassKeys());
         Map<GenomicRegion, Query> queries = createQueries(input.getSearchInfo());
@@ -125,7 +128,7 @@ public class GenomicRegionSearchService extends ListMakerService
     @Override
     protected ListInput getInput(final HttpServletRequest req) {
         try {
-            return new GenomicRegionSearchListInput(req, bagManager, im);
+            return new GenomicRegionSearchListInput(req, bagManager, getPermission().getProfile(), im);
         } catch (JSONException e) {
             String msg = e.getMessage();
             if (msg == null) {

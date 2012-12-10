@@ -1,7 +1,7 @@
 package org.intermine.bio.ontology;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -266,7 +266,8 @@ public class SequenceOntology
              * child  = exon
              * Transcript has a collection of exons
              */
-            if (("part_of".equals(relationshipType) || "member_of".equals(relationshipType))
+            if (("part_of".equals(relationshipType) || "member_of".equals(relationshipType)
+                    || "variant_of".equals(relationshipType))
                     && r.direct) {
                 assignPartOf(parent, child);
             } else if ("is_a".equals(relationshipType) && r.direct) {

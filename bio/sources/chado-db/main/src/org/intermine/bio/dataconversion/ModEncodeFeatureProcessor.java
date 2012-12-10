@@ -1,7 +1,7 @@
 package org.intermine.bio.dataconversion;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -70,6 +70,7 @@ public class ModEncodeFeatureProcessor extends SequenceProcessor
             , "SL1_acceptor_site", "SL2_acceptor_site"
             , "transcription_end_site", "TSS", "under-replicated-region"
             , "full_transcript", "polypeptide_region", "peptide_collection"
+            , "chromatin_state"
     );
     // the FB name for the mitochondrial genome
     private static final String MITOCHONDRION = "dmel_mitochondrion_genome";
@@ -697,6 +698,7 @@ public class ModEncodeFeatureProcessor extends SequenceProcessor
         LOG.info("QUERY TIME feature scores: " + (System.currentTimeMillis() - bT));
         return res;
     }
+
     private void processExpressionLevels(Connection connection) throws SQLException,
     ObjectStoreException {
         ResultSet res = getExpressionLevels(connection);

@@ -1,7 +1,7 @@
 package org.modmine.web;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -232,8 +232,7 @@ public class SpanUploadAction extends InterMineAction
         }
 
         // Query chromosome info to validate span
-        Map<String, List<ChromosomeInfo>> chrInfoMap = SpanOverlapQueryRunner
-                .runSpanValidationQuery(im);
+        Map<String, List<ChromosomeInfo>> chrInfoMap = SpanOverlapQueryRunner.getChrInfo(im);
 
         // Chromesome starts with "chr" - UCSC formats
         for (GenomicRegion aSpan : spanList) {

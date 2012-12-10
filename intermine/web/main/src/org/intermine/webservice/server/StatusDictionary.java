@@ -1,7 +1,7 @@
 package org.intermine.webservice.server;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -18,6 +18,10 @@ import org.intermine.webservice.server.output.Output;
  **/
 public abstract class StatusDictionary
 {
+
+    private StatusDictionary() {
+    }
+
     /**
      * @param statusCode status code
      * @return short description of specified status code

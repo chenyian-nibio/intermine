@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -50,11 +50,10 @@ public class CreateAccountAction extends LoginHandler
         ProfileManager pm = im.getProfileManager();
         String username = ((CreateAccountForm) form).getUsername();
         String password = ((CreateAccountForm) form).getPassword();
-        pm.createProfile(new Profile(pm, username, null, password, new HashMap(), new HashMap(),
-                new HashMap(), null, true, false));
+        pm.createNewProfile(username, password);
         Properties webProperties = SessionMethods.getWebProperties(session.getServletContext());
         try {
-            MailUtils.email(username, webProperties);
+            MailUtils.welcome(username, webProperties);
             if (((CreateAccountForm) form).getMailinglist()
                 && webProperties.getProperty("mail.mailing-list") != null
                 && webProperties.getProperty("mail.mailing-list").length() > 0) {
@@ -65,7 +64,6 @@ public class CreateAccountAction extends LoginHandler
         } catch (Exception e) {
             SessionMethods.recordError("Failed to send confirmation email", session);
         }
-
 
         /*
          * This code generates an MD5 key for the given username which is then
@@ -78,6 +76,11 @@ public class CreateAccountAction extends LoginHandler
          * (NoSuchAlgorithmException e) { }
          */
         doLogin(request, username, password);
+
+        if (session.getAttribute("returnTo") != null) {
+            return new ActionForward(session.getAttribute("returnTo").toString());
+        }
+
         return new ActionForward("/begin.do");
     }
 }

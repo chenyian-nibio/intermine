@@ -36,7 +36,11 @@ import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
 /**
- * Parser for iRefIndex (http://irefindex.uio.no/wiki/iRefIndex)
+ * Parser for iRefIndex (http://irefindex.uio.no/wiki/iRefIndex) <br/>
+ * Column definition could be found at
+ * http://irefindex.uio.no/wiki/README_MITAB2.6_for_iRefIndex_9.0 <br/>
+ * refactoring: 2012.11.29 ;<br/>
+ * In order to fit the new Interaction model (InterMine 1.1)
  * 
  * @author chenyian
  */
@@ -106,7 +110,7 @@ public class IrefindexConverter extends BioFileConverter {
 			}
 			String[] ids = cols[13].split("\\|");
 
-			// TODO add ProteinInteraction
+			// Add ProteinInteraction
 			String proteinIdA = getProteinId(cols[0]);
 			String proteinIdB = getProteinId(cols[1]);
 			if (proteinIdA != null && proteinIdB != null) {
@@ -133,14 +137,22 @@ public class IrefindexConverter extends BioFileConverter {
 				continue;
 			}
 
-			String conf = cols[14].split("\\|PSICQUIC")[0].trim();
+			// String conf = cols[14].split("\\|PSICQUIC")[0].trim();
 
-			createInteraction(getMiDesc(cols[18]), geneA, cols[9], geneB, cols[10], cols[11],
-					expRefId, getMiDesc(cols[16]), getMiDesc(cols[20]), conf);
+			String geneARef = getGene(geneA, cols[9]);
+			String geneBRef = getGene(geneB, cols[10]);
+			createInteraction(getMiDesc(cols[18]), geneARef, getMiDesc(cols[19]), geneBRef,
+					cols[11], expRefId,
+					String.format("1:%s-2:%s", getMiDesc(cols[16]), getMiDesc(cols[17])),
+					String.format("1:%s-2:%s", getMiDesc(cols[20]), getMiDesc(cols[21])),
+					String.format("iRef:%s_%s", geneA, geneB));
 
 			if (!geneA.equals(geneB)) {
-				createInteraction(getMiDesc(cols[19]), geneB, cols[10], geneA, cols[9], cols[11],
-						expRefId, getMiDesc(cols[17]), getMiDesc(cols[21]), conf);
+				createInteraction(getMiDesc(cols[19]), geneBRef, getMiDesc(cols[18]), geneARef,
+						cols[11], expRefId,
+						String.format("1:%s-2:%s", getMiDesc(cols[17]), getMiDesc(cols[16])),
+						String.format("1:%s-2:%s", getMiDesc(cols[21]), getMiDesc(cols[20])),
+						String.format("iRef:%s_%s", geneB, geneA));
 			}
 			interactions.add(intKey);
 		}
@@ -162,38 +174,43 @@ public class IrefindexConverter extends BioFileConverter {
 		return s.substring(8, s.length() - 1);
 	}
 
-	private void createInteraction(String role, String geneId, String geneTaxon,
-			String interactingGeneId, String interactingGeneTaxon, String miType, String expRefId,
-			String bioRole, String interactor, String confidence) throws ObjectStoreException {
+	private void createInteraction(String role1, String gene1Ref, String role2, String gene2Ref,
+			String miType, String expRefId, String bioRole, String interactor, String name)
+			throws ObjectStoreException {
 		Item interaction = createItem("Interaction");
-		interaction.setAttribute("role", role);
-		interaction.setReference("gene", getGene(geneId, geneTaxon));
-		interaction.addToCollection("interactingGenes",
-				getGene(interactingGeneId, interactingGeneTaxon));
+		interaction.setReference("gene1", gene1Ref);
+		interaction.setReference("gene2", gene2Ref);
+		store(interaction);
+
+		// create Detail item
+		Item detail = createItem("InteractionDetail");
+
+		detail.setAttribute("role1", role1);
+		detail.setAttribute("role2", role2);
+
 		if (!miType.equals("-")) {
 			miType = miType.substring(0, 7);
-			interaction.setReference("type", getInteractionTerm(miType));
+			detail.setReference("relationshipType", getInteractionTerm(miType));
 			String intType = interactionTypeMap.get(miType);
+			// physical or genetic
 			if (intType != null) {
-				interaction.setAttribute("interactionType", intType);
+				detail.setAttribute("type", intType);
 			} else {
 				LOG.error(String.format("Cannot resolve interaction type: %s", miType));
 			}
 		}
-		interaction.setReference("experiment", expRefId);
-		String interactionName = "iRef:" + geneId + "_" + interactingGeneId;
-		interaction.setAttribute("name", interactionName);
-		interaction.setAttribute("shortName", interactionName);
+		detail.setReference("experiment", expRefId);
+		detail.setAttribute("name", name);
+		detail.setReference("interaction", interaction);
 
-		if (!confidence.isEmpty()) {
-			interaction.setAttribute("confidenceText", confidence);
-		}
+		detail.addToCollection("allInteractors", gene1Ref);
+		detail.addToCollection("allInteractors", gene2Ref);
 
-		// 2 new attributes
-		interaction.setAttribute("biologicalRole", bioRole);
-		interaction.setAttribute("interactorType", interactor);
+		// 2 extra attributes
+		detail.setAttribute("biologicalRole", bioRole);
+		detail.setAttribute("interactorType", interactor);
 
-		store(interaction);
+		store(detail);
 	}
 
 	private void readInteractionType() throws IOException {
@@ -237,7 +254,7 @@ public class IrefindexConverter extends BioFileConverter {
 		String taxonId = taxonField;
 		if (itemId == null) {
 			Item gene = createItem("Gene");
-			gene.setAttribute("ncbiGeneNumber", geneId);
+			gene.setAttribute("ncbiGeneId", geneId);
 			if (!taxonField.equals("-")) {
 				taxonId = taxonField.substring(6, taxonField.indexOf("("));
 				gene.setReference("organism", getOrganism(taxonId));
@@ -276,7 +293,7 @@ public class IrefindexConverter extends BioFileConverter {
 						getInteractionTerm(detectioniMethod.substring(0, 7)));
 			}
 
-			// new attributes
+			// extra attributes
 			if (host.startsWith("taxid:")) {
 				String desc = host.substring(host.indexOf("(") + 1, host.length() - 1);
 				if (desc.equals("-")) {
@@ -364,7 +381,7 @@ public class IrefindexConverter extends BioFileConverter {
 		while (iterator.hasNext()) {
 			ResultsRow<String> rr = (ResultsRow<String>) iterator.next();
 			String refseqId = rr.get(0);
-			if (refseqId.contains(".")){
+			if (refseqId.contains(".")) {
 				refseqId = refseqId.substring(0, refseqId.indexOf("."));
 			}
 			if (proteinIdMap.get(refseqId) == null) {

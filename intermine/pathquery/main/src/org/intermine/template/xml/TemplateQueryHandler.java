@@ -1,7 +1,7 @@
 package org.intermine.template.xml;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -16,6 +16,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.intermine.pathquery.PathConstraint;
 import org.intermine.pathquery.PathConstraintSubclass;
 import org.intermine.pathquery.PathQuery;
@@ -31,13 +32,12 @@ import org.xml.sax.SAXException;
  */
 public class TemplateQueryHandler extends PathQueryHandler
 {
-    Map<String, TemplateQuery> templates;
-    String templateName;
-    String templateTitle;
-    String templateComment;
-    Map<PathConstraint, String> constraintDescriptions = new HashMap<PathConstraint, String>();
-    List<PathConstraint> editableConstraints = new ArrayList<PathConstraint>();
-    Map<PathConstraint, SwitchOffAbility> constraintSwitchables =
+    private Map<String, TemplateQuery> templates;
+    private String templateName, templateTitle, templateComment;
+    private Map<PathConstraint, String> constraintDescriptions
+        = new HashMap<PathConstraint, String>();
+    private List<PathConstraint> editableConstraints = new ArrayList<PathConstraint>();
+    private Map<PathConstraint, SwitchOffAbility> constraintSwitchables =
         new HashMap<PathConstraint, SwitchOffAbility>();
 
     /**
@@ -60,10 +60,6 @@ public class TemplateQueryHandler extends PathQueryHandler
         if ("template".equals(qName)) {
             templateName = attrs.getValue("name");
             templateTitle = attrs.getValue("title");
-            if (attrs.getValue("description") != null && templateTitle == null) {
-                // support old serialisation format: description -> title
-                templateTitle = attrs.getValue("description");
-            }
             templateComment = attrs.getValue("comment");
         } else if ("constraint".equals(qName)) {
             String path = attrs.getValue("path");

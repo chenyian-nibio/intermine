@@ -121,10 +121,10 @@
       <property name="src.data.dir.includes" value="cc-to-pdb.tdd" />
       <property name="inchiKeyFile" value="/data/bio/db/Targetmine/ligand_expo/Components-inchikey.ich" />
     </source>
-    <source name="amadeus" type="metazoan" dump="true">
+    <source name="amadeus" type="metazoan">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/metazoan" />
     </source>
-    <source name="oreg" type="tfactor" dump="true">
+    <source name="oreg" type="tfactor">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/tfactor" />
       <property name="src.data.dir.includes" value="oreg.all.txt" />
     </source>
@@ -168,9 +168,9 @@
     <source name="gene-set" type="gene-set">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_set_cluster"/>
       <property name="src.data.dir.includes" value="lt600.*"/>
-      <property name="clusterName" value="/data/bio/db/Targetmine/gene_set_cluster/autoname.20121025.1.tsv"/>
+      <property name="clusterName" value="/data/bio/db/Targetmine/gene_set_cluster/autoname.ABCMNO.tsv"/>
     </source>
-    <source name="stitch" type="stitch">
+    <source name="stitch" type="tm-stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
       <property name="src.data.dir.includes" value="*.detailed.tsv" />
       <property name="compoundMapFile" value="/data/bio/db/Targetmine/stitch/pubchem_mapping" />

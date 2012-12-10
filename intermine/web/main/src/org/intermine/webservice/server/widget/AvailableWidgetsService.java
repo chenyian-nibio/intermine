@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.widget;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -19,9 +19,9 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
 import org.intermine.api.InterMineAPI;
+import org.intermine.web.context.InterMineContext;
 import org.intermine.web.logic.config.WebConfig;
 import org.intermine.web.logic.export.ResponseUtil;
-import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.web.logic.widget.config.WidgetConfig;
 import org.intermine.webservice.server.core.JSONService;
 import org.intermine.webservice.server.output.JSONFormatter;
@@ -47,7 +47,7 @@ public class AvailableWidgetsService extends JSONService
 
     @Override
     protected void execute() throws Exception {
-        WebConfig webConfig = SessionMethods.getWebConfig(request);
+        WebConfig webConfig = InterMineContext.getWebConfig();
         Map<String, WidgetConfig> widgetDetails = webConfig.getWidgets();
 
         WidgetProcessor processor = getProcessor();

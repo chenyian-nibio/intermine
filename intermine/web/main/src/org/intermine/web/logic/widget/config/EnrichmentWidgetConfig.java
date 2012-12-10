@@ -1,7 +1,7 @@
 package org.intermine.web.logic.widget.config;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -10,6 +10,7 @@ package org.intermine.web.logic.widget.config;
  *
  */
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,17 +19,21 @@ import java.util.Map;
 
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.objectstore.ObjectStore;
+import org.intermine.pathquery.PathConstraint;
 import org.intermine.web.logic.widget.EnrichmentWidget;
 
 /**
  * @author Julie Sullivan
+ * @author dbutano
  */
 public class EnrichmentWidgetConfig extends WidgetConfig
 {
-    private String filterLabel, filters;
     private String label;
-    private String externalLink, externalLinkLabel;
-    private String append;
+    private String enrich;
+    private String enrichIdentifier;
+    private String startClassDisplay;
+    private String externalLink;
+    private List<PathConstraint> pathConstraintsForView = new ArrayList<PathConstraint>();
 
     /**
      * @return the label
@@ -45,56 +50,11 @@ public class EnrichmentWidgetConfig extends WidgetConfig
     }
 
     /**
-     * @return the filters
-     */
-    public String getFilters() {
-        return filters;
-    }
-
-    /**
-     * @param filters the filters to set
-     */
-    public void setFilters(String filters) {
-        this.filters = filters;
-    }
-
-    /**
-     * @return the label for the filters
-     */
-    public String getFilterLabel() {
-        return filterLabel;
-    }
-
-    /**
-     * @param filterLabel the label for the filters
-     */
-    public void setFilterLabel(String filterLabel) {
-        this.filterLabel = filterLabel;
-    }
-
-
-    /**
      * Return an XML String of this Type object
      * @return a String version of this WebConfig object
      */
     public String toString() {
-        return "< title=\"" + getTitle() + "\" link=\"" + getLink() + "\" ldr=\""
-               + getDataSetLoader() + "\"/>";
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public String getExternalLink() {
-        return externalLink;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void setExternalLink(String externalLink) {
-        this.externalLink = externalLink;
+        return "< title=\"" + getTitle() + "/>";
     }
 
     /**
@@ -111,43 +71,53 @@ public class EnrichmentWidgetConfig extends WidgetConfig
         return returnMap;
     }
 
-
-    /**
-     * just used for tiffin for now
-     * @return the text to append to the end of the external link
-     */
-    public String getAppend() {
-        return append;
+    public String getEnrich() {
+        return enrich;
     }
 
-    /**
-     * @param append the text to append
-     */
-    public void setAppend(String append) {
-        this.append = append;
+    public void setEnrich(String enrich) {
+        this.enrich = enrich;
     }
 
-    /**
-     * @return the externalLinkLabel
-     */
-    public String getExternalLinkLabel() {
-        return externalLinkLabel;
+    public String getEnrichIdentifier() {
+        return enrichIdentifier;
     }
 
-    /**
-     * @param externalLinkLabel the externalLinkLabel to set
-     */
-    public void setExternalLinkLabel(String externalLinkLabel) {
-        this.externalLinkLabel = externalLinkLabel;
+    public void setEnrichIdentifier(String enrichIdentifier) {
+        this.enrichIdentifier = enrichIdentifier;
+    }
+
+    public String getStartClassDisplay() {
+        return startClassDisplay;
+    }
+
+    public void setStartClassDisplay(String startClassDisplay) {
+        this.startClassDisplay = startClassDisplay;
+    }
+
+    public String getExternalLink() {
+        return externalLink;
+    }
+
+    public void setExternalLink(String externalLink) {
+        this.externalLink = externalLink;
+    }
+
+    public void setConstraintsForView(String constraints) {
+        setPathConstraints(constraints, pathConstraintsForView);
+    }
+
+    public List<PathConstraint> getPathConstraintsForView() {
+        return pathConstraintsForView;
     }
 
     /**
      * {@inheritDoc}
      */
-    public EnrichmentWidget getWidget(InterMineBag imBag, ObjectStore os,
-                                      List<String> attributes) {
-        return new EnrichmentWidget(this, imBag, os, attributes.get(0), attributes
-                        .get(1), attributes.get(2));
+    public EnrichmentWidget getWidget(InterMineBag imBag, InterMineBag populationBag,
+                                      ObjectStore os, List<String> attributes) {
+        return new EnrichmentWidget(this, imBag, populationBag, os, attributes.get(0),
+                attributes.get(1), attributes.get(2));
     }
 
 }

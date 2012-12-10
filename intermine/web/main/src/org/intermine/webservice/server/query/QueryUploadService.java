@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.query;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -14,14 +14,13 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.List;
-import java.util.HashSet;
-import java.util.HashMap;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.bag.BagManager;
@@ -30,10 +29,9 @@ import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.SavedQuery;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.pathquery.PathQueryBinding;
-import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.webservice.server.WebService;
-import org.intermine.webservice.server.exceptions.ServiceException;
 import org.intermine.webservice.server.exceptions.BadRequestException;
+import org.intermine.webservice.server.exceptions.ServiceException;
 
 /**
  * A service to enable queries to be uploaded programmatically.
@@ -76,11 +74,10 @@ public class QueryUploadService extends WebService
         if (queriesXML == null || "".equals(queriesXML)) {
             throw new BadRequestException("No XML data." + USAGE);
         }
-        HttpSession session = request.getSession();
-        Profile profile = SessionMethods.getProfile(session);
+        Profile profile = getPermission().getProfile();
         BagManager bagManager = this.im.getBagManager();
 
-        Map<String, InterMineBag> lists = bagManager.getUserAndGlobalBags(profile);
+        Map<String, InterMineBag> lists = bagManager.getBags(profile);
 
         int version = getVersion(request);
         Reader r = new StringReader(queriesXML);

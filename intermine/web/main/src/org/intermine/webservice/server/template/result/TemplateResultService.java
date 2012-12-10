@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.template.result;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -17,16 +17,16 @@ import org.apache.log4j.Logger;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.search.Scope;
+import org.intermine.api.template.TemplateManager;
 import org.intermine.api.template.TemplatePopulator;
 import org.intermine.pathquery.PathConstraint;
 import org.intermine.pathquery.PathQuery;
-import org.intermine.api.template.TemplateManager;
 import org.intermine.template.TemplatePopulatorException;
 import org.intermine.template.TemplateQuery;
 import org.intermine.template.TemplateValue;
-import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.web.logic.template.ConstraintInput;
 import org.intermine.web.logic.template.TemplateHelper;
+import org.intermine.web.logic.template.TemplateHelper.TemplateValueParseException;
 import org.intermine.web.logic.template.TemplateResultInput;
 import org.intermine.web.struts.TemplateAction;
 import org.intermine.web.util.URLGenerator;
@@ -66,19 +66,20 @@ public class TemplateResultService extends QueryResultService
         TemplateManager templateManager = this.im.getTemplateManager();
         TemplateResultInput input = getInput();
         TemplateQuery template;
-        if (isAuthenticated()) {
-            Profile profile = SessionMethods.getProfile(request.getSession());
-            template = templateManager.getUserOrGlobalTemplate(profile, input.getName());
-        } else {
-            template = templateManager.getGlobalTemplate(input.getName());
-        }
+        Profile profile = getPermission().getProfile();
+        template = templateManager.getUserOrGlobalTemplate(profile, input.getName());
         if (template == null) {
             throw new ResourceNotFoundException(
                     "There is no public template called '" + input.getName() + "' in this mine.");
         }
 
-        Map<String, List<TemplateValue>> templateValues = TemplateHelper.getValuesFromInput(
-                template, input);
+        Map<String, List<TemplateValue>> templateValues;
+        try {
+            templateValues = TemplateHelper.getValuesFromInput(
+                    template, input);
+        } catch (TemplateValueParseException e) {
+            throw new BadRequestException(e.getMessage(), e);
+        }
         TemplateQuery populatedTemplate;
         try {
             populatedTemplate =

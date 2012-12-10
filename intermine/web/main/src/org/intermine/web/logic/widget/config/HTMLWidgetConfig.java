@@ -1,7 +1,7 @@
 package org.intermine.web.logic.widget.config;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -28,16 +28,6 @@ public class HTMLWidgetConfig extends WidgetConfig
     private String content;
 
     @Override
-    public String getExternalLink() {
-        return null;
-    }
-
-    @Override
-    public String getExternalLinkLabel() {
-        return null;
-    }
-
-    @Override
     public Map<String, Collection<String>> getExtraAttributes(@SuppressWarnings("unused")
             InterMineBag imBag, @SuppressWarnings("unused") ObjectStore os)
         throws Exception {
@@ -46,12 +36,13 @@ public class HTMLWidgetConfig extends WidgetConfig
 
     @Override
     public Widget getWidget(@SuppressWarnings("unused") InterMineBag imBag,
+            @SuppressWarnings("unused") InterMineBag populationBag,
             @SuppressWarnings("unused") ObjectStore os,
             @SuppressWarnings("unused") List<String> attributes) {
         return null;
     }
 
-    @Override
+/*    @Override
     public void setExternalLink(@SuppressWarnings("unused") String externalLink) {
         // dummy
     }
@@ -59,7 +50,7 @@ public class HTMLWidgetConfig extends WidgetConfig
     @Override
     public void setExternalLinkLabel(@SuppressWarnings("unused") String externalLinkLabel) {
         // dummy
-    }
+    }*/
 
     /**
      * Set the content of the widget.

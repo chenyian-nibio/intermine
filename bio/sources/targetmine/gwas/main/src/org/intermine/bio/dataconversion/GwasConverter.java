@@ -106,7 +106,7 @@ public class GwasConverter extends BioFileConverter {
 		String ret = geneMap.get(geneId);
 		if (ret == null) {
 			Item item = createItem("Gene");
-			item.setAttribute("ncbiGeneNumber", geneId);
+			item.setAttribute("ncbiGeneId", geneId);
 			store(item);
 			ret = item.getIdentifier();
 			geneMap.put(geneId, ret);

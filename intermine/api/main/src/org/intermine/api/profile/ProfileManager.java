@@ -1,7 +1,7 @@
 package org.intermine.api.profile;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -11,14 +11,18 @@ package org.intermine.api.profile;
  */
 
 import java.io.StringReader;
+import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -28,8 +32,10 @@ import org.apache.log4j.Logger;
 import org.intermine.api.bag.UnknownBagTypeException;
 import org.intermine.api.config.ClassKeyHelper;
 import org.intermine.api.template.ApiTemplate;
+import org.intermine.api.util.TextUtil;
 import org.intermine.api.xml.SavedQueryBinding;
 import org.intermine.metadata.FieldDescriptor;
+import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.userprofile.SavedBag;
 import org.intermine.model.userprofile.SavedQuery;
@@ -41,14 +47,17 @@ import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
 import org.intermine.objectstore.intermine.ObjectStoreInterMineImpl;
 import org.intermine.objectstore.proxy.ProxyReference;
+import org.intermine.objectstore.query.Constraint;
 import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.ContainsConstraint;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
 import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.QueryObjectReference;
+import org.intermine.objectstore.query.QueryValue;
 import org.intermine.objectstore.query.Results;
 import org.intermine.objectstore.query.ResultsRow;
+import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.objectstore.query.SingletonResults;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.pathquery.PathQueryBinding;
@@ -56,10 +65,12 @@ import org.intermine.template.TemplateQuery;
 import org.intermine.template.xml.TemplateQueryBinding;
 import org.intermine.util.CacheMap;
 import org.intermine.util.PasswordHasher;
+import org.intermine.util.PropertiesUtil;
 
 /**
  * Class to manage and persist user profile data such as saved bags
  * @author Mark Woodbridge
+ * @author Daniela Butano
  */
 public class ProfileManager
 {
@@ -72,8 +83,8 @@ public class ProfileManager
     /** Number determining format of queries in the database */
     protected int version;
 
-    private final Map<String, SingleAccessToken> singleUseTokens
-        = new HashMap<String, SingleAccessToken>();
+    private final Map<String, LimitedAccessToken> limitedAccessTokens
+        = new HashMap<String, LimitedAccessToken>();
     /**
      * Construct a ProfileManager for the webapp
      * @param os the ObjectStore to which the webapp is providing an interface
@@ -83,17 +94,18 @@ public class ProfileManager
         this.os = os;
         this.uosw = userProfileOS;
         //retrieve the super user
+        String superUserName = PropertiesUtil.getProperties().getProperty("superuser.account");
         UserProfile superuserProfile = new UserProfile();
-        superuserProfile.setSuperuser(true);
+        superuserProfile.setUsername(superUserName);
         Set<String> fieldNames = new HashSet<String>();
-        fieldNames.add("superuser");
+        fieldNames.add("username");
         try {
             superuserProfile = (UserProfile) uosw.getObjectByExample(superuserProfile, fieldNames);
             if (superuserProfile != null) {
                 superuser = superuserProfile.getUsername();
             }
         } catch (ObjectStoreException e) {
-            throw new RuntimeException("Unable to load user profile", e);
+            throw new RuntimeException("Unable to load super user profile", e);
         }
 
         try {
@@ -258,7 +270,38 @@ public class ProfileManager
      * @return the Profile, or null if one doesn't exist
      */
     public synchronized Profile getProfile(String username) {
-        return getProfile(username, new HashMap<String, List<FieldDescriptor>>());
+        Map<String, List<FieldDescriptor>> classKeys = getClassKeys(os.getModel());
+        return getProfile(username, classKeys);
+    }
+    
+    public Profile getProfile(int id) {
+        Map<String, List<FieldDescriptor>> classKeys = getClassKeys(os.getModel());
+        UserProfile up;
+        try {
+            up = (UserProfile) uosw.getObjectById(id, UserProfile.class);
+        } catch (ObjectStoreException e) {
+            throw new RuntimeException("Error retrieving profile", e);
+        }
+        if (up != null && profileCache.containsKey(up.getUsername())) {
+            return profileCache.get(up.getUsername());
+        }
+        return wrapUserProfile(up, classKeys);
+    }
+
+    /**
+     * Load keys that describe how objects should be uniquely identified
+     */
+    private Map<String, List<FieldDescriptor>> getClassKeys(Model model) {
+        Properties classKeyProps = new Properties();
+        try {
+            classKeyProps.load(getClass().getClassLoader()
+                    .getResourceAsStream("class_keys.properties"));
+        } catch (Exception e) {
+            LOG.error("Error loading class descriptions", e);
+        }
+        Map<String, List<FieldDescriptor>>  classKeys =
+            ClassKeyHelper.readKeys(model, classKeyProps);
+        return classKeys;
     }
 
     /**
@@ -280,9 +323,32 @@ public class ProfileManager
         UserProfile userProfile = getUserProfile(username);
 
         if (userProfile == null) {
+            // See if we can resolve the user by an alias.
+            Integer trueId;
+            try {
+                // See if this is one of the unique mappings.
+                for (String pref: UserPreferences.UNIQUE_KEYS) {
+                    trueId = getPreferencesManager().getUserWithUniqueMapping(pref, username);
+                    if (trueId != null) {
+                        return getProfile(trueId);
+                    }
+                }
+            } catch (DuplicateMappingException e) {
+                LOG.error("DB in in an illegal state", e);
+            } catch (SQLException e) {
+                LOG.warn(e);
+            }
             return null;
         }
-
+        
+        return wrapUserProfile(userProfile, classKeys);
+    }
+    
+    private synchronized Profile wrapUserProfile(UserProfile userProfile,
+            Map<String, List<FieldDescriptor>> classKeys) {
+        if (userProfile == null) {
+            return null;
+        }
         Map<String, InterMineBag> savedBags = new HashMap<String, InterMineBag>();
         Map<String, InvalidBag> savedInvalidBags = new HashMap<String, InvalidBag>();
         Query q = new Query();
@@ -301,7 +367,7 @@ public class ProfileManager
                 SavedBag savedBag = (SavedBag) row.get(1);
                 String bagName = savedBag.getName();
                 if (StringUtils.isBlank(bagName)) {
-                    LOG.warn("Failed to load bag with blank name on login for user: " + username);
+                    LOG.warn("Failed to load bag with blank name on login for user: " + userProfile.getUsername());
                 } else {
                     try {
                         InterMineBag bag = new InterMineBag(os, bagId, uosw);
@@ -309,7 +375,8 @@ public class ProfileManager
                                              classKeys, bag.getType()));
                         savedBags.put(bagName, bag);
                     } catch (UnknownBagTypeException e) {
-                        LOG.warn("The bag '" + bagName + "' for user '" + username + "'"
+                        LOG.warn("The bag '" + bagName + "' for user '" +
+                                userProfile.getUsername() + "'"
                                 + " with type: " + savedBag.getType()
                                 + " is not in the model. It will be saved into invalidBags", e);
                         InvalidBag bag = new InvalidBag(savedBag, userProfile.getId(), os, uosw);
@@ -367,10 +434,14 @@ public class ProfileManager
             }
         }
         BagSet bags = new BagSet(savedBags, savedInvalidBags);
-        profile = new Profile(this, username, userProfile.getId(), userProfile.getPassword(),
+        Profile profile = new Profile(this, userProfile.getUsername(), userProfile.getId(), userProfile.getPassword(),
                 savedQueries, bags, savedTemplates, userProfile.getApiKey(),
                 userProfile.getLocalAccount(), userProfile.getSuperuser());
-        profileCache.put(username, profile);
+        profileCache.put(userProfile.getUsername(), profile);
+        //only after saving the profile in the cache,
+        //we can update the user repository with shared bags
+        //if we do in the constructor we could generate loops
+        profile.updateUserRepositoryWithSharedBags();
         return profile;
     }
 
@@ -450,7 +521,24 @@ public class ProfileManager
         }
     }
 
+    /**
+     * Create a new profile in db with username and password given in input
+     * @param username the user name
+     * @param password the password
+     */
+    public synchronized void createNewProfile(String username, String password) {
+        if (this.hasProfile(username)) {
+            throw new RuntimeException("Cannot create account: there already exists a user"
+                    + " with that name");
+        }
 
+        // Let the arcane flaggage commence!
+        Profile p = new Profile(this, username, null, password,
+                new HashMap(), new HashMap(), new HashMap(),
+                null, true, false);
+
+        this.createProfile(p);
+    }
 
     /**
      * Creates a profile in the userprofile database.
@@ -485,7 +573,7 @@ public class ProfileManager
      * @return A new API access key
      */
     public synchronized String generateApiKey(Profile profile) {
-        String newApiKey = generateApiKey();
+        String newApiKey = TextUtil.generateRandomUniqueString();
         profile.setApiKey(newApiKey);
         return newApiKey;
     }
@@ -496,34 +584,52 @@ public class ProfileManager
      * @return the generated key
      */
     public synchronized String generateSingleUseKey(Profile profile) {
-        String key = generateApiKey();
-        SingleAccessToken token = new SingleAccessToken(profile.getUsername());
-        singleUseTokens.put(key, token);
+        String key = TextUtil.generateRandomUniqueString();
+        LimitedAccessToken token = new SingleAccessToken(profile);
+        limitedAccessTokens.put(key, token);
         return key;
     }
 
-    private static String generateApiKey() {
-        String timePrefix = Long.toHexString(new Date().getTime());
-        String randomSuffix = RandomStringUtils.randomAlphanumeric(16);
-
-        StringBuilder sb = new StringBuilder();
-
-        // Interleave the random and predictable portions so that
-        // the time string isn't so obvious.
-        int tpl = timePrefix.length();
-        int rsl = randomSuffix.length();
-        for (int i = 0; i < tpl || i < rsl; i++) {
-            if (i < randomSuffix.length()) {
-                sb.append(randomSuffix.charAt(i));
-            }
-            if (i < timePrefix.length()) {
-                sb.append(timePrefix.charAt(i));
-            }
-        }
-
-        return sb.toString();
+    /**
+     * Generate a day token
+     * @param profile the profile which token is valid
+     * @return the token
+     */
+    public synchronized String generate24hrKey(Profile profile) {
+        String key = TextUtil.generateRandomUniqueString();
+        LimitedAccessToken token = new DayToken(profile);
+        limitedAccessTokens.put(key, token);
+        return key;
     }
 
+    /**
+     * Return whether the token given in input is suitable for using in the future.
+     * @param token the token to verify
+     * @return true if is suitable for using in the future.
+     */
+    public synchronized boolean tokenHasMoreUses(String token) {
+        if (token != null && limitedAccessTokens.containsKey(token)) {
+            LimitedAccessToken lat = limitedAccessTokens.get(token);
+            if (lat.isValid()) {
+                return lat.hasMoreUses();
+            } else {
+                limitedAccessTokens.remove(token);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * TODO: actually make this return a token!!
+     * This will need storing in a permanent data-store!
+     * 
+     * In fact, scratch that; we need a system for reducing webservice
+     * queries down to tokens themselves, so I can share a result set, and
+     * know that the user cannot just run any query they like...
+     * 
+     * @param profile
+     * @return A token granting read-only access to resources.
+     */
     public String generateReadOnlyAccessToken(Profile profile) {
         return null;
     }
@@ -537,7 +643,9 @@ public class ProfileManager
     public synchronized void createProfileWithoutBags(Profile profile) {
         UserProfile userProfile = new UserProfile();
         userProfile.setUsername(profile.getUsername());
-        userProfile.setPassword(PasswordHasher.hashPassword(profile.getPassword()));
+        if (profile.getPassword() != null) {
+            userProfile.setPassword(PasswordHasher.hashPassword(profile.getPassword()));
+        }
         userProfile.setSuperuser(profile.isSuperUser);
         try {
             uosw.store(userProfile);
@@ -607,6 +715,25 @@ public class ProfileManager
     }
 
     /**
+     * Return the name of the user with the given internal DB id.
+     * 
+     * If no user with that name exists, returns null.
+     *
+     * @return the name of the user, or null.
+     */
+    public synchronized String getProfileUserName(int profileId) {
+        try {
+            UserProfile profile = (UserProfile) uosw.getObjectById(profileId, UserProfile.class);
+            return profile.getUsername();
+        } catch (ObjectStoreException e) {
+            return null; // Not in DB.
+        } catch (NullPointerException e) {
+            return null; // profile was null (impossible!)
+        }
+    }
+
+    /**
+     * Return the super user name set in the properties file
      * @return the superuser name
      */
     public String getSuperuser() {
@@ -614,6 +741,7 @@ public class ProfileManager
     }
 
     /**
+     * Return the superuser profile set in the properties file
      * @return the superuser profile
      */
     public Profile getSuperuserProfile() {
@@ -621,6 +749,8 @@ public class ProfileManager
     }
 
     /**
+     * Return the  super user
+     * @param classKeys the classkeys
      * @return the superuser profile
      */
     public Profile getSuperuserProfile(Map<String, List<FieldDescriptor>> classKeys) {
@@ -645,7 +775,7 @@ public class ProfileManager
     public synchronized String createPasswordChangeToken(String username) {
         if (hasProfile(username)) {
             Date expiry = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
-            String token = generateApiKey();
+            String token = TextUtil.generateRandomUniqueString();
             passwordChangeTokens.put(token, new PasswordChangeToken(username, expiry));
             return token;
         } else {
@@ -718,40 +848,123 @@ public class ProfileManager
     }
 
     /**
+     * Abstract class for API access keys.
+     * @author Alex Kalderimis
+     */
+    private static abstract class LimitedAccessToken
+    {
+        private final Profile profile;
+
+        public LimitedAccessToken(Profile profile) {
+            this.profile = profile;
+        }
+
+        public Profile getProfile() {
+            return profile;
+        }
+
+        public abstract ApiPermission.Level getAuthenticationLevel();
+        public abstract boolean isValid();
+
+        /**
+         * The default implementation makes this equivalent to isValid.
+         * @return Whether this token is suitable for using in the future.
+         */
+        public boolean hasMoreUses() {
+            return isValid();
+        };
+
+        public void use() {
+            // No op stub.
+        }
+    }
+
+
+    /**
      * Transient API access keys for automated API access. These tokens are only valid for a
      * single use.
      * @author Alex Kalderimis
      *
      */
-    private static class SingleAccessToken
+    private static class SingleAccessToken extends LimitedAccessToken
     {
-        private final String username;
         private final int maxUses = 1;
         private int uses = 0;
 
-        public SingleAccessToken(String username) {
-            this.username = username;
+        public SingleAccessToken(Profile profile) {
+            super(profile);
         }
 
+        @Override
+        public ApiPermission.Level getAuthenticationLevel() {
+            return ApiPermission.Level.RO;
+        }
+
+        @Override
         public boolean isValid() {
             return uses < maxUses;
         }
 
-        public String getUserName() {
-            return username;
-        }
-
+        @Override
         public void use() {
             uses++;
         }
     }
 
-    public static class ApiPermission
+    private static class DayToken extends LimitedAccessToken
     {
-        public enum Level {RO, RW};
+        private final Date createdAt;
+
+        public DayToken(Profile profile) {
+            super(profile);
+            createdAt = new Date();
+        }
+
+        @Override
+        public ApiPermission.Level getAuthenticationLevel() {
+            return ApiPermission.Level.RW;
+        }
+
+        private Calendar getExpiry() {
+            Calendar b = new GregorianCalendar();
+            b.setTime(createdAt);
+            b.add(Calendar.HOUR, 24);
+            return b;
+        }
+
+        @Override
+        public boolean isValid() {
+            Calendar a = new GregorianCalendar();
+            a.setTime(new Date()); // NOW
+
+            return a.before(getExpiry());
+        }
+
+        @Override
+        public boolean hasMoreUses() {
+            // Say that a token is only valid for further use if it has at least another
+            // hour of juice.
+            Calendar a = new GregorianCalendar();
+            a.setTime(new Date());
+            a.add(Calendar.HOUR, 1); // AN HOUR FROM NOW
+
+            return a.before(getExpiry());
+        }
+    }
+
+    /**
+     * A representation of the level of permissions granted to a user.
+     */
+    public static final class ApiPermission implements Principal
+    {
+        /**
+         * The possible permission levels.
+         */
+        public enum Level { RO, RW };
 
         private final Level level;
         private final Profile profile;
+        private final Set<String> roles = new HashSet<String>();
 
         /*
          * Only the ProfileManager has permission to grant API permissions.
@@ -761,46 +974,97 @@ public class ProfileManager
             this.profile = profile;
         }
 
+        /**
+         * @return The profile associated with this level of permission.
+         */
         public Profile getProfile() {
             return profile;
         }
 
+        @Override
+        public String getName() {
+            return getProfile().getUsername();
+        }
+
+        /**
+         * @return The level of permissions granted.
+         */
         public Level getLevel() {
             return level;
         }
 
+        /**
+         * @return True if this user has been granted RW permissions.
+         */
         public boolean isRW() {
             return level == Level.RW;
         }
 
+        /**
+         * @return True if this user has been granted RO permissions.
+         */
         public boolean isRO() {
             return level == Level.RO;
+        }
+
+        /**
+         * Add a role to this permission.
+         *
+         * @param role
+         *            The role to add.
+         */
+        public void addRole(String role) {
+            roles.add(role);
+        }
+
+        /**
+         * True if the permission granted includes access to this role.
+         *
+         * @param role
+         *            The role in question.
+         * @return Whether or not this user has access to the given role.
+         */
+        public boolean isInRole(String role) {
+            return roles.contains(role);
         }
     }
 
     /**
+     * Wrap a profile in the default permission level.
+     *
+     * @param profile
+     *            The profile to wrap.
+     * @return The default permission for a particular profile.
+     */
+    public static ApiPermission getDefaultPermission(Profile profile) {
+        return new ApiPermission(profile, ApiPermission.Level.RO);
+    }
+
+    /**
      * Get the level of permission granted by an access token.
-     * @param token
-     * @return
+     * @param token The token supposedly associated with a user.
+     * @param classKeys The class keys for this user.
+     * @return A permission object if authentication is successful.
+     * @throws AuthenticationException if the authentication fails.
      */
     public ApiPermission getPermission(String token, Map<String, List<FieldDescriptor>> classKeys) {
         ApiPermission permission;
-        if (singleUseTokens.containsKey(token)) {
-            SingleAccessToken t = singleUseTokens.get(token);
+        if (limitedAccessTokens.containsKey(token)) {
+            LimitedAccessToken t = limitedAccessTokens.get(token);
             if (!t.isValid()) {
                 throw new AuthenticationException("This token (" + token + ")is invalid.");
             }
-            Profile p = getProfile(t.getUserName(), classKeys);
+            Profile p = t.getProfile();
             t.use();
             if (!t.isValid()) {
-                singleUseTokens.remove(token);
+                limitedAccessTokens.remove(token);
             }
-            // Grant RO permission to user data
-            permission = new ApiPermission(p, ApiPermission.Level.RO);
+            permission = new ApiPermission(p, t.getAuthenticationLevel());
         } else {
             Profile p = getProfileByApiKey(token, classKeys);
             if (p == null) {
-                throw new AuthenticationException("This token is not a valid access key: "
+                throw new AuthenticationException(
+                        "This token is not a valid access key: "
                         + token);
             } else {
                 // Grant RW permission to user data
@@ -810,7 +1074,15 @@ public class ProfileManager
         return permission;
     }
 
-    public ApiPermission getPermission(String username, String password, Map<String, List<FieldDescriptor>> classKeys) {
+    /**
+     * Authenticate a user using username/password credentials.
+     * @param username The name of the authenticating user.
+     * @param password The password this user is meant to have.
+     * @param classKeys Class Keys for this mine's model.
+     * @return A representation of this user's permissions.
+     */
+    public ApiPermission getPermission(String username, String password,
+            Map<String, List<FieldDescriptor>> classKeys) {
         if (StringUtils.isEmpty(username)) {
             throw new AuthenticationException("Empty user name.");
         }
@@ -830,7 +1102,8 @@ public class ProfileManager
         }
     }
 
-    private Profile getProfileByApiKey(String token, Map<String, List<FieldDescriptor>> classKeys) {
+    private Profile getProfileByApiKey(String token, Map<String,
+            List<FieldDescriptor>> classKeys) {
         UserProfile profile = new UserProfile();
         profile.setApiKey(token);
         Set<String> fieldNames = new HashSet<String>();
@@ -841,11 +1114,60 @@ public class ProfileManager
             return null; // Could not be found.
         }
         if (profile == null) {
-            throw new AuthenticationException("'" + token + "' is not a valid API access key");
+            throw new AuthenticationException(
+                "'" + token + "' is not a valid API access key");
         }
         return getProfile(profile.getUsername(), classKeys);
     }
 
+    /**
+     * Check if the profile, whose username is given in input, has been cached by the profile cache
+     * @param username the user name
+     * @return true if the profile is in the cache
+     */
+    public boolean isProfileCached(String username) {
+        return profileCache.containsKey(username);
+    }
+
+    /**
+     * Return a list of users with 'superuser' role
+     * @return the user list
+     */
+    public List<String> getSuperUsers() {
+        List<String> superusers = new ArrayList<String>();
+        Query q = new Query();
+        QueryClass qc = new QueryClass(UserProfile.class);
+        QueryField qfName = new QueryField(qc, "username");
+        q.addToSelect(qfName);
+        q.addFrom(qc);
+        QueryField qf = new QueryField(qc, "superuser");
+        Constraint c = new SimpleConstraint(qf, ConstraintOp.EQUALS, new QueryValue(true));
+        q.setConstraint(c);
+
+        Results res = uosw.execute(q);
+        Iterator<Object> iterator = res.iterator();
+        while (iterator.hasNext()) {
+            superusers.add(((ResultsRow<String>) iterator.next()).get(0));
+        }
+        return superusers;
+    }
+
+    /**
+     * Return a list of profile with 'superuser' role
+     * @return the profile list
+     */
+    public List<Profile> getSuperUsersProfile() {
+        List<Profile> superusersProfile = new ArrayList<Profile>();
+        List<String> superusers = getSuperUsers();
+        for (String su : superusers) {
+            superusersProfile.add(getProfile(su));
+        }
+        return superusersProfile;
+    }
+
+    /**
+     * Exception thrown when the authentication fails.
+     */
     public static class AuthenticationException extends RuntimeException
     {
 
@@ -854,9 +1176,36 @@ public class ProfileManager
          */
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Constructor
+         * @param message the message to display
+         */
         public AuthenticationException(String message) {
             super(message);
         }
 
     }
+
+    /**
+     * Get the preferences for a profile.
+     * @param profile The profile to retrieve preferences for.
+     * @return A user-preferences map.
+     */
+    protected UserPreferences getPreferences(Profile profile) {
+        try {
+            return new UserPreferences(getPreferencesManager(), profile);
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not retrieve user-preferences", e);
+        }
+    }
+
+    private PreferencesManager preferencesManager = null;
+
+    private PreferencesManager getPreferencesManager() {
+        if (preferencesManager == null) {
+            preferencesManager = new PreferencesManager(uosw);
+        }
+        return preferencesManager;
+    }
+
 }

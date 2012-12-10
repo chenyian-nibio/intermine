@@ -1,7 +1,7 @@
 package org.intermine.web.logic.session;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -37,11 +37,13 @@ import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.ProfileManager;
 import org.intermine.api.profile.SavedQuery;
+import org.intermine.api.query.PathQueryExecutor;
 import org.intermine.api.query.WebResultsExecutor;
+import org.intermine.api.results.ExportResultsIterator;
 import org.intermine.api.results.WebResults;
 import org.intermine.api.search.SearchRepository;
-import org.intermine.api.util.NameUtil;
 import org.intermine.api.template.ApiTemplate;
+import org.intermine.api.util.NameUtil;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.objectstore.ObjectStore;
@@ -67,7 +69,6 @@ import org.intermine.web.logic.results.ReportObjectFactory;
 import org.intermine.web.logic.results.WebState;
 import org.intermine.web.struts.LoadQueryAction;
 import org.intermine.web.struts.TemplateAction;
-import org.json.JSONException;
 
 /**
  * Business logic that interacts with session data. These methods are generally
@@ -262,8 +263,6 @@ public final class SessionMethods
         session.removeAttribute("prefix");
 
     }
-
-
 
     /**
      * Get the view list that the user is currently editing.
@@ -511,18 +510,19 @@ public final class SessionMethods
                     final Profile profile = (Profile) session.getAttribute(Constants.PROFILE);
                     final InterMineAPI im = getInterMineAPI(session);
                     try {
-                        WebResultsExecutor executor = im.getWebResultsExecutor(profile);
-                        final PagedTable pr = new PagedTable((executor.execute(pathQuery)));
+
+                        final PathQueryExecutor pqe = im.getPathQueryExecutor(profile);
+                        
                         Action action = new Action() {
                             @Override
                             public void process() {
-                                pr.getRows();
+                                pqe.execute(pathQuery);
                             }
                         };
                         CompletionCallBack completionCallBack = new CompletionCallBack() {
                             @Override
                             public void complete() {
-                                SessionMethods.setResultsTable(session, "results." + qid, pr);
+                                // Do nothing...
                             }
                         };
                         SessionMethods.runQuery(session, messages, qid, action, completionCallBack);
@@ -530,10 +530,7 @@ public final class SessionMethods
                         if (saveQuery) {
                             String queryName = NameUtil.findNewQueryName(
                                     profile.getHistory().keySet());
-                            executor.setQueryInfo(pathQuery, pr.getWebTable().getInfo());
                             saveQueryToHistory(session, queryName, pathQuery);
-                            recordMessage(messages.getMessage("saveQuery.message", queryName),
-                                          session);
                         }
 
                         // pause because we don't want to remove the monitor from the
@@ -961,6 +958,30 @@ public final class SessionMethods
     }
 
     /**
+     * Sets the origins of the web properties on the servlet context.
+     *
+     * @param servletContext The context of the web application.
+     * @param origins A map tracing the origin of each property.
+     */
+    public static void setPropertiesOrigins(
+            ServletContext servletContext,
+            Map<String, List<String>> origins ) {
+        servletContext.setAttribute(Constants.PROPERTIES_ORIGINS, origins);
+    }
+
+    /**
+     * Gets the origins map from the servlet context.
+     *
+     * @param session An HTTP session for this web application.
+     *
+     * @return A map from each property to its origins.
+     */
+    public static Map<String, List<String>> getPropertiesOrigins(
+            HttpSession session) {
+        return (Map<String, List<String>>) session.getServletContext().getAttribute(Constants.PROPERTIES_ORIGINS);
+    }
+
+    /**
      * Returns the PathQuery on the session.
      *
      * @param session a HttpSession object
@@ -1130,50 +1151,6 @@ public final class SessionMethods
             return true;
         }
         return false;
-    }
-
-    /**
-     * Returns SavedBagsStatus saved in session.
-     * @param session session
-     * @return SavedBagsStatus
-     */
-    public static Map<String, Map<String, Object>> getNotCurrentSavedBagsStatus(HttpSession session) {
-        return (Map<String, Map<String, Object>>) session.getAttribute(Constants.SAVED_BAG_STATUS);
-    }
-
-    /**
-     * Sets in the session the map containing the status of the bags not current.
-     * A bag not current could be:
-     * not current (= the upgrading process has not started upgrading it yet),
-     * upgrading...(= the upgrading process is upgrading it),
-     * to upgrade (= the upgrading process has not been able to upgrade it because there are some
-     * conflicts that the user has to resolve manually ).
-     * @param session the session
-     * @param profile the profile used to retrieve the savedbags
-     * object to put in the session
-     */
-    public static void setNotCurrentSavedBagsStatus(HttpSession session, Profile profile) {
-        @SuppressWarnings("unchecked")
-        Map<String, Map<String, Object>> savedBagsStatus = new HashedMap();
-        Map<String, InterMineBag> savedBags = profile.getSavedBags();
-        synchronized (savedBags) {
-            for (InterMineBag bag : savedBags.values()) {
-                if (!bag.isCurrent()) {
-                	Map<String, Object> bagAttributes = new HashMap<String, Object>();
-                	String bagState = bag.getState();
-                	bagAttributes.put("status", bagState);
-                	if (bagState.equals(BagState.CURRENT.toString())) {
-                		try {
-                			bagAttributes.put("size", bag.getSize());
-                		} catch (ObjectStoreException e) {
-                			// nothing serious happens here...
-                		}
-                	}
-                    savedBagsStatus.put(bag.getName(), bagAttributes);
-                }
-            }
-        }
-        session.setAttribute(Constants.SAVED_BAG_STATUS, savedBagsStatus);
     }
 
     /**

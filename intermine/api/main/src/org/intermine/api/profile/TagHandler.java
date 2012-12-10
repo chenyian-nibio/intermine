@@ -1,7 +1,7 @@
 package org.intermine.api.profile;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -109,16 +109,16 @@ public class TagHandler extends DefaultHandler
      * @return name with prefix 'im'
      */
     private String translateTagName(String oldName) {
-        if (oldName.equalsIgnoreCase("favourite")) {
+        if ("favourite".equalsIgnoreCase(oldName)) {
             return TagNames.IM_FAVOURITE;
         }
-        if (oldName.equalsIgnoreCase("hidden")) {
+        if ("hidden".equalsIgnoreCase(oldName)) {
             return TagNames.IM_HIDDEN;
         }
         if (oldName.toLowerCase().startsWith("aspect:")) {
             return TagNames.IM_ASPECT_PREFIX + oldName.substring("aspect:".length());
         }
-        if (oldName.equalsIgnoreCase("placement:summary")) {
+        if ("placement:summary".equalsIgnoreCase(oldName)) {
             return TagNames.IM_SUMMARY;
         }
         return oldName;

@@ -8,10 +8,16 @@ function clickUseBag(index) {
   if (document.getElementById("attributeOptions("+index+")")) {
     document.getElementById("attributeOptions("+index+")").disabled=useBag;
   }
-  // if attributeValues is a radio button
-  if (document.getElementById("attributeValues("+index+")")[0]) {
-    document.getElementById("attributeValues("+index+")")[0].disabled=useBag;
-    document.getElementById("attributeValues("+index+")")[1].disabled=useBag;
+
+  if (document.getElementById("attributeValues("+index+")") && document.getElementById("attributeValues("+index+")") != undefined) {
+    var attributeValuesElements = document.getElementsByName("attributeValues("+index+")");
+     //if attributeValues is a radio button
+     if(attributeValuesElements[0].type == 'radio') {
+        attributeValuesElements[0].disabled=useBag;
+        attributeValuesElements[1].disabled=useBag;
+     } else {
+         document.getElementById("attributeValues("+index+")").disabled=useBag;
+     }
   }
   if (document.getElementById("multiValues("+index+")")) {
     document.getElementById("multiValues("+index+")").disabled=useBag;
@@ -19,7 +25,7 @@ function clickUseBag(index) {
   if (document.getElementById("extraValues("+index+")")) {
     document.getElementById("extraValues("+index+")").disabled=useBag;
   }
-  document.getElementById("attributeValues("+index+")").disabled=useBag;
+
   document.getElementById("bag("+index+")").disabled=!useBag;
   document.getElementById("bagOp("+index+")").disabled=!useBag;
 }
@@ -208,8 +214,8 @@ function onChangeAttributeOps(index, init) {
       //LIKE or NOT LIKE - CONTAINS  - LOOKUP
       if(document.getElementById("attributeOps(" + index + ")") != undefined && document.getElementById("attributeOps(" + index + ")")){
       var constraintOpIndex = document.getElementById("attributeOps(" + index + ")").value;
-        if (constraintOpIndex == '6' || constraintOpIndex == '7' ||
-            constraintOpIndex == '10' || constraintOpIndex == '18') {
+        if (constraintOpIndex == '8' || constraintOpIndex == '9' ||
+            constraintOpIndex == '12' || constraintOpIndex == '20') {
             if (document.getElementById("attributeValues(" + index + ")"))
               document.getElementById("attributeValues(" + index + ")").style.display = 'inline';
             if (document.getElementById("attributeOptions(" + index + ")"))
@@ -219,7 +225,7 @@ function onChangeAttributeOps(index, init) {
             if (document.getElementById("multiValueAttribute(" + index + ")"))
                   document.getElementById("multiValueAttribute(" + index + ")").value = '';
           } // ONE OF or NONE OF
-        else if (constraintOpIndex == '21' || constraintOpIndex == '22') {
+        else if (constraintOpIndex == '23' || constraintOpIndex == '24') {
           if (document.getElementById("multiValues(" + index + ")"))
               document.getElementById("multiValues(" + index + ")").style.display = 'inline';
           if (document.getElementById("attributeValues(" + index + ")"))

@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
@@ -41,12 +42,13 @@ import org.intermine.api.results.flatouterjoins.MultiRowValue;
 import org.intermine.api.search.Scope;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.metadata.Model;
-import org.intermine.model.userprofile.Tag;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.query.ResultsRow;
+import org.intermine.pathquery.PathQuery;
 import org.intermine.web.logic.config.FieldConfig;
 import org.intermine.web.logic.config.Type;
 import org.intermine.web.logic.config.WebConfig;
+import org.intermine.web.logic.pathqueryresult.PathQueryResultHelper;
 import org.intermine.web.logic.results.PagedTable;
 import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.web.logic.widget.config.WidgetConfig;
@@ -58,6 +60,7 @@ public class BagDetailsController extends TilesAction
 {
 
     private static final int PAGE_SIZE = 10;
+    private static final Logger LOG = Logger.getLogger(BagDetailsController.class);
 
     /**
      * {@inheritDoc}
@@ -103,6 +106,8 @@ public class BagDetailsController extends TilesAction
         if (scope.equals(Scope.GLOBAL) || scope.equals(Scope.ALL)) {
             if (bagManager.getGlobalBag(bagName) != null) {
                 imBag = bagManager.getGlobalBag(bagName);
+            } else if (imBag == null) {
+                imBag = bagManager.getSharedBags(profile).get(bagName);
             }
         }
 
@@ -128,6 +133,8 @@ public class BagDetailsController extends TilesAction
         request.setAttribute("widgets", widgets);
         request.setAttribute("widget2extraAttrs", widget2extraAttrs);
 
+        PathQuery pathQuery = PathQueryResultHelper.makePathQueryForBag(imBag, webConfig, model);
+        SessionMethods.setQuery(session, pathQuery);
         PagedTable pagedResults = SessionMethods.getResultsTable(session, "bag." + imBag.getName());
 
         int bagSize = imBag.getSize();
@@ -208,13 +215,7 @@ public class BagDetailsController extends TilesAction
         pagedResults.setPageAndPageSize(page, PAGE_SIZE);
 
         // is this list public?
-        Boolean isPublic = false;
-        for (Tag tag : bagManager.getTagsForBag(imBag)) {
-            if ("im:public".equals(tag.getTagName())) {
-                isPublic = true;
-                break;
-            }
-        }
+        Boolean isPublic = bagManager.isPublic(imBag);
         request.setAttribute("isBagPublic", isPublic);
 
         request.setAttribute("addparameter", request.getParameter("addparameter"));
@@ -226,6 +227,11 @@ public class BagDetailsController extends TilesAction
         // disable using pathquery saved in session in following jsp page
         // because it caused displaying invalid column names
         request.setAttribute("notUseQuery", Boolean.TRUE);
+
+        // Get us token so we can show non-public widgets.
+        request.setAttribute("token", profile.getDayToken());
+        LOG.info("API key: " + profile.getDayToken());
+
         return null;
     }
 }

@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -22,11 +22,12 @@ import org.intermine.web.logic.results.PagedTable;
 import org.intermine.web.logic.session.SessionMethods;
 
 /**
- * Action that builds a PagedCollection to view a bag. 
+ * Action that builds a PagedCollection to view a bag.
  * Redirects to results.do
  *
  * @author Kim Rutherford
  * @author Thomas Riley
+ *
  */
 public class BagDetailsAction extends Action
 {

@@ -1,7 +1,7 @@
 package org.intermine.api.mines;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -20,8 +20,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 
 import org.apache.commons.collections.keyvalue.MultiKey;
@@ -45,17 +43,16 @@ public final class FriendlyMineQueryRunner
     private static Map<MultiKey, JSONObject> queryResultsCache
         = new CacheMap<MultiKey, JSONObject>();
     private static final String RELEASE_VERSION_URL = "/version/release";
-    private static final boolean DEBUG = true;
-
+    private static final boolean DEBUG = false;
+    private static final int CONNECT_TIMEOUT = 20000; // 20 seconds
+    
     private FriendlyMineQueryRunner() {
         // don't
     }
 
     /**
-     * Query a mine and receive map of results.  only processes first two columns set as id and
+     * Query a mine and recieve map of results.  only processes first two columns set as id and
      * name
-     *
-     * TODO use Java  webservice client instead.  See #2829
      *
      * @param mine mine to query
      * @param xmlQuery query to run
@@ -69,7 +66,7 @@ public final class FriendlyMineQueryRunner
         if (jsonMine != null) {
             return jsonMine;
         }
-        List<Map<String, String>> genes = new ArrayList<Map<String, String>>();
+        List<Map<String, String>> results = new ArrayList<Map<String, String>>();
 
         BufferedReader reader = runWebServiceQuery(mine, xmlQuery);
         if (reader == null) {
@@ -79,13 +76,17 @@ public final class FriendlyMineQueryRunner
         }
         XMLTableResult table = new XMLTableResult(reader);
         for (List<String> row: table.getData()) {
-            Map<String, String> gene = new HashMap<String, String>();
-            gene.put("id", row.get(0));
-            gene.put("name", row.get(1));
-            genes.add(gene);
+            Map<String, String> result = new HashMap<String, String>();
+            result.put("id", row.get(0));
+            result.put("name", row.get(1));
+            if (row.size() > 2) {
+                // used for extra value, eg. organism name
+                result.put("ref", row.get(2));
+            }
+            results.add(result);
         }
         Map<String, Object> data = new HashMap<String, Object>();
-        data.put("results", genes);
+        data.put("results", results);
         jsonMine = new JSONObject(data);
         queryResultsCache.put(key, jsonMine);
         return jsonMine;
@@ -101,7 +102,8 @@ public final class FriendlyMineQueryRunner
         try {
             String urlString = mine.getUrl() + WEBSERVICE_URL + QUERY_PATH
                     + URLEncoder.encode("" + xmlQuery, "UTF-8");
-            BufferedReader reader = runWebServiceQuery(urlString);
+            URL url = new URL(urlString);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
             return reader;
         } catch (Exception e) {
             LOG.info("Unable to access " + mine.getName() + " exception: " + e.getMessage());
@@ -115,6 +117,7 @@ public final class FriendlyMineQueryRunner
      * @param mines list of mines to update
      */
     public static void updateReleaseVersion(Map<String, Mine> mines) {
+        boolean clearCache = false;
         for (Mine mine : mines.values()) {
             String currentReleaseVersion = mine.getReleaseVersion();
             String url = mine.getUrl() + WEBSERVICE_URL + RELEASE_VERSION_URL;
@@ -123,7 +126,7 @@ public final class FriendlyMineQueryRunner
             String newReleaseVersion;
             try {
                 newReleaseVersion = IOUtils.toString(reader);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOG.warn(msg, e);
                 continue;
             }
@@ -143,8 +146,11 @@ public final class FriendlyMineQueryRunner
                 // update release version
                 mine.setReleaseVersion(newReleaseVersion);
 
-                queryResultsCache = new HashMap<MultiKey, JSONObject>();
+                clearCache = true;
             }
+        }
+        if (clearCache) {
+            queryResultsCache = new HashMap<MultiKey, JSONObject>();
         }
     }
 
@@ -164,7 +170,9 @@ public final class FriendlyMineQueryRunner
             if (!urlString.contains("?")) {
                 // GET
                 URL url = new URL(urlString);
-                reader = new BufferedReader(new InputStreamReader(url.openStream()));
+                URLConnection conn = url.openConnection();
+                conn.setConnectTimeout(CONNECT_TIMEOUT);
+                reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 LOG.info("FriendlyMine URL (GET) " + urlString);
             } else {
                 // POST
@@ -186,6 +194,5 @@ public final class FriendlyMineQueryRunner
             return null;
         }
     }
-
 }
 

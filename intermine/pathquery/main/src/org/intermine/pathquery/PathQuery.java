@@ -1,7 +1,7 @@
 package org.intermine.pathquery;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -25,15 +26,16 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.intermine.metadata.ClassDescriptor;
 import org.intermine.metadata.Model;
-import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.util.DynamicUtil;
 import org.intermine.util.TypeUtil;
 
@@ -737,6 +739,10 @@ public class PathQuery implements Cloneable
     public synchronized Map<PathConstraint, String> getConstraints() {
         Map<PathConstraint, String> retval = new LinkedHashMap<PathConstraint, String>(constraints);
         return retval;
+    }
+
+    public synchronized Map<PathConstraint, String> getRelevantConstraints() {
+        return getConstraints(); // Simple alias. All constraints are relevant.
     }
 
     /**
@@ -1622,13 +1628,14 @@ public class PathQuery implements Cloneable
                                 + " cannot be applied to the root path");
                         continue;
                     }
-                    if (constraint.getOp().equals(ConstraintOp.IS_NULL)) {
-                        if (!path.endIsAttribute()) {
-                            problems.add("Constraint " + constraint
-                                    + " is invalid - can only set IS NULL on an attribute");
-                            continue;
-                        }
-                    }
+                    // TODO - make IS NULL work on references and collections.
+                    //if (constraint.getOp().equals(ConstraintOp.IS_NULL)) {
+                    //    if (!path.endIsAttribute()) {
+                    //        problems.add("Constraint " + constraint
+                    //                + " is invalid - can only set IS NULL on an attribute");
+                    //        continue;
+                    //    }
+                    //}
                 } else if (constraint instanceof PathConstraintBag) {
                     // We do not check that the bag exists here. Call getBagNames() and check
                     // elsewhere.
@@ -1643,6 +1650,23 @@ public class PathQuery implements Cloneable
                                 + " must not be on an attribute");
                         continue;
                     }
+                } else if (constraint instanceof PathConstraintMultitype) {
+                    if (path.endIsAttribute()) {
+                        problems.add("Constraint " + constraint + " must be on a class or reference");
+                        continue;
+                    }
+                    for (String typeName: ((PathConstraintMultitype) constraint).getValues()) {
+                        ClassDescriptor cd = model.getClassDescriptorByName(typeName);
+                        if (cd == null) {
+                            problems.add(String.format("Type '%s' named in [%s] is not in the model",
+                                    typeName, constraint));
+                        } else if (!cd.getAllSuperDescriptors().contains(path.getEndClassDescriptor())) {
+                            problems.add(String.format("%s is not a subtype of %s, as required by %s",
+                                    typeName, path.getEndClassDescriptor(), constraint));
+                        }
+                    }
+                } else if (constraint instanceof PathConstraintRange) {
+                    // Cannot verify these constraints until we try and make the query in the MainHelper.
                 } else if (constraint instanceof PathConstraintMultiValue) {
                     if (!path.endIsAttribute()) {
                         problems.add("Constraint " + constraint + " must be on an attribute");
@@ -2207,6 +2231,181 @@ public class PathQuery implements Cloneable
      */
     public synchronized String toXml() {
         return this.toXml(PathQuery.USERPROFILE_VERSION);
+    }
+
+    protected void addJsonProperty(StringBuffer sb, String key, Object value) {
+        if (value != null) {
+            if (!sb.toString().endsWith("{")) {
+                sb.append(",");
+            }
+            sb.append(formatKVPair(key, value));
+        }
+    }
+
+    protected String formatKVPair(String key, Object value) {
+        if (value instanceof List) {
+            StringBuffer sb = new StringBuffer("[");
+            boolean needsSep = false;
+            for (Object obj: (List<?>) value) {
+                if (needsSep) {
+                    sb.append(",");
+                }
+                sb.append("\"" + StringEscapeUtils.escapeJava(obj.toString()) + "\"");
+                needsSep = true;
+            }
+            sb.append("]");
+            return "\"" + key + "\":" + sb.toString();
+        } else if (value instanceof String) {
+            String newValue = StringEscapeUtils.escapeJava((String) value);
+            return "\"" + key + "\":\""  + newValue + "\"";
+        }
+        throw new IllegalArgumentException(value + " must be either String or a list of strings");
+    }
+
+
+    /**
+     * toJson synonym for JSPs.
+     *
+     * @return This query as json.
+     */
+    public synchronized String getJson() {
+        return toJson();
+    }
+
+    protected Map<String, Object> getHeadAttributes() {
+        Map<String, Object> ret = new LinkedHashMap<String, Object>();
+        ret.put("title", getTitle());
+        ret.put("description", getDescription());
+        ret.put("select", getView());
+
+        // LOGIC - only if there is some. Just logic = A is dumb.
+        String constraintLogic = getConstraintLogic();
+        if (constraintLogic != null && constraintLogic.length() > 1) {
+            ret.put("constraintLogic", constraintLogic);
+        }
+
+        return ret;
+    }
+
+    /**
+     * Convert this PathQuery to a JSON serialisation.
+     *
+     * @return This query as json.
+     */
+    public synchronized String toJson() {
+        StringBuffer sb = new StringBuffer("{");
+
+        sb.append(String.format("\"model\":{\"name\":\"%s\"}",
+                    model.getName()));
+
+        for (Entry<String, Object> attr: getHeadAttributes().entrySet()) {
+            addJsonProperty(sb, attr.getKey(), attr.getValue());
+        }
+
+
+        // SORT ORDER
+        List<OrderElement> order = getOrderBy();
+        if (!order.isEmpty()) {
+            sb.append(",\"orderBy\":[");
+            for (Iterator<OrderElement> it = order.iterator(); it.hasNext();) {
+                OrderElement oe = it.next();
+                sb.append(String.format("{\"%s\":\"%s\"}", oe.getOrderPath(), oe.getDirection()));
+                if (it.hasNext()) {
+                    sb.append(",");
+                }
+            }
+            sb.append("]");
+        }
+
+
+        // JOINS
+        Map<String, OuterJoinStatus> ojs = getOuterJoinStatus();
+        if (!ojs.isEmpty()) {
+            StringBuilder sb2 = new StringBuilder();
+            for (Iterator<Entry<String, OuterJoinStatus>> it = ojs.entrySet().iterator();
+                it.hasNext();) {
+                Entry<String, OuterJoinStatus> pair = it.next();
+                if (pair.getValue() == OuterJoinStatus.OUTER) {
+                    if (sb2.length() > 0) {
+                        sb2.append(",");
+                    }
+                    sb2.append("\"" + pair.getKey() + "\"");
+                }
+            }
+            if (sb2.length() != 0) {
+                sb.append(",\"joins\":[" + sb2.toString() + "]");
+            }
+        }
+
+        // CONSTRAINTS
+        Map<PathConstraint, String> cons = getRelevantConstraints();
+        if (!cons.isEmpty()) {
+            sb.append(",\"where\":[");
+            Iterator<Entry<PathConstraint, String>> it = cons.entrySet().iterator();
+            while (it.hasNext()) {
+                Entry<PathConstraint, String> pair = it.next();
+
+                sb.append(constraintToJson(pair.getKey(), pair.getValue()));
+                if (it.hasNext()) {
+                    sb.append(",");
+                }
+            }
+            sb.append("]");
+        }
+        sb.append("}");
+
+        return sb.toString();
+    }
+
+    private String constraintToJson(PathConstraint constraint, String code) {
+        String type = PathConstraint.getType(constraint);
+        String path = constraint.getPath();
+
+        if (type != null) {
+            return String.format("{\"path\":\"%s\",\"type\":\"%s\"}", path, type);
+        }
+
+        String op = constraint.getOp().toString();
+
+        String commonPrefix = "{\"path\":\"" + path + "\",\"op\":\"" + op + "\",\"code\":\""
+                              + code + "\"";
+        StringBuilder conb = new StringBuilder(commonPrefix);
+
+        Collection<String> values = PathConstraint.getValues(constraint); // Serialise the Multi-Value list
+        Collection<Integer> ids = PathConstraint.getIds(constraint); // Serialise the ID list.
+        if (ids != null ) {
+            conb.append(",\"ids\":[");
+            Iterator<Integer> it = ids.iterator();
+            while (it.hasNext()) {
+                conb.append(String.valueOf(it.next()));
+                if (it.hasNext()) {
+                    conb.append(",");
+                }
+            }
+            conb.append("]");
+        } else if (values != null) {
+            Iterator<String> it = values.iterator();
+            conb.append(",\"values\":[");
+            while (it.hasNext()) {
+                conb.append("\"" + StringEscapeUtils.escapeJava(it.next()) + "\"");
+                if (it.hasNext()) {
+                    conb.append(",");
+                }
+            }
+            conb.append("]");
+        } else {
+            String value = PathConstraint.getValue(constraint);
+            String extraValue = PathConstraint.getExtraValue(constraint);
+
+            if (value != null) {
+                conb.append(",\"value\":\"" + StringEscapeUtils.escapeJava(value) + "\"");
+            }
+            if (extraValue != null) {
+                conb.append(",\"extraValue\":\"" + StringEscapeUtils.escapeJava(extraValue) + "\"");
+            }
+        }
+        conb.append("}");
+        return conb.toString();
     }
 
     /**

@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.query;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -13,19 +13,14 @@ package org.intermine.webservice.server.query;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.intermine.web.logic.export.ResponseUtil;
-import org.intermine.web.logic.session.SessionMethods;
-import org.intermine.web.util.URLGenerator;
-
-import javax.servlet.http.HttpSession;
-import org.intermine.pathquery.PathQuery;
 import org.intermine.api.InterMineAPI;
+import org.intermine.api.profile.Profile;
+import org.intermine.api.profile.TagManager;
 import org.intermine.api.query.codegen.WebserviceCodeGenInfo;
 import org.intermine.api.query.codegen.WebserviceCodeGenerator;
 import org.intermine.api.query.codegen.WebserviceJavaCodeGenerator;
@@ -33,10 +28,11 @@ import org.intermine.api.query.codegen.WebserviceJavaScriptCodeGenerator;
 import org.intermine.api.query.codegen.WebservicePerlCodeGenerator;
 import org.intermine.api.query.codegen.WebservicePythonCodeGenerator;
 import org.intermine.api.query.codegen.WebserviceRubyCodeGenerator;
-import org.intermine.api.profile.Profile;
-import org.intermine.api.profile.TagManager;
 import org.intermine.api.tag.TagNames;
 import org.intermine.api.tag.TagTypes;
+import org.intermine.pathquery.PathQuery;
+import org.intermine.web.logic.export.ResponseUtil;
+import org.intermine.web.util.URLGenerator;
 import org.intermine.webservice.server.exceptions.BadRequestException;
 import org.intermine.webservice.server.output.JSONFormatter;
 import org.intermine.webservice.server.query.result.PathQueryBuilder;
@@ -58,6 +54,35 @@ public class CodeService extends AbstractQueryService
         super(im);
     }
 
+    @Override
+    protected int getDefaultFormat() {
+        return TEXT_FORMAT;
+    }
+
+    @Override
+    protected String getDefaultFileName() {
+        return "query";
+    }
+
+    @Override
+    protected String getExtension() {
+        String extension = super.getExtension();
+        String lang = request.getParameter("lang");
+        if ("perl".equals(lang) || "pl".equals(lang)) {
+            return ".pl" + extension;
+        } else if ("java".equals(lang)) {
+            return ".java" + extension;
+        } else if ("python".equals(lang) || "py".equals(lang)) {
+            return ".py" + extension;
+        } else if ("javascript".equals(lang) || "js".equals(lang)) {
+            return ".js" + extension;
+        } else if ("ruby".equals(lang) || "rb".equals(lang)) {
+            return ".rb" + extension;
+        } else {
+            throw new BadRequestException("Unknown code generation language: " + lang);
+        }
+    }
+
     private WebserviceCodeGenerator getCodeGenerator(String lang) {
         lang = StringUtils.lowerCase(lang);
 
@@ -69,7 +94,7 @@ public class CodeService extends AbstractQueryService
             return new WebservicePythonCodeGenerator();
         } else if ("javascript".equals(lang) || "js".equals(lang)) {
             return new WebserviceJavaScriptCodeGenerator();
-        } else if ("ruby".equals(lang) || "js".equals(lang)) {
+        } else if ("ruby".equals(lang) || "rb".equals(lang)) {
             return new WebserviceRubyCodeGenerator();
         } else {
             throw new BadRequestException("Unknown code generation language: " + lang);
@@ -79,12 +104,10 @@ public class CodeService extends AbstractQueryService
     @Override
     protected void execute() {
 
-        HttpSession session = request.getSession();
-        Profile profile = SessionMethods.getProfile(session);
-        // Ref to OrthologueLinkController and OrthologueLinkManager
-        Properties webProperties = SessionMethods.getWebProperties(session
-                .getServletContext());
+        Profile profile = getPermission().getProfile();
+        response.setHeader("Content-Disposition", "attachment");
 
+        // Ref to OrthologueLinkController and OrthologueLinkManager
         String serviceBaseURL = new URLGenerator(request).getPermanentBaseURL();
         // set in project properties
         String projectTitle = webProperties.getProperty("project.title");
@@ -101,6 +124,7 @@ public class CodeService extends AbstractQueryService
                         perlWSModuleVer,
                         pathQueryIsPublic(pq, im, profile),
                         profile.getUsername());
+        info.readWebProperties(webProperties);
         WebserviceCodeGenerator codeGen = getCodeGenerator(lang);
         String sc = codeGen.generate(info);
         if (formatIsJSON()) {

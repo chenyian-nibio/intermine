@@ -1,7 +1,7 @@
 package org.intermine.bio.web.displayer;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -27,7 +27,6 @@ import org.intermine.api.results.ResultElement;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.BioEntity;
-import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.OntologyTerm;
 import org.intermine.model.bio.Organism;
 import org.intermine.pathquery.Constraints;
@@ -119,13 +118,7 @@ public class GeneOntologyDisplayer extends ReportDisplayer
                 return;
             }
 
-            // chenyian:
-            PathQuery query;
-            if (reportObject.getObject() instanceof Gene) {
-				query = buildQuery(model, new Integer(reportObject.getId()));
-            } else {
-            	query = buildQueryForProtein(model, new Integer(reportObject.getId()));
-            }
+            PathQuery query = buildQuery(model, new Integer(reportObject.getId()));
             ExportResultsIterator result = executor.execute(query);
 
             Map<String, Map<OntologyTerm, Set<String>>> goTermsByOntology =
@@ -186,28 +179,6 @@ public class GeneOntologyDisplayer extends ReportDisplayer
         q.addConstraint(Constraints.eq("Gene.id", "" + geneId));
 
         return q;
-    }
-
-    // chenyian: to display go annotation for proteins 
-    private PathQuery buildQueryForProtein(Model model, Integer proteinId) {
-    	PathQuery q = new PathQuery(model);
-    	q.addViews("Protein.goAnnotation.ontologyTerm.parents.name",
-    			"Protein.goAnnotation.ontologyTerm.name",
-    	"Protein.goAnnotation.evidence.code.code");
-    	q.addOrderBy("Protein.goAnnotation.ontologyTerm.parents.name", OrderDirection.ASC);
-    	q.addOrderBy("Protein.goAnnotation.ontologyTerm.name", OrderDirection.ASC);
-    	
-    	// parents have to be main ontology
-    	q.addConstraint(Constraints.oneOfValues("Protein.goAnnotation.ontologyTerm.parents.name",
-    			ONTOLOGIES));
-    	
-    	// not a NOT relationship
-    	q.addConstraint(Constraints.isNull("Protein.goAnnotation.qualifier"));
-    	
-    	// gene from report page
-    	q.addConstraint(Constraints.eq("Protein.id", "" + proteinId));
-    	
-    	return q;
     }
 
     private String getOrganismName(ReportObject reportObject) {

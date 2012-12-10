@@ -1,7 +1,7 @@
 package org.modmine.web;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -37,6 +37,7 @@ import org.intermine.model.bio.Submission;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.util.StringUtil;
 import org.intermine.web.logic.session.SessionMethods;
+import org.modmine.web.logic.SpanOverlapQueryRunner;
 
 /**
  * Controller Action for spanUploadOptions.jsp
@@ -128,6 +129,7 @@ public class SpanUploadOptionsController extends TilesAction
             }
 
             request.setAttribute("source", "facetedSearch");
+            orgSet.retainAll(SpanOverlapQueryRunner.getChrInfo(im).keySet());
             request.setAttribute("orgList", new ArrayList<String>(orgSet));
             request.setAttribute("orgSubMap", orgSubMap);
             request.setAttribute("submissions", subIdString);
@@ -241,6 +243,7 @@ public class SpanUploadOptionsController extends TilesAction
             for (DisplayExperiment exp : expWithFtSet) {
                 orgWithFTSet.addAll(exp.getOrganisms());
             }
+            orgWithFTSet.retainAll(SpanOverlapQueryRunner.getChrInfo(im).keySet());
             List<String> orgWithFTList = new ArrayList<String>(orgWithFTSet);
             Collections.sort(orgList);
 

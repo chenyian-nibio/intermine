@@ -38,45 +38,6 @@
             });
         })
         .trigger('change');
-
-         // qtip configuration
-         // color scheme for differnt mines
-         jQuery("#baseCorRadioSpan").qtip({
-               content: 'e.g. BLAST, GFF/GFF3',
-               style: {
-                 border: {
-                   width: 3,
-                   radius: 8,
-                   color: '#6699CC'
-                 },
-                 tip: 'bottomLeft',
-                 name: 'cream'
-               },
-                position: {
-                  corner: {
-                     target: 'topMiddle',
-                     tooltip: 'bottomLeft'
-                  }
-                },
-               show: 'mouseover',
-               hide: 'mouseout'
-         });
-
-         jQuery("#interBaseCorRadioSpan").qtip({
-               content: 'e.g. UCSC BED, Chado',
-               style: {
-                 border: {
-                   width: 3,
-                   radius: 8,
-                   color: '#6699CC'
-                 },
-                 tip: 'topLeft',
-                 name: 'cream'
-               },
-               show: 'mouseover',
-               hide: 'mouseout'
-         });
-
     });
 
    function appendGenomeBuild(org) {
@@ -113,9 +74,9 @@
                             if (!(current_loc >= feature_size)) {
                                 var current = webDataJSON.featureTypes[i].features[current_loc].featureType;
                                 var displayName = $MODEL_TRANSLATION_TABLE[current].displayName ? $MODEL_TRANSLATION_TABLE[current].displayName : current;
-                                var desciption = webDataJSON.featureTypes[i].features[current_loc].description;
-                                var desBox = "<a onclick=\"document.getElementById('ctxHelpTxt').innerHTML='" + displayName + ": " + desciption
-                                             + "';document.getElementById('ctxHelpDiv').style.display=''; window.scrollTo(0, 0);return false\" title=\"" + desciption
+                                var description = webDataJSON.featureTypes[i].features[current_loc].description;
+                                var desBox = "<a onclick=\"document.getElementById('ctxHelpTxt').innerHTML='" + displayName + ": " + description.replace(/&apos;/g, "\\'")
+                                             + "';document.getElementById('ctxHelpDiv').style.display=''; window.scrollTo(0, 0);return false\" title=\"" + description
                                              + "\"><img class=\"tinyQuestionMark\" src=\"images/icons/information-small-blue.png\" alt=\"?\" style=\"padding: 4px 3px\"></a>"
                                 var cellElem = jQuery(cell);
                                 var ckbx = jQuery(input).attr("value", current).click(onClick);
@@ -143,7 +104,7 @@
        if (org == "M. musculus") { organism = "mouse"};
 
         jQuery.ajax({
-            url: 'http://met1:5000/lift/versions/' + organism,
+            url: liftOverUrl + "versions/" + organism,
             dataType: 'jsonp',
             success: function(data) {
                 jQuery('#liftover-genome-versions').text('');
@@ -185,7 +146,7 @@
 
             jQuery.ajax({
                 type: 'POST', // actually GET
-                url: "http://met1:5000/lift/" + organism,
+                url: liftOverUrl + organism,
                 data: { coords: coords, source: source, target: target },
                 dataType: 'jsonp',
 
@@ -263,12 +224,21 @@
 
          if (jQuery("#pasteInput").val() != "") {
                // Regex validation
+               /*
                var ddotsRegex = /^[^:]+: ?\d+\.\.\d+$/;
                var tabRegex = /^[^\t]+\t\d+\t\d+/;
                var dashRegex = /^[^:]+: ?\d+\-\d+$/;
                var snpRegex = /^[^:]+: ?\d+$/;
                var emptyLine = /^\s*$/;
                var ddotstagRegex = /^[^:]+: ?\d+\.\.\d+: ?\d+$/;
+               */
+
+               var ddotsRegex = /^[^:\t\s]+: ?\d+(,\d+)*\.\.\d+(,\d+)*$/;
+               var tabRegex = /^[^\t\s]+(\t\d+(,\d+)*){2}/; // this will match the line start with
+               var dashRegex = /^[^:\t\s]+: ?\d+(,\d+)*\-\d+(,\d+)*$/;
+               var snpRegex = /^[^:\t\s]+: ?\d+(,\d+)*$/;
+               var emptyLine = /^\s*$/;
+               var ddotstagRegex = /^[^:]+: ?\d+(,\d+)*\.\.\d+(,\d+)*: ?\d+$/;
 
                var spanArray = jQuery.trim(jQuery("#pasteInput").val()).split("\n");
                var lineNum;
@@ -281,6 +251,30 @@
                  if (!spanArray[i].match(ddotsRegex) && !spanArray[i].match(ddotstagRegex) && !spanArray[i].match(tabRegex) && !spanArray[i].match(dashRegex) && !spanArray[i].match(snpRegex) && !spanArray[i].match(emptyLine)) {
                      alert(spanArray[i] + " doesn't match any supported format...");
                      return false;
+                 }
+                 if (spanArray[i].match(ddotsRegex)) {
+                     var start = parseInt(spanArray[i].split(":")[1].split("..")[0].replace(/\,/g,''));
+                     var end = parseInt(spanArray[i].split(":")[1].split("..")[1].replace(/\,/g,''));
+                     if (start > end) {
+                         alert("start coordinate is after end coordinate (start > end) at " + spanArray[i]);
+                         return false;
+                     }
+                 }
+                 if (spanArray[i].match(tabRegex)) {
+                     var start = parseInt(spanArray[i].split("\t")[1].replace(/\,/g,''));
+                     var end = parseInt(spanArray[i].split("\t")[2].replace(/\,/g,''));
+                     if (start > end) {
+                         alert("start coordinate is after end coordinate (start > end) at " + spanArray[i]);
+                         return false;
+                     }
+                 }
+                 if (spanArray[i].match(dashRegex)) {
+                     var start = parseInt(spanArray[i].split(":")[1].split("-")[0].replace(/\,/g,''));
+                     var end = parseInt(spanArray[i].split(":")[1].split("-")[1].replace(/\,/g,''));
+                     if (start > end) {
+                         alert("start coordinate is after end coordinate (start > end) at " + spanArray[i]);
+                         return false;
+                     }
                  }
                }
 

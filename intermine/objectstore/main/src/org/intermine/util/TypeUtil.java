@@ -1,7 +1,7 @@
 package org.intermine.util;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -35,7 +35,6 @@ import java.util.regex.Pattern;
 
 import org.intermine.metadata.Model;
 import org.intermine.model.FastPathObject;
-import org.intermine.model.InterMineObject;
 import org.intermine.objectstore.proxy.ProxyReference;
 import org.intermine.objectstore.query.ClobAccess;
 
@@ -636,7 +635,7 @@ public final class TypeUtil
      * @return true if object is an instance of className
      * @exception ClassNotFoundException if the class given by className cannot be located
      */
-    public static boolean isInstanceOf(InterMineObject object, String className)
+    public static boolean isInstanceOf(FastPathObject object, String className)
         throws ClassNotFoundException {
         Set<Class<?>> classes = DynamicUtil.decomposeClass(object.getClass());
         Class<?> testClass = Class.forName(className);

@@ -22,8 +22,8 @@
   You can use this libray to construct any query you could run from web interface and fetch the results
   in as either tables of values, or JSON data structures (see <a href="http://json.org">json.org</a>).
   <br/>
-  Like all the InterMine code, these client libraries are open-source, licensed under the LGPL. For information
-  on the API visit the InterMine <a href="http://www.intermine.org/wiki/WebService">wiki pages</a>.
+  Like all our code, these client libraries are open-source, licensed under the LGPL. For information
+  on the API visit our <a href="http://www.intermine.org/wiki/WebService">wiki pages</a>.
 </div>
 <br>
 <div>

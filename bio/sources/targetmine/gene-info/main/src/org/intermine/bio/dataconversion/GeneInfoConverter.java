@@ -180,7 +180,7 @@ public class GeneInfoConverter extends BioFileConverter {
 			}
 
 			Item gene = createItem("Gene");
-			gene.setAttribute("ncbiGeneNumber", geneId);
+			gene.setAttribute("ncbiGeneId", geneId);
 			gene.setAttribute("name", name);
 			gene.setAttribute("description", desc);
 			gene.setReference("organism", getOrganism(taxId));

@@ -1,7 +1,7 @@
 package org.intermine.web.logic;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.config.ClassKeyHelper;
+import org.intermine.api.results.ResultCell;
 import org.intermine.api.results.ResultElement;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.model.FastPathObject;
@@ -149,7 +150,7 @@ public final class PortalHelper
         String newBase = null;
 
         if (baseUrl.contains("release")) {
-            newBase = baseUrl.replaceFirst("release-\\d*", "query");
+            newBase = baseUrl.replaceFirst("release-\\d*.\\d*", "query");
         } else {
             newBase = baseUrl;
         }
@@ -199,15 +200,14 @@ public final class PortalHelper
      * The generated path is not suitable for permanent
      * links, as it will include the internal id, which is liable to change between releases.
      */
-    public static String generateReportPath(ResultElement elem) {
-        String url = null;
+    public static String generateReportPath(ResultCell elem) {
+        String url;
         StringBuilder sb = new StringBuilder();
         sb.append("/").append(INTERNAL_REPORT_PAGE).append("?id=");
-        sb.append(elem.getId().toString());
+        sb.append(String.valueOf(elem.getId()));
         url = sb.toString();
         return url;
     }
-
 
     /**
      * Get the base url for this web-app. This includes the host and context path fragment.

@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -30,8 +30,6 @@ public class BuildBagForm extends ActionForm
     private String extraFieldValue;
     private String whichInput;
     private boolean caseSensitive = false;
-    // chenyian:
-    private boolean removeVersionTag = false;
 
     /**
      * Get the bag type
@@ -130,16 +128,7 @@ public class BuildBagForm extends ActionForm
         this.caseSensitive = caseSensitive;
     }
 
-    // chenyian
-    public boolean getRemoveVersionTag() {
-		return removeVersionTag;
-	}
-
-	public void setRemoveVersionTag(boolean removeVersionTag) {
-		this.removeVersionTag = removeVersionTag;
-	}
-
-	/**
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -151,8 +140,6 @@ public class BuildBagForm extends ActionForm
         extraFieldValue = "";
         whichInput = "";
         setCaseSensitive(false);
-        // chenyian
-        setRemoveVersionTag(false);
     }
 
 }

@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -99,7 +99,7 @@ public class ExportQueryAction extends InterMineAction
             return null;
         }
 
-        response.setContentType("text/plain; charset=us-ascii");
+        response.setContentType("text/plain; charset=utf-8");
         WebResultsExecutor webResultsExecutor = im.getWebResultsExecutor(profile);
 
         String format;

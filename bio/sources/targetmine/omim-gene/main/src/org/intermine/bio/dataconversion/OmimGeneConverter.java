@@ -119,7 +119,7 @@ public class OmimGeneConverter extends BioFileConverter {
 		String ret = geneMap.get(geneId);
 		if (ret == null) {
 			Item gene = createItem("Gene");
-			gene.setAttribute("ncbiGeneNumber", geneId);
+			gene.setAttribute("ncbiGeneId", geneId);
 
 			for (String omimId : omimIds) {
 				String diseaseRef = omimMap.get(omimId);

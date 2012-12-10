@@ -1,7 +1,7 @@
 package org.intermine.api.query;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -22,12 +22,10 @@ import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
-import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QuerySelectable;
 import org.intermine.objectstore.query.Results;
 import org.intermine.pathquery.Constraints;
-import org.intermine.pathquery.PathConstraintAttribute;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.util.CacheMap;
 
@@ -88,16 +86,26 @@ public abstract class QueryExecutor
      * @return an IQL Query object
      * @throws ObjectStoreException if there is a problem creating the query
      */
-    public Query makeSummaryQuery(PathQuery pathQuery,
-            String summaryPath) throws ObjectStoreException {
+    public Query makeSummaryQuery(
+    		PathQuery pathQuery,
+            String summaryPath,
+            boolean asOccurrances
+            ) throws ObjectStoreException {
         Map<String, QuerySelectable> pathToQueryNode = new HashMap<String, QuerySelectable>();
 
-        Map<String, InterMineBag> allBags = bagManager.getUserAndGlobalBags(profile);
+        Map<String, InterMineBag> allBags = bagManager.getBags(profile);
         Query q = MainHelper.makeSummaryQuery(pathQuery, summaryPath, allBags, pathToQueryNode,
-                bagQueryRunner);
+                bagQueryRunner, asOccurrances);
         return q;
     }
     
+    public Query makeSummaryQuery(
+    		PathQuery pathQuery,
+            String summaryPath
+            ) throws ObjectStoreException {
+    	return makeSummaryQuery(pathQuery, summaryPath);
+    }
+
     /**
      * Creates a query that returns the summary for a column in a PathQuery, applying a filter at 
      * the database level.
@@ -107,10 +115,14 @@ public abstract class QueryExecutor
      * @return an IQL Query object
      * @throws ObjectStoreException if there is a problem creating the query
      */    
-    public Query makeSummaryQuery(PathQuery pq, String summaryPath, String filterTerm) throws ObjectStoreException {
+    public Query makeSummaryQuery(
+    		PathQuery pq,
+    		String summaryPath,
+    		String filterTerm,
+    		boolean asOccurrances) throws ObjectStoreException {
         PathQuery clone = pq.clone();
         clone.addConstraint(Constraints.contains(summaryPath, filterTerm));
-        Query q = makeSummaryQuery(clone, summaryPath);
+        Query q = makeSummaryQuery(clone, summaryPath, asOccurrances);
         return q;
     }
 
@@ -140,23 +152,40 @@ public abstract class QueryExecutor
      * @return a Results object with varying styles of data
      * @throws ObjectStoreException if there is a problem summarising
      */
-    public Results summariseQuery(PathQuery pathQuery,
-            String summaryPath) throws ObjectStoreException {
-        return os.execute(makeSummaryQuery(pathQuery, summaryPath), summaryBatchSize,
+    public Results summariseQuery(
+    		PathQuery pathQuery,
+            String summaryPath,
+            boolean asOccurrances) throws ObjectStoreException {
+        return os.execute(makeSummaryQuery(pathQuery, summaryPath, asOccurrances), summaryBatchSize,
                 true, true, true);
     }
     
-    public Results summariseQuery(PathQuery pq, String summaryPath, String filterTerm) throws ObjectStoreException {
+    public Results summariseQuery(
+    		PathQuery pathQuery,
+            String summaryPath)
+    	throws ObjectStoreException {
+    	return summariseQuery(pathQuery, summaryPath, false);
+    }
+    
+    /**
+     * Summarise a query. 
+     * @param pq The query to summarise
+     * @param summaryPath The path of the query to focus on.
+     * @param filterTerm An optional term to further filter by.
+     * @param asOccurrances If true, will only return the list of values and their counts.
+     * @return A set of results.
+     * @throws ObjectStoreException in case of Ragnarok.
+     */
+    public Results summariseQuery(
+    		PathQuery pq,
+    		String summaryPath,
+    		String filterTerm,
+    		boolean asOccurrances) throws ObjectStoreException {
         if (filterTerm == null || filterTerm.isEmpty()) {
-            return summariseQuery(pq, summaryPath);
+            return summariseQuery(pq, summaryPath, asOccurrances);
         }
-        int uniqValues = uniqueColumnValues(pq, summaryPath);
-        if (uniqValues > summaryBatchSize) {
-            return os.execute(makeSummaryQuery(pq, summaryPath, filterTerm), summaryBatchSize,
-                    true, true, true);
-        } else {
-            return summariseQuery(pq, summaryPath);
-        }
+        return os.execute(makeSummaryQuery(pq, summaryPath, filterTerm, asOccurrances), summaryBatchSize,
+                true, true, true);
     }
 
     /**
@@ -187,7 +216,7 @@ public abstract class QueryExecutor
      * @throws ObjectStoreException If there is a problem making the query.
      */
     public int uniqueColumnValues(PathQuery pq, String path) throws ObjectStoreException {
-        Query q = makeSummaryQuery(pq, path);
+        Query q = makeSummaryQuery(pq, path, true);
         String cacheKey = q.toString() + "summary-path: " + path;
         if (countCache.containsKey(cacheKey)) {
             LOG.debug("Count cache hit");

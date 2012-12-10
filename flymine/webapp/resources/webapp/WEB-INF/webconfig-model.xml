@@ -77,7 +77,7 @@
   <class className="org.intermine.model.bio.Comment">
     <fields>
       <fieldconfig fieldExpr="type"/>
-      <fieldconfig fieldExpr="text"/>
+      <fieldconfig fieldExpr="description"/>
     </fields>
   </class>
 
@@ -107,6 +107,7 @@
   <class className="org.intermine.model.bio.Disease">
     <fields>
       <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="name"/>
     </fields>
   </class>
 
@@ -144,7 +145,7 @@
     <fields>
       <fieldconfig fieldExpr="secondaryIdentifier"/>
       <fieldconfig fieldExpr="symbol"/>
-      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="primaryIdentifier"/>
       <fieldconfig fieldExpr="organism.name"/>
     </fields>
     <bagdisplayers>
@@ -171,7 +172,7 @@
     <class className="org.intermine.model.bio.GOTerm">
     <headerconfig>
       <titles>
-      <title mainTitles="identifier|name" subTitles="ontology.name" />
+        <title mainTitles="identifier|name" subTitles="ontology.name" />
       </titles>
     </headerconfig>
     <fields>
@@ -196,16 +197,6 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.Interaction">
-   <fields>
-     <fieldconfig fieldExpr="gene.primaryIdentifier"/>
-     <fieldconfig fieldExpr="shortName"/>
-     <fieldconfig fieldExpr="confidenceText"/>
-     <fieldconfig fieldExpr="confidence"/>
-     <fieldconfig fieldExpr="role"/>
-    </fields>
-
-  </class>
   <class className="org.intermine.model.bio.InteractionExperiment">
     <fields>
       <fieldconfig fieldExpr="name"/>
@@ -314,7 +305,7 @@
   <class className="org.intermine.model.bio.OntologyTerm">
     <headerconfig>
       <titles>
-      <title mainTitles="identifier|name" subTitles="ontology.name" />
+        <title mainTitles="identifier|name" subTitles="ontology.name" />
       </titles>
     </headerconfig>
     <fields>
@@ -334,7 +325,7 @@
   <class className="org.intermine.model.bio.Organism">
     <headerconfig>
       <titles>
-      <title mainTitles="name"/>
+        <title mainTitles="name"/>
       </titles>
     </headerconfig>
     <fields>
@@ -464,29 +455,26 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.RNAiPhenotype">
-    <fields>
-      <fieldconfig fieldExpr="comment"/>
-      <fieldconfig fieldExpr="name"/>
-      <fieldconfig fieldExpr="code"/>
-    </fields>
-  </class>
-
 
   <class className="org.intermine.model.bio.RNAiScreen">
+      <headerconfig>
+    <titles>
+        <title mainTitles="name" />
+    </titles>
+        </headerconfig>
     <fields>
       <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="publication.title"/>
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.RNAiScreenHit">
+  <class className="org.intermine.model.bio.RNAiResult">
     <fields>
-      <fieldconfig fieldExpr="result"/>
-      <fieldconfig fieldExpr="pcrProduct.primaryIdentifier" label="PCR Product"/>
-      <fieldconfig fieldExpr="rnaiScreen" showInInlineCollection="false" showInSummary="false" showInResults="false" label="RNAi Screen"/>
-      <fieldconfig fieldExpr="pcrProduct" showInInlineCollection="false" showInSummary="false" showInResults="false" label="PCR Product"/>
       <fieldconfig fieldExpr="rnaiScreen.name" label="Screen" />
+      <fieldconfig fieldExpr="gene.symbol" label="Gene" />
+      <fieldconfig fieldExpr="phenotype"/>
+      <fieldconfig fieldExpr="score"/>
+      <fieldconfig fieldExpr="conditions"/>
       <fieldconfig fieldExpr="rnaiScreen.publication.pubMedId" label="PubMed ID"/>
     </fields>
   </class>
@@ -576,6 +564,14 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.RNASeqResult">
+    <fields>
+      <fieldconfig fieldExpr="stage"/>
+      <fieldconfig fieldExpr="expressionScore"/>
+      <fieldconfig fieldExpr="expressionLevel"/>
+    </fields>
+  </class>
+
   <class className="org.intermine.model.bio.UniProtFeature" label="Uniprot Feature">
     <fields>
       <fieldconfig fieldExpr="type"/>
@@ -612,15 +608,9 @@
 
    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneOntologyDisplayer"
                      jspName="model/geneOntologyDisplayer.jsp"
-                     replacesFields="goAnnotation,ontologyAnnotations"
+                     replacesFields="goAnnotation,ontologyAnnotation"
                      placement="Function"
                      types="Gene"/>
-
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GBrowseDisplayer"
-                     jspName="model/gbrowseDisplayer.jsp"
-                     replacesFields=""
-                     placement="Genes"
-                     types="SequenceFeature"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneStructureDisplayer"
                      jspName="model/geneStructureDisplayer.jsp"
@@ -632,7 +622,7 @@
                      jspName="model/homologueDisplayer.jsp"
                      replacesFields="homologues"
                      placement="Homology"
-                     parameters="{'dataSets': ['TreeFam data set', 'KEGG orthologues data set']}"
+                     parameters="{'dataSets': ['Panther data set']}"
                      types="Gene"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.JMOLDisplayer"
@@ -652,13 +642,13 @@
                      replacesFields="regulatoryRegions"
                      placement="Regulation"
                      types="Gene"/>
-
+<!-- update to new model
     <reportdisplayer javaClass="org.flymine.web.displayer.RNAiDisplayer"
                      jspName="model/rnaiDisplayer.jsp"
                      replacesFields="rnaiResults"
                      placement="Regulation"
                      types="Gene"/>
-
+-->
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.SequenceFeatureDisplayer"
                      jspName="model/sequenceFeatureDisplayer.jsp"
                      replacesFields="chromosome,chromosomeLocation,sequence,length,sequenceOntologyTerm,locations,cytoLocation"
@@ -675,7 +665,7 @@
                      jspName="model/publicationAnnotationsDisplayer.jsp"
                      replacesFields=""
                      placement="summary"
-                     parameters="Gene,Protein,Interaction.experiment,GOAnnotation.evidence"
+                     parameters="Gene,Protein,InteractionDetail.experiment,GOAnnotation.evidence"
                      types="Publication"/>
 
     <!-- currently only works with classes with publications collection -->
@@ -711,137 +701,245 @@
 
      <reportdisplayer javaClass="org.intermine.bio.web.displayer.FlyBaseExpressionDisplayer"
                      jspName="model/flybaseExpressionDisplayer.jsp"
-                     replacesFields=""
+                     replacesFields="rnaSeqResults"
                      placement="summary"
                      types="Gene"/>
+
+     <reportdisplayer javaClass="org.intermine.bio.web.displayer.PathwayDescriptionDisplayer"
+                     jspName="model/pathwayDescriptionDisplayer.jsp"
+                     showImmediately="true"
+                     replacesFields="description"
+                     placement="top"
+                     types="Pathway"/>
 
   </reportdisplayers>
 
    <widgets>
-      <graphdisplayer id="chromosome_distribution" title="Chromosome Distribution"
-        domainLabel="Chromosome"
-        rangeLabel="Count"
-        dataSetLoader="org.intermine.bio.web.widget.ChromosomeDistributionDataSetLdr"
-        link="org.intermine.bio.web.widget.ChromosomeDistributionGraphURLGenerator"
-        description="Actual: number of items in this list found on each chromosome.  Expected: given the total number of items on the chromosome and the number of items in this list, the number of items expected to be found on each chromosome."
-        graphType="BarChart"
-        extraAttributeClass="org.intermine.bio.util.BioUtil"
-        typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.SequenceFeature,org.intermine.model.bio.TransposableElementInsertionSite"
-       />
-<!--
-      <graphdisplayer id="feature_length" title="Feature Length"
-                              domainLabel="Length"
-                              rangeLabel=" "
-                              dataSetLoader="org.intermine.bio.web.widget.FeatureLengthDataSetLdr"
-                              description="The distribution of feature lengths in this list compared to lengths of all features of this type."
-                              graphType="XYLineChart"
-                              extraAttributeClass="org.intermine.bio.util.BioUtil"
-                              typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein,org.intermine.model.bio.Exon,org.intermine.model.bio.Transcript"
-/>
--->
-      <graphdisplayer id="flyatlas" title="Gene Expression in the Adult Fly (FlyAtlas)" domainLabel="Tissue" rangeLabel="Up (+) or Down (-) gene count" dataSetLoader="org.flymine.web.widget.FlyAtlasDataSetLdr"
-                      link="org.flymine.web.widget.FlyAtlasGraphURLGenerator"
-                      description="For each tissue in the adult fly, the number of genes from this list for which the levels of expression are significantly high (Up) or low (Down) according to &lt;a href=&quot;http://www.flyatlas.org/&quot; target=&quot;_new&quot;&gt;FlyAtlas&lt;/a&gt; AffyCall."
-                      typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.ProbeSet"
-                      graphType="StackedBarChart" />
 
-      <graphdisplayer id="flyfish" title="mRNA subcellular localisation (fly-FISH)" domainLabel="Stage" rangeLabel="Gene count" dataSetLoader="org.flymine.web.widget.FlyFishDataSetLdr"
-                      link="org.flymine.web.widget.FlyFishGraphURLGenerator"
+      <graphdisplayer id="chromosome_distribution_for_gene"
+                      title="Chromosome Distribution"
+                      description="Actual: number of items in this list found on each chromosome.  Expected: given the total number of items on the chromosome and the number of items in this list, the number of items expected to be found on each chromosome."
+                      graphType="ColumnChart"
+                      rangeLabel="Count"
+                      domainLabel="Chromosome"
+                      filterLabel="Organism"
+                      filters="organism.name=[list]"
+                      startClass="Gene"
+                      typeClass="Gene"
+                      categoryPath="chromosome.primaryIdentifier"
+                      seriesLabels="Actual,Expected"
+                      seriesPath="ActualExpectedCriteria"
+                      constraints="organism.name=[Organism]"
+                      views="primaryIdentifier, symbol, secondaryIdentifier, organism.name, chromosome.primaryIdentifier,
+                             chromosomeLocation.start, chromosomeLocation.end, chromosomeLocation.strand"/>
+
+      <graphdisplayer id="flyatlas_for_gene"
+                      title="Gene Expression in the Fly (FlyAtlas)"
+                      description="For each tissue in the fly, the number of genes from this list for which the levels of expression are significantly high (Up) or low (Down) according to &lt;a href=&quot;http://www.flyatlas.org/&quot; target=&quot;_new&quot;&gt;FlyAtlas&lt;/a&gt; AffyCall."
+                      graphType="BarChart"
+                      domainLabel="Tissue"
+                      rangeLabel="Up (+) or Down (-) gene count"
+                      startClass="FlyAtlasResult"
+                      typeClass="Gene"
+                      listPath="FlyAtlasResult.genes"
+                      categoryPath="tissue.name"
+                      seriesPath="affyCall"
+                      seriesValues="Up,Down"
+                      seriesLabels="Up,Down"
+                      views="genes.secondaryIdentifier,genes.symbol,genes.name,genes.organism.name,
+                            tissue.name,enrichment,affyCall,mRNASignal,mRNASignalSEM,presentCall"/>
+
+      <graphdisplayer id="flyatlas_for_probeset"
+                      title="Gene Expression in Fly Tissues (FlyAtlas Data)"
+                      description="For each tissue, the number of genes from this list for which the levels of expression are significantly high (Up) or low (Down) according to &lt;a href=&quot;http://www.flyatlas.org/&quot; target=&quot;_new&quot;&gt;FlyAtlas&lt;/a&gt; AffyCall."
+                      graphType="BarChart"
+                      domainLabel="Tissue"
+                      rangeLabel="Up (+) or Down (-) gene count"
+                      startClass="FlyAtlasResult"
+                      typeClass="ProbeSet"
+                      listPath="FlyAtlasResult.material"
+                      categoryPath="tissue.name"
+                      seriesPath="affyCall"
+                      seriesValues="Up,Down"
+                      seriesLabels="Up,Down"
+                      views="material.secondaryIdentifier,material.symbol,material.name,material.organism.name,
+                            tissue.name,enrichment,affyCall,mRNASignal,mRNASignalSEM,presentCall"/>
+
+      <graphdisplayer id="flyfish"
+                      title="mRNA subcellular localisation (fly-FISH)"
                       description="Expression patterns of Drosophila mRNAs at the subcellular level during early embryogenesis - data from  &lt;a href=&quot;http://fly-fish.ccbr.utoronto.ca/&quot; target=&quot;_new&quot;&gt;Fly-FISH&lt;/a&gt;.  Note that not all genes have been assayed by &lt;a href=&quot;http://fly-fish.ccbr.utoronto.ca/&quot; target=&quot;_new&quot;&gt;Fly-FISH&lt;/a&gt;."
-                      typeClass="org.intermine.model.bio.Gene"
-                      graphType="BarChart" />
-
-      <graphdisplayer id="bdgp" title="BDGP expression patterns"
-                      link="org.flymine.web.widget.BDGPinsituGraphURLGenerator"
-                      dataSetLoader="org.flymine.web.widget.BDGPinsituDataSetLdr"
-                      description="Expression patterns of Drosophila mRNAs during embryogenesis - data from  &lt;a href=&quot;http://www.fruitfly.org/cgi-bin/ex/insitu.pl&quot; target=&quot;_new&quot;&gt;BGDP&lt;/a&gt;.  Note that not all genes have been assayed by &lt;a href=&quot;http://www.fruitfly.org/cgi-bin/ex/insitu.pl&quot; target=&quot;_new&quot;&gt;BGDP&lt;/a&gt;. "
+                      graphType="ColumnChart"
                       domainLabel="Stage"
                       rangeLabel="Gene count"
-                      typeClass="org.intermine.model.bio.Gene"
-                      graphType="BarChart" />
+                      startClass="Gene"
+                      typeClass="Gene"
+                      listPath=""
+                      categoryPath="mRNAExpressionResults.stageRange"
+                      seriesPath="mRNAExpressionResults.expressed"
+                      seriesValues="true,false"
+                      seriesLabels="Expressed,Not Expressed"
+                      constraints="mRNAExpressionResults.dataSet.name=fly-Fish data set"
+                      views="primaryIdentifier,secondaryIdentifier,name,organism.name,
+                             mRNAExpressionResults.stageRange,mRNAExpressionResults.expressed"/>
 
-      <enrichmentwidgetdisplayer id="miranda_enrichment" title="MiRNA Enrichment"
-                                 link="org.flymine.web.widget.MirandaURLQuery"
-                                 dataSetLoader="org.flymine.web.widget.MirandaLdr"
+      <graphdisplayer id="bdgp"
+                      title="BDGP expression patterns"
+                      description="Expression patterns of Drosophila mRNAs during embryogenesis - data from  &lt;a href=&quot;http://www.fruitfly.org/cgi-bin/ex/insitu.pl&quot; target=&quot;_new&quot;&gt;BGDP&lt;/a&gt;.  Note that not all genes have been assayed by &lt;a href=&quot;http://www.fruitfly.org/cgi-bin/ex/insitu.pl&quot; target=&quot;_new&quot;&gt;BGDP&lt;/a&gt;. "
+                      graphType="ColumnChart"
+                      domainLabel="Stage"
+                      rangeLabel="Gene count"
+                      startClass="Gene"
+                      typeClass="Gene"
+                      listPath=""
+                      categoryPath="mRNAExpressionResults.stageRange"
+                      seriesPath="mRNAExpressionResults.expressed"
+                      seriesValues="true,false"
+                      seriesLabels="Expressed,Not Expressed"
+                      constraints="mRNAExpressionResults.dataSet.name=BDGP in situ data set"
+                      views="primaryIdentifier,secondaryIdentifier,name,organism.name,
+                             mRNAExpressionResults.stageRange,mRNAExpressionResults.expressed"/>
+
+      <enrichmentwidgetdisplayer id="miranda_enrichment"
+                                 title="MiRNA Enrichment"
                                  description="MiRNAs enriched for items in this list."
                                  label="MiRNAs"
-                                 typeClass="org.intermine.model.bio.Gene" />
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="transcripts[MRNA].miRNAinteractions.mirnagene.symbol"
+                                 typeClass="Gene"
+                                 views="symbol,transcripts[MRNA].miRNAinteractions.mirnagene.symbol"/>
 
-      <enrichmentwidgetdisplayer id="protein_features" title="UniProt Features"
-                                 link="org.intermine.bio.web.widget.UniProtFeaturesURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.UniProtFeaturesLdr"
-                                 label="Feature"
+      <enrichmentwidgetdisplayer id="protein_features"
+                                 title="UniProt Features"
                                  description="UniProt features enriched for proteins in this list."
-                                 typeClass="org.intermine.model.bio.Protein" />
+                                 label="Feature"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="features.type"
+                                 enrichIdentifier="features.type"
+                                 constraints="organism.name=[list]"
+                                 typeClass="Protein"
+                                 views="primaryIdentifier, primaryAccession, organism.name,
+                                       features.feature.name, features.type,features.description,
+                                       features.begin, features.end"/>
 
-      <enrichmentwidgetdisplayer id="uniprot_keywords" title="UniProt Keywords"
-                                 link="org.intermine.bio.web.widget.UniProtKeywordsURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.UniProtKeywordsLdr"
-                                 label="Keyword"
+      <enrichmentwidgetdisplayer id="uniprot_keywords"
+                                 title="UniProt Keywords"
                                  description="UniProt keywords enriched for proteins in this list."
-                                 typeClass="org.intermine.model.bio.Protein" />
+                                 label="Keyword"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="keywords.name"
+                                 constraints="organism.name=[list]"
+                                 typeClass="Protein"
+                                 views="primaryIdentifier, primaryAccession, organism.name,
+                                       keywords.name, keywords.description"/>
 
-      <enrichmentwidgetdisplayer id="go_enrichment" title="Gene Ontology Enrichment"
-                                 link="org.intermine.bio.web.widget.GoStatURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.GoStatLdr"
+
+      <enrichmentwidgetdisplayer id="go_enrichment_for_gene"
+                                 title="Gene Ontology Enrichment"
                                  description="GO terms enriched for items in this list."
                                  label="GO Term"
-                                 filters="biological_process,cellular_component,molecular_function"
                                  filterLabel="Ontology"
-                                 typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
-                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term=" />
+                                 filters="biological_process,cellular_component,molecular_function"
+                                 startClass="Gene"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="goAnnotation.ontologyTerm.parents.name"
+                                 enrichIdentifier="goAnnotation.ontologyTerm.parents.identifier"
+                                 constraints="goAnnotation.ontologyTerm.parents.namespace=[Ontology],organism.name=[list],
+                                              primaryIdentifier != null, goAnnotation.qualifier = null,
+                                              goAnnotation.ontologyTerm.parents.identifier != go:0008150,
+                                              goAnnotation.ontologyTerm.parents.identifier != go:0003674,
+                                              goAnnotation.ontologyTerm.parents.identifier != go:0005575"
+                                 typeClass="Gene"
+                                 views="secondaryIdentifier,symbol,primaryIdentifier,organism.name,
+                                       goAnnotation.ontologyTerm.identifier, goAnnotation.ontologyTerm.name,
+                                       goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name"
+                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
 
-      <enrichmentwidgetdisplayer id="prot_dom_enrichment" title="Protein Domain Enrichment"
-                                 link="org.intermine.bio.web.widget.ProteinDomainURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.ProteinDomainLdr"
-                                 label="Protein Domain"
+      <enrichmentwidgetdisplayer id="prot_dom_enrichment_for_gene"
+                                 title="Protein Domain Enrichment"
                                  description="Protein Domains enriched for items in this list."
-                                 typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
-                                 externalLink="http://www.ebi.ac.uk/interpro/IEntry?ac=" />
+                                 label="Protein Domain"
+                                 startClass="Gene"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="proteins.proteinDomains.name"
+                                 enrichIdentifier="proteins.proteinDomains.primaryIdentifier"
+                                 constraints="organism.name=[list]"
+                                 typeClass="Gene"
+                                 views="secondaryIdentifier,symbol,primaryIdentifier,organism.name,
+                                       proteins.proteinDomains.primaryIdentifier,proteins.proteinDomains.name"
+                                 externalLink="http://www.ebi.ac.uk/interpro/IEntry?ac="/>
 
-      <enrichmentwidgetdisplayer id="publication_enrichment" title="Publication Enrichment"
-                                 link="org.intermine.bio.web.widget.PublicationURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.PublicationLdr"
-                                 label="Publication"
-                                 description="Publications enriched for genes in this list."
-                                 externalLink="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids="
-                                 typeClass="org.intermine.model.bio.Gene"
-                                 externalLinkLabel="PubMed:" />
+      <enrichmentwidgetdisplayer id="prot_dom_enrichment_for_protein"
+                                 title="Protein Domain Enrichment"
+                                 description="Protein Domains enriched for items in this list."
+                                 label="Protein Domain"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="proteinDomains.name"
+                                 enrichIdentifier="proteinDomains.primaryIdentifier"
+                                 constraints="organism.name=[list]"
+                                 typeClass="Protein"
+                                 views="primaryIdentifier,organism.name,proteinDomains.primaryIdentifier,
+                                       proteinDomains.name"
+                                 externalLink="http://www.ebi.ac.uk/interpro/IEntry?ac="/>
 
-      <enrichmentwidgetdisplayer id="bdgp_enrichment" title="BDGP Enrichment"
-                                 link="org.flymine.web.widget.BDGPURLQuery"
-                                 dataSetLoader="org.flymine.web.widget.BDGPLdr"
-                                 label="Terms"
+
+      <enrichmentwidgetdisplayer id="bdgp_enrichment"
+                                 title="BDGP Enrichment"
                                  description="ImaGO terms enriched for genes in this list - data from &lt;a href=&quot;http://www.fruitfly.org/cgi-bin/ex/insitu.pl&quot; target=&quot;_new&quot;&gt;BDGP&lt;/a&gt;.  Note that not all genes have been assayed by BDGP."
-                                 typeClass="org.intermine.model.bio.Gene" />
+                                 label="Terms"
+                                 startClass="Gene"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="mRNAExpressionResults.mRNAExpressionTerms[MRNAExpressionTerm].name"
+                                 constraints="mRNAExpressionResults.expressed = true, mRNAExpressionResults.dataSet.name = BDGP in situ data set"
+                                 typeClass="Gene"
+                                 views="secondaryIdentifier, symbol, organism.name, mRNAExpressionResults.stageRange,
+                                        mRNAExpressionResults.mRNAExpressionTerms.name, mRNAExpressionResults.dataSet.name"
+                                 constraintsForView="mRNAExpressionResults.expressed = true, mRNAExpressionResults.dataSet.name = BDGP in situ data set"/>
 
-      <enrichmentwidgetdisplayer id="pathway_enrichment" title="Pathway Enrichment"
-                                 link="org.intermine.bio.web.widget.PathwayURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.PathwayLdr"
-                                 label="Pathways"
-                                 filters="All datasets,KEGG,Reactome"
-                                 filterLabel="DataSet"
+      <enrichmentwidgetdisplayer id="publication_enrichment"
+                                 title="Publication Enrichment"
+                                 description="Publications enriched for genes in this list."
+                                 label="Publication"
+                                 startClass="Gene"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="publications.title"
+                                 enrichIdentifier="publications.pubMedId"
+                                 constraints="organism.name=[list],primaryIdentifier != null"
+                                 typeClass="Gene"
+                                 views="secondaryIdentifier, symbol, organism.name,
+                                       publications.title, publications.firstAuthor,
+                                       publications.journal, publications.year, publications.pubMedId"
+                                 externalLink="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids="/>
+
+
+      <enrichmentwidgetdisplayer id="pathway_enrichment"
+                                 title="Pathway Enrichment"
                                  description="Pathways enriched for genes in this list - data from KEGG and Reactome"
-                                 typeClass="org.intermine.model.bio.Gene" />
+                                 label="Pathways"
+                                 filterLabel="DataSet"
+                                 filters="All,KEGG pathways data set,Reactome data set"
+                                 startClass="Gene"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="pathways.name"
+                                 enrichIdentifier="pathways.identifier"
+                                 constraints="pathways.dataSets.name=[DataSet],organism.taxonId=[list], primaryIdentifier != null"
+                                 typeClass="Gene"
+                                 views="secondaryIdentifier, symbol, organism.name, pathways.identifier, pathways.name, pathways.dataSets.name"/>
 
-       <bagtabledisplayer id="orthologues" title="Orthologues" pathStrings="Gene.homologues[type=orthologue].homologue.organism"
-                              link="org.intermine.bio.web.widget.HomologueURLQuery"
-                              description="Counts of orthologues in other organisms for the genes in this list."
-                              displayFields="name"
-                              exportField="primaryIdentifier"
-                              typeClass="org.intermine.model.bio.Gene"
-                              columnTitle="Orthologues"
-                              style="height:435px;"/>
-
-           <bagtabledisplayer id="interactions" title="Interactions"
-                              pathStrings="Gene.interactions.interactingGenes"
-                              link="org.intermine.bio.web.widget.InteractionURLQuery"
-                              description="Genes (from the list or not) that interact with genes in this list.  Counts may include the same interaction more than once if observed in multiple experiments."
-                              displayFields="primaryIdentifier"
-                              exportField="primaryIdentifier"
-                              typeClass="org.intermine.model.bio.Gene"
-                              columnTitle="Interactions"
-                              style="height:431px;"/>
+      <bagtabledisplayer id="orthologues" title="Orthologues" pathStrings="Gene.homologues[type=orthologue].homologue.organism"
+                         description="Counts of orthologues for the genes in this list."
+                         displayFields="name"
+                         exportField="primaryIdentifier"
+                         typeClass="Gene"
+                         columnTitle="Orthologues"
+                         views="secondaryIdentifier, symbol, organism.shortName,
+                                homologues.homologue.primaryIdentifier,
+                                homologues.homologue.symbol,
+                                homologues.homologue.organism.shortName,
+                                homologues.type"/>
 
     </widgets>
 </webconfig>

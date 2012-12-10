@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.lists;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -137,7 +137,7 @@ public class ListUploadService extends ListMakerService
      * @return A parsed representation of the parameters.
      */
     protected ListInput getInput(final HttpServletRequest request, final BagManager bagManager) {
-        return new ListCreationInput(request, bagManager);
+        return new ListCreationInput(request, bagManager, getPermission().getProfile());
     }
 
     @Override

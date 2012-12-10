@@ -27,7 +27,7 @@
   <class className="org.intermine.model.bio.Comment">
     <fields>
       <fieldconfig fieldExpr="type"/>
-      <fieldconfig fieldExpr="text"/>
+      <fieldconfig fieldExpr="description"/>
     </fields>
   </class>
 
@@ -82,7 +82,7 @@
       <fieldconfig fieldExpr="organism.name"/>
     </fields>
   </class>
-  
+
   <class className="org.intermine.model.bio.Ontology">
     <fields>
       <fieldconfig fieldExpr="name"/>
@@ -91,7 +91,9 @@
 
   <class className="org.intermine.model.bio.OntologyTerm">
     <headerconfig>
-      <titles mainTitles="identifier|name" subTitles="ontology.name" />
+      <titles>
+      <title mainTitles="identifier|name" subTitles="ontology.name" />
+      </titles>
     </headerconfig>
     <fields>
       <fieldconfig fieldExpr="identifier"/>
@@ -117,7 +119,9 @@
 
   <class className="org.intermine.model.bio.Organism">
     <headerconfig>
-      <titles mainTitles="name"/>
+      <titles>
+      <title mainTitles="name"/>
+      </titles>
     </headerconfig>
     <fields>
       <fieldconfig fieldExpr="name"/>
@@ -139,7 +143,9 @@
 
   <class className="org.intermine.model.bio.Publication">
     <headerconfig>
-      <titles mainTitles="firstAuthor|year" />
+  <titles>
+    <title mainTitles="title" />
+ </titles>
     </headerconfig>
     <inlinelist>
       <table path="authors.name" showLinksToObjects="true" />
@@ -217,16 +223,22 @@
 
 <!-- widgets -->
 <widgets>
-      <graphdisplayer id="chromosome_distribution" title="Chromosome Distribution"
-        domainLabel="Chromosome"
-        rangeLabel="Count"
-        dataSetLoader="org.intermine.bio.web.widget.ChromosomeDistributionDataSetLdr"
-        link="org.intermine.bio.web.widget.ChromosomeDistributionGraphURLGenerator"
-        description="Actual: number of items in this list found on each chromosome.  Expected: given the total number of items on the chromosome and the number of items in this list, the number of items expected to be found on each chromosome."
-        graphType="BarChart"
-        extraAttributeClass="org.intermine.bio.util.BioUtil"
-        typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.SequenceFeature"
-       />
+      <graphdisplayer id="chromosome_distribution_for_gene"
+                      title="Chromosome Distribution"
+                      description="Actual: number of items in this list found on each chromosome.  Expected: given the total number of items on the chromosome and the number of items in this list, the number of items expected to be found on each chromosome."
+                      graphType="ColumnChart"
+                      rangeLabel="Count"
+                      domainLabel="Chromosome"
+                      filterLabel="Organism"
+                      filters="organism.name=[list]"
+                      startClass="Gene"
+                      typeClass="Gene"
+                      categoryPath="chromosome.primaryIdentifier"
+                      seriesLabels="Actual,Expected"
+                      seriesPath="ActualExpectedCriteria"
+                      constraints="organism.name=[Organism]"
+                      views="primaryIdentifier, symbol, secondaryIdentifier, organism.name, chromosome.primaryIdentifier,
+                             chromosomeLocation.start, chromosomeLocation.end, chromosomeLocation.strand"/>
 
 </widgets>
 </webconfig>

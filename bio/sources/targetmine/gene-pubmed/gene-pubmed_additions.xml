@@ -3,8 +3,10 @@
   <class name="Publication" is-interface="true">
     <attribute name="pubMedId" type="java.lang.String"/>
   </class>
-  <class name="Gene" is-interface="true">
-    <attribute name="ncbiGeneNumber" type="java.lang.String"/>
-    <collection name="publications" referenced-type="Publication"/>
+  <class name="Gene" extends="BioEntity" is-interface="true">
+    <attribute name="ncbiGeneId" type="java.lang.String"/>
+  </class>
+  <class name="BioEntity" is-interface="true">
+    <collection name="publications" referenced-type="Publication" reverse-reference="bioEntities"/>
   </class>
 </classes>

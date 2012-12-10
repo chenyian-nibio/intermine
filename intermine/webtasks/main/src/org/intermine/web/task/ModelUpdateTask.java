@@ -1,7 +1,7 @@
 package org.intermine.web.task;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -9,6 +9,7 @@ package org.intermine.web.task;
  * information or http://www.gnu.org/copyleft/lesser.html.
  *
  */
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
@@ -30,7 +31,7 @@ import org.intermine.pathquery.PathException;
  * the userProfileAlias) when the model has been changed
  * @author butano
  */
-public class ModelUpdateTask extends Task 
+public class ModelUpdateTask extends Task
 {
     private String osAlias;
     private String userProfileAlias;

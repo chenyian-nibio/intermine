@@ -41,8 +41,8 @@
       <p>
         This module is pure Ruby with only one external dependency (json).
         The client library has been tested on Linux, Windows and Mac OS X, and 
-        like all the InterMine code is open-source, licensed under the LGPL.For information
-        on the API visit the InterMine <a href="http://www.intermine.org/wiki/WebService">wiki pages</a>.
+        like all our code is open-source, licensed under the LGPL.For information
+        on the API visit our <a href="http://www.intermine.org/wiki/WebService">wiki pages</a>.
       </p>
       <p>
         For more detailed documentation please see here: 

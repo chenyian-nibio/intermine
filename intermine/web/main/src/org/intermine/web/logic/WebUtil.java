@@ -1,7 +1,7 @@
 package org.intermine.web.logic;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -19,11 +19,14 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -35,11 +38,12 @@ import org.intermine.api.InterMineAPI;
 import org.intermine.metadata.ClassDescriptor;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.metadata.Model;
-import org.intermine.metadata.ReferenceDescriptor;
 import org.intermine.pathquery.Path;
 import org.intermine.pathquery.PathException;
 import org.intermine.pathquery.PathQuery;
+import org.intermine.util.PropertiesUtil;
 import org.intermine.util.StringUtil;
+import org.intermine.web.context.InterMineContext;
 import org.intermine.web.logic.config.FieldConfig;
 import org.intermine.web.logic.config.FieldConfigHelper;
 import org.intermine.web.logic.config.Type;
@@ -179,6 +183,73 @@ public abstract class WebUtil
             return new String[0];
         }
         return StringUtil.split(prop, ":");
+    }
+    
+    public final static class HeadResource {
+        private final String type;
+        private final String url;
+        private final String key;
+
+        private HeadResource(String key, String type, String url) {
+            this.key = key;
+            this.type = type;
+            this.url = url;
+        }
+
+        public String getKey() {
+            return key;
+        }
+        
+        public String getType() {
+            return type;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+        
+        public boolean getIsRelative() {
+            return url.startsWith("/");
+        }
+        
+        @Override
+        public String toString() {
+            return String.format("HeadResouce [type = %s, url = %s]", type, url);
+        }
+    }
+    
+    /**
+     * Returns the resources for a particular section of the head element.
+     * 
+     * @param section The section this resource belongs in.
+     * 
+     * @return A list of page resources, which are the urls for these resources. 
+     */
+    public static List<HeadResource> getHeadResources(String section) {
+        Properties webProperties = InterMineContext.getWebProperties();
+        String cdnLocation = webProperties.getProperty("head.cdn.location");
+        List<HeadResource> ret = new ArrayList<HeadResource>();
+        for (String type: new String[]{ "css", "js" }) {
+            String key = String.format("head.%s.%s.", type, section);
+            Properties matches = PropertiesUtil.getPropertiesStartingWith(key, webProperties);
+            Set<Object> keys = new TreeSet<Object>(matches.keySet());
+            for (Object o: keys) {
+                String propName = String.valueOf(o);
+                String value = matches.getProperty(propName);
+                if (StringUtils.isBlank(value)) {
+                    LOG.warn("Head resource configured with blank value: skipping " + propName);
+                } else {
+                    if (value.startsWith("CDN")) {
+                        value = value.replace("CDN", cdnLocation);
+                    } else if (!(value.startsWith("/") || value.startsWith("http"))) {
+                        value = String.format("/%s/%s", type, value);
+                    }
+                    HeadResource resource = new HeadResource(propName, type, value);
+                    ret.add(resource);
+                }
+            }
+        }
+        return ret;
     }
 
     /**
@@ -518,6 +589,26 @@ public abstract class WebUtil
         }
 
         return formatPathDescription(p, pq, config);
+    }
+
+    /**
+     * So we can test set membership in JSPs.
+     * @param things The things
+     * @param o The thing
+     * @return Whether the thing is one of the things.
+     */
+    public static boolean contains(Collection<?> things, Object o) {
+        return things.contains(o);
+    }
+
+    /**
+     * So we can test map membership in JSPs.
+     * @param mapping The things
+     * @param o The thing
+     * @return Whether the thing is one of the keys in things.
+     */
+    public static boolean containsKey(Map<?, ?> mapping, Object o) {
+        return mapping.containsKey(o);
     }
 
     /**

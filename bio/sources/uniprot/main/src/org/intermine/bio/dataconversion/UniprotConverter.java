@@ -1,7 +1,7 @@
 package org.intermine.bio.dataconversion;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -15,6 +15,7 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,7 +25,6 @@ import java.util.Stack;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.intermine.bio.util.OrganismData;
 import org.intermine.bio.util.OrganismRepository;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
@@ -37,7 +37,6 @@ import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
 
 /**
  * DataConverter to parse UniProt data into items.  Improved version of UniProtConverter.
@@ -62,7 +61,7 @@ public class UniprotConverter extends BioDirectoryConverter
     private Map<String, String> genes = new HashMap<String, String>();
     private Map<String, String> goterms = new HashMap<String, String>();
     private Map<String, String> goEvidenceCodes = new HashMap<String, String>();
-    private static final String GENUS_LOOKUP = "Drosophila";
+    private Map<String, String> ecNumbers = new HashMap<String, String>();
     private static final int POSTGRES_INDEX_SIZE = 2712;
 
     // don't allow duplicate identifiers
@@ -70,12 +69,17 @@ public class UniprotConverter extends BioDirectoryConverter
 
     private boolean createInterpro = false;
     private boolean creatego = false;
-    private boolean loadFragments = false;
+    private boolean loadfragments = false;
+    private boolean allowduplicates = false;
+    private boolean loadtrembl = true;
     private Set<String> taxonIds = null;
 
-    protected IdResolverFactory flyResolverFactory;
+    protected IdResolver rslv;
+    private static final String FLY = "7227";
     private String datasourceRefId = null;
+    @SuppressWarnings("unused")
     private OrganismRepository or;
+    private static final Map<String, String> GENE_PREFIXES = new HashMap<String, String>();
 
     /**
      * Constructor
@@ -84,9 +88,11 @@ public class UniprotConverter extends BioDirectoryConverter
      */
     public UniprotConverter(ItemWriter writer, Model model) {
         super(writer, model, "UniProt", "Swiss-Prot data set");
-        // only construct factory here so can be replaced by mock factory in tests
-        flyResolverFactory = new FlyBaseIdResolverFactory("gene");
         or = OrganismRepository.getOrganismRepository();
+    }
+
+    static {
+        GENE_PREFIXES.put("10116", "RGD:");
     }
 
     /**
@@ -103,6 +109,11 @@ public class UniprotConverter extends BioDirectoryConverter
             throw new RuntimeException(e);
         }
         Map<String, File[]> taxonIdToFiles = parseFileNames(dataDir.listFiles());
+
+        // init id resolver
+        if (rslv == null) {
+            rslv = IdResolverService.getIdResolverByOrganism(FLY);
+        }
 
         if (taxonIds != null) {
             for (String taxonId : taxonIds) {
@@ -123,7 +134,9 @@ public class UniprotConverter extends BioDirectoryConverter
                 if ("uniprot_sprot.xml".equals(filename)) {
                     sortedFiles[0] = file;
                 } else if ("uniprot_trembl.xml".equals(filename)) {
-                    sortedFiles[1] = file;
+                    if (loadtrembl) {
+                        sortedFiles[1] = file;
+                    }
                 }
             }
             processFiles(sortedFiles);
@@ -166,7 +179,7 @@ public class UniprotConverter extends BioDirectoryConverter
      *  [TAXONID]_uniprot_[SOURCE].xml
      *  SOURCE: sprot or trembl
      */
-    private Map<String, File[]> parseFileNames(File[] fileList) {
+    protected Map<String, File[]> parseFileNames(File[] fileList) {
         Map<String, File[]> files = new HashMap<String, File[]>();
         if (fileList == null) {
             return null;
@@ -186,6 +199,11 @@ public class UniprotConverter extends BioDirectoryConverter
                         +  " (" + bits[2] + "), expecting sprot or trembl ");
                 continue;
             }
+
+            if (!loadtrembl && "trembl".equals(source)) {
+                continue;
+            }
+
             int i = ("sprot".equals(source) ? 0 : 1);
             if (!files.containsKey(taxonId)) {
                 File[] sourceFiles = new File[2];
@@ -216,12 +234,37 @@ public class UniprotConverter extends BioDirectoryConverter
      * @param creatego whether or not to import GO terms (true/false)
      */
     public void setCreatego(String creatego) {
-        if ("true".equals(creatego)) {
+        if ("true".equalsIgnoreCase(creatego)) {
             this.creatego = true;
         } else {
             this.creatego = false;
         }
     }
+
+    /**
+     * Toggle whether or not to load trembl data for all given organisms
+     * @param loadtrembl whether or not to load trembl data
+     */
+    public void setLoadtrembl(String loadtrembl) {
+        if ("true".equalsIgnoreCase(loadtrembl)) {
+            this.loadtrembl = true;
+        } else {
+            this.loadtrembl = false;
+        }
+    }
+
+    /**
+     * Toggle whether or not to load trembl data
+     * @param allowduplicates whether or not to allow duplicate sequences
+     */
+    public void setAllowduplicates(String allowduplicates) {
+        if ("true".equalsIgnoreCase(allowduplicates)) {
+            this.allowduplicates = true;
+        } else {
+            this.allowduplicates = false;
+        }
+    }
+
 
     /**
      * Sets the list of taxonIds that should be imported if using split input files.
@@ -237,13 +280,13 @@ public class UniprotConverter extends BioDirectoryConverter
     /**
      * Toggle whether or not to load fragments.  default to false.
      *
-     * @param loadFragments if true, will load all proteins even if isFragment = true
+     * @param loadfragments if true, will load all proteins even if isFragment = true
      */
-    public void setLoadfragments(String loadFragments) {
-        if ("true".equalsIgnoreCase(loadFragments)) {
-            this.loadFragments = true;
+    public void setLoadfragments(String loadfragments) {
+        if ("true".equalsIgnoreCase(loadfragments)) {
+            this.loadfragments = true;
         } else {
-            this.loadFragments = false;
+            this.loadfragments = false;
         }
     }
 
@@ -298,6 +341,8 @@ public class UniprotConverter extends BioDirectoryConverter
                 attName = "component";
             } else if ("name".equals(qName) && "entry".equals(previousQName)) {
                 attName = "primaryIdentifier";
+            } else if ("ecNumber".equals(qName)) {
+                attName = "ecNumber";
             } else if ("accession".equals(qName)) {
                 attName = "value";
             } else if ("dbReference".equals(qName) && "organism".equals(previousQName)) {
@@ -423,6 +468,8 @@ public class UniprotConverter extends BioDirectoryConverter
                 entry.setName(attValue.toString());
             } else if (StringUtils.isNotEmpty(attName) && "synonym".equals(attName)) {
                 entry.addProteinName(attValue.toString());
+            } else if (StringUtils.isNotEmpty(attName) && "ecNumber".equals(attName)) {
+                entry.addECNumber(attValue.toString());
             } else if ("text".equals(qName) && "comment".equals(previousQName)) {
                 String commentText = attValue.toString();
                 if (StringUtils.isNotEmpty(commentText)) {
@@ -433,9 +480,9 @@ public class UniprotConverter extends BioDirectoryConverter
                         String ellipses = "...";
                         String choppedComment = commentText.substring(
                                 0, POSTGRES_INDEX_SIZE - ellipses.length());
-                        item.setAttribute("text", choppedComment + ellipses);
+                        item.setAttribute("description", choppedComment + ellipses);
                     } else {
-                        item.setAttribute("text", commentText);
+                        item.setAttribute("description", commentText);
                     }
                     String refId = item.getIdentifier();
                     try {
@@ -544,8 +591,8 @@ public class UniprotConverter extends BioDirectoryConverter
             }
             Set<UniprotEntry> isoforms = new HashSet<UniprotEntry>();
             // have we already seen a protein for this organism with the same sequence?
-            if (!uniprotEntry.isIsoform() && seenSequence(uniprotEntry.getTaxonId(),
-                    uniprotEntry.getMd5checksum())) {
+            if (!uniprotEntry.isIsoform() && !allowduplicates
+                    && seenSequence(uniprotEntry.getTaxonId(), uniprotEntry.getMd5checksum())) {
                 // if we have seen this sequence before for this organism just add the
                 // primaryAccession of this protein as a synonym for the one already stored.
                 Map<String, String> orgSequences = sequences.get(uniprotEntry.getTaxonId());
@@ -561,8 +608,8 @@ public class UniprotConverter extends BioDirectoryConverter
             if (uniprotEntry.hasDatasetRefId() && uniprotEntry.hasPrimaryAccession()
                     && !uniprotEntry.isDuplicate()) {
 
-                if (!loadFragments && "true".equalsIgnoreCase(uniprotEntry.isFragment())) {
-                    return null;
+                if (!loadfragments && "true".equalsIgnoreCase(uniprotEntry.isFragment())) {
+                    return Collections.emptySet();
                 }
 
                 setDataSet(uniprotEntry.getDatasetRefId());
@@ -574,6 +621,8 @@ public class UniprotConverter extends BioDirectoryConverter
 
                 /* primaryAccession, primaryIdentifier, name, etc */
                 processIdentifiers(protein, uniprotEntry);
+
+                processECNumbers(protein, uniprotEntry);
 
                 String isCanonical = (uniprotEntry.isIsoform() ? "false" : "true");
                 protein.setAttribute("isUniprotCanonical", isCanonical);
@@ -645,7 +694,7 @@ public class UniprotConverter extends BioDirectoryConverter
             for (Map.Entry<Integer, List<String>> e : commentEvidence.entrySet()) {
                 Integer intermineObjectId = e.getKey();
                 List<String> evidenceCodes = e.getValue();
-                List<String> pubRefIds = new ArrayList();
+                List<String> pubRefIds = new ArrayList<String>();
                 for (String code : evidenceCodes) {
                     String pubRefId = uniprotEntry.getPubRefId(code);
                     if (pubRefId != null) {
@@ -703,6 +752,30 @@ public class UniprotConverter extends BioDirectoryConverter
                 primaryIdentifier = getIsoformIdentifier(primaryAccession, primaryIdentifier);
             }
             protein.setAttribute("primaryIdentifier", primaryIdentifier);
+        }
+
+        private void processECNumbers(Item protein, UniprotEntry uniprotEntry)
+            throws SAXException {
+            List<String> ecs = uniprotEntry.getECNumbers();
+            if (ecs == null || ecs.isEmpty()) {
+                return;
+            }
+            for (String identifier : ecs) {
+                String refId = ecNumbers.get(identifier);
+
+                if (refId == null) {
+                    Item item = createItem("ECNumber");
+                    item.setAttribute("identifier", identifier);
+                    ecNumbers.put(identifier, item.getIdentifier());
+                    try {
+                        store(item);
+                    } catch (ObjectStoreException e) {
+                        throw new SAXException(e);
+                    }
+                    refId = item.getIdentifier();
+                }
+                protein.addToCollection("ecNumbers", refId);
+            }
         }
 
         private String getIsoformIdentifier(String primaryAccession, String primaryIdentifier) {
@@ -785,10 +858,6 @@ public class UniprotConverter extends BioDirectoryConverter
                 String key = dbref.getKey();
                 Set<String> values = dbref.getValue();
                 for (String identifier : values) {
-                    if ("EC".equals(key)) {
-                        protein.setAttribute("ecNumber", identifier);
-                        return;
-                    }
                     setCrossReference(protein.getIdentifier(), identifier, key, false);
                 }
             }
@@ -852,6 +921,10 @@ public class UniprotConverter extends BioDirectoryConverter
                 if (StringUtils.isEmpty(identifier)) {
                     continue;
                 }
+                if (GENE_PREFIXES.containsKey(taxId)) {
+                    // Prepend RGD:
+                    identifier = GENE_PREFIXES.get(taxId) + identifier;
+                }
                 gene = getGene(protein, uniprotEntry, identifier, taxId,
                         uniqueIdentifierField);
                 // if we only have one gene, store later, we may have other gene fields to update
@@ -860,7 +933,7 @@ public class UniprotConverter extends BioDirectoryConverter
                 }
             }
 
-            if (!hasMultipleGenes && gene != null) {
+            if (gene != null && !hasMultipleGenes) {
                 Set<String> geneFields = getOtherFields(taxId);
                 for (String geneField : geneFields) {
                     geneIdentifiers = getGeneIdentifiers(uniprotEntry, geneField);
@@ -870,6 +943,10 @@ public class UniprotConverter extends BioDirectoryConverter
                     for (String geneIdentifier : geneIdentifiers) {
                         if (StringUtils.isEmpty(geneIdentifier)) {
                             continue;
+                        }
+                        if (GENE_PREFIXES.containsKey(taxId)) {
+                            // Prepend RGD:
+                            geneIdentifier = GENE_PREFIXES.get(taxId) + geneIdentifier;
                         }
                         gene.setAttribute(geneField, geneIdentifier);
                     }
@@ -923,6 +1000,8 @@ public class UniprotConverter extends BioDirectoryConverter
             } else {
                 LOG.error("error processing config for organism " + taxId);
             }
+
+
             return geneIdentifiers;
         }
 
@@ -1007,27 +1086,25 @@ public class UniprotConverter extends BioDirectoryConverter
         }
 
         private String resolveGene(String taxId, String identifier) {
-            OrganismData od = or.getOrganismDataByTaxon(new Integer(taxId));
-            if (od != null && od.getGenus().equals(GENUS_LOOKUP) && flyResolverFactory != null) {
+            if (FLY.equals(taxId)) {
                 return resolveFlyGene(taxId, identifier);
             }
             return identifier;
         }
 
         private String resolveFlyGene(String taxId, String identifier) {
-            IdResolver flyResolver = flyResolverFactory.getIdResolver(false);
-            if (flyResolver == null) {
+            if (rslv == null || !rslv.hasTaxon(taxId)) {
                 // no id resolver available, so return the original identifier
                 return identifier;
             }
-            int resCount = flyResolver.countResolutions(taxId, identifier);
+            int resCount = rslv.countResolutions(taxId, identifier);
             if (resCount != 1) {
                 LOG.info("RESOLVER: failed to resolve gene to one identifier, ignoring gene: "
                          + identifier + " count: " + resCount + " FBgn: "
-                         + flyResolver.resolveId(taxId, identifier));
+                         + rslv.resolveId(taxId, identifier));
                 return null;
             }
-            return flyResolver.resolveId(taxId, identifier).iterator().next();
+            return rslv.resolveId(taxId, identifier).iterator().next();
         }
     }
 

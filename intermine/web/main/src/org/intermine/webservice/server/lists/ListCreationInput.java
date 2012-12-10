@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.lists;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -13,6 +13,7 @@ package org.intermine.webservice.server.lists;
 import javax.servlet.http.HttpServletRequest;
 
 import org.intermine.api.bag.BagManager;
+import org.intermine.api.profile.Profile;
 import org.intermine.webservice.server.exceptions.BadRequestException;
 
 /**
@@ -28,8 +29,8 @@ public class ListCreationInput extends ListInput
      * @param request The request we are responding to.
      * @param bagManager The manager for requesting bags from.
      */
-    public ListCreationInput(HttpServletRequest request, BagManager bagManager) {
-        super(request, bagManager);
+    public ListCreationInput(HttpServletRequest request, BagManager bagManager, Profile profile) {
+        super(request, bagManager, profile);
     }
 
     @Override

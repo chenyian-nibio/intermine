@@ -4,38 +4,41 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!-- footer.jsp -->
-
-<br/><br/><br/>
+<br/>
+<br/>
+<br/>
 
 <div class="body" align="center" style="clear:both">
-
-      <c:if test="${pageName != 'contact'}">
+    <!-- contact -->
+    <c:if test="${pageName != 'contact'}">
         <div id="contactFormDivButton">
-          <im:vspacer height="11"/>
-          <div class="contactButton">
-             <a href="#" onclick="showContactForm();return false">
-               <b><fmt:message key="feedback.title"/></b>
-             </a>
-          </div>
+            <im:vspacer height="11" />
+            <div class="contactButton">
+                <a href="#" onclick="showContactForm();return false">
+                    <b><fmt:message key="feedback.title"/></b>
+                </a>
+            </div>
         </div>
-
-      <div id="contactFormDiv" style="display:none;">
-            <im:vspacer height="11"/>
-              <tiles:get name="contactForm"/>
+        <div id="contactFormDiv" style="display:none;">
+            <im:vspacer height="11" />
+            <tiles:get name="contactForm" />
         </div>
-      </c:if>
+    </c:if>
+    <br/>
 
-<br/>
-<div id="funding-footer">
-    <fmt:message key="funding"/>
-    <br/><br/>
-    <p>Powered by</p>
-    <a target="new" href="http://intermine.org" title="InterMine">
-        <img src="/targetmine/images/icons/intermine-footer-logo.png" alt="InterMine logo" style="vertical-align: bottom;" />
-    </a>
-    &nbsp;<span style="font-style: italic; color: #666">0.99</span>
-</div>
+    <!-- funding -->
+    <div id="funding-footer">
+        <fmt:message key="funding" />
+        <br/>
+        <br/>
 
+        <!-- powered -->
+        <p>Powered by</p>
+        <a target="new" href="http://intermine.org" title="InterMine">
+            <img src="images/icons/intermine-footer-logo.png" alt="InterMine logo" />
+		    &nbsp;<span style="font-style: italic; color: #666">1.1</span>
+        </a>
+    </div>
 </div>
 
 <!-- /footer.jsp -->

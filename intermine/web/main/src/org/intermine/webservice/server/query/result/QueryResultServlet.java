@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.query.result;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -18,7 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.intermine.api.InterMineAPI;
-import org.intermine.web.logic.session.SessionMethods;
+import org.intermine.web.context.InterMineContext;
+import org.intermine.webservice.server.WebService;
 
 
 
@@ -53,7 +54,15 @@ public class QueryResultServlet extends HttpServlet
         // Service has always new data and fields in executor are initialized
         // according new data
         // and not remember fields initialized according previous request data
-        final InterMineAPI im = SessionMethods.getInterMineAPI(request.getSession());
-        new QueryResultService(im).service(request, response);
+        String pathInfo = request.getPathInfo();
+        final InterMineAPI im = InterMineContext.getInterMineAPI();
+        WebService ws;
+        if (pathInfo != null && pathInfo.endsWith("tablerows")) {
+            ws = new TableRowService(im);
+        } else {
+            ws = new QueryResultService(im);
+        }
+        
+        ws.service(request, response);
     }
 }

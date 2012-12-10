@@ -24,10 +24,10 @@ public class FlatWidgetProcessor extends WidgetProcessorImpl
     public List<String> process(String name, WidgetConfig widgetConfig) {
         String widgetType = getWidgetType(widgetConfig);
         return new LinkedList<String>(
-                Arrays.asList(name, widgetConfig.getTitle(), 
+                Arrays.asList(name, widgetConfig.getTitle(),
                     widgetConfig.getDescription(), widgetType,
-                    formatTypeClass(widgetConfig.getTypeClass()), 
-                    getAvailableFilters(widgetConfig).toString()));
+                    formatTypeClass(widgetConfig.getTypeClass()),
+                    widgetConfig.getFilters()));
     }
 
     private static String formatTypeClass(String tc) {
@@ -36,7 +36,7 @@ public class FlatWidgetProcessor extends WidgetProcessorImpl
             if (sb.length() > 0) {
                 sb.append(",");
             }
-            sb.append(s.substring(s.lastIndexOf('.') + 1));
+            sb.append(s);
         }
         return sb.toString();
     }

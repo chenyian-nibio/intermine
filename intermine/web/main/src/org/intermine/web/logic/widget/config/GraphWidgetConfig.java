@@ -1,7 +1,7 @@
 package org.intermine.web.logic.widget.config;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -10,8 +10,6 @@ package org.intermine.web.logic.widget.config;
  *
  */
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -19,10 +17,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.objectstore.ObjectStore;
-import org.intermine.util.TypeUtil;
 import org.intermine.web.logic.widget.GraphWidget;
 
 /**
@@ -32,15 +28,18 @@ import org.intermine.web.logic.widget.GraphWidget;
  */
 public class GraphWidgetConfig extends WidgetConfig
 {
-    private static final Logger LOG = Logger.getLogger(GraphWidgetConfig.class);
     private String domainLabel;
     private String rangeLabel;
     private String graphType;
-    private int width = 430;
-    private int height = 350;
-    private String extraAttributeClass, externalLink, externalLinkLabel;
+    private String bagType;
+    private String listPath;
+    private String categoryPath;
+    private String seriesPath;
+    private String seriesValues;
+    private String seriesLabels;
     private HttpSession session;
     private String editable;
+    public static final String ACTUAL_EXPECTED_CRITERIA = "ActualExpectedCriteria";
 
     /**
      * Get the session
@@ -114,23 +113,69 @@ public class GraphWidgetConfig extends WidgetConfig
      */
     public String toString() {
         return "< title=\"" + getTitle() + " domainLabel=\"" + domainLabel + " rangeLabel=\""
-               + rangeLabel + " dataSetLoader=\"" + getDataSetLoader()
-               + " urlGen=\"" + getLink() + "\" />";
+               + rangeLabel + " />";
     }
 
-
-    /**
-     * @return the extraAttributeClass
-     */
-    public String getExtraAttributeClass() {
-        return extraAttributeClass;
+    public String getBagType() {
+        return bagType;
     }
 
-    /**
-     * @param extraAttributeClass the extraAttributeClass to set
-     */
-    public void setExtraAttributeClass(String extraAttributeClass) {
-        this.extraAttributeClass = extraAttributeClass;
+    public void setBagType(String bagType) {
+        this.bagType = bagType;
+    }
+
+    public String getListPath() {
+        return listPath;
+    }
+
+    public void setListPath(String bagPath) {
+        this.listPath = bagPath;
+    }
+
+    public boolean isListPathSet() {
+        if (listPath != null && !"".equals(listPath)) {
+            return true;
+        }
+        return false;
+    }
+
+    public String getCategoryPath() {
+        return categoryPath;
+    }
+
+    public void setCategoryPath(String categoryPath) {
+        this.categoryPath = categoryPath;
+    }
+
+    public String getSeriesPath() {
+        return seriesPath;
+    }
+
+    public void setSeriesPath(String seriesPath) {
+        this.seriesPath = seriesPath;
+    }
+
+    public boolean isActualExpectedCriteria() {
+        if (this.seriesPath.contains(ACTUAL_EXPECTED_CRITERIA)) {
+            return true;
+        }
+        return false;
+    }
+
+    public String getSeriesValues() {
+        return seriesValues;
+    }
+
+    public void setSeriesValues(String seriesValues) {
+        this.seriesValues = seriesValues;
+    }
+
+    public String getSeriesLabels() {
+        return seriesLabels;
+    }
+
+    public void setSeriesLabels(String seriesLabels) {
+        this.seriesLabels = seriesLabels;
     }
 
     /**
@@ -152,89 +197,14 @@ public class GraphWidgetConfig extends WidgetConfig
      */
     public Map<String, Collection<String>> getExtraAttributes(InterMineBag imBag, ObjectStore os)
         throws Exception {
-        Collection<String> extraAttributes = new ArrayList<String>();
         Map<String, Collection<String>> returnMap = new HashMap<String, Collection<String>>();
-        if (extraAttributeClass != null && extraAttributeClass.length() > 0) {
-            try {
-                Class<?> clazz = TypeUtil.instantiate(extraAttributeClass);
-                Method extraAttributeMethod = clazz.getMethod("getExtraAttributes",
-                            new Class[] {ObjectStore.class, InterMineBag.class});
-                // invoking a static method the first argument is ignored
-                extraAttributes = (Collection<String>) extraAttributeMethod.invoke(null, os, imBag);
-            } catch (Exception e) {
-                LOG.error(e.getMessage());
-                return returnMap;
-            }
-        }
-        if (extraAttributes.size() > 0) {
-            returnMap.put("Organism", extraAttributes);
-        }
-        if (editable != null && "true".equals(editable)) {
-            returnMap.put("Editable", new ArrayList<String>());
-        }
         return returnMap;
     }
 
     /**
      * {@inheritDoc}
      */
-    public String getExternalLink() {
-        return externalLink;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void setExternalLink(String externalLink) {
-        this.externalLink = externalLink;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public String getExternalLinkLabel() {
-        return externalLinkLabel;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void setExternalLinkLabel(String externalLinkLabel) {
-        this.externalLinkLabel = externalLinkLabel;
-    }
-
-    /**
-     * @return the width
-     */
-    public int getWidth() {
-        return width;
-    }
-
-    /**
-     * @return the height
-     */
-    public int getHeight() {
-        return height;
-    }
-
-    /**
-     * @param width the width to set
-     */
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    /**
-     * @param height the height to set
-     */
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public GraphWidget getWidget(InterMineBag imBag, ObjectStore os,
+    public GraphWidget getWidget(InterMineBag imBag, InterMineBag populationBag, ObjectStore os,
                                  List<String> selectedExtraAttribute) {
         return new GraphWidget(this, imBag, os, selectedExtraAttribute.get(0));
     }

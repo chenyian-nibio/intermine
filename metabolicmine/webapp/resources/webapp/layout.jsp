@@ -132,12 +132,61 @@
     <c:set var="googleAnalyticsId" value="${WEB_PROPERTIES['google.analytics.id']}"/>
     <c:if test="${!empty googleAnalyticsId}">
         <script type="text/javascript">
-            document.write(unescape("%3Cscript src='http://www.google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-        </script>
-        <script type="text/javascript">
-            var pageTracker = _gat._getTracker('${googleAnalyticsId}');
-            pageTracker._initData();
-            pageTracker._trackPageview();
+          switch ("${userTracking}") {
+            case "1":
+
+              var _gaq = _gaq || [];
+              _gaq.push(['_setAccount', '${googleAnalyticsId}']);
+              _gaq.push(['_trackPageview']);
+
+              (function() {
+                var ga = document.createElement('script');
+                ga.type = 'text/javascript';
+                ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+              })();
+
+              break;
+
+            case "2":
+              // save cookie
+              var saveTrackingAnswer = function(answer) {
+                var date = new Date();
+                date.setTime(date.getTime() + 31536000000);
+                document.cookie = "userTracking=" + escape(answer) + "; expires=" + date.toUTCString() + "; path=/";
+              };
+              // show msg
+              jQuery("#ctxHelpDiv").after( function() {
+                return el = jQuery("<div/>", { 'class': 'topBar info userTracking', 'style': 'margin:5px 0' })
+                .html( function() {
+                    return jQuery('<p/>', { 'text': '${userTrackingMessage}' })
+                    .append( function() {
+                      return jQuery('<a/>', {
+                        'text': 'No',
+                        'href': '#',
+                        'click': function(e) {
+                          e.preventDefault();
+                          saveTrackingAnswer("0");
+                          jQuery(el).remove();
+                        }
+                      })
+                    } )
+                    .append( function() {
+                      return jQuery('<a/>', {
+                        'text': 'Yes',
+                        'href': '#',
+                        'style': 'margin:0 10px',
+                        'click': function(e) {
+                          e.preventDefault();
+                          saveTrackingAnswer("1");
+                          jQuery(el).remove();
+                        }
+                      })
+                    } )
+                } )
+              } );
+          }
         </script>
     </c:if>
     <c:if test="${!empty fixedLayout}">
@@ -156,6 +205,15 @@
         element.css('background-image', 'none');
       }
     });
+  }
+
+  if ((typeof intermine != 'undefined') && (intermine.Service != null)) {
+      // Set up the service, if required.
+      $SERVICE = new intermine.Service({
+          "root": "${WEB_PROPERTIES['webapp.baseurl']}/${WEB_PROPERTIES['webapp.path']}",
+          "token": "${PROFILE.dayToken}",
+          "help": "${WEB_PROPERTIES['feedback.destination']}"
+      });
   }
 
   $MODEL_TRANSLATION_TABLE = {

@@ -27,15 +27,7 @@
   <class className="org.intermine.model.bio.Comment">
     <fields>
       <fieldconfig fieldExpr="type"/>
-      <fieldconfig fieldExpr="text"/>
-    </fields>
-  </class>
-
-  <class className="org.intermine.model.bio.CrossReference">
-    <fields>
-      <fieldconfig fieldExpr="identifier"/>
-      <fieldconfig fieldExpr="source.name"/>
-      <fieldconfig fieldExpr="subject.primaryIdentifier"/>
+      <fieldconfig fieldExpr="description"/>
     </fields>
   </class>
 
@@ -56,22 +48,18 @@
 
   <class className="org.intermine.model.bio.Gene">
     <fields>
-      <fieldconfig fieldExpr="ncbiGeneNumber"/>
+      <fieldconfig fieldExpr="ncbiGeneId"/>
       <fieldconfig fieldExpr="primaryIdentifier" showInSummary="false"/>
       <fieldconfig fieldExpr="secondaryIdentifier" showInSummary="false"/>
       <fieldconfig fieldExpr="symbol"/>
       <fieldconfig fieldExpr="name" showInSummary="false"/>
       <fieldconfig fieldExpr="organism.shortName" />
     </fields>
-    <bagdisplayers>
-      <!-- attribute links can now be configured for gene list analysis pages -->
-      <displayer src="attributeLinkDisplayer.tile"/>
-    </bagdisplayers>
   </class>
 
  <class className="org.intermine.model.bio.Location">
     <fields>
-      <fieldconfig fieldExpr="locatedOn.primaryIdentifier"/>
+      <fieldconfig fieldExpr="feature.primaryIdentifier"/>
       <fieldconfig fieldExpr="start"/>
       <fieldconfig fieldExpr="end"/>
       <fieldconfig fieldExpr="strand"/>
@@ -89,8 +77,6 @@
       <fieldconfig fieldExpr="chromosomeLocation.end" showInInlineCollection="false" showInSummary="false" />
       <fieldconfig fieldExpr="organism.name"/>
     </fields>
-    <bagdisplayers>
-    </bagdisplayers>
   </class>
 
   <class className="org.intermine.model.bio.Ontology">
@@ -99,26 +85,24 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.OntologyRelation">
-    <fields>
-      <fieldconfig fieldExpr="relationship"/>
-      <fieldconfig fieldExpr="parentTerm.name"/>
-      <fieldconfig fieldExpr="parentTerm.identifier"/>
-      <fieldconfig fieldExpr="childTerm.name"/>
-      <fieldconfig fieldExpr="childTerm.identifier"/>
-    </fields>
-  </class>
-
   <class className="org.intermine.model.bio.OntologyTerm">
     <headerconfig>
       <titles>
-        <title mainTitles="identifier|name" subTitles="ontology.name" />
+      <title mainTitles="identifier|name" subTitles="ontology.name" />
       </titles>
     </headerconfig>
     <fields>
       <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="description" doNotTruncate="true" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.OntologyRelation">
+    <fields>
+      <fieldconfig fieldExpr="relationship"/>
+      <fieldconfig fieldExpr="parentTerm.identifier"/>
+      <fieldconfig fieldExpr="childTerm.identifier"/>
     </fields>
   </class>
 
@@ -142,6 +126,9 @@
   </class>
 
   <class className="org.intermine.model.bio.Protein">
+    <inlinelist>
+      <table path="synonyms.value" showLinksToObjects="true" />
+    </inlinelist>
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
       <fieldconfig fieldExpr="primaryAccession"/>
@@ -149,11 +136,17 @@
       <fieldconfig fieldExpr="organism.name"/>
       <fieldconfig fieldExpr="length" displayer="/model/sequenceShortDisplayerWithField.jsp" />
     </fields>
-    <bagdisplayers>
-    </bagdisplayers>
   </class>
 
   <class className="org.intermine.model.bio.Publication">
+    <headerconfig>
+      <titles>
+        <title mainTitles="title" />
+      </titles>
+    </headerconfig>
+    <inlinelist>
+      <table path="authors.name" showLinksToObjects="true" />
+    </inlinelist>
     <fields>
       <fieldconfig fieldExpr="firstAuthor"/>
       <fieldconfig fieldExpr="title"/>
@@ -180,7 +173,7 @@
       <fieldconfig fieldExpr="value"/>
     </fields>
   </class>
-
+<!--TargetMine-->
   <class className="org.intermine.model.bio.ProteinStructure">
     <fields>
       <fieldconfig fieldExpr="pdbId"/>
@@ -276,8 +269,8 @@
   <class className="org.intermine.model.bio.Homologue">
     <fields>
       <fieldconfig fieldExpr="type"/>
-      <fieldconfig fieldExpr="gene.ncbiGeneNumber" showInResults="false" showInInlineCollection="false" />
-      <fieldconfig fieldExpr="homologue.ncbiGeneNumber"/>
+      <fieldconfig fieldExpr="gene.ncbiGeneId" showInResults="false" showInInlineCollection="false" />
+      <fieldconfig fieldExpr="homologue.ncbiGeneId"/>
       <fieldconfig fieldExpr="homologue.organism.shortName"/>
     </fields>
   </class>
@@ -434,7 +427,7 @@
     <fields>
       <fieldconfig fieldExpr="role"/>
       <fieldconfig fieldExpr="interactionType"/>
-      <fieldconfig fieldExpr="interactWith.ncbiGeneNumber"/>
+      <fieldconfig fieldExpr="interactWith.ncbiGeneId"/>
       <fieldconfig fieldExpr="interactWith.symbol"/>
     </fields>
   </class>
@@ -467,6 +460,7 @@
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
   <tableExportConfig id="gff3" className="org.intermine.bio.web.export.GFF3HttpExporter"/>
+  <tableExportConfig id="bed" className="org.intermine.bio.web.export.BEDHttpExporter"/>
 
 <!-- reportdisplayers -->
   <reportdisplayers>
@@ -506,95 +500,104 @@
   
 <!-- widgets -->
 <widgets>
-      <enrichmentwidgetdisplayer id="pathway_enrichment" title="Pathway Enrichment"
-                                 link="org.intermine.bio.web.widget.TmPathwayURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.PathwayDataLoader"
-                                 label="Pathway"
-                                 description="Pathways enriched for items in this list."
-                                 filters="All datasets,KEGG,Reactome,NCI" 
-                                 filterLabel="DataSet" 
-                                 externalLink="multi: org.intermine.bio.web.widget.config.PathwayExternalLink" 
-                                 typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
-                                 />
 
-<!--
-      <enrichmentwidgetdisplayer id="gene_set_enrichment" title="Gene Set Cluster Enrichment"
-                                 link="org.intermine.bio.web.widget.GeneSetURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.GeneSetDataLoader"
-                                 label="Gene Set Cluster"
-                                 description="Gene Set Cluster enriched for genes in this list."
-                                 filters="Hierarchical,Heuristic" 
-                                 filterLabel="DataSet" 
-                                 typeClass="org.intermine.model.bio.Gene" />
-      <graphdisplayer id="pathway_distribution" title="Pathway Distribution"
-								link="org.intermine.bio.web.widget.PathwayGraphURLGenerator"
-								domainLabel="Pathway"
-								rangeLabel="Percentage(%)"
-								dataSetLoader="org.intermine.bio.web.widget.PathwayDataSetLoader"
-								description="Bar chart for pathway enrichment. Only top 10 pathway are shown."
-								graphType="BarChart"
-								typeClass="org.intermine.model.bio.Gene"  />
--->
-      <enrichmentwidgetdisplayer id="compound_enrichment" title="Compound Enrichment"
-                                 link="org.intermine.bio.web.widget.CompoundURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.CompoundDataLoader"
-                                 label="Compounds"
-                                 description="Compounds enriched for items in this list."
-                                 filters="DrugBank,ChEMBL,Stitch,PDB"
-                                 filterLabel="DataSet" 
-                                 externalLink="multi: org.intermine.bio.web.widget.config.CompoundExternalLink" 
-                                 typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
-                                 />
- 
-      <enrichmentwidgetdisplayer id="go_enrichment" title="Gene Ontology Enrichment"
-                                 link="org.intermine.bio.web.widget.TmGoStatURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.GoStatLdr"
-                                 description="GO terms enriched for items in this list."
+      <enrichmentwidgetdisplayer id="gene_pathway_enrichment"
+                                 title="Pathway Enrichment"
+                                 description="Pathways enriched for genes in this list - data from KEGG, Reactome and NCI"
+                                 label="Pathways"
+                                 filterLabel="DataSet"
+                                 filters="All,KEGG pathways data set,Reactome data set,NCI-Nature data set"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="pathways.name"
+                                 enrichIdentifier="pathways.identifier"
+                                 constraints="pathways.dataSets.name=[DataSet],organism.taxonId=[list], primaryIdentifier != null"
+                                 typeClass="Gene"
+                                 views="ncbiGeneId, symbol, organism.name, pathways.identifier, pathways.name, pathways.dataSets.name"/>
+
+      <enrichmentwidgetdisplayer id="gene_go_enrichment"
+                                 title="Gene Ontology Enrichment"
+                                 description="GO terms enriched for genes in this list."
                                  label="GO Term"
+                                 filterLabel="Ontology"
                                  filters="biological_process,cellular_component,molecular_function"
-                                 filterLabel="NS"
-                                 typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein"
-                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term=" 
-                                 />
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="goAnnotation.ontologyTerm.parents.name"
+                                 enrichIdentifier="goAnnotation.ontologyTerm.parents.identifier"
+                                 constraints="goAnnotation.ontologyTerm.parents.namespace=[Ontology],organism.name=[list],
+                                              primaryIdentifier != null, goAnnotation.qualifier = null,
+                                              goAnnotation.ontologyTerm.parents.identifier != go:0008150,
+                                              goAnnotation.ontologyTerm.parents.identifier != go:0003674,
+                                              goAnnotation.ontologyTerm.parents.identifier != go:0005575"
+                                 typeClass="Gene"
+                                 views="ncbiGeneId,symbol,organism.name,
+                                       goAnnotation.ontologyTerm.identifier, goAnnotation.ontologyTerm.name,
+                                       goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name"
+                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
 
-
-<!-- chenyian: diable for external server 
--->
-      <enrichmentwidgetdisplayer id="omim_enrichment" title="OMIM Enrichment"
-                                 link="org.intermine.bio.web.widget.OmimURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.OmimDataLoader"
-                                 label="OMIM Disease"
-                                 description="Disease enriched for genes in this list."
-                                 externalLink="http://www.ncbi.nlm.nih.gov/omim/"
-                                 typeClass="org.intermine.model.bio.Gene"
-                                 externalLinkLabel="OMIM:" />
-      <enrichmentwidgetdisplayer id="protein_omim_enrichment" title="OMIM Enrichment"
-                                 link="org.intermine.bio.web.widget.OmimURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.ProteinOmimDataLoader"
-                                 label="OMIM Disease"
-                                 description="Disease enriched for proteins in this list."
-                                 externalLink="http://www.ncbi.nlm.nih.gov/omim/"
-                                 typeClass="org.intermine.model.bio.Protein"
-                                 externalLinkLabel="OMIM:" />
-
-      <enrichmentwidgetdisplayer id="do_enrichment" title="Disease Ontology Enrichment"
-                                 link="org.intermine.bio.web.widget.DoURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.DoDataLoader"
+      <enrichmentwidgetdisplayer id="gene_do_enrichment"
+                                 title="Disease Ontology Enrichment"
+                                 description="DO terms enriched for genes in this list."
                                  label="DO Term"
-                                 description="Disease ontology enriched for items in this list."
-                                 typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein" 
-                                 externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/" 
-                                 />
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="doAnnotations.ontologyTerm.parents.name"
+                                 enrichIdentifier="doAnnotations.ontologyTerm.parents.identifier"
+                                 constraints="organism.name=[list],
+                                              primaryIdentifier != null, doAnnotations.qualifier = null"
+                                 typeClass="Gene"
+                                 views="ncbiGeneId,symbol,organism.name,
+                                       doAnnotations.ontologyTerm.identifier, doAnnotations.ontologyTerm.name,
+                                       doAnnotations.ontologyTerm.parents.identifier,doAnnotations.ontologyTerm.parents.name"
+                                 externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/"/>
+                                 
+      <enrichmentwidgetdisplayer id="gene_omim_enrichment"
+                                 title="OMIM Enrichment"
+                                 description="OMIM enriched for genes in this list"
+                                 label="OMIM"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="diseases.title"
+                                 enrichIdentifier="diseases.omimId"
+                                 constraints="organism.taxonId=[list], primaryIdentifier != null"
+                                 typeClass="Gene"
+                                 views="ncbiGeneId, symbol, organism.name, diseases.omimId, diseases.title"/>
 
-      <enrichmentwidgetdisplayer id="structural_domain_enrichment" title="CATH classification Enrichment"
-                                 link="org.intermine.bio.web.widget.StructuralDomainURLQuery"
-                                 dataSetLoader="org.intermine.bio.web.widget.StructuralDomainDataLoader"
-                                 label="CATH classification"
-                                 description="Structural domains enriched for items in this list."
-                                 externalLink="http://www.cathdb.info/cathnode/"
-                                 typeClass="org.intermine.model.bio.Gene,org.intermine.model.bio.Protein" 
-                                 externalLinkLabel="CATH:" 
-                                 />
+      <enrichmentwidgetdisplayer id="protein_pathway_enrichment"
+                                 title="Pathway Enrichment"
+                                 description="Pathways enriched for proteins in this list - data from KEGG, Reactome and NCI"
+                                 label="Pathways"
+                                 filterLabel="DataSet"
+                                 filters="All,KEGG pathways data set,Reactome data set,NCI-Nature data set"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="genes.pathways.name"
+                                 enrichIdentifier="genes.pathways.identifier"
+                                 constraints="genes.pathways.dataSets.name=[DataSet],organism.taxonId=[list], primaryIdentifier != null"
+                                 typeClass="Protein"
+                                 views="primaryAccession, name, organism.name, genes.pathways.identifier, genes.pathways.name, genes.pathways.dataSets.name"/>
+
+      <enrichmentwidgetdisplayer id="protein_go_enrichment"
+                                 title="Gene Ontology Enrichment"
+                                 description="GO terms enriched for proteins in this list."
+                                 label="GO Term"
+                                 filterLabel="Ontology"
+                                 filters="biological_process,cellular_component,molecular_function"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="goAnnotation.ontologyTerm.parents.name"
+                                 enrichIdentifier="goAnnotation.ontologyTerm.parents.identifier"
+                                 constraints="goAnnotation.ontologyTerm.parents.namespace=[Ontology],organism.name=[list],
+                                              primaryIdentifier != null, goAnnotation.qualifier = null,
+                                              goAnnotation.ontologyTerm.parents.identifier != go:0008150,
+                                              goAnnotation.ontologyTerm.parents.identifier != go:0003674,
+                                              goAnnotation.ontologyTerm.parents.identifier != go:0005575"
+                                 typeClass="Protein"
+                                 views="primaryAccession, name, organism.name,
+                                       goAnnotation.ontologyTerm.identifier, goAnnotation.ontologyTerm.name,
+                                       goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name"
+                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
 
 </widgets>
 </webconfig>

@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -33,9 +33,9 @@ import org.apache.struts.action.ActionMessages;
 import org.apache.struts.tiles.ComponentContext;
 import org.apache.struts.tiles.actions.TilesAction;
 import org.intermine.api.InterMineAPI;
-import org.intermine.api.bag.BagManager.CaseInsensitiveComparator;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
+import org.intermine.api.profile.ProfileManager;
 import org.intermine.api.profile.TagManager;
 import org.intermine.api.search.Scope;
 import org.intermine.api.search.SearchFilterEngine;
@@ -43,9 +43,9 @@ import org.intermine.api.search.SearchRepository;
 import org.intermine.api.search.SearchResults;
 import org.intermine.api.search.WebSearchable;
 import org.intermine.api.tag.TagTypes;
+import org.intermine.api.template.TemplateManager;
 import org.intermine.model.userprofile.Tag;
 import org.intermine.objectstore.query.ObjectStoreBag;
-import org.intermine.api.template.TemplateManager;
 import org.intermine.util.StringUtil;
 import org.intermine.web.logic.WebUtil;
 import org.intermine.web.logic.session.SessionMethods;
@@ -83,17 +83,20 @@ public class WebSearchableListController extends TilesAction
         HttpSession session = request.getSession();
         im = SessionMethods.getInterMineAPI(session);
         tagManager = im.getTagManager();
-        if (type.equals(TagTypes.BAG) && im.getBagManager().isAnyBagToUpgrade(SessionMethods.getProfile(session))) {
+        if (type.equals(TagTypes.BAG)
+            && im.getBagManager().isAnyBagToUpgrade(SessionMethods.getProfile(session))) {
             ActionMessages actionErrors = getErrors(request);
-            actionErrors.add(ActionMessages.GLOBAL_MESSAGE, new ActionMessage("login.upgradeListManually"));
+            actionErrors.add(ActionMessages.GLOBAL_MESSAGE,
+                new ActionMessage("login.upgradeListManually"));
             saveErrors(request, actionErrors);
         }
-        if (session.getAttribute("IS_SUPERUSER") != null
+/*        if (session.getAttribute("IS_SUPERUSER") != null
                         && session.getAttribute("IS_SUPERUSER").equals(Boolean.TRUE)) {
             filteredWebSearchables = getFilterWebSearchables(request, type,
                                                           Scope.USER, tags);
 
-        } else if (scope.equals(Scope.ALL)) {
+        } else*/
+        if (scope.equals(Scope.ALL)) {
             Map globalWebSearchables =
                 getFilterWebSearchables(request, type, Scope.GLOBAL, tags);
             Map userWebSearchables =
@@ -143,7 +146,24 @@ public class WebSearchableListController extends TilesAction
         Profile profile = SessionMethods.getProfile(session);
         request.setAttribute("userWebSearchables", profile.getWebSearchablesByType(type));
         request.setAttribute("filteredWebSearchables", filteredWebSearchables);
-
+        if (type.equals(TagTypes.BAG)) {
+            ProfileManager pm = profile.getProfileManager();
+            Map<String, InterMineBag> sharedBags = profile.getSharedBags();
+            Map<String, String> sharedBagsByOwner = new HashMap<String, String>();
+            for (Map.Entry<String, InterMineBag> entry : sharedBags.entrySet()) {
+                int id = entry.getValue().getProfileId();
+                String username = pm.getProfileUserName(id);
+                String usernameFormatted;
+                if (username.contains("@")) {
+                    String[] usernameSplitted = StringUtil.split(username, "@");
+                    usernameFormatted = usernameSplitted[0] + " at " + usernameSplitted[1];
+                } else {//openid username
+                    usernameFormatted = username;
+                }
+                sharedBagsByOwner.put(entry.getKey(), usernameFormatted);
+            }
+            request.setAttribute("sharedBagWebSearchables", sharedBagsByOwner);
+        }
         JSONWriter jsonWriter = new JSONWriter();
         request.setAttribute("wsNames", jsonWriter.write(wsMapForJS));
         return null;
@@ -228,7 +248,6 @@ public class WebSearchableListController extends TilesAction
 
     private Map<String, WebSearchable> sortListByMostPopular(final Map<String, WebSearchable>
         filteredWebSearchables, HttpSession session) {
-        InterMineAPI im = SessionMethods.getInterMineAPI(session);
         TemplateManager tm = im.getTemplateManager();
         Profile profile = SessionMethods.getProfile(session);
         List<String> mostPopulareTemplateNames;
@@ -269,7 +288,9 @@ public class WebSearchableListController extends TilesAction
                 && !mostPopulareTemplateNames.contains(templateName2)) {
                 WebSearchable ws1 = filteredWebSearchables.get(templateName1);
                 WebSearchable ws2 = filteredWebSearchables.get(templateName2);
-                if (ws1.getTitle().equals(ws2.getTitle())) {
+                String t1 = ws1.getTitle();
+                String t2 = ws2.getTitle();
+                if (t1 == null || t2 == null || t1.equals(t2)) {
                     return ws1.getName().compareTo(ws2.getName());
                 } else {
                     return ws1.getTitle().compareTo(ws2.getTitle());

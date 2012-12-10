@@ -1,7 +1,7 @@
 package org.intermine.webservice.server;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -24,10 +23,8 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -39,13 +36,14 @@ import org.intermine.api.profile.ProfileManager.ApiPermission;
 import org.intermine.api.profile.ProfileManager.AuthenticationException;
 import org.intermine.util.PropertiesUtil;
 import org.intermine.util.StringUtil;
+import org.intermine.web.context.InterMineContext;
 import org.intermine.web.logic.RequestUtil;
 import org.intermine.web.logic.export.Exporter;
 import org.intermine.web.logic.export.ResponseUtil;
 import org.intermine.web.logic.profile.LoginHandler;
-import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.webservice.server.exceptions.BadRequestException;
 import org.intermine.webservice.server.exceptions.InternalErrorException;
+import org.intermine.webservice.server.exceptions.MissingParameterException;
 import org.intermine.webservice.server.exceptions.ServiceException;
 import org.intermine.webservice.server.exceptions.ServiceForbiddenException;
 import org.intermine.webservice.server.output.CSVFormatter;
@@ -167,9 +165,8 @@ public abstract class WebService
     private static final String COMPRESS = "compress";
     private static final String GZIP = "gzip";
     private static final String ZIP = "zip";
-    private static final String WEB_SERVICE_DISABLED_PROPERTY = "webservice.disabled";
+
     private static final Logger LOG = Logger.getLogger(WebService.class);
-    private static final String FORWARD_PATH = "/webservice/table.jsp";
     private static final String AUTHENTICATION_FIELD_NAME = "Authorization";
     private static final String AUTH_TOKEN_PARAM_KEY = "token";
     private static final Profile ANON_PROFILE = new AnonProfile();
@@ -179,16 +176,132 @@ public abstract class WebService
      */
     private static final String WS_HEADERS_PREFIX = "ws.response.header";
     private static final String BOTS = "ws.robots";
+    private static final String WEB_SERVICE_DISABLED_PROPERTY = "webservice.disabled";
 
+    /**
+     * The servlet request.
+     */
     protected HttpServletRequest request;
-    protected HttpServletResponse response;
-    protected Output output;
-    protected InterMineAPI im;
 
-    private ApiPermission permission = null;
+    /**
+     * The servlet response.
+     */
+    protected HttpServletResponse response;
+
+    /**
+     * The response to the outside world.
+     */
+    protected Output output;
+
+    /**
+     * The configuration object.
+     */
+    protected final InterMineAPI im;
 
     /** The properties this mine was configured with **/
-    protected Properties webProperties;
+    protected final Properties webProperties = InterMineContext.getWebProperties();
+
+    private ApiPermission permission = ProfileManager.getDefaultPermission(ANON_PROFILE);
+    private boolean initialised = false;
+    private String propertyNameSpace = null;
+
+
+    /**
+     * Return the permission object representing the authorisation state of the request. This
+     * is guaranteed to not be null.
+     * @return A permission object, from which a service may inspect the level of authorisation,
+     *          and retrieve details about whom the request is authorised for.
+     */
+    protected ApiPermission getPermission() {
+        if (permission == null) {
+            throw new IllegalStateException("There should always be a valid permission object");
+        }
+        return permission;
+    }
+
+    /**
+     * Get a parameter this service deems to be required.
+     * @param name The name of the parameter
+     * @return The value of the parameter. Never null, never blank.
+     * @throws MissingParameterException If the value of the parameter is blank or null.
+     */
+    protected String getRequiredParameter(String name) throws MissingParameterException {
+        String value = request.getParameter(name);
+        if (StringUtils.isBlank(value)) {
+            throw new MissingParameterException(name);
+        }
+        return value;
+    }
+
+    /**
+     * Get a parameter this service deems to be optional, or the default value.
+     * @param name The name of the parameter.
+     * @param defaultValue The default value.
+     * @return The value provided, if there is a non-blank one, or the default value.
+     */
+    protected String getOptionalParameter(String name, String defaultValue) {
+        String value = request.getParameter(name);
+        if (StringUtils.isBlank(value)) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+    /**
+     * Get a profile that is a true authenticated user that exists in the database.
+     *
+     * @return The user's profile.
+     * @throws ServiceForbiddenException if this request resolves to an unauthenticated profile.
+     */
+    protected Profile getAuthenticatedUser() throws ServiceForbiddenException {
+        Profile profile = getPermission().getProfile();
+        if (profile.isLoggedIn()) {
+            return profile;
+        }
+        throw new ServiceForbiddenException("You must be logged in to use this service");
+    }
+
+    /**
+     * Get a parameter this service deems to be optional, or <code>null</code>.
+     * @param name The name of the parameter.
+     * @return The value of the parameter, or <code>null</code>
+     */
+    protected String getOptionalParameter(String name) {
+        return getOptionalParameter(name, null);
+    }
+
+    /**
+     * Set the default name-space for configuration property look-ups.
+     *
+     * If a value is set, it must be provided before any actions are taken. This means this
+     * property must be set before the execute method is called.
+     * @param namespace The name space to use (eg: "some.namespace"). May not be null.
+     */
+    protected void setNameSpace(String namespace) {
+        if (namespace == null || namespace.endsWith(".")) {
+            throw new IllegalArgumentException("Namespace must be a non-null string, and may " +
+                    "not terminate in a period. Value was: " + namespace);
+        }
+        if (initialised) {
+            throw new IllegalStateException("Name space must be set prior to, or as part of, " +
+                    "initialisation.");
+        }
+
+        propertyNameSpace = namespace;
+    }
+
+    /**
+     * Get a configuration property by name.
+     * @param name The name of the property to retrieve.
+     * @return A configuration value.
+     */
+    protected String getProperty(String name) {
+        if (StringUtils.contains(name, '.')) {
+            return webProperties.getProperty(name);
+        }
+        return webProperties.getProperty(propertyNameSpace == null
+                ? name : propertyNameSpace  + "." + name);
+    }
 
     /**
      * Construct the web service with the InterMine API object that gives access
@@ -199,6 +312,11 @@ public abstract class WebService
     public WebService(InterMineAPI im) {
         this.im = im;
     }
+
+    // TODO:
+    // Change the API to:
+    // new WebService(Req, Resp)
+    // Get rid of servlets - move to single dispatcher.
 
     /**
      * Starting method of web service. The web service should be run like
@@ -217,7 +335,6 @@ public abstract class WebService
     public void service(HttpServletRequest request, HttpServletResponse response) {
         this.request = request;
         this.response = response;
-        this.webProperties = SessionMethods.getWebProperties(request);
 
         if (!agentIsRobot()) {
             try {
@@ -226,6 +343,7 @@ public abstract class WebService
                 checkEnabled();
                 authenticate();
                 initState();
+                initialised = true;
                 validateState();
                 execute();
             } catch (Throwable t) {
@@ -248,8 +366,6 @@ public abstract class WebService
         } catch (Throwable t) {
             LOG.error("Error cleaning up", t);
         }
-        // Do not persist sessions. All requests should be state-less.
-        request.getSession().invalidate();
 
     }
 
@@ -282,8 +398,6 @@ public abstract class WebService
     }
 
     private void checkEnabled() {
-        Properties webProperties = SessionMethods.getWebProperties(request
-                .getSession().getServletContext());
         if ("true".equalsIgnoreCase(webProperties
                 .getProperty(WEB_SERVICE_DISABLED_PROPERTY))) {
             throw new ServiceForbiddenException("Web service is disabled.");
@@ -323,9 +437,6 @@ public abstract class WebService
 
         final String authToken = request.getParameter(AUTH_TOKEN_PARAM_KEY);
         final ProfileManager pm = im.getProfileManager();
-        final HttpSession session = request.getSession();
-        // Anonymous requests get the anonymous profile.
-        SessionMethods.setProfile(session, ANON_PROFILE);
 
         try {
             if (StringUtils.isEmpty(authToken)) {
@@ -344,7 +455,7 @@ public abstract class WebService
                         + "Authorization field contains invalid value. "
                         + "Decoded authorization value: " + parts[0]);
                 }
-                final String username = parts[0];
+                final String username = StringUtils.lowerCase(parts[0]);
                 final String password = parts[1];
 
                 permission = pm.getPermission(username, password, im.getClassKeys());
@@ -355,23 +466,26 @@ public abstract class WebService
             throw new ServiceForbiddenException(e.getMessage(), e);
         }
 
-        LoginHandler.setUpProfile(session, permission.getProfile());
+        LoginHandler.setUpPermission(im, permission);
     }
 
     private void sendError(Throwable t, HttpServletResponse response) {
+
         String msg = WebServiceConstants.SERVICE_FAILED_MSG;
-        if (t.getMessage() != null && t.getMessage().length() >= 0) {
-            msg = t.getMessage();
-        }
+        boolean showAllMsgs = webProperties.containsKey("i.am.a.dev");
+
         int code;
         if (t instanceof ServiceException) {
-
             ServiceException ex = (ServiceException) t;
             code = ex.getHttpErrorCode();
         } else {
             code = Output.SC_INTERNAL_SERVER_ERROR;
         }
-        logError(t, msg, code);
+        String realMsg = t.getMessage();
+        if ((showAllMsgs || code < 500) && !StringUtils.isBlank(realMsg)) {
+            msg = realMsg;
+        }
+        logError(t, realMsg, code);
         if (!formatIsJSONP()) {
             // Don't set errors statuses on jsonp requests, to enable
             // better error checking in the browser.
@@ -399,7 +513,7 @@ public abstract class WebService
         ps.flush();
 
         if (code == Output.SC_INTERNAL_SERVER_ERROR) {
-            LOG.debug("Service failed by internal error. Request parameters: \n"
+            LOG.error("Service failed by internal error. Request parameters: \n"
                             + requestParametersToString() + b.toString());
         } else {
             LOG.debug("Service didn't succeed. It's not an internal error. "
@@ -549,13 +663,6 @@ public abstract class WebService
         }
         int format = getFormat();
 
-        // HTML is a special case
-        if (format == HTML_FORMAT) {
-            output = new MemoryOutput();
-            ResponseUtil.setHTMLContentType(response);
-            return;
-        }
-
         PrintWriter out;
         OutputStream os;
         try {
@@ -574,11 +681,18 @@ public abstract class WebService
 
         String filename = getDefaultFileName();
         switch (format) {
+        // HTML is a special case
+            case HTML_FORMAT:
+                output = new MemoryOutput();
+                ResponseUtil.setHTMLContentType(response);
+                break;
             case XML_FORMAT:
                 output = makeXMLOutput(out, separator);
                 break;
             case TSV_FORMAT:
-                output = new StreamedOutput(out, new TabFormatter(), separator);
+                output = new StreamedOutput(out,
+                        new TabFormatter(StringUtils.equals(getProperty("ws.tsv.quoted"), "true")),
+                        separator);
                 filename = "result.tsv";
                 if (isUncompressed()) {
                     ResponseUtil.setTabHeader(response, filename);
@@ -600,7 +714,10 @@ public abstract class WebService
                 break;
             case TEXT_FORMAT:
                 output = new StreamedOutput(out, new PlainFormatter(), separator);
-                filename = "result.txt";
+                if (filename == null) {
+                    filename = "result.txt";
+                }
+                filename += getExtension();
                 if (isUncompressed()) {
                     ResponseUtil.setPlainTextHeader(response, filename);
                 }
@@ -689,8 +806,7 @@ public abstract class WebService
                 output = getDefaultOutput(out, os, separator);
         }
         if (!isUncompressed()) {
-            filename += getExtension();
-            ResponseUtil.setGzippedHeader(response, filename);
+            ResponseUtil.setGzippedHeader(response, filename + getExtension());
             if (isZip()) {
                 try {
                     ((ZipOutputStream) os).putNextEntry(new ZipEntry(filename));
@@ -705,7 +821,7 @@ public abstract class WebService
      * @return The default file name for this service. (default = "result.tsv")
      */
     protected String getDefaultFileName() {
-        return "result.tsv";
+        return "result";
     }
 
     /**
@@ -904,20 +1020,9 @@ public abstract class WebService
     protected abstract void execute() throws Exception;
 
     /**
-     * Returns dispatcher that forwards to the page that displays results as a
-     * html page.
-     *
-     * @return dispatcher
-     */
-    public RequestDispatcher getHtmlForward() {
-        return request.getSession().getServletContext()
-                .getRequestDispatcher(FORWARD_PATH);
-    }
-
-    /**
-     * @return true if request specified user name and password
+     * @return true if this request has been authenticated to a specific existing user.
      */
     public boolean isAuthenticated() {
-        return permission != null;
+        return getPermission().getProfile() != ANON_PROFILE;
     }
 }

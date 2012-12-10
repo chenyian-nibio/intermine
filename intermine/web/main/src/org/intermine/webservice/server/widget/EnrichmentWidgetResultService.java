@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.widget;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -11,29 +11,26 @@ package org.intermine.webservice.server.widget;
  */
 
 import java.io.PrintWriter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
+import org.intermine.api.profile.TagManager;
+import org.intermine.api.profile.TagManager.TagNameException;
+import org.intermine.api.profile.TagManager.TagNamePermissionException;
+import org.intermine.api.tag.TagNames;
+import org.intermine.api.tag.TagTypes;
+import org.intermine.model.userprofile.Tag;
+import org.intermine.web.context.InterMineContext;
 import org.intermine.web.logic.config.WebConfig;
 import org.intermine.web.logic.export.ResponseUtil;
-import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.web.logic.widget.EnrichmentWidget;
 import org.intermine.web.logic.widget.config.EnrichmentWidgetConfig;
 import org.intermine.web.logic.widget.config.WidgetConfig;
-import org.intermine.webservice.server.core.JSONService;
-import org.intermine.webservice.server.exceptions.BadRequestException;
 import org.intermine.webservice.server.exceptions.ResourceNotFoundException;
-import org.intermine.webservice.server.output.JSONFormatter;
 import org.intermine.webservice.server.output.Output;
 import org.intermine.webservice.server.output.StreamedOutput;
 import org.intermine.webservice.server.output.XMLFormatter;
@@ -52,10 +49,12 @@ import org.intermine.webservice.server.output.XMLFormatter;
  *
  * @author Alex Kalderimis
  * @author Xavier Watkins
+ * @author Daniela Butano
  */
-public class EnrichmentWidgetResultService extends JSONService
+public class EnrichmentWidgetResultService extends WidgetService
 {
-    private class EnrichmentXMLFormatter extends XMLFormatter {
+    private class EnrichmentXMLFormatter extends XMLFormatter
+    {
 
         @Override
         public String formatResult(List<String> resultRow) {
@@ -71,62 +70,80 @@ public class EnrichmentWidgetResultService extends JSONService
     /**
      * Executes service specific logic.
      *
-     * @param request request
-     * @param response response
      * @throws Exception an error has occurred
      */
     @SuppressWarnings("deprecation")
     @Override
     protected void execute() throws Exception {
         WidgetsServiceInput input = getInput();
-        Profile profile = SessionMethods.getProfile(request.getSession());
+        InterMineBag imBag = retrieveBag(input.getBagName());
+        addOutputListInfo(imBag);
 
-        InterMineBag imBag = im.getBagManager().getUserOrGlobalBag(profile, input.getBagName());
-        if (imBag == null) {
-            throw new BadRequestException("You do not have access to a bag named" + input.getBagName());
-        }
-        addOutputInfo("type", imBag.getType());
-        addOutputInfo("list", imBag.getName());
-        addOutputInfo("requestedAt", new Date().toGMTString());
-
-        WebConfig webConfig = SessionMethods.getWebConfig(request);
+        WebConfig webConfig = InterMineContext.getWebConfig();
         WidgetConfig widgetConfig = webConfig.getWidgets().get(input.getWidgetId());
 
         if (widgetConfig == null || !(widgetConfig instanceof EnrichmentWidgetConfig)) {
-            throw new ResourceNotFoundException("Could not find an enrichment widget called \"" + input.getWidgetId() + "\"");
+            throw new ResourceNotFoundException("Could not find an enrichment widget called \""
+                                                + input.getWidgetId() + "\"");
         }
+        addOutputConfig(widgetConfig);
 
+        //filters
+        String filterSelectedValue = input.getExtraAttributes().get(0);
+        if (filterSelectedValue == null || "".equals(filterSelectedValue)) {
+            String filters = widgetConfig.getFiltersValues(im.getObjectStore(), imBag);
+            if (filters != null && !"".equals(filters)) {
+                filterSelectedValue = filters.split("\\,")[0];
+                input.getExtraAttributes().set(0, filterSelectedValue);
+            }
+        }
+        addOutputFilter(widgetConfig, filterSelectedValue, imBag);
+
+        //reference population
+        InterMineBag populationBag = getReferencePopulationBag(input);
+        addOutputUserLogged();
+
+        //instantiate the widget
         EnrichmentWidget widget = null;
         try {
-            widget = (EnrichmentWidget) widgetConfig.getWidget(imBag, im.getObjectStore(), input.getExtraAttributes());
+            widget = (EnrichmentWidget) widgetConfig.getWidget(imBag, populationBag,
+                im.getObjectStore(), input.getExtraAttributes());
+        } catch (IllegalArgumentException e) {
+            addOutputAttribute("message", e.getMessage());
+            deleteReferencePopulationPreference(input);
+            return;
         } catch (ClassCastException e) {
-            throw new ResourceNotFoundException("Could not find an enrichment widget called \"" + input.getWidgetId() + "\"");
+            throw new ResourceNotFoundException("Could not find an enrichment widget called \""
+                                               + input.getWidgetId() + "\"");
         }
+        addOutputInfo("notAnalysed", Integer.toString(widget.getNotAnalysed()));
+        addOutputPathQuery(widget, widgetConfig);
 
-        WidgetResultProcessor processor = getProcessor();
-        Iterator<List<Object>> it = widget.getResults().iterator();
-        while (it.hasNext()) {
-            List<Object> row = it.next();
-            List<String> processed = processor.formatRow(row);
-            if (!formatIsFlatFile() && it.hasNext()) {
-                processed.add("");
-            }
-            output.addResultItem(processed);
-        }
+        addOutputResult(widget);
     }
 
     @Override
-    protected Map<String, Object> getHeaderAttributes() {
-        final Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.putAll(super.getHeaderAttributes());
-        if (formatIsJSON()) {
-            attributes.put(JSONFormatter.KEY_INTRO, "\"results\":[");
-            attributes.put(JSONFormatter.KEY_OUTRO, "]");
-        }
-        return attributes;
+    protected void addOutputConfig(WidgetConfig config) {
+        super.addOutputConfig(config);
+        addOutputAttribute("label", ((EnrichmentWidgetConfig) config).getLabel());
+        addOutputAttribute("externalLink", ((EnrichmentWidgetConfig) config).getExternalLink());
     }
 
-    private WidgetResultProcessor getProcessor() {
+    private void addOutputPathQuery(EnrichmentWidget widget, WidgetConfig config) {
+        addOutputInfo("pathQuery", widget.getPathQuery().toJson());
+        addOutputInfo("pathConstraint", widget.getPathConstraint());
+        addOutputInfo("pathQueryForMatches", widget.getPathQueryForMatches().toJson());
+    }
+
+    private void addOutputUserLogged() {
+        if (isProfileLoggedIn()) {
+            addOutputAttribute("is_logged", "true");
+        } else {
+            addOutputAttribute("is_logged", "false");
+        }
+    }
+
+    protected WidgetResultProcessor getProcessor() {
         if (formatIsJSON()) {
             return EnrichmentJSONProcessor.instance();
         } else if (formatIsXML()) {
@@ -143,5 +160,90 @@ public class EnrichmentWidgetResultService extends JSONService
 
     private WidgetsServiceInput getInput() {
         return new WidgetsRequestParser(request).getInput();
+    }
+
+    private boolean isProfileLoggedIn() {
+        Profile profile = getPermission().getProfile();
+        if (profile.isLoggedIn()) {
+            return true;
+        }
+        return false;
+    }
+
+    private InterMineBag getReferencePopulationBag(WidgetsServiceInput input)
+        throws TagNamePermissionException, TagNameException {
+        String populationBagName = input.getPopulationBagName();
+        if (populationBagName == null) {
+            //get preferences
+            populationBagName = getReferencePopulationPreference(input);
+        }
+        if ("".equals(populationBagName)) {
+            //json formatter doesn't format empty string
+            addOutputInfo(WidgetsRequestParser.POPULATION_BAG_NAME, null);
+        } else {
+            addOutputInfo(WidgetsRequestParser.POPULATION_BAG_NAME, populationBagName);
+        }
+        InterMineBag populationBag = null;
+        populationBag = retrieveBag(populationBagName);
+        saveReferencePopulationPreference(input);
+        return populationBag;
+    }
+
+    private void saveReferencePopulationPreference(WidgetsServiceInput input)
+        throws TagNamePermissionException, TagNameException {
+        if (input.isSavePopulation()) {
+            if (isProfileLoggedIn()) {
+                TagManager tm = im.getTagManager();
+                String tagName = TagNames.IM_WIDGET + TagNames.SEPARATOR + input.getWidgetId()
+                           + TagNames.SEPARATOR + input.getPopulationBagName();
+                deleteReferencePopulationPreference(input);
+                if (!"".equals(input.getPopulationBagName())) {
+                    tm.addTag(tagName, input.getBagName(), TagTypes.BAG,
+                              getPermission().getProfile());
+                }
+            }
+        }
+    }
+
+    private void deleteReferencePopulationPreference(WidgetsServiceInput input) {
+        if (isProfileLoggedIn()) {
+            TagManager tm = im.getTagManager();
+            List<Tag> currentTags = getReferencePopulationTags(input);
+            for (Tag tag : currentTags) {
+                tm.deleteTag(tag);
+            }
+        }
+    }
+
+    private List<Tag> getReferencePopulationTags(WidgetsServiceInput input) {
+        List<Tag> populationTags = new ArrayList<Tag>();
+        if (isProfileLoggedIn()) {
+            Profile profile = getPermission().getProfile();
+            TagManager tm = im.getTagManager();
+            String prefixTagPopulation = TagNames.IM_WIDGET + TagNames.SEPARATOR
+                                       + input.getWidgetId() + TagNames.SEPARATOR;
+            List<Tag> tags = tm.getTags(null, null,
+                             TagTypes.BAG, profile.getUsername());
+            for (Tag tag : tags) {
+                if (tag.getObjectIdentifier().equals(input.getBagName())
+                    && tag.getTagName().startsWith(prefixTagPopulation)) {
+                    populationTags.add(tag);
+                }
+            }
+        }
+        return populationTags;
+    }
+
+    private String getReferencePopulationPreference(WidgetsServiceInput input) {
+        if (isProfileLoggedIn()) {
+            List<Tag> populationTags = getReferencePopulationTags(input);
+            if (!populationTags.isEmpty()) {
+                String prefixTagPopulation = TagNames.IM_WIDGET + TagNames.SEPARATOR
+                                           + input.getWidgetId() + TagNames.SEPARATOR;
+                String tagName = populationTags.get(0).getTagName();
+                return tagName.replace(prefixTagPopulation, "");
+            }
+        }
+        return "";
     }
 }

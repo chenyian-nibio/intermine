@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.exceptions;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -21,7 +21,7 @@ import org.intermine.webservice.server.output.Output;
 public class ServiceException extends RuntimeException
 {
 
-    private int httpErrorCode  = Output.SC_INTERNAL_SERVER_ERROR;
+    private int httpErrorCode = Output.SC_INTERNAL_SERVER_ERROR;
 
     private static final long serialVersionUID = 1L;
 

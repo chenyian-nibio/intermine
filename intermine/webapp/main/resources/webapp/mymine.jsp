@@ -25,6 +25,12 @@
   </tiles:insert>
   </c:when>
 
+  <%-- query history --%>
+  <c:when test="${subtabs[subtabName]  =='history'}">
+            <tiles:insert name="historyQueryView.jsp">
+              <tiles:put name="type" value="history"/>
+            </tiles:insert>
+  </c:when>
 
     <%-- saved queries --%>
     <c:when test="${subtabs[subtabName]  =='saved'}">
@@ -44,6 +50,11 @@
     <c:when test="${subtabs[subtabName]  =='tracks'}">
       <tiles:insert name="tracks.jsp"/>
     </c:when>
+    
+    <%-- users --%>
+    <c:when test="${subtabs[subtabName]  =='users'}">
+      <tiles:insert name="users.tile"/>
+    </c:when>
 
     <%-- password --%>
     <c:when test="${subtabs[subtabName]  =='password'}">
@@ -51,7 +62,7 @@
     </c:when>
 
     <%-- api key --%>
-    <c:when test="${subtabs[subtabName]  =='apikey'}">
+    <c:when test="${subtabs[subtabName]  =='account'}">
       <tiles:insert name="manageApiKey.jsp" />
     </c:when>
 

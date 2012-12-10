@@ -76,7 +76,8 @@ public class GeneSetConverter extends FileConverter {
 		String[] header = iterator.next();
 		if (!header[0].equals("DataSet") || StringUtils.isEmpty(header[1])) {
 			throw new RuntimeException("Data set name is not set properly. "
-					+ "Check your data source. The first line should be 'DataSet\t[data set name]'");
+					+ "Check your data source. The first line should be 'DataSet\t[data set name]' " +
+					"but your first line is: " + StringUtils.join(header, "\t"));
 		}
 		Item dataSet = createItem("DataSet");
 		dataSet.setAttribute("name", header[1]);

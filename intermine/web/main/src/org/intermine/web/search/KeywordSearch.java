@@ -1,7 +1,7 @@
 package org.intermine.web.search;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -74,6 +74,7 @@ import org.intermine.model.InterMineObject;
 import org.intermine.modelproduction.MetadataManager;
 import org.intermine.modelproduction.MetadataManager.LargeObjectOutputStream;
 import org.intermine.objectstore.ObjectStore;
+import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.intermine.ObjectStoreInterMineImpl;
 import org.intermine.objectstore.query.BagConstraint;
 import org.intermine.objectstore.query.ConstraintOp;
@@ -90,14 +91,18 @@ import org.intermine.pathquery.PathException;
 import org.intermine.sql.Database;
 import org.intermine.util.DynamicUtil;
 import org.intermine.util.ObjectPipe;
+import org.intermine.web.logic.config.WebConfig;
+import org.intermine.web.struts.KeywordSearchFacet;
 
 import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseException;
+import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetHandler;
@@ -939,7 +944,7 @@ public final class KeywordSearch
 
                 for (Map.Entry<Object, Object> entry : properties.entrySet()) {
                     String key = (String) entry.getKey();
-                    String value = (String) entry.getValue();
+                    String value = ((String) entry.getValue()).trim();
 
                     if ("index.ignore".equals(key) && !StringUtils.isBlank(value)) {
                         String[] ignoreClassNames = value.split("\\s+");
@@ -1335,6 +1340,102 @@ public final class KeywordSearch
         return matches;
     }
 
+    public static Vector<KeywordSearchFacet> parseFacets(BrowseResult result,
+            Vector<KeywordSearchFacetData> facets, Map<String, String> facetValues) {
+        long time = System.currentTimeMillis();
+        Vector<KeywordSearchFacet> searchResultsFacets = new Vector<KeywordSearchFacet>();
+        for (KeywordSearchFacetData facet : facets) {
+            FacetAccessible boboFacet = result.getFacetMap().get(facet.getField());
+            if (boboFacet != null) {
+                searchResultsFacets.add(new KeywordSearchFacet(facet.getField(), facet
+                        .getName(), facetValues.get(facet.getField()), boboFacet
+                        .getFacets()));
+            }
+        }
+        LOG.debug("Parsing " + searchResultsFacets.size() + " facets took "
+                + (System.currentTimeMillis() - time) + " ms");
+        return searchResultsFacets;
+    }
+
+    public static Vector<KeywordSearchResult> parseResults(InterMineAPI im,
+            WebConfig webconfig, Vector<KeywordSearchHit> searchHits) {
+        long time = System.currentTimeMillis();
+        Model model = im.getModel();
+        Map<String, List<FieldDescriptor>> classKeys = im.getClassKeys();
+        Vector<KeywordSearchResult> searchResultsParsed = new Vector<KeywordSearchResult>();
+        for (KeywordSearchHit keywordSearchHit : searchHits) {
+            Class<?> objectClass = DynamicUtil.getSimpleClass(keywordSearchHit.getObject()
+                    .getClass());
+            ClassDescriptor classDescriptor =
+                model.getClassDescriptorByName(objectClass.getName());
+
+            KeywordSearchResult ksr =
+                new KeywordSearchResult(webconfig, keywordSearchHit.getObject(),
+                        classKeys, classDescriptor, keywordSearchHit.getScore(),
+                        // templatesForClass.get(classDescriptor)
+                        null);
+
+            searchResultsParsed.add(ksr);
+        }
+        LOG.debug("Parsing search hits took " + (System.currentTimeMillis() - time)  + " ms");
+        return searchResultsParsed;
+    }
+
+    public static Vector<KeywordSearchHit> getSearchHits(BrowseHit[] browseHits,
+            Map<Integer, InterMineObject> objMap) {
+        long time = System.currentTimeMillis();
+        Vector<KeywordSearchHit> searchHits = new Vector<KeywordSearchHit>();
+        for (BrowseHit browseHit : browseHits) {
+            try {
+                Document doc = browseHit.getStoredFields();
+                if (doc != null) {
+                    InterMineObject obj = objMap.get(Integer.valueOf(doc.getFieldable("id")
+                            .stringValue()));
+                    searchHits.add(new KeywordSearchHit(browseHit.getScore(), doc, obj));
+                } else {
+                    LOG.error("doc is null for browseHit " + browseHit);
+                }
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        LOG.debug("Creating list of search hits took " + (System.currentTimeMillis() - time)
+                + " ms");
+        return searchHits;
+    }
+
+    public static Map<Integer, InterMineObject> getObjects(InterMineAPI im, Set<Integer> objectIds)
+        throws ObjectStoreException {
+        long time = System.currentTimeMillis();
+        // fetch objects for the IDs returned by lucene search
+        Map<Integer, InterMineObject> objMap = new HashMap<Integer, InterMineObject>();
+        for (InterMineObject obj : im.getObjectStore().getObjectsByIds(objectIds)) {
+            objMap.put(obj.getId(), obj);
+        }
+        LOG.debug("Getting objects took " + (System.currentTimeMillis() - time) + " ms");
+        return objMap;
+    }
+
+    public static Set<Integer> getObjectIds(BrowseHit[] browseHits) {
+        long time = System.currentTimeMillis();
+        Set<Integer> objectIds = new HashSet<Integer>();
+        for (BrowseHit browseHit : browseHits) {
+            try {
+                Document doc = browseHit.getStoredFields();
+                if (doc != null) {
+                    objectIds.add(Integer.valueOf(doc.getFieldable("id").stringValue()));
+                } else {
+                    LOG.error("doc is null for browseHit " + browseHit);
+                }
+            } catch (NumberFormatException e) {
+                LOG.info("Invalid id '" + browseHit.getField("id") + "' for hit '"
+                        + browseHit + "'", e);
+            }
+        }
+        LOG.debug("Getting IDs took " + (System.currentTimeMillis() - time) + " ms");
+        return objectIds;
+    }
+
     /**
      * perform a keyword search using bobo-browse for faceting and pagination
      * @param searchString string to search for
@@ -1466,8 +1567,9 @@ public final class KeywordSearch
         String[] bits = s.split(" ");
         for (String b : bits) {
             // booleans have to stay UPPER
-            if ("OR".equals(b) || "AND".equals(b) || "NOT".equals(b)) {
-                sb.append(b + " ");
+            if ("OR".equalsIgnoreCase(b) || "AND".equalsIgnoreCase(b)
+                    || "NOT".equalsIgnoreCase(b)) {
+                sb.append(b.toUpperCase() + " ");
             } else {
                 sb.append(b.toLowerCase() + " ");
             }
@@ -1686,7 +1788,6 @@ public final class KeywordSearch
                         time % 1000) + " minutes");
         return tempFile;
     }
-
 
     private static File makeTempFile(String tempDir) throws IOException {
         LOG.info("Creating search index tmp dir: " + tempDir);

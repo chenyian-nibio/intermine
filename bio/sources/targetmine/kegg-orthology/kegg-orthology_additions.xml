@@ -10,6 +10,7 @@
 	</class>
 	
 	<class name="Gene" is-interface="true">
+		<attribute name="ncbiGeneId" type="java.lang.String"/>
 		<collection name="homologs" referenced-type="GeneHomolog" reverse-reference="source"/>		
 	</class>
 

@@ -19,6 +19,8 @@
 <!--//<![CDATA[
   var modifyDetailsURL = '<html:rewrite action="/modifyDetails"/>';
   var detailsType = 'bag';
+  var webappUrl = "${WEB_PROPERTIES['webapp.baseurl']}/${WEB_PROPERTIES['webapp.path']}/";
+  var service = webappUrl + "service/";
 //]]>-->
 </script>
 
@@ -30,12 +32,12 @@
 <script type="text/javascript" src="<html:rewrite page='/js/report.js'/>"></script>
 
 <script type="text/javascript" src="<html:rewrite page='/js/inlinetemplate.js'/>"></script>
-<script type="text/javascript" src="<html:rewrite page='/js/widget.js'/>"></script>
+
 <div class="body">
 <c:choose>
 <c:when test="${!empty bag}">
 <div class="heading results">
-  <img src="images/icons/lists-64.png" alt="lists icon"/>
+  <img src="images/icons/lists-64.png" alt="lists icon" style="width:32px" />
   <h1>
       <fmt:message key="bagDetails.title"/>
       <span style="font-size:0.9em;font-weight:normal">
@@ -43,41 +45,6 @@
           (${bag.size}&nbsp;<c:out value="${imf:formatPathStr(bag.type, INTERMINE_API, WEBCONFIG)}s"/>)
       </span>
   </h1>
-  <div id="tool_bar_div">
-      <c:choose>
-        <c:when test="${invalid}">
-            <html:form action="/triageBag">
-                <html:hidden property="pageName" value="MyMine"/>
-                <html:hidden name="newBagName" property="newBagName" value="__DUMMY-VALUE__"/>
-                <html:hidden property="selectedBags" value="${bag.name}"/>
-                <html:submit property="listsButton" value="delete" styleClass="bagDetailsAction"/>
-                <html:submit property="listsButton" value="export"styleClass="bagDetailsAction"/>
-            </html:form>
-        </c:when>
-        <c:otherwise>
-        <ul id="button_bar">
-          <li id="tool_bar_li_export"class="tb_button">
-            <img src="images/export.png" width="13" height="13" alt="Export this list">
-            <html:link linkName="#">Export</html:link>
-          </li>
-          <c:if test="${myBag == 'true'}">
-            <li id="tool_bar_li_edit"class="tb_button">
-              <img src="images/edit.png" width="13" height="13" alt="Edit my list">
-              <html:link linkName="#">Edit</html:link>
-            </li>
-         </c:if>
-        </ul>
-        <html:form action="/findInList">
-            <input type="text" name="textToFind" id="textToFind"/>
-            <input type="hidden" name="bagName" value="${bag.name}"/>
-            <html:submit>
-                <fmt:message key="bagDetails.findInList"/>
-            </html:submit>
-        </html:form>
-        </c:otherwise>
-      </c:choose>
-  </div>
-  <div style="clear:both;"></div>
 </div>
 
 <table cellspacing="0" width="100%">
@@ -120,9 +87,6 @@
 
 
 
-<html:form action="/modifyBagDetailsAction">
-<html:hidden property="bagName" value="${bag.name}"/>
-
 <div id="tool_bar_item_display" style="display:none;width:100px" class="tool_bar_item">
     <html:link anchor="relatedTemplates" action="bagDetails?bagName=${bag.name}">Related templates</html:link><br/>
     <html:link anchor="widgets" action="bagDetails?bagName=${bag.name}">Related widgets</html:link>
@@ -146,6 +110,8 @@
 </div>
 
 <div id="tool_bar_item_edit" style="display:none;width:300px" class="tool_bar_item">
+        <html:form action="/modifyBagDetailsAction">
+      <html:hidden property="bagName" value="${bag.name}"/>
   <%-- add selected to bag --%>
   <fmt:message key="bagDetails.addRecords"/>:<br/>
    <c:choose>
@@ -159,7 +125,7 @@
           </html:select>
      <input type="submit" name="addToBag" id="addToBag" value="Add" />
      <script type="text/javascript" charset="utf-8">
-          jQuery('#addToBag').attr('disabled','disabled');
+          jQuery('#addToBag').attr('disabled', true);
         </script>
     </c:when>
     <c:otherwise>
@@ -172,6 +138,7 @@
     <input type="submit" name="removeFromBag" id="removeFromBag" value="Remove" disabled="true" />
     <hr>
   <a href="javascript:hideMenu('tool_bar_item_edit')" ><fmt:message key="confirm.cancel"/></a>
+  </html:form>
 </div>
 
 </TD>
@@ -183,24 +150,23 @@
 <c:if test ="${bag.type ne 'Submission'}">
 <div class="results collection-table nowrap nomargin">
 
+<style type="text/css">
+    .bag-detail-table { max-width: 1000px; }
+</style>
+
 <%-- Table displaying bag elements --%>
 <tiles:insert name="resultsTable.tile">
      <tiles:put name="pagedResults" beanName="pagedResults" />
      <tiles:put name="currentPage" value="bagDetails" />
      <tiles:put name="bagName" value="${bag.name}" />
      <tiles:put name="highlightId" value="${highlightId}"/>
+     <tiles:put name="cssClass" value="bag-detail-table"/>
+     <tiles:put name="pageSize" value="10"/>
 </tiles:insert>
 </div>
 
 <table style="margin-top: 10px;">
   <tr>
-      <td>
-          <tiles:insert name="paging.tile">
-            <tiles:put name="resultsTable" beanName="pagedResults" />
-            <tiles:put name="currentPage" value="bagDetails" />
-            <tiles:put name="bag" beanName="bag" />
-          </tiles:insert>
-      </td>
       <c:if test="${PROFILE.loggedIn}">
         <td>
             <div id="listTags">
@@ -277,21 +243,26 @@
     <!-- closing toolbar div -->
 
     <div id="convertList" class="listtoolbox" align="left">
+      <html:form action="/modifyBagDetailsAction">
+      <html:hidden property="bagName" value="${bag.name}"/>
         <tiles:insert name="convertBag.tile">
-            <tiles:put name="bag" beanName="bag" />
-            <tiles:put name="idname" value="cp" />
-            <tiles:put name="orientation" value="h" />
+          <tiles:put name="bag" beanName="bag" />
+          <tiles:put name="idname" value="cp" />
+          <tiles:put name="orientation" value="h" />
         </tiles:insert>
+      </html:form>
 </c:if>
-    </html:form>
 <c:if test="${!invalid}">
 
 
     <%-- BagDisplayers --%>
+      <html:form action="/modifyBagDetailsAction">
+      <html:hidden property="bagName" value="${bag.name}"/>
         <tiles:insert page="/bagDisplayers.jsp">
         <tiles:put name="bag" beanName="bag"/>
         <tiles:put name="showOnLeft" value="false"/>
         </tiles:insert>
+      </html:form>
 
     </div>
 
@@ -315,28 +286,45 @@
 <div class="heading" style="clear:both;margin-top:15px">
      <a id="widgets">Widgets displaying properties of '${bag.name}'</a> &nbsp;
 </div>
-<script language="javascript">
-  function openWidget(widgetid,linkid) {
-      jQuery('#widgetcontainer'+widgetid).show();
-      AjaxServices.saveToggleState(widgetid, true);
-      window.location.href= "#anchorage" + widgetid;
-  }
-  function closeWidget(widgetid,linkid) {
-      jQuery('#widgetcontainer'+widgetid).hide();
-      AjaxServices.saveToggleState(widgetid, false);
-  }
-</script>
 
-<p id="toggleWidgets">Click to select widgets you would like to display:
-  <ol class="widgetList">
+<div id="toggle-widgets">
+  <p>Click to select widgets you would like to display:</p>
+  <ol>
   <c:forEach items="${widgets}" var="widget">
-    <li><a title="toggle widget" href="javascript:openWidget('${widget.id}','togglelink${widget.id}')" id="togglelink${widget.id}">${widget.title}</a></li>
+    <li><a href="#" title="toggle widget" data-widget="${widget.id}">${widget.title}</a></li>
   </c:forEach>
   </ol>
-</p>
-<div style="clear:both;"></div>
+  <div style="clear:both"></div>
+</div>
+
+<script language="javascript">
+  (function() {
+    jQuery('#toggle-widgets ol li').each(function(index) {
+      jQuery(this).find('a').click(function(e) {
+        // Toggle us.
+        var link = jQuery(e.target);
+        link.toggleClass('inactive');
+
+        // Toggle widget.
+        var widgetId = link.attr('data-widget');
+        var w = jQuery('#' + widgetId + '-widget');
+        w.toggle();
+
+        // Save.
+        AjaxServices.saveToggleState(widgetId, w.is(":visible"));
+
+        e.preventDefault();
+      });
+    });
+  })();
+</script>
 
 <link rel="stylesheet" type="text/css" href="<html:rewrite page='/css/widget.css'/>"/>
+
+<script type="text/javascript">
+  window.widgets = new intermine.widgets(window.service, "${PROFILE.dayToken}");
+</script>
+
 <c:forEach items="${widgets}" var="widget">
   <tiles:insert name="widget.tile">
     <tiles:put name="widget" beanName="widget"/>

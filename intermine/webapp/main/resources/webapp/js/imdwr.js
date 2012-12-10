@@ -62,7 +62,11 @@ function renameElement(name, type, index){
             }
         }
         // reload so that new "IDs" based on the name match
-        window.location.reload();
+        if (str.indexOf('<i>') != -1) {
+            setTimeout(function() {window.location.reload();}, 1000);
+        } else {
+            window.location.reload();
+        }
     });
 }
 
@@ -91,8 +95,8 @@ function saveBagDescription(bagName){
     AjaxServices.saveBagDescription(bagName,textarea, function(str){
                                         document.getElementById('bagDescriptionDiv').innerHTML = str;
                                     });
-    Element.toggle('bagDescriptionTextarea');
-    Element.toggle('bagDescriptionDiv');
+    jQuery('textarea#textarea').toggle();
+    jQuery('div#bagDescriptionDiv').toggle();
 }
 
 function roundToSignificantDecimal(n) {
@@ -280,6 +284,8 @@ function filterWebSearchablesHandler(event, object, type, wsListId) {
             return;
         }
         if (event.keyCode == 13
+            || event.keyCode == 16
+            || event.keyCode == 17
             || event.keyCode == 33
             || event.keyCode == 34
             || event.keyCode == 35
@@ -288,7 +294,7 @@ function filterWebSearchablesHandler(event, object, type, wsListId) {
             || event.keyCode == 38
             || event.keyCode == 39
             ||event.keyCode ==  40) {
-            return;
+            return false;
         }
     }
 
@@ -683,7 +689,6 @@ function getCustomConverterCounts(bagName, converter, callback) {
     });
 }
 
-
 function saveToggleState(elementId) {
     var display = document.getElementById(elementId).style.display;
     var opened;
@@ -731,6 +736,7 @@ function validateBagOperations(formName, operation) {
             }
         }
     }
+
     AjaxServices.validateBagOperations(bagName, selectedBags, operation, function(errMsg) {
         if (errMsg != '') {
             var msgBagInUse = "You are trying to delete the list";
@@ -745,11 +751,13 @@ function validateBagOperations(formName, operation) {
                 Boxy.alert(errMsg, null, {title: 'Error', modal: false});
             }
         } else {
+            jQuery('table.boxy-wrapper').hide();
             frm.listsButton.value = operation;
             frm.submit();
         }
     });
 
+    return false;
 }
 
 // table.jsp, bagUploadConfirm.jsp
@@ -768,6 +776,7 @@ function validateBagName(formName) {
     var frm = document.forms[formName];
 
     var bagName = frm.newBagName.value;
+
     AjaxServices.validateBagName(bagName, function(errMsg) {
         if (errMsg != '') {
             jQuery('#bigGreen').removeClass('clicked');

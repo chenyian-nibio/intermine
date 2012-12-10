@@ -1,7 +1,7 @@
 package org.intermine.pathquery;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -88,6 +88,8 @@ public class PathQueryBinding
             writer.writeAttribute("view", StringUtil.join(query.getView(), " "));
             if (query.getDescription() != null) {
                 writer.writeAttribute("longDescription", query.getDescription());
+            } else {
+                writer.writeAttribute("longDescription", "");
             }
             StringBuilder sort = new StringBuilder();
             boolean needComma = false;
@@ -192,7 +194,9 @@ public class PathQueryBinding
                 }
                 writer.writeAttribute("ids", sb.toString());
             } else if (constraint.getKey() instanceof PathConstraintMultiValue) {
+                // Includes PathConstraintRange, which is serialised in the exact same manner.
                 writer.writeAttribute("op", "" + constraint.getKey().getOp());
+
                 for (String value : ((PathConstraintMultiValue) constraint.getKey()).getValues()) {
                     if (!value.equals(value.trim())) {
                         throw new XMLStreamException("Value in MultiValue starts or ends with "

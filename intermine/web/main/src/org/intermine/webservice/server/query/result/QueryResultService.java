@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.query.result;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -10,6 +10,9 @@ package org.intermine.webservice.server.query.result;
  *
  */
 
+import static org.apache.commons.lang.StringUtils.isBlank;
+
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -18,25 +21,23 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.io.PrintWriter;
 
 import org.apache.commons.collections.EnumerationUtils;
 import org.apache.commons.lang.StringUtils;
-import static org.apache.commons.lang.StringUtils.isBlank;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.Profile;
+import org.intermine.api.query.BagNotFound;
 import org.intermine.api.query.PathQueryExecutor;
 import org.intermine.api.results.ExportResultsIterator;
 import org.intermine.api.results.ResultElement;
+import org.intermine.metadata.AttributeDescriptor;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.query.Results;
-import org.intermine.metadata.AttributeDescriptor;
+import org.intermine.pathquery.Path;
 import org.intermine.pathquery.PathException;
 import org.intermine.pathquery.PathQuery;
-import org.intermine.pathquery.Path;
-import org.intermine.web.logic.session.SessionMethods;
+import org.intermine.web.context.InterMineContext;
 import org.intermine.web.logic.WebUtil;
-import org.intermine.web.struts.InterMineAction;
 import org.intermine.webservice.server.ColumnHeaderStyle;
 import org.intermine.webservice.server.WebService;
 import org.intermine.webservice.server.WebServiceInput;
@@ -53,10 +54,9 @@ import org.intermine.webservice.server.output.JSONRowResultProcessor;
 import org.intermine.webservice.server.output.JSONSummaryProcessor;
 import org.intermine.webservice.server.output.JSONTableFormatter;
 import org.intermine.webservice.server.output.JSONTableResultProcessor;
-import org.intermine.webservice.server.output.MemoryOutput;
 import org.intermine.webservice.server.output.Output;
-import org.intermine.webservice.server.output.StreamedOutput;
 import org.intermine.webservice.server.output.ResultsIterator;
+import org.intermine.webservice.server.output.StreamedOutput;
 import org.intermine.webservice.server.query.AbstractQueryService;
 
 /**
@@ -76,7 +76,8 @@ public class QueryResultService extends AbstractQueryService
 {
 
     /** Batch size to use **/
-    private static final int BATCH_SIZE = 5000;
+    public static final int BATCH_SIZE = 5000;
+    protected Map<String, Object> attributes = new HashMap<String, Object>();
 
     /**
      * Constructor
@@ -128,7 +129,7 @@ public class QueryResultService extends AbstractQueryService
         String xml = pq.toXml(PathQuery.USERPROFILE_VERSION);
         return linkGen.getMineResultsPath(xml);
     }
-
+    
     /**
      * Set the header attributes of the output based on the values of the PathQuery
      *
@@ -137,14 +138,14 @@ public class QueryResultService extends AbstractQueryService
      * @param size The size of this set of results
      */
     protected void setHeaderAttributes(PathQuery pq, Integer start, Integer size) {
-        Map<String, Object> attributes = new HashMap<String, Object>();
+        
         if (formatIsJSON()) {
             // These attributes are always needed
             attributes.put(JSONResultFormatter.KEY_MODEL_NAME, pq.getModel().getName());
             attributes.put(JSONResultFormatter.KEY_VIEWS, pq.getView());
 
             attributes.put(JSONTableFormatter.KEY_COLUMN_HEADERS,
-                    WebUtil.formatPathQueryView(pq, request));
+                    WebUtil.formatPathQueryView(pq, InterMineContext.getWebConfig()));
             attributes.put("start", String.valueOf(start));
             try {
                 attributes.put(JSONResultFormatter.KEY_ROOT_CLASS, pq.getRootClass());
@@ -157,8 +158,10 @@ public class QueryResultService extends AbstractQueryService
                 int count;
                 try {
                     count = executor.uniqueColumnValues(pq, summaryPath);
+                } catch (BagNotFound e) {
+                    throw new BadRequestException(e.getMessage());
                 } catch (ObjectStoreException e) {
-                    throw new ServiceException("Problem getting unique column value count.", e);
+                    throw new InternalErrorException("Problem getting unique column value count.", e);
                 }
                 attributes.put("uniqueValues", count);
             }
@@ -198,7 +201,7 @@ public class QueryResultService extends AbstractQueryService
             attributes.put(JSONTableFormatter.KEY_DESCRIPTION, description);
             attributes.put(JSONTableFormatter.KEY_COUNT, countUrl);
         }
-        if (f == JSON_DATA_TABLE_FORMAT) {
+        if (f == JSON_DATA_TABLE_FORMAT || f == JSONP_DATA_TABLE_FORMAT) {
             attributes.put("sEcho", request.getParameter("sEcho"));
             attributes.put("sColumns", StringUtils.join(pq.getView(), ","));
             //attributes.put("sColumns", StringUtils.join(
@@ -263,38 +266,6 @@ public class QueryResultService extends AbstractQueryService
         }
 
         output.setHeaderAttributes(attributes);
-    }
-
-
-    private void forward(PathQuery pathQuery, String title, String description,
-            WebServiceInput input, String mineLink, String layout) {
-        if (getFormat() == WebService.HTML_FORMAT) {
-            List<String> columnNames = new ArrayList<String>();
-            for (String viewString : pathQuery.getView()) {
-                columnNames.add(pathQuery.getGeneratedPathDescription(viewString));
-            }
-            MemoryOutput mout = (MemoryOutput) output;
-            request.setAttribute("columnNames", columnNames);
-            request.setAttribute("rows", mout.getResults());
-            request.setAttribute("title", title);
-            request.setAttribute("description", description);
-            request.setAttribute("currentPage",
-                    (input.getStart()) / input.getMaxCount());
-            request.setAttribute("baseLink", createBaseLink());
-            request.setAttribute("pageSize", input.getMaxCount());
-            request.setAttribute("layout", layout);
-            if (mineLink != null) {
-                request.setAttribute("mineLinkText", "Results in "
-                        + InterMineAction.getWebProperties(request)
-                                .getProperty("project.title"));
-                request.setAttribute("mineLinkUrl", mineLink);
-            }
-            try {
-                getHtmlForward().forward(request, response);
-            } catch (Exception e) {
-                throw new InternalErrorException(e);
-            }
-        }
     }
 
     private String createBaseLink() {
@@ -387,9 +358,14 @@ public class QueryResultService extends AbstractQueryService
             Iterator<List<ResultElement>> it;
             String summaryPath = request.getParameter("summaryPath");
             if (!StringUtils.isBlank(summaryPath)) {
+            	Integer uniqs = (Integer) attributes.get("uniqueValues");
+            	boolean occurancesOnly = (uniqs == null) || (uniqs < 2);
                 try {
                     String filterTerm = request.getParameter("filterTerm");
-                    Results r = executor.summariseQuery(pathQuery, summaryPath, filterTerm);
+                    Results r = executor.summariseQuery(pathQuery, summaryPath, filterTerm, occurancesOnly);
+                    if (StringUtils.isNotBlank(filterTerm)) {
+                        attributes.put("filteredCount", r.size());
+                    }
                     it = new ResultsIterator(r, firstResult, maxResults, filterTerm);
                 } catch (ObjectStoreException e) {
                     throw new ServiceException("Problem getting summary.", e);
@@ -414,7 +390,6 @@ public class QueryResultService extends AbstractQueryService
                 }
             }
         }
-        forward(pathQuery, title, description, input, mineLink, layout);
     }
 
     private ResultProcessor makeResultProcessor() {
@@ -468,8 +443,8 @@ public class QueryResultService extends AbstractQueryService
     }
 
     private PathQueryExecutor getPathQueryExecutor() {
-        Profile profile = SessionMethods.getProfile(request.getSession());
-        PathQueryExecutor executor = this.im.getPathQueryExecutor(profile);
+        final Profile profile = getPermission().getProfile();
+        final PathQueryExecutor executor = im.getPathQueryExecutor(profile);
         return executor;
     }
 

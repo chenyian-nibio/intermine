@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -30,10 +30,12 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.regex.Pattern;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -49,14 +51,13 @@ import org.intermine.api.LinkRedirectManager;
 import org.intermine.api.bag.BagQueryConfig;
 import org.intermine.api.bag.BagQueryHelper;
 import org.intermine.api.config.ClassKeyHelper;
-import org.intermine.api.mines.FriendlyMineManager;
 import org.intermine.api.profile.BagState;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.ProfileManager;
 import org.intermine.api.profile.TagManager;
 import org.intermine.api.profile.UserNotFoundException;
+import org.intermine.api.query.MainHelper;
 import org.intermine.api.search.GlobalRepository;
-import org.intermine.api.search.Scope;
 import org.intermine.api.search.SearchRepository;
 import org.intermine.api.tag.TagNames;
 import org.intermine.api.tracker.Tracker;
@@ -82,6 +83,7 @@ import org.intermine.sql.DatabaseUtil;
 import org.intermine.util.PropertiesUtil;
 import org.intermine.util.TypeUtil;
 import org.intermine.web.autocompletion.AutoCompleter;
+import org.intermine.web.context.InterMineContext;
 import org.intermine.web.logic.Constants;
 import org.intermine.web.logic.aspects.Aspect;
 import org.intermine.web.logic.aspects.AspectBinding;
@@ -149,11 +151,15 @@ public class InitialiserPlugin implements PlugIn
 
         final ObjectStoreWriter userprofileOSW = getUserprofileWriter(webProperties);
 
-        //verify if intermine_state exists in the savedbag table and if it has the right type
         if (userprofileOSW != null) {
+            //verify all table mapping classes exist in the userprofile db
             if (!verifyTablesExist(userprofileOSW)) {
                 return;
             }
+            if (!verifySuperUserExist(userprofileOSW)) {
+                return;
+            }
+            //verify if intermine_state exists in the savedbag table and if it has the right type
             if (!verifyListTables(userprofileOSW)) {
                 return;
             }
@@ -182,17 +188,25 @@ public class InitialiserPlugin implements PlugIn
                 }
                 SessionMethods.setInterMineAPI(servletContext, im);
 
+                InterMineContext.initilise(im, webProperties, webConfig);
+
                 // need a global reference to ProfileManager so it can be closed cleanly on destroy
                 profileManager = im.getProfileManager();
 
                 //verify superuser setted in the db matches with the user in the properties file
-                final Profile superProfile = im.getProfileManager().getSuperuserProfile();
+                final Profile superProfile = profileManager.getSuperuserProfile();
                 if (!superProfile.getUsername()
-                    .equals(PropertiesUtil.getProperties().getProperty("superuser.account"))) {
+                    .equals(PropertiesUtil.getProperties().getProperty("superuser.account")
+                    .trim())) {
                     blockingErrorKeys.put("errors.init.superuser", null);
                 }
+
                 // index global webSearchables
                 SearchRepository searchRepository = new GlobalRepository(superProfile);
+                List<String> users = profileManager.getSuperUsers();
+                for (String su : users) {
+                    new GlobalRepository(profileManager.getProfile(su));
+                }
                 SessionMethods.setGlobalSearchRepository(servletContext, searchRepository);
 
                 servletContext.setAttribute(Constants.GRAPH_CACHE, new HashMap<String, String>());
@@ -372,7 +386,13 @@ public class InitialiserPlugin implements PlugIn
             if (validateXML(xml, xmlSchemaUrl, "errors.init.webconfig.validation")) {
                 try {
                     retval = WebConfig.parse(servletContext, os.getModel());
-                    SessionMethods.setWebConfig(servletContext, retval);
+                    String validationMessage = retval.validateWidgetsConfig(os.getModel());
+                    if (validationMessage.isEmpty()) {
+                        SessionMethods.setWebConfig(servletContext, retval);
+                    } else {
+                        blockingErrorKeys.put("errors.init.webconfig.validation",
+                                              validationMessage);
+                    }
                 } catch (FileNotFoundException fnf) {
                     LOG.error("Problem to find the webconfig-model.xml file.", fnf);
                     blockingErrorKeys.put("errors.init.webconfig.notfound", null);
@@ -463,9 +483,37 @@ public class InitialiserPlugin implements PlugIn
     }
 
     /**
+     * Update the origins and lastState maps if there are any new properties in the
+     * current state, or if any of the properties we know about has a new value.
+     *
+     * @param lastState The way things looked last time we were here.
+     * @param origins The places things come from.
+     * @param currentSource What to record if a property has just appeared or changed.
+     * @param currentState The way things look now.
+     */
+    private void updateOrigins(
+            Map<String, String> lastState,
+            Map<String, List<String>> origins,
+            String currentSource,
+            Properties currentState) {
+        for (Entry<Object, Object> pair: currentState.entrySet()) {
+            if (!origins.containsKey(pair.getKey())) {
+                origins.put(String.valueOf(pair.getKey()), new ArrayList<String>());
+            }
+            if (!lastState.containsKey(pair.getKey())
+                    || !lastState.get(pair.getKey()).equals(((String) pair.getValue()).trim())) {
+                origins.get(pair.getKey()).add(currentSource);
+            }
+            lastState.put((String) pair.getKey(), ((String) pair.getValue()).trim());
+        }
+    }
+
+    /**
      * Read in the webapp configuration properties
      */
     private Properties loadWebProperties(ServletContext servletContext) {
+        Map<String, String> lastState = new HashMap<String, String>();
+        Map<String, List<String>> origins = new TreeMap<String, List<String>>();
         Properties webProperties = new Properties();
         InputStream globalPropertiesStream =
             servletContext.getResourceAsStream("/WEB-INF/global.web.properties");
@@ -476,6 +524,7 @@ public class InitialiserPlugin implements PlugIn
             blockingErrorKeys.put("errors.init.globalweb", null);
             return webProperties;
         }
+        updateOrigins(lastState, origins, "/WEB-INF/global.web.properties", webProperties);
 
         LOG.info("Looking for extra property files");
         Pattern pattern = Pattern.compile(
@@ -494,6 +543,7 @@ public class InitialiserPlugin implements PlugIn
                 blockingErrorKeys.put("errors.init.globalweb", null);
                 return webProperties;
             }
+            updateOrigins(lastState, origins, resource, webProperties);
         }
 
         // Load these last, as they always take precedence.
@@ -509,9 +559,21 @@ public class InitialiserPlugin implements PlugIn
                 blockingErrorKeys.put("errors.init.webproperties", null);
                 return webProperties;
             }
+            updateOrigins(lastState, origins, "/WEB-INF/web.properties", webProperties);
         }
-        SessionMethods.setWebProperties(servletContext, webProperties);
-        return webProperties;
+        SessionMethods.setPropertiesOrigins(servletContext, origins);
+        Properties trimProperties = trimProperties(webProperties);
+        SessionMethods.setWebProperties(servletContext, trimProperties);
+        MainHelper.loadHelpers(trimProperties);
+        return trimProperties;
+    }
+
+    private Properties trimProperties(Properties webProperties) {
+        Properties trimProperties = new Properties();
+        for (Entry<Object, Object> property: webProperties.entrySet()) {
+            trimProperties.put(property.getKey(), ((String) property.getValue()).trim());
+        }
+        return trimProperties;
     }
 
     private void loadOpenIDProviders(ServletContext context) {
@@ -654,7 +716,6 @@ public class InitialiserPlugin implements PlugIn
     private void applyUserProfileUpgrades(ObjectStoreWriter osw,
                                           Map<String, String> blockingErrorKeys) {
         Connection con = null;
-        boolean setSuperUser = false;
         try {
             con = ((ObjectStoreInterMineImpl) osw).getConnection();
             DatabaseUtil.addColumn(con, "userprofile", "apikey", DatabaseUtil.Type.text);
@@ -667,7 +728,6 @@ public class InitialiserPlugin implements PlugIn
                 DatabaseUtil.addColumn(con, "userprofile", "superuser",
                         DatabaseUtil.Type.boolean_type);
                 DatabaseUtil.updateColumnValue(con, "userprofile", "superuser", false);
-                setSuperUser = true;
             }
         } catch (SQLException sqle) {
             LOG.error("Problem retrieving connection", sqle);
@@ -675,24 +735,34 @@ public class InitialiserPlugin implements PlugIn
         } finally {
             ((ObjectStoreInterMineImpl) osw).releaseConnection(con);
         }
-        if (setSuperUser) {
-            setSuperUser(osw);
-        }
     }
 
-    private void setSuperUser(ObjectStoreWriter uosw) {
-        String superuser = PropertiesUtil.getProperties().getProperty("superuser.account");
-        UserProfile superuserProfile = new UserProfile();
-        superuserProfile.setUsername(superuser);
-        Set<String> fieldNames = new HashSet<String>();
-        fieldNames.add("username");
-        try {
-            superuserProfile = (UserProfile) uosw.getObjectByExample(superuserProfile, fieldNames);
+    private boolean verifySuperUserExist(ObjectStoreWriter uosw) {
+        UserProfile superuserProfile = getSuperUser(uosw);
+        if (superuserProfile != null) {
             superuserProfile.setSuperuser(true);
-            uosw.store(superuserProfile);
-        } catch (ObjectStoreException e) {
-            throw new RuntimeException("Unable to load user profile", e);
+            try {
+                uosw.store(superuserProfile);
+            } catch (ObjectStoreException e) {
+                throw new RuntimeException("Unable to set the flag to the user profile", e);
+            }
+            return true;
         }
+        blockingErrorKeys.put("errors.init.superusernotexist", null);
+        return false;
+    }
+    private UserProfile getSuperUser(ObjectStoreWriter uosw) {
+         String superuser = PropertiesUtil.getProperties().getProperty("superuser.account");
+         UserProfile superuserProfile = new UserProfile();
+         superuserProfile.setUsername(superuser);
+         Set<String> fieldNames = new HashSet<String>();
+         fieldNames.add("username");
+         try {
+             superuserProfile = (UserProfile) uosw.getObjectByExample(superuserProfile, fieldNames);
+         } catch (ObjectStoreException e) {
+             throw new RuntimeException("Unable to load user profile", e);
+         }
+         return superuserProfile;
     }
 
     /**

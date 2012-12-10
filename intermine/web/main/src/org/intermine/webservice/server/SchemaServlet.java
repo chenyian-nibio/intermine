@@ -1,7 +1,7 @@
 package org.intermine.webservice.server;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.api.InterMineAPI;
 import org.intermine.util.StringUtil;
+import org.intermine.web.context.InterMineContext;
 import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.webservice.server.exceptions.InternalErrorException;
 import org.intermine.webservice.server.output.Output;
@@ -63,8 +64,7 @@ public class SchemaServlet extends HttpServlet
 
     private void serveSpecificSchema(HttpServletRequest req, HttpServletResponse resp) {
         String fileName = StringUtil.trimSlashes(req.getPathInfo());
-        Properties webProperties =
-            SessionMethods.getWebProperties(req.getSession().getServletContext());
+        Properties webProperties = InterMineContext.getWebProperties();
         Set<String> schemata = new HashSet<String>(
             Arrays.asList(webProperties.getProperty("schema.filenames", "").split(",")));
         if (!schemata.contains(fileName)) {
@@ -89,7 +89,7 @@ public class SchemaServlet extends HttpServlet
     }
 
     private void serveSchemaList(HttpServletRequest req, HttpServletResponse resp) {
-        final InterMineAPI im = SessionMethods.getInterMineAPI(req.getSession());
+        final InterMineAPI im = InterMineContext.getInterMineAPI();
         new SchemaListService(im).service(req, resp);
     }
 

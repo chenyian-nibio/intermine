@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.lists;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -10,21 +10,20 @@ package org.intermine.webservice.server.lists;
  *
  */
 
-import java.util.Arrays;
-
-import java.util.List;
-import java.util.Map;
-
 import static org.apache.commons.collections.CollectionUtils.collect;
 import static org.apache.commons.collections.TransformerUtils.invokerTransformer;
 import static org.apache.commons.lang.StringUtils.split;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.bag.BagManager;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.profile.TagManager;
 import org.intermine.model.userprofile.Tag;
-import org.intermine.web.logic.session.SessionMethods;
 import org.intermine.webservice.server.exceptions.BadRequestException;
 import org.intermine.webservice.server.exceptions.ResourceNotFoundException;
 import org.intermine.webservice.server.exceptions.ServiceForbiddenException;
@@ -53,8 +52,8 @@ public class ListTagAddingService extends ListTagService
             throw new BadRequestException("No tags supplied");
         }
         BagManager bagManager = im.getBagManager();
-        Profile profile = SessionMethods.getProfile(request.getSession());
-        Map<String, InterMineBag> lists = bagManager.getUserAndGlobalBags(profile);
+        Profile profile = getPermission().getProfile();
+        Map<String, InterMineBag> lists = bagManager.getBags(profile);
         InterMineBag list = lists.get(listName);
         if (list == null) {
             throw new ResourceNotFoundException(
@@ -70,7 +69,7 @@ public class ListTagAddingService extends ListTagService
         }
 
 
-        List<Tag> allTags = bagManager.getTagsForBag(list);
+        List<Tag> allTags = bagManager.getTagsForBag(list, getPermission().getProfile());
         List<String> tagNames = (List<String>) collect(allTags, invokerTransformer("getTagName"));
         output.addResultItem(tagNames);
     }

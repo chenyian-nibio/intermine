@@ -1,7 +1,7 @@
 package org.intermine.web.logic.widget;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -12,7 +12,11 @@ package org.intermine.web.logic.widget;
 
 import java.util.List;
 
+import org.intermine.metadata.Model;
+import org.intermine.objectstore.ObjectStore;
+import org.intermine.pathquery.PathQuery;
 import org.intermine.web.logic.widget.config.WidgetConfig;
+import org.intermine.web.logic.widget.config.WidgetConfigUtil;
 
 
 /**
@@ -56,11 +60,6 @@ public abstract class Widget
     public abstract List<List<String>> getExportResults(String[]selected) throws Exception;
 
     /**
-     * @return results of widget
-     */
-    public abstract List<List<String[]>> getFlattenedResults();
-
-    /**
      * @return the hasResults
      */
     public abstract boolean getHasResults();
@@ -88,10 +87,38 @@ public abstract class Widget
     }
 
     /**
-     * Get the widget style
-     * @return the style
+     * Return the result that represents the data from this widget.
+     * Each row is represented as a list of Object
+     * @return a list representing the rows conatining a list of objects
+     * @throws Exception
      */
-    public String getStyle() {
-        return config.getStyle();
+    public abstract List<List<Object>> getResults() throws Exception;
+
+    /**
+     * Return the PathQuery generated dynamically by the attribute views in the configuration file
+     * @return the pathquery
+     */
+    public abstract PathQuery getPathQuery();
+
+    /**
+     * Create a pathquery having a view composed by all items set in the view attribute
+     * in the config file
+     * @param os the object store
+     * @param config the widget configuration
+     * @return the path query created
+     */
+    protected PathQuery createPathQueryView(ObjectStore os, WidgetConfig config) {
+        Model model = os.getModel();
+        PathQuery q = new PathQuery(model);
+        String[] views = config.getViews().split("\\s*,\\s*");
+        String prefix = config.getStartClass() + ".";
+        for (String view : views) {
+            if (!view.startsWith(prefix)) {
+                view = prefix + view;
+            }
+            view = WidgetConfigUtil.getPathWithoutSubClass(model, view);
+            q.addView(view);
+        }
+        return q;
     }
 }

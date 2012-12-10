@@ -24,10 +24,10 @@
           document.getElementById('queryClassSelect').innerHTML =
               selectedClassName + ":  " + helpText;
           document.getElementById('classSelectDiv').style.display = 'block';
-          jQuery('#submitClassSelect').attr('disabled','');
+          jQuery('#submitClassSelect').attr('disabled', false);
       } else {
           jQuery('#classSelectDiv').hide();
-          jQuery('#submitClassSelect').attr('disabled','disabled');
+          jQuery('#submitClassSelect').attr('disabled', true);
       }
   }
 
@@ -41,7 +41,7 @@
       jQuery('#queryClassSelector').click(function(e){
 		handleClassClick(e);
       });
-      jQuery('#submitClassSelect').attr('disabled','disabled');
+      jQuery('#submitClassSelect').attr('disabled', true);
       
       <!-- dbl click to submit the form as well -->
       jQuery('select#queryClassSelector option').dblclick(function() {

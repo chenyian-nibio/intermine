@@ -1,7 +1,7 @@
 package org.intermine.web.displayer;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -11,7 +11,8 @@ package org.intermine.web.displayer;
  */
 
 @SuppressWarnings("serial")
-class ReportDisplayerNoResultsException extends Exception {
+class ReportDisplayerNoResultsException extends Exception
+{
 
     String mistake;
 

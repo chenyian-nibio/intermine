@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.lists;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -12,7 +12,6 @@ package org.intermine.webservice.server.lists;
 
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.Profile;
-import org.intermine.web.logic.session.SessionMethods;
 
 /**
  * A service for deleting lists from the user-profile database.
@@ -43,7 +42,7 @@ public class ListDeletionService extends AuthenticatedListService
 
     @Override
     protected void execute() throws Exception {
-        Profile profile = SessionMethods.getProfile(request.getSession());
+        Profile profile = getPermission().getProfile();
         ListInput input = getInput(request);
         addOutputInfo(LIST_NAME_KEY, input.getListName());
         ListServiceUtils.ensureBagIsDeleted(profile, input.getListName());

@@ -11,10 +11,10 @@ import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.log4j.Logger;
 import org.intermine.bio.dataconversion.PpiViewConverter;
 import org.intermine.bio.util.Constants;
+import org.intermine.metadata.Model;
+import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.DataSet;
 import org.intermine.model.bio.Gene;
-import org.intermine.model.bio.Interaction;
-import org.intermine.model.bio.InteractionExperiment;
 import org.intermine.model.bio.Protein;
 import org.intermine.model.bio.ProteinInteraction;
 import org.intermine.model.bio.ProteinInteractionSource;
@@ -45,14 +45,17 @@ import org.intermine.util.DynamicUtil;
 public class PpiViewPostprocess extends PostProcessor {
 
 	private static final Logger LOG = Logger.getLogger(PpiViewPostprocess.class);
-	protected ObjectStore os;
 
-	private Map<MultiKey, InteractionExperiment> expMap = new HashMap<MultiKey, InteractionExperiment>();
+	// MI code for "association"
+	private static final String INTERACT_TYPE_MI = "MI:0914";
+
+	private Map<MultiKey, InterMineObject> expMap = new HashMap<MultiKey, InterMineObject>();
 	private DataSet dataSet;
+	private Model model;
 
 	public PpiViewPostprocess(ObjectStoreWriter osw) {
 		super(osw);
-		this.os = osw.getObjectStore();
+		model = Model.getInstanceByName("genomic");
 	}
 
 	@Override
@@ -77,18 +80,20 @@ public class PpiViewPostprocess extends PostProcessor {
 
 		System.out.println("Start iteration......");
 
+		InterMineObject interactionTerm = getInteractionTerm();
+
 		int count = 0;
-		Gene lastGene = null;
-		Set<Interaction> interactions = new HashSet<Interaction>();
+		InterMineObject lastGene = null;
+		Set<InterMineObject> interactions = new HashSet<InterMineObject>();
 
 		while (resIter.hasNext()) {
 			ResultsRow<?> rr = (ResultsRow<?>) resIter.next();
 
-			Gene thisGene = (Gene) rr.get(0);
-			Protein thisProtein = (Protein) rr.get(1);
-			ProteinInteractionSource thisSource = (ProteinInteractionSource) rr.get(2);
-			Protein partProtein = (Protein) rr.get(3);
-			Gene partGene = (Gene) rr.get(4);
+			InterMineObject thisGene = (InterMineObject) rr.get(0);
+			InterMineObject thisProtein = (InterMineObject) rr.get(1);
+			InterMineObject thisSource = (InterMineObject) rr.get(2);
+			InterMineObject partProtein = (InterMineObject) rr.get(3);
+			InterMineObject partGene = (InterMineObject) rr.get(4);
 
 			// System.out.println(String.format(
 			// "gene_a:%s, protein_a:%s, gene_b:%s, protein_b:%s, source:%s; %s.", thisGene
@@ -96,47 +101,62 @@ public class PpiViewPostprocess extends PostProcessor {
 			// .getNcbiGeneNumber(), partProtein.getPrimaryAccession(), thisSource
 			// .getDbName(), thisSource.getIdentifier()));
 
-			if (thisGene.getNcbiGeneNumber() == null || partGene.getNcbiGeneNumber() == null) {
-				continue;
+			try {
+				String thisGeneId = thisGene.getFieldValue("ncbiGeneId").toString();
+				String partGeneId = partGene.getFieldValue("ncbiGeneId").toString();
+				
+				if (thisGeneId == null || partGeneId == null) {
+					continue;
+				}
+
+				if (lastGene != null && !(lastGene.equals(thisGene))) {
+					lastGene.setFieldValue("interactions", interactions);
+					osw.store(lastGene);
+
+					interactions = new HashSet<InterMineObject>();
+				}
+				InterMineObject interaction = (InterMineObject) DynamicUtil
+						.simpleCreateObject(model.getClassDescriptorByName("Interaction").getType());
+
+				interaction.setFieldValue("gene1", thisGene);
+				interaction.setFieldValue("gene2", partGene);
+				osw.store(interaction);
+
+				InterMineObject detail = (InterMineObject) DynamicUtil.simpleCreateObject(model
+						.getClassDescriptorByName("InteractionDetail").getType());
+
+				String intName;
+				if (thisGeneId.equals(partGeneId)) {
+					intName = "PPIView:" + thisProtein.getFieldValue("primaryAccession");
+				} else {
+					intName = "PPIView:" + thisProtein.getFieldValue("primaryAccession") + "_"
+							+ partProtein.getFieldValue("primaryAccession");
+				}
+				detail.setFieldValue("name", intName);
+				detail.setFieldValue("type", "physical");
+				detail.setFieldValue("relationshipType", interactionTerm);
+				detail.setFieldValue(
+						"experiment",
+						getExperiment(thisSource.getFieldValue("dbName").toString(), thisSource
+								.getFieldValue("identifier").toString()));
+				HashSet<DataSet> dataSets = new HashSet<DataSet>();
+				dataSets.add(dataSet);
+				detail.setFieldValue("dataSets", dataSets);
+				detail.setFieldValue("interaction", interaction);
+				osw.store(detail);
+
+				interactions.add(interaction);
+
+				lastGene = thisGene;
+
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-
-			if (lastGene != null && !(lastGene.equals(thisGene))) {
-				lastGene.setInteractions(interactions);
-				osw.store(lastGene);
-
-				interactions = new HashSet<Interaction>();
-			}
-			Interaction interaction = (Interaction) DynamicUtil.createObject(Collections
-					.singleton(Interaction.class));
-			interaction.setGene(thisGene);
-			interaction.addInteractingGenes(partGene);
-			String intName;
-			String sName;
-			if (thisGene.getNcbiGeneNumber().equals(partGene.getNcbiGeneNumber())) {
-				intName = "PPIView:" + thisProtein.getPrimaryAccession();
-				sName = "PPIView:" + thisGene.getNcbiGeneNumber();
-			} else {
-				intName = "PPIView:" + thisProtein.getPrimaryAccession() + "_"
-						+ partProtein.getPrimaryAccession();
-				sName = "PPIView:" + thisGene.getNcbiGeneNumber() + "_"
-						+ partGene.getNcbiGeneNumber();
-			}
-			interaction.setShortName(sName);
-			interaction.setName(intName);
-			interaction.setInteractionType("physical");
-			interaction.setExperiment(getExperiment(thisSource.getDbName(), thisSource
-					.getIdentifier()));
-			interaction.addDataSets(dataSet);
-
-			osw.store(interaction);
-			interactions.add(interaction);
-
-			lastGene = thisGene;
-
 			count++;
 		}
 		if (lastGene != null) {
-			lastGene.setInteractions(interactions);
+			lastGene.setFieldValue("interactions", interactions);
 			osw.store(lastGene);
 		}
 		System.out.println(count + "ppi processed" + " - took "
@@ -205,6 +225,7 @@ public class PpiViewPostprocess extends PostProcessor {
 
 		System.out.println("Query compiled.");
 
+		ObjectStore os = osw.getObjectStore();
 		((ObjectStoreInterMineImpl) os).precompute(q, Constants.PRECOMPUTE_CATEGORY);
 		Results results = os.execute(q, 5000, true, true, true);
 
@@ -214,30 +235,37 @@ public class PpiViewPostprocess extends PostProcessor {
 	}
 
 	/***
-	 * Get InteractionExperiment, to be modified.
+	 * Get InteractionExperiment
 	 * 
 	 * @param dbName
 	 * @param identifier
-	 * @return
+	 * @return An InterMineObject of InteractionExperiment
 	 * @throws ObjectStoreException
 	 */
-	private InteractionExperiment getExperiment(String dbName, String identifier)
+	private InterMineObject getExperiment(String dbName, String identifier)
 			throws ObjectStoreException {
 		MultiKey key = new MultiKey(dbName, identifier);
 
-		InteractionExperiment ret = expMap.get(key);
+		InterMineObject ret = expMap.get(key);
 		if (ret == null) {
 
-			ret = (InteractionExperiment) DynamicUtil.createObject(Collections
-					.singleton(InteractionExperiment.class));
-			ret.setDescription("Converted from PPIview data");
+			ret = (InterMineObject) DynamicUtil.simpleCreateObject(model.getClassDescriptorByName(
+					"InteractionExperiment").getType());
+			ret.setFieldValue("description", "Converted from PPIview data");
 
-			ret.setSourceDb(dbName);
-			ret.setSourceId(identifier);
+			ret.setFieldValue("sourceDb", dbName);
+			ret.setFieldValue("sourceId", identifier);
 
 			osw.store(ret);
 		}
 		return ret;
 	}
 
+	private InterMineObject getInteractionTerm() throws ObjectStoreException {
+		InterMineObject term = (InterMineObject) DynamicUtil.simpleCreateObject(model
+				.getClassDescriptorByName("InteractionTerm").getType());
+		term.setFieldValue("identifier", INTERACT_TYPE_MI);
+		osw.store(term);
+		return term;
+	}
 }

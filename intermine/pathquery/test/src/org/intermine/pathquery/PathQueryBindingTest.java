@@ -1,7 +1,7 @@
 package org.intermine.pathquery;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -13,6 +13,7 @@ package org.intermine.pathquery;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -49,7 +50,7 @@ public class PathQueryBindingTest extends TestCase
         Model model = Model.getInstanceByName("testmodel");
         // allCompanies
         PathQuery allCompanies = new PathQuery(model);
-        allCompanies.addView("Company");
+        allCompanies.addView("Company.name");
         expected.put("allCompanies", allCompanies);
 
         // employeesWithOldManagers
@@ -92,10 +93,6 @@ public class PathQueryBindingTest extends TestCase
         assertEquals(expected.get("employeesWithOldManagers").toString(), savedQueries.get("employeesWithOldManagers").toString());
     }
 
-    // this will fail to validate - attributes cannot be in bags
-    public void testVatNumberInBag() throws Exception {
-        //assertEquals(expected.get("vatNumberInBag"), savedQueries.get("vatNumberInBag"));
-    }
 
     public void testCompanyNumberInBag() throws Exception {
         assertEquals(expected.get("companyInBag").toString(), savedQueries.get("companyInBag").toString());
@@ -104,14 +101,22 @@ public class PathQueryBindingTest extends TestCase
     public void testQueryWithConstraint() throws Exception {
         assertEquals(expected.get("queryWithConstraint").toString(), savedQueries.get("queryWithConstraint").toString());
     }
-
-    // this won't move bag constraint to parent, will not produce a valid query
-    public void employeeEndInBag() throws Exception {
-        /*assertEquals(expected.get("employeeEndInBag"), savedQueries.get("employeeEndInBag"));
-        System.out.println(((PathQuery) savedQueries.get("employeeEndInBag")));
-        List<Throwable> problems = Arrays.asList(((OldPathQuery) expected.get("employeeEndInBag")).getProblems());
-        assertEquals(problems,
-                ((OldPathQuery) savedQueries.get("employeeEndInBag")));*/
+    
+    public void testRangeQuery() throws Exception {
+        PathQuery pq = new PathQuery(Model.getInstanceByName("testmodel"));
+        pq.addViews("Employee.name");
+        pq.addConstraint(new PathConstraintRange("Employee.age", ConstraintOp.WITHIN, Arrays.asList("40 .. 50", "55 .. 60")));
+        pq.addConstraint(new PathConstraintRange("Employee.employmentPeriod", ConstraintOp.OVERLAPS, Arrays.asList("01-01-2012")));
+        
+        assertEquals(pq.toString(), savedQueries.get("rangeQueries").toString());
+    }
+    
+    public void testMultiTypeQuery() throws Exception {
+        PathQuery pq = new PathQuery(Model.getInstanceByName("testmodel"));
+        pq.addViews("Employable.name");
+        pq.addConstraint(new PathConstraintMultitype("Employable", ConstraintOp.ISA, Arrays.asList("Contractor", "Manager")));
+        
+        assertEquals(pq.toString(), savedQueries.get("multitype").toString());
     }
 
     public void testMarshallings() throws Exception {
@@ -141,7 +146,7 @@ public class PathQueryBindingTest extends TestCase
         PathQuery q = new PathQuery(model);
         q.addView("Employee.name");
         q.addConstraint(new PathConstraintAttribute("Employee.age", ConstraintOp.LESS_THAN, "50"));
-        assertEquals("<query name=\"test\" model=\"testmodel\" view=\"Employee.name\"><constraint path=\"Employee.age\" op=\"&lt;\" value=\"50\"/></query>", PathQueryBinding.marshal(q, "test", "testmodel", 1));
+        assertEquals("<query name=\"test\" model=\"testmodel\" view=\"Employee.name\" longDescription=\"\"><constraint path=\"Employee.age\" op=\"&lt;\" value=\"50\"/></query>", PathQueryBinding.marshal(q, "test", "testmodel", 1));
     }
 
     public void testNewPathQuery2() throws Exception {

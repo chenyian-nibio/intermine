@@ -11,7 +11,7 @@
 		<attribute name="name" type="java.lang.String"/>
 		<attribute name="interactionType" type="java.lang.String"/>
 		<reference name="gene" referenced-type="Gene" reverse-reference="proteinDNAInteractions" />
-		<reference name="interactWith" referenced-type="Gene" reverse-reference="proteinDNAInteractions"/>
+		<reference name="interactWith" referenced-type="Gene"/>
 		<reference name="experiment" referenced-type="ProteinDNAExperiment" reverse-reference="interactions"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
       <!--
@@ -20,6 +20,7 @@
     </class>
 
     <class name="Gene" is-interface="true">
+        <attribute name="ncbiGeneId" type="java.lang.String"/>
 		<collection name="proteinDNAInteractions" referenced-type="ProteinDNAInteraction" reverse-reference="gene"/>
     </class>
 

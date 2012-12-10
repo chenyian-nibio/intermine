@@ -9,6 +9,7 @@
 </class>
 
 <class name="Gene" is-interface="true">
+    <attribute name="ncbiGeneId" type="java.lang.String"/>
 	<collection name="diseases" referenced-type="Disease" reverse-reference="genes"/>
 </class>
 

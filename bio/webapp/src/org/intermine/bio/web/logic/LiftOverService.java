@@ -1,7 +1,7 @@
 package org.intermine.bio.web.logic;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -48,6 +48,25 @@ public class LiftOverService
         ORGANISM_COMMON_NAME_MAP = Collections.unmodifiableMap(tempMap);
     }
 
+    private static final Map<String, String> HUMAN_GENOME_BUILD_MAP;
+    static {
+        Map<String, String> tempMap = new HashMap<String, String>();
+        tempMap.put("GRCh37", "hg19");
+        tempMap.put("NCBI36", "hg18");
+        tempMap.put("NCBI35", "hg17");
+        tempMap.put("NCBI34", "hg16");
+        HUMAN_GENOME_BUILD_MAP = Collections.unmodifiableMap(tempMap);
+    }
+
+    private static final Map<String, String> MOUSE_GENOME_BUILD_MAP;
+    static {
+        Map<String, String> tempMap = new HashMap<String, String>();
+        tempMap.put("GRCm38", "mm10");
+        tempMap.put("NCBIM37", "mm9");
+        tempMap.put("NCBIM36", "mm8");
+        MOUSE_GENOME_BUILD_MAP = Collections.unmodifiableMap(tempMap);
+    }
+
     /**
      * Send a HTTP POST request to liftOver service.
      *
@@ -58,14 +77,13 @@ public class LiftOverService
      * @param liftOverServerURL url
      * @return a list of GenomicRegion
      */
-    public Map<String, List<GenomicRegion>> doLiftOver(
+    public String doLiftOver(
             GenomicRegionSearchConstraint grsc, String org,
             String genomeVersionSource, String genomeVersionTarget,
             String liftOverServerURL) {
 
         List<GenomicRegion> genomicRegionList = grsc.getGenomicRegionList();
-        Map<String, List<GenomicRegion>> liftedGenomicRegionMap =
-            new HashMap<String, List<GenomicRegion>>();
+        String liftOverResponse;
 
         String coords = converToBED(genomicRegionList);
         String organism = ORGANISM_COMMON_NAME_MAP.get(org);
@@ -94,58 +112,16 @@ public class LiftOverService
             wr.flush();
             wr.close();
 
-            String liftOverResponse = new String(IOUtils.toCharArray(conn.getInputStream()));
+            liftOverResponse = new String(IOUtils.toCharArray(conn.getInputStream()));
 
             LOG.info("LiftOver response message: \n" + liftOverResponse);
-
-            // Get the response
-            try {
-                JSONObject json = new JSONObject(liftOverResponse);
-
-                JSONArray liftedArray = json.getJSONArray("coords");
-                JSONArray unmappedArray = json.getJSONArray("unmapped");
-
-                // parse json object
-                List<GenomicRegion> liftedList = new ArrayList<GenomicRegion>();
-                for (int i = 0; i < liftedArray.length(); i++) {
-                    String coord = (String) liftedArray.get(i);
-                    coord.trim();
-                    GenomicRegion gr = new GenomicRegion();
-                    gr.setOrganism(org);
-                    gr.setExtendedRegionSize(grsc.getExtendedRegionSize());
-                    gr.setChr(coord.split("\t")[0].trim());
-                    gr.setStart(Integer.valueOf(coord.split("\t")[1].trim()));
-                    gr.setEnd(Integer.valueOf(coord.split("\t")[2].trim()));
-                    liftedList.add(gr);
-                }
-
-                List<GenomicRegion> unmappedList = new ArrayList<GenomicRegion>();
-                for (int i = 0; i < unmappedArray.length(); i++) {
-                    String coord = (String) unmappedArray.get(i);
-                    coord.trim();
-                    GenomicRegion gr = new GenomicRegion();
-                    gr.setOrganism(org);
-                    gr.setExtendedRegionSize(grsc.getExtendedRegionSize());
-                    gr.setChr(coord.split("\t")[0].trim());
-                    gr.setStart(Integer.valueOf(coord.split("\t")[1].trim()));
-                    gr.setEnd(Integer.valueOf(coord.split("\t")[2].trim()));
-                    unmappedList.add(gr);
-                }
-
-                liftedGenomicRegionMap.put("lifedGenomicRegions", liftedList);
-                liftedGenomicRegionMap.put("unmappedGenomicRegions", unmappedList);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
 
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
 
-        return liftedGenomicRegionMap;
+        return liftOverResponse;
     }
 
     private String converToBED(List<GenomicRegion> genomicRegionList) {

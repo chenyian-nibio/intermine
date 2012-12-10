@@ -1,7 +1,7 @@
 package org.intermine.template.xml;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -56,15 +56,18 @@ public class TemplateQueryBinding extends PathQueryBinding
      * @param version the version number of the XML format
      */
     public void doMarshal(TemplateQuery template, XMLStreamWriter writer, int version) {
+        if (template == null) {
+            throw new NullPointerException("template must not be null");
+        }
+        if (writer == null) {
+            throw new NullPointerException("writer must not be null");
+        }
         try {
             writer.writeCharacters("\n");
             writer.writeStartElement("template");
             writer.writeAttribute("name", template.getName());
-            writer.writeAttribute("title", template.getTitle());
-            if (template.getDescription() == null) {
-                writer.writeAttribute("longDescription", "");
-            } else {
-                writer.writeAttribute("longDescription", template.getDescription());
+            if (template.getTitle() != null) {
+                writer.writeAttribute("title", template.getTitle());
             }
             if (template.getComment() == null) {
                 writer.writeAttribute("comment", "");
@@ -114,7 +117,6 @@ public class TemplateQueryBinding extends PathQueryBinding
     public static String marshal(TemplateQuery template, int version) {
         StringWriter sw = new StringWriter();
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
-
         try {
             XMLStreamWriter writer = factory.createXMLStreamWriter(sw);
             marshal(template, writer, version);
@@ -126,14 +128,14 @@ public class TemplateQueryBinding extends PathQueryBinding
     }
 
     /**
-     * Parse TemplateQuerys from XML
+     * Parse TemplateQueries from XML.
+     *
      * @param reader the saved templates
      * @param version the version of the xml format, an attribute of the ProfileManager
      * @return a Map from template name to TemplateQuery
      */
     public static Map<String, TemplateQuery> unmarshalTemplates(Reader reader, int version) {
         Map<String, TemplateQuery> templates = new LinkedHashMap<String, TemplateQuery>();
-
         try {
             SAXParser.parse(new InputSource(reader), new TemplateQueryHandler(templates, version));
         } catch (Exception e) {

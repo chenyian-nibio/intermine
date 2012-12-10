@@ -1,7 +1,7 @@
 package org.intermine.objectstore.query;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -10,8 +10,8 @@ package org.intermine.objectstore.query;
  *
  */
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Operations used in building constraints.
@@ -24,10 +24,14 @@ public final class ConstraintOp
     private static List<ConstraintOp> values = new ArrayList<ConstraintOp>();
     private final String name;
 
-    /** Require that the two arguments are equal */
+    /** Require that the two arguments are equal, regardless of case for strings */
     public static final ConstraintOp EQUALS = new ConstraintOp("=");
-    /** Require that the two arguments are not equal */
+    /** Require that the two arguments are exactly equal */
+    public static final ConstraintOp EXACT_MATCH = new ConstraintOp("==");
+    /** Require that the two arguments are not equal, ignoring case for strings */
     public static final ConstraintOp NOT_EQUALS = new ConstraintOp("!=");
+    /** Require that the two arguments are not equal */
+    public static final ConstraintOp STRICT_NOT_EQUALS = new ConstraintOp("!==");
     /** Require that the first argument is less than the second */
     public static final ConstraintOp LESS_THAN = new ConstraintOp("<");
     /** Require that the first argument is less than or equal to the second */
@@ -42,8 +46,12 @@ public final class ConstraintOp
     public static final ConstraintOp DOES_NOT_MATCH = new ConstraintOp("NOT LIKE");
     /** Require that the argument is null */
     public static final ConstraintOp IS_NULL = new ConstraintOp("IS NULL");
+    /** Synonym for IS NULL **/
+    public static final ConstraintOp IS_EMPTY = IS_NULL;
     /** Require that the argument is not null */
     public static final ConstraintOp IS_NOT_NULL = new ConstraintOp("IS NOT NULL");
+    /** Synonym for IS NOT NULL **/
+    public static final ConstraintOp IS_NOT_EMPTY = IS_NOT_NULL;
     /** Require that the first argument contains the second */
     public static final ConstraintOp CONTAINS = new ConstraintOp("CONTAINS");
     /** Require that the first argument does not contain the second */
@@ -77,8 +85,27 @@ public final class ConstraintOp
 
     /** Require that the first argument is one of a list a values */
     public static final ConstraintOp ONE_OF = new ConstraintOp("ONE OF");
+
     /** Require that the first argument is not one of a list of values */
     public static final ConstraintOp NONE_OF = new ConstraintOp("NONE OF");
+
+    /** Require that the first argument lie entirely within the second. **/
+    public static final ConstraintOp WITHIN = new ConstraintOp("WITHIN");
+
+    /** Require that some part of the first argument lie outside the second. **/
+    public static final ConstraintOp OUTSIDE = new ConstraintOp("OUTSIDE");
+
+    /** Require that the first argument be of the type named by the right argument **/
+    public static final ConstraintOp ISA = new ConstraintOp("ISA");
+
+    /** Require that the first argument be of the type named by the right argument **/
+    public static final ConstraintOp ISNT = new ConstraintOp("ISNT");
+    
+    /** Require that the left argument has at least one of the right argument. **/
+    public static final ConstraintOp HAS = new ConstraintOp("HAS");
+    
+    /** Require that the left argument does not have any of the right argument. **/
+    public static final ConstraintOp DOES_NOT_HAVE = new ConstraintOp("DOES NOT HAVE");
 
     private ConstraintOp(String name) {
         this.name = name;
@@ -130,8 +157,12 @@ public final class ConstraintOp
     public ConstraintOp negate() {
         if (this == EQUALS) {
             return NOT_EQUALS;
+        } else if (this == EXACT_MATCH) {
+            return STRICT_NOT_EQUALS;
         } else if (this == NOT_EQUALS) {
             return EQUALS;
+        } else if (this == STRICT_NOT_EQUALS) {
+            return EXACT_MATCH;
         } else if (this == LESS_THAN) {
             return GREATER_THAN_EQUALS;
         } else if (this == GREATER_THAN_EQUALS) {
@@ -164,6 +195,18 @@ public final class ConstraintOp
             return NOR;
         } else if (this == NOR) {
             return OR;
+        } else if (this == ONE_OF) {
+            return NONE_OF;
+        } else if (this == NONE_OF) {
+            return ONE_OF;
+        } else if (this == WITHIN) {
+            return OUTSIDE;
+        } else if (this == OUTSIDE) {
+            return WITHIN;
+        } else if (this == ISA) {
+            return ISNT;
+        } else if (this == ISNT) {
+            return ISA;
         }
         throw new IllegalArgumentException("Unknown op");
     }

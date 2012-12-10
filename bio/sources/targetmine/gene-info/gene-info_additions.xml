@@ -5,7 +5,7 @@
 <!-- add any <class> elements here -->
 
   <class name="Gene" extends="SequenceFeature" is-interface="true">
-    <attribute name="ncbiGeneNumber" type="java.lang.String"/>
+    <attribute name="ncbiGeneId" type="java.lang.String"/>
 	<attribute name="name" type="java.lang.String"/>
 	<attribute name="description" type="java.lang.String"/>
 	<attribute name="type" type="java.lang.String"/>

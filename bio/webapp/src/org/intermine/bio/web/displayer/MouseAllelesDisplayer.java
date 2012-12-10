@@ -1,7 +1,7 @@
 package org.intermine.bio.web.displayer;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -10,6 +10,7 @@ package org.intermine.bio.web.displayer;
  *
  */
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -29,8 +30,10 @@ import org.intermine.api.results.ResultElement;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
+import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.pathquery.Constraints;
 import org.intermine.pathquery.OrderDirection;
+import org.intermine.pathquery.OuterJoinStatus;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.web.displayer.ReportDisplayer;
 import org.intermine.web.logic.config.ReportDisplayerConfig;
@@ -71,6 +74,7 @@ public class MouseAllelesDisplayer extends ReportDisplayer
         // Counts of HLPT Names
         PathQuery q = new PathQuery(model);
 
+        Integer alleleCount = 0;
         Boolean mouser = false;
         if (!this.isThisAMouser(reportObject)) {
             // to give us some homologue identifier and the actual terms to tag-cloudize
@@ -96,6 +100,17 @@ public class MouseAllelesDisplayer extends ReportDisplayer
             q.setConstraintLogic("A and B");
             // order by the homologue db id, just to keep the alleles in a reasonable order
             q.addOrderBy("Gene.homologues.homologue.id", OrderDirection.ASC);
+
+            // allele count
+            PathQuery cq = new PathQuery(im.getModel());
+            cq.addViews("Gene.homologues.homologue.alleles.primaryIdentifier");
+            cq.addConstraint(Constraints.eq("Gene.homologues.homologue.organism.shortName",
+                    "M. musculus"), "A");
+            cq.addConstraint(Constraints.eq("Gene.id", reportObject.getObject().getId().toString()), "B");
+            cq.setConstraintLogic("A and B");
+            try {
+                alleleCount = executor.count(cq);
+            } catch (ObjectStoreException e) { }
         } else {
             mouser = true;
 
@@ -139,6 +154,10 @@ public class MouseAllelesDisplayer extends ReportDisplayer
                             collection.size(), false, lc);
 
                     request.setAttribute("collection", t);
+
+                    // Get the number of alleles.
+                    alleleCount = collection.size();
+
                     break;
                 }
             }
@@ -188,8 +207,8 @@ public class MouseAllelesDisplayer extends ReportDisplayer
                     sorted.put(term, (Integer) terms.get(term));
                 }
                 // "mark" top 20 and order by natural order - the keys
-                HashMap<String, Map<String, Object>> marked =
-                        new HashMap<String, Map<String, Object>>();
+                TreeMap<String, Map<String, Object>> marked =
+                        new TreeMap<String, Map<String, Object>>();
                 Integer i = 0;
                 for (String term : sorted.keySet()) {
                     // wrapper map
@@ -219,6 +238,8 @@ public class MouseAllelesDisplayer extends ReportDisplayer
         request.setAttribute("thisIsAMouser", mouser);
 
         request.setAttribute("counts", top);
+
+        request.setAttribute("alleleCount", alleleCount);
     }
 
     private String getUrl(String geneId, String term) {

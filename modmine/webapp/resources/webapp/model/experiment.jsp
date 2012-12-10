@@ -6,8 +6,7 @@
 <%@ taglib tagdir="/WEB-INF/tags" prefix="im"%>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="mm"%>
 <%@ taglib uri="http://flymine.org/imutil" prefix="imutil"%>
-<%@ taglib uri="http://jakarta.apache.org/taglibs/string-1.1"
-    prefix="str"%>
+<%@ taglib uri="http://jakarta.apache.org/taglibs/string-1.1" prefix="str"%>
 
 <!-- experiment.jsp -->
 
@@ -592,7 +591,7 @@ All GBrowse tracks generated for this experiment:
       </td>
 
       <td class="sorting">
-      <html:link href="/${WEB_PROPERTIES['webapp.path']}/report.do?id=${subCounts.key.id}">
+      <html:link href="/${WEB_PROPERTIES['webapp.path']}/report.do?id=${sub.id}">
       <c:out value="${fn:replace(sub.title, '_', ' ')}"></c:out></html:link>
       </td>
 
@@ -602,17 +601,17 @@ All GBrowse tracks generated for this experiment:
 
        <td class="sorting" bgcolor="white">
           <c:forEach items="${sub.experimentalFactors}" var="factor" varStatus="status">
+          <%--<br>${factor.type}--${factorType}--%>
             <c:if test="${factor.type == factorType && !fn:startsWith(factor.name, 'No Antibody')}" >
                 <c:choose>
-                   <c:when test="${factor.property != null}">
+                   <c:when test="${not empty factor.property}">
 
     <c:set var="thisTypeCount" value="${thisTypeCount + 1}"></c:set>
-
            <c:choose>
              <c:when test="${thisTypeCount <= 5}">
-              <html:link href="/${WEB_PROPERTIES['webapp.path']}/report.do?id=${factor.property.id}" title="More information about this factor"><c:out value="${factor.name}"/></html:link>
+              <html:link href="/${WEB_PROPERTIES['webapp.path']}/report.do?id=${factor.property.id}" title="More information about this ${factor.type}"><c:out value="${factor.name}"/></html:link>
               <span class="tinylink">
-              <im:querylink text="[ALL]" skipBuilder="true" title="View all submissions using this factor">
+              <im:querylink text="[ALL]" skipBuilder="true" title="View all submissions using this ${factorType}">
               <query name="" model="genomic"
               view="Submission.DCCid Submission.project.surnamePI Submission.title Submission.experimentType Submission.properties.type Submission.properties.name"
               sortOrder="Submission.experimentType asc">
@@ -636,25 +635,39 @@ All GBrowse tracks generated for this experiment:
               </span>
 
 <%--if antibody or strain add target gene --%>
+
 <c:if test="${(factor.type == ANTIBODY || factor.type == STRAIN) && !fn:contains(factor.name, 'oldid')}">
 <c:choose>
-<c:when test="${fn:length(factor.property.target.symbol) > 1}">
+<c:when test="${not empty factor.property.target.name}">
 <br>target:
 <html:link href="/${WEB_PROPERTIES['webapp.path']}/report.do?id=${factor.property.target.id}"
  title="More about this target">
 <c:out value="${factor.property.target.name}"/></html:link>
+</c:when>
 
+<c:otherwise>
+<c:choose>
+<c:when test="${not empty factor.property.target.symbol}">/
+<strong>
+ <html:link href="/${WEB_PROPERTIES['webapp.path']}/report.do?id=${factor.property.target.id}"
+     title="More about this target">
+ <c:out value="${factor.property.target.symbol}"/></html:link>
+ </strong>
 </c:when>
 <c:otherwise>
-<c:if test="{fn:length(factor.property.targetName) > 1}">
+<c:if test="${not empty factor.property.targetName}">/
 <br>target:
-${factor.property.targetName}
+  <a href="${factor.property.wikiLink}" style="text-decoration: none;" class="value extlink">
+  ${factor.property.targetName}</a>
 </c:if>
+  </c:otherwise>
+</c:choose>
 </c:otherwise>
 </c:choose>
-                  </c:if>
+</c:if>
+
 <br>
-                   </c:when>
+</c:when>
                   <c:when test="${thisTypeCount > 5 && status.last}">
                   ...
 <br>

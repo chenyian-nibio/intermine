@@ -10,6 +10,7 @@
 		<collection name="publications" referenced-type="Publication"/>
     </class>
 	<class name="Gene" is-interface="true">
+		<attribute name="ncbiGeneId" type="java.lang.String"/>
 		<collection name="doAnnotations" referenced-type="DOAnnotation"/>
     </class>
 	<class name="DOTerm" is-interface="true">

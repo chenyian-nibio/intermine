@@ -1,7 +1,7 @@
 package org.intermine.bio.util;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -35,7 +35,9 @@ public final class OrganismRepository
     private Map<String, OrganismData> abbreviationMap = new HashMap<String, OrganismData>();
     private Map<String, OrganismData> shortNameMap = new HashMap<String, OrganismData>();
     private Map<MultiKey, OrganismData> genusSpeciesMap = new HashMap<MultiKey, OrganismData>();
-    private Map<Integer, OrganismData> strainMap = new HashMap<Integer, OrganismData>();
+    private Map<Integer, OrganismData> strains = new HashMap<Integer, OrganismData>();
+    private Map<String, String> organismsWithStrains = new HashMap<String, String>();
+    private static Map<String, OrganismData> uniprotToTaxon = new HashMap<String, OrganismData>();
 
     private static final String PROP_FILE = "organism_config.properties";
     private static final String PREFIX = "taxon";
@@ -45,10 +47,11 @@ public final class OrganismRepository
     private static final String SPECIES = "species";
     private static final String STRAINS = "strains";
     private static final String ENSEMBL = "ensemblPrefix";
+    private static final String UNIPROT = "uniprot";
 
     private static final String REGULAR_EXPRESSION =
         PREFIX + "\\.(\\d+)\\.(" + SPECIES + "|" + GENUS + "|" + ABBREVIATION + "|" + STRAINS
-        + "|" + ENSEMBL + ")";
+        + "|" + ENSEMBL + "|" + UNIPROT + ")";
 
     private OrganismRepository() {
       //disable external instantiation
@@ -97,13 +100,17 @@ public final class OrganismRepository
                             String[] strains = attributeValue.split(" ");
                             for (String strain : strains) {
                                 try {
-                                    or.strainMap.put(Integer.valueOf(strain), od);
+                                    or.strains.put(Integer.valueOf(strain), od);
+                                    or.organismsWithStrains.put(taxonIdString, strain);
                                 } catch (NumberFormatException e) {
                                     throw new NumberFormatException("taxon ID must be a number");
                                 }
                             }
                         } else if (fieldName.equals(ENSEMBL)) {
                             od.setEnsemblPrefix(attributeValue);
+                        } else if (fieldName.equals(UNIPROT)) {
+                            od.setUniprot(attributeValue);
+                            uniprotToTaxon.put(attributeValue, od);
                         } else {
                             if (fieldName.equals(SPECIES)) {
                                 od.setSpecies(attributeValue);
@@ -128,7 +135,10 @@ public final class OrganismRepository
 
             for (OrganismData od: or.taxonMap.values()) {
                 or.genusSpeciesMap.put(new MultiKey(od.getGenus(), od.getSpecies()), od);
-                or.shortNameMap.put(od.getShortName(), od);
+                // we have some organisms from uniprot that don't have a short name
+                if (od.getShortName() != null) {
+                    or.shortNameMap.put(od.getShortName(), od);
+                }
             }
         }
 
@@ -161,7 +171,7 @@ public final class OrganismRepository
     public OrganismData getOrganismDataByTaxon(int taxonId) {
         OrganismData od = taxonMap.get(new Integer(taxonId));
         if (od == null) {
-            od = strainMap.get(taxonId);
+            od = strains.get(taxonId);
         }
         return od;
     }
@@ -205,6 +215,16 @@ public final class OrganismRepository
     }
 
     /**
+     * Look up OrganismData objects by Uniprot abbreviation, eg HUMAN or DROME.
+     * Returns null if there is no OrganismData in this OrganismRepository that matches.
+     * @param abbreviation the UniProt abbreviation, eg. HUMAN or DROME
+     * @return the OrganismData
+     */
+    public OrganismData getOrganismDataByUniprot(String abbreviation) {
+        return uniprotToTaxon.get(abbreviation);
+    }
+
+    /**
      * Look up OrganismData objects by a full name that is genus <space> species.  Returns null if
      * there is no OrganismData in this OrganismRepository that matches.
      * @param fullName the genus and species separated by a space
@@ -217,6 +237,15 @@ public final class OrganismRepository
         String genus = fullName.split(" ", 2)[0];
         String species = fullName.split(" ", 2)[1];
         return getOrganismDataByGenusSpecies(genus, species);
+    }
+
+    /**
+     * Get strains for given taxon ID
+     * @param taxonString taxon ID for organism
+     * @return taxonId for strain
+     */
+    public String getStrain(String taxonString) {
+        return organismsWithStrains.get(taxonString);
     }
 
 }

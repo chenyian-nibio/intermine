@@ -1,7 +1,7 @@
 package org.intermine.api.results;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -12,6 +12,7 @@ package org.intermine.api.results;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -106,8 +107,14 @@ public class WebResults extends AbstractList<MultiRow<ResultsRow<MultiRowValue<R
             throw new RuntimeException("Error creating WebResults because PathQuery is invalid", e);
         }
         classKeys = im.getClassKeys();
-        this.pathToQueryNode = pathToQueryNode;
-        this.pathToBagQueryResult = pathToBagQueryResult;
+        this.pathToQueryNode = new HashMap<String, QuerySelectable>();
+        if (pathToQueryNode != null) {
+            this.pathToQueryNode.putAll(pathToQueryNode);
+        }
+        this.pathToBagQueryResult = new HashMap<String, BagQueryResult>();
+        if (pathToBagQueryResult != null) {
+            this.pathToBagQueryResult.putAll(pathToBagQueryResult);
+        }
         this.pathQuery = pathQuery;
         pathToIndex = getPathToIndex();
         redirector = im.getLinkRedirector();
@@ -451,9 +458,13 @@ public class WebResults extends AbstractList<MultiRow<ResultsRow<MultiRowValue<R
                         // link to report page by default, unless it says otherwise in config
 
                         if (redirector != null) {
-                            String linkRedirect = redirector.generateLink(im, (InterMineObject) o);
-                            if (linkRedirect != null) {
-                                resultElement.setLinkRedirect(linkRedirect);
+                            try {
+                                String linkRedirect = redirector.generateLink(im, (InterMineObject) o);
+                                if (linkRedirect != null) {
+                                    resultElement.setLinkRedirect(linkRedirect);
+                                }
+                            } catch (ClassCastException e) {
+                                // Simple objects cannot be consumed by redirectors.
                             }
                         }
 

@@ -87,7 +87,7 @@ public class MetazoanConverter extends DirectoryConverter {
 			LOG.debug("processing file: " + file.getName());
 
 			String[] cols = file.getName().split("_");
-			Item sourceGene = getGeneByNcbiGeneNumber(cols[0]);
+			Item sourceGene = getGeneByNcbiGeneId(cols[0]);
 			String pubmedId = cols[2].replaceAll("\\.geneid\\.txt", "");
 			Item publication = getPublication(pubmedId);
 
@@ -105,7 +105,7 @@ public class MetazoanConverter extends DirectoryConverter {
 
 				} else {
 					// create Interaction for source
-					Item targetGene = getGeneByNcbiGeneNumber(ncbiGeneId);
+					Item targetGene = getGeneByNcbiGeneId(ncbiGeneId);
 					createInteraction(sourceGene, targetGene, "source", intExp);
 
 					// create Interaction for target
@@ -130,7 +130,7 @@ public class MetazoanConverter extends DirectoryConverter {
 		ret.setAttribute("interactionType", INTERACTION_TYPE);
 		ret.addToCollection("dataSets", dataset);
 		ret.setAttribute("name", String.format("AMADEUS_G%s_G%s", master.getAttribute(
-				"ncbiGeneNumber").getValue(), slave.getAttribute("ncbiGeneNumber").getValue()));
+				"ncbiGeneId").getValue(), slave.getAttribute("ncbiGeneId").getValue()));
 		ret.setAttribute("role", role);
 		ret.setReference("experiment", interactionExperiment);
 		store(ret);
@@ -152,12 +152,12 @@ public class MetazoanConverter extends DirectoryConverter {
 		}
 	}
 
-	private Item getGeneByNcbiGeneNumber(String ncbiGeneId) throws ObjectStoreException {
+	private Item getGeneByNcbiGeneId(String ncbiGeneId) throws ObjectStoreException {
 		if (geneIdMap.containsKey(ncbiGeneId)) {
 			return geneIdMap.get(ncbiGeneId);
 		} else {
 			Item gene = createItem("Gene");
-			gene.setAttribute("ncbiGeneNumber", ncbiGeneId);
+			gene.setAttribute("ncbiGeneId", ncbiGeneId);
 			geneIdMap.put(ncbiGeneId, gene);
 			return gene;
 		}

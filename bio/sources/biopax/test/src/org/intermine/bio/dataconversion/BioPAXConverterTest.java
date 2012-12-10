@@ -1,7 +1,7 @@
 package org.intermine.bio.dataconversion;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -19,23 +19,37 @@ import org.apache.commons.io.IOUtils;
 import org.intermine.dataconversion.MockItemWriter;
 import org.intermine.dataconversion.MockItemsTestCase;
 import org.intermine.metadata.Model;
+import org.intermine.xml.full.Item;
 
-
+/**
+ *
+ *
+ */
 public class BioPAXConverterTest extends MockItemsTestCase
 {
     private BioPAXConverter converter;
     private MockItemWriter itemWriter;
     private String TEST_FILE = "Bos taurus.owl";
     private String TAXON_ID = "9913";
-    private boolean processDmel = false;
+    private boolean processDmel = true;
+
+    /**
+     *
+     * @param arg
+     */
     public BioPAXConverterTest(String arg) {
         super(arg);
     }
 
+    /**
+     *
+     * @throws Exception
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void testProcess() throws Exception {
         if (processDmel) {
-            TEST_FILE = "Drosophila melanogaster.owl";
-            TAXON_ID = "7227";
+            TEST_FILE = "83333.owl";
+            TAXON_ID = "83333";
         }
 
         itemWriter = new MockItemWriter(new HashMap());
@@ -55,7 +69,7 @@ public class BioPAXConverterTest extends MockItemsTestCase
         // uncomment to write out a new target items file
         //writeItemsFile(itemWriter.getItems(), "BioPAX-tgt-items.xml");
 
-        Set expected = readItemSet("BioPAXConverterTest_tgt.xml");
+        Set<Item> expected = readItemSet("BioPAXConverterTest_tgt.xml");
 
         assertEquals(expected, itemWriter.getItems());
     }

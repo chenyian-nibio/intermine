@@ -111,17 +111,17 @@ public class DOAnnotationConverter extends FileConverter {
 		return ret;
 	}
 
-	private Item getGene(String ncbiGeneNumber) throws ObjectStoreException {
+	private Item getGene(String ncbiGeneId) throws ObjectStoreException {
 
-		if (!m_oGeneMap.containsKey(ncbiGeneNumber)) {
+		if (!m_oGeneMap.containsKey(ncbiGeneId)) {
 
 			Item oGene = createItem("Gene");
-			oGene.setAttribute("ncbiGeneNumber", ncbiGeneNumber);
-			m_oGeneMap.put(ncbiGeneNumber, oGene);
+			oGene.setAttribute("ncbiGeneId", ncbiGeneId);
+			m_oGeneMap.put(ncbiGeneId, oGene);
 
 		}
 
-		return m_oGeneMap.get(ncbiGeneNumber);
+		return m_oGeneMap.get(ncbiGeneId);
 
 	}
 

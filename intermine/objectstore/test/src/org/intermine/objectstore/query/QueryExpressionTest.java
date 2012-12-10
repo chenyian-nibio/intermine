@@ -1,7 +1,7 @@
 package org.intermine.objectstore.query;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -12,7 +12,8 @@ package org.intermine.objectstore.query;
 
 import junit.framework.TestCase;
 
-import org.intermine.model.testmodel.*;
+import org.intermine.model.testmodel.CEO;
+import org.intermine.model.testmodel.Company;
 
 public class QueryExpressionTest extends TestCase
 {
@@ -64,6 +65,23 @@ public class QueryExpressionTest extends TestCase
             new QueryExpression(field, v1, v2);
             fail("An IllegalArgumentException should have been thrown");
         } catch (IllegalArgumentException e) {
+        }
+    }
+    
+    public void testNumericModulo() {
+        QueryField field = new QueryField(new QueryClass(CEO.class), "age");
+        QueryValue two = new QueryValue(new Integer(2));
+        expression = new QueryExpression(field, QueryExpression.MODULO, two);
+        assertTrue(Number.class.isAssignableFrom(expression.getType()));
+    }
+    
+    public void testStringModulo() {
+        try {
+            QueryField field = new QueryField(new QueryClass(Company.class), "name");
+            QueryValue two = new QueryValue(new Integer(2));
+            new QueryExpression(field, QueryExpression.MODULO, two);
+        } catch (ClassCastException e) {
+            // Expected behaviour.
         }
     }
 

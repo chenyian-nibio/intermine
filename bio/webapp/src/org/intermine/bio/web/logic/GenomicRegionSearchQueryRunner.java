@@ -1,7 +1,7 @@
 package org.intermine.bio.web.logic;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -11,6 +11,7 @@ package org.intermine.bio.web.logic;
  */
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -305,10 +306,12 @@ public class GenomicRegionSearchQueryRunner implements Runnable
      * Query the information of all feature types and their according so terms.
      *
      * @param im - the InterMineAPI
+     * @param classDescrs map of feature class/type to description
      * @return featureTypeToSOTermMap -
      *         a HashMap with featureType as key and its SO info accordingly as value
      */
-    public static Map<String, List<String>> getFeatureAndSOInfo(InterMineAPI im) {
+    public static Map<String, List<String>> getFeatureAndSOInfo(
+            InterMineAPI im, Map<String, String> classDescrs) {
 
         Map<String, List<String>> featureTypeToSOTermMap = new HashMap<String, List<String>>();
 
@@ -321,12 +324,12 @@ public class GenomicRegionSearchQueryRunner implements Runnable
         QueryField qfFeatureClass = new QueryField(qcFeature, "class");
 //        QueryField qfSOId = new QueryField(qcSOTerm, "identifier");
         QueryField qfSOName = new QueryField(qcSOTerm, "name");
-        QueryField qfSODescription = new QueryField(qcSOTerm, "description");
+//        QueryField qfSODescription = new QueryField(qcSOTerm, "description");
 
         q.addToSelect(qfFeatureClass);
 //        q.addToSelect(qfSOId);
         q.addToSelect(qfSOName);
-        q.addToSelect(qfSODescription);
+//        q.addToSelect(qfSODescription);
 
         q.addFrom(qcFeature);
         q.addFrom(qcSOTerm);
@@ -348,11 +351,17 @@ public class GenomicRegionSearchQueryRunner implements Runnable
             @SuppressWarnings("rawtypes")
             String ft = ((Class) row.get(0)).getSimpleName();
             String soName = (String) row.get(1);
-            String soDes = (String) row.get(2);
+//            String soDes = (String) row.get(2);
 
-            if (soDes == null) {
-                soDes = "description not avaliable";
-            }
+//            if (soDes == null) {
+//                soDes = "description not avaliable";
+//            }
+
+            String soDes = (classDescrs.get(ft) == null) ? "description not avaliable"
+                    : classDescrs.get(ft);
+
+            soDes = soDes.replaceAll("'", "&apos;");
+            soDes = soDes.replaceAll("\"", "&quot;");
 
             soInfo.add(soName);
             soInfo.add(soDes);
@@ -397,6 +406,34 @@ public class GenomicRegionSearchQueryRunner implements Runnable
         }
         return orgTaxonIdMap;
     }
+
+    /**
+     * query chromosome locations by a list of sequence features, return region string as
+     * chr:start..end
+     *
+     * @param features list of SequenceFeature
+     * @param im the InterMineAPI
+     * @param profile Profile
+     */
+    public static void getRegionStringFromSequenceFeatureList(Collection<SequenceFeature> features,
+            InterMineAPI im, Profile profile) {
+
+        // TODO
+    }
+
+    /**
+     * query chromosome locations by a ready-to-use pathquery, return region string as
+     * chr:start..end
+     *
+     * @param query pathquery
+     * @param im the InterMineAPI
+     * @param profile Profile
+     */
+    public static void getRegionStringFromPathQuery(PathQuery query, InterMineAPI im,
+            Profile profile) {
+
+        //TODO
+    }
 }
 
 /**
@@ -418,9 +455,9 @@ class ValueComparator implements Comparator
 
     @Override
     public int compare(Object a, Object b) {
-    	if (base.get(a) < base.get(b)) {
+        if (base.get(a) < base.get(b)) {
             return 1;
-    	} else if (base.get(a) == base.get(b)) {
+        } else if (base.get(a) == base.get(b)) {
             return -1;
         } else {
             return -1;

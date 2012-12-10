@@ -1,7 +1,7 @@
 package org.intermine.pathquery;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -28,7 +28,8 @@ public class PathConstraintAttribute extends PathConstraint
                 ConstraintOp.DOES_NOT_MATCH, ConstraintOp.EQUALS, ConstraintOp.GREATER_THAN,
                 ConstraintOp.GREATER_THAN_EQUALS, ConstraintOp.LESS_THAN,
                 ConstraintOp.LESS_THAN_EQUALS, ConstraintOp.MATCHES, ConstraintOp.NOT_EQUALS,
-                ConstraintOp.CONTAINS, ConstraintOp.DOES_NOT_CONTAIN));
+                ConstraintOp.CONTAINS, ConstraintOp.DOES_NOT_CONTAIN, ConstraintOp.EXACT_MATCH,
+                ConstraintOp.STRICT_NOT_EQUALS));
     private String value;
 
     /**

@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.query;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -62,7 +62,7 @@ public abstract class AbstractQueryService extends WebService
      * @return A builder for this query.
      */
     protected PathQueryBuilder getQueryBuilder(String xml) {
-        ListManager listManager = new ListManager(request);
+        ListManager listManager = new ListManager(im, getPermission().getProfile());
 
         Map<String, InterMineBag> savedBags = new HashMap<String, InterMineBag>();
         for (InterMineBag bag: listManager.getLists()) {

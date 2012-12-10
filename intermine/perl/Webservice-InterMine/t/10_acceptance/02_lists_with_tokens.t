@@ -327,6 +327,10 @@ PRINTING: {
 53\t0\ttrue\tJean-Marc
 55\t9\tfalse\tJennifer Schirrmann
 |;
+    for ($buffer, $expected) {
+        s/\t/[TAB]/g;
+        s/ /./g;
+    }
     is $buffer, $expected, "Can print a list";
 }
 
