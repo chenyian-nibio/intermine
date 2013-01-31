@@ -91,19 +91,22 @@ public class MirbaseConverter extends BioFileConverter {
 		while ((line = in.readLine()) != null) {
 			if (line.startsWith(">")) {
 				// >hsa-let-7a-5p MIMAT0000062 Homo sapiens let-7a-5p
-				Pattern pattern = Pattern.compile(">(.+) (MIMAT\\d+) .+");
+				Pattern pattern = Pattern.compile(">(.+) (MIMAT\\d+) (.+)");
 				Matcher matcher = pattern.matcher(line);
 				if (matcher.matches()) {
 					String id = matcher.group(1);
 					String accession = matcher.group(2);
+					String name = matcher.group(3);
 					Item item = matureMap.get(accession);
 					if (item == null) {
-						item = createItem("MatureMicroRNA");
-						item.setAttribute("accession", accession);
+						item = createItem("MiRNA");
+						item.setAttribute("primaryIdentifier", accession);
 					}
-					item.setAttribute("identifier", id);
+					item.setAttribute("secondaryIdentifier", id);
+					item.setAttribute("name", name);
+					item.setAttribute("symbol", id.substring(id.indexOf("-")+1));
 					String seq = in.readLine();
-					item.setAttribute("sequence", seq);
+					item.setReference("sequence", createSequence(seq));
 					item.setAttribute("length", String.valueOf(seq.length()));
 					item.setReference("organism", getOrganism(getTaxonIdByIdentifier(id)));
 					matureMap.put(accession, item);
@@ -141,6 +144,8 @@ public class MirbaseConverter extends BioFileConverter {
 				}
 			} else if (line.startsWith("AC")) {
 				entry.accession = line.substring(5, 14);
+			} else if (line.startsWith("DE")) {
+				entry.description = line.substring(5);
 			} else if (line.startsWith("RX")) {
 				entry.pubMedIds.add(line.substring(line.indexOf(";") + 2, line.indexOf(".")));
 			} else if (line.startsWith("FT")) {
@@ -167,10 +172,12 @@ public class MirbaseConverter extends BioFileConverter {
 	}
 
 	private void createMicroRNA(MicroRNAEntry entry) throws ObjectStoreException {
-		Item item = createItem("MicroRNA");
-		item.setAttribute("primaryIdentifier", entry.identifier);
-		item.setAttribute("secondaryIdentifier", entry.accession);
-		item.setAttribute("sequence", entry.getSequence());
+		Item item = createItem("MiRNAPrimaryTranscript");
+		item.setAttribute("primaryIdentifier", entry.accession);
+		item.setAttribute("secondaryIdentifier", entry.identifier);
+		item.setAttribute("name", entry.description);
+		item.setAttribute("symbol", entry.identifier.substring(entry.identifier.indexOf("-")+1));
+		item.setReference("sequence", createSequence(entry.getSequence()));
 		item.setAttribute("length", String.valueOf(entry.getSequence().length()));
 		if (entry.geneId != null) {
 			item.setReference("gene", getGene(entry.geneId));
@@ -185,14 +192,22 @@ public class MirbaseConverter extends BioFileConverter {
 		store(item);
 	}
 
+	private String createSequence(String sequence) throws ObjectStoreException {
+        Item item = createItem("Sequence");
+        item.setAttribute("residues", sequence);
+        item.setAttribute("length", String.valueOf(sequence.length()));
+        store(item);
+		return item.getIdentifier();
+	}
+
 	private Item getMatureMicroRNA(String accession, Item microRNA) throws ObjectStoreException {
 		Item ret = matureMap.get(accession);
 		if (ret == null) {
-			ret = createItem("MatureMicroRNA");
-			ret.setAttribute("accession", accession);
+			ret = createItem("MiRNA");
+			ret.setAttribute("primaryIdentifier", accession);
 			matureMap.put(accession, ret);
 		}
-		ret.setReference("microRNA", microRNA);
+		ret.setReference("transcript", microRNA);
 		return ret;
 	}
 
@@ -225,6 +240,7 @@ public class MirbaseConverter extends BioFileConverter {
 	private static class MicroRNAEntry {
 		String geneId;
 		String accession;
+		String description;
 		String sequence = "";
 		Set<String> pubMedIds = new HashSet<String>();
 		Set<String> matures = new HashSet<String>();

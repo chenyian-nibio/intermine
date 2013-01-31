@@ -1,23 +1,11 @@
 <?xml version="1.0"?>
 
 <classes>
-	<class name="Gene" extends="SequenceFeature" is-interface="true">
-		<attribute name="ncbiGeneId" type="java.lang.String"/>
-		<collection name="microRNAs" referenced-type="MicroRNA" reverse-reference="gene"/>
+	<class name="MiRNAPrimaryTranscript" extends="Transcript" is-interface="true">
+		<collection name="microRNAs" referenced-type="MiRNA" reverse-reference="transcript"/>
 	</class>
-	<class name="MicroRNA" extends="BioEntity" is-interface="true">
-		<reference name="gene" referenced-type="Gene" reverse-reference="microRNAs"/>
-		<attribute name="sequence" type="java.lang.String"/>
-		<attribute name="length" type="java.lang.Integer"/>
-		<collection name="matureMicroRNA" referenced-type="MatureMicroRNA" reverse-reference="microRNA"/>
-	</class>
-	<class name="MatureMicroRNA" is-interface="true">
-		<attribute name="identifier" type="java.lang.String"/>
-		<attribute name="accession" type="java.lang.String"/>
-		<attribute name="length" type="java.lang.Integer"/>
-		<attribute name="sequence" type="java.lang.String"/>
-		<reference name="microRNA" referenced-type="MicroRNA" reverse-reference="matureMicroRNA"/>
-		<reference name="organism" referenced-type="Organism"/>
+	<class name="MiRNA" is-interface="true">
+		<reference name="transcript" referenced-type="MiRNAPrimaryTranscript" reverse-reference="microRNAs"/>
 	</class>
 
 </classes>
