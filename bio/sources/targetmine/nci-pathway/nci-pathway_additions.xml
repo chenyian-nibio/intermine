@@ -9,6 +9,7 @@
   <class name="Pathway" is-interface="true" >
      <attribute name="identifier" type="java.lang.String"/>
      <attribute name="name" type="java.lang.String"/>
+     <reference name="organism" referenced-type="Organism"/>
      <collection name="genes" referenced-type="Gene" reverse-reference="pathways"/>
      <collection name="dataSets" referenced-type="DataSet"/>
   </class>

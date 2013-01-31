@@ -11,6 +11,10 @@ executeLog*
 *.pyc
 *.class
 
+# Add by chenyian
+autogen/
+src/chen/
+
 # /intermine/objectstore/main/
 /intermine/objectstore/main/src.png
 /intermine/objectstore/main/src.dot

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<classes>
+	<class name="Gene" extends="SequenceFeature" is-interface="true">
+		<attribute name="ncbiGeneId" type="java.lang.String"/>
+		<collection name="probeSets" referenced-type="ProbeSet"/>
+	</class>
+	<class name="ProbeSet" is-interface="true">
+		<attribute name="probeSetId" type="java.lang.String"/>
+		<collection name="genes" referenced-type="Gene"/>
+	</class>
+
+</classes>

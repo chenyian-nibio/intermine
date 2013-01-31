@@ -1,0 +1,5 @@
+<project name="mirtarbase" default="default" basedir=".">
+  <description>build, test, package mirtarbase</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

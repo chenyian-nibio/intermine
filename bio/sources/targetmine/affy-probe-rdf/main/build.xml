@@ -1,0 +1,4 @@
+<project name="affy-probe-rdf-tasks" default="default" basedir=".">
+  <description>build affy-probe-rdf tasks</description>
+  <import file="../../../../imbuild/library.xml"/> 
+</project>

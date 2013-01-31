@@ -1,0 +1,4 @@
+<project name="mirbase-tasks" default="default" basedir=".">
+  <description>build mirbase tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

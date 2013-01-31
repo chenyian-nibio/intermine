@@ -56,6 +56,7 @@ public class GeneInfoConverter extends BioFileConverter {
 	private List<String> uniGeneSpecies;
 
 	private Map<String, Set<String>> accessionMap;
+	private Map<String, Set<String>> ucscMap;
 
 	private Map<String, Map<String, String>> idMap;
 	private Map<String, String> synonyms = new HashMap<String, String>();
@@ -65,6 +66,7 @@ public class GeneInfoConverter extends BioFileConverter {
 	private File gene2ensemblFile;
 	private File gene2unigeneFile;
 	private File gene2accessionFile;
+	private File knownToLocusLinkFile;
 
 	public void setGene2ensemblFile(File gene2ensemblFile) {
 		this.gene2ensemblFile = gene2ensemblFile;
@@ -76,6 +78,10 @@ public class GeneInfoConverter extends BioFileConverter {
 
 	public void setGene2accessionFile(File gene2accessionFile) {
 		this.gene2accessionFile = gene2accessionFile;
+	}
+
+	public void setKnownToLocusLinkFile(File knownToLocusLinkFile) {
+		this.knownToLocusLinkFile = knownToLocusLinkFile;
 	}
 
 	public void setGeneinfoOrganisms(String taxonIds) {
@@ -152,6 +158,9 @@ public class GeneInfoConverter extends BioFileConverter {
 		}
 		if (accessionMap == null) {
 			processGene2accession();
+		}
+		if (ucscMap == null) {
+			processKnownToLocusLink();
 		}
 
 		Iterator<String[]> iterator = FormattedTextParser
@@ -273,6 +282,19 @@ public class GeneInfoConverter extends BioFileConverter {
 				}
 			}
 
+			// 2013/1/11
+			// Add ucsc id as synonyms
+			// The identifiers would be stored without version number.
+			if (ucscMap.get(geneId) != null) {
+				for (String s : ucscMap.get(geneId)) {
+					String ucscId = s.contains(".") ? s.substring(0, s.indexOf(".")) : s;
+					String synId = getSynonym(geneRefId, ucscId);
+					if (synId != null) {
+						allSynonyms.add(synId);
+					}
+				}
+			}
+
 			// 2011/6/20
 			// Include UniGene id as synonyms
 			if (unigeneMap.get(geneId) != null) {
@@ -289,6 +311,28 @@ public class GeneInfoConverter extends BioFileConverter {
 			store(gene);
 
 		}
+	}
+
+	private void processKnownToLocusLink() {
+		LOG.info("Parsing the file knownToLocusLink......");
+		ucscMap = new HashMap<String, Set<String>>();
+
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(knownToLocusLinkFile));
+			String line;
+			while ((line = in.readLine()) != null) {
+				String[] cols = line.split("\\t");
+				if (ucscMap.get(cols[1]) == null) {
+					ucscMap.put(cols[1], new HashSet<String>());
+				}
+				ucscMap.get(cols[1]).add(cols[0]);
+			}
+		} catch (FileNotFoundException e) {
+			LOG.error(e);
+		} catch (IOException e) {
+			LOG.error(e);
+		} 
+
 	}
 
 	private void processGene2accession() {

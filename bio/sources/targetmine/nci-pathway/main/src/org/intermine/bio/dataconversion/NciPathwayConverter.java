@@ -96,6 +96,7 @@ public class NciPathwayConverter extends BioFileConverter {
 			Item pathway = createItem("Pathway");
 			pathway.setAttribute("name", name);
 			pathway.setAttribute("identifier", pid);
+			pathway.setReference("organism", getOrganism(TAXONID));
 //			pathway.setAttribute("curated", "true");
 
 			store(pathway);

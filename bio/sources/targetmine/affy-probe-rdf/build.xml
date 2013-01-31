@@ -1,0 +1,5 @@
+<project name="affy-probe-rdf" default="default" basedir=".">
+  <description>build, test, package affy-probe-rdf</description>
+  
+  <import file="../../../imbuild/source.xml"/>
+</project>

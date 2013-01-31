@@ -5,6 +5,7 @@
 		<attribute name="name" type="java.lang.String"/>
 		<attribute name="mainClass" type="java.lang.String"/>
 		<attribute name="subClass" type="java.lang.String"/>
+	    <reference name="organism" referenced-type="Organism"/>
 		<collection name="genes" referenced-type="Gene" reverse-reference="pathways"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
