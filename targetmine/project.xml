@@ -205,6 +205,11 @@
       <property name="src.data.dir.includes" value="m*.*" />
       <property name="taxonIdFile" value="/data/bio/db/Targetmine/mirbase/taxonId" />
     </source>
+    <source name="mirbase-genome" type="mirbase-genome">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/mirbase/genomes" />
+      <property name="src.data.dir.includes" value="*.gff3" />
+      <property name="taxonIdFile" value="/data/bio/db/Targetmine/mirbase/taxonId" />
+    </source>
 
   	<source name="fill-missing-proteins" type="fill-missing-proteins">
       <property name="src.data.file" location="build/proteins.txt"/>

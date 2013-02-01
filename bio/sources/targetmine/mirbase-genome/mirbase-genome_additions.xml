@@ -1,7 +1,11 @@
 <?xml version="1.0"?>
-<!-- This file details any extensions needed to the data model to store data from this source, everything else is automatically generated from the model description so this is all we need to do to add to the model. -->
 
 <classes>
-<!-- add any <class> elements here -->
+	<class name="MiRNAPrimaryTranscript" extends="Transcript" is-interface="true">
+		<collection name="microRNAs" referenced-type="MiRNA" reverse-reference="transcript"/>
+	</class>
+	<class name="MiRNA" is-interface="true">
+		<reference name="transcript" referenced-type="MiRNAPrimaryTranscript" reverse-reference="microRNAs"/>
+	</class>
 
 </classes>
