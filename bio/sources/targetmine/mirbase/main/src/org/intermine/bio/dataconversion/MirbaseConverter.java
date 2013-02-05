@@ -137,7 +137,7 @@ public class MirbaseConverter extends BioFileConverter {
 			// process
 			if (line.startsWith("ID")) {
 				// ID hsa-let-7a-1 standard; RNA; HSA; 80 BP.
-				Pattern pattern = Pattern.compile("ID\\s+(.+)\\s+\\w+; \\w+; \\w+; \\d+ BP\\.");
+				Pattern pattern = Pattern.compile("ID\\s+(.+?)\\s+\\w+; \\w+; \\w+; \\d+ BP\\.");
 				Matcher matcher = pattern.matcher(line);
 				if (matcher.matches()) {
 					entry.identifier = matcher.group(1);

@@ -4,9 +4,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -18,12 +21,14 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class MirbaseGenomeConverter extends BioFileConverter {
-	// private static Logger LOG = Logger.getLogger(MirbaseGenomeConverter.class);
+	private static Logger LOG = Logger.getLogger(MirbaseGenomeConverter.class);
 	//
 	private static final String DATASET_TITLE = "miRBase";
 	private static final String DATA_SOURCE_NAME = "miRBase";
 
 	private Map<String, String> chromosomeMap = new HashMap<String, String>();
+
+	private Set<String> processedIdentifier = new HashSet<String>();
 
 	/**
 	 * Constructor
@@ -56,11 +61,6 @@ public class MirbaseGenomeConverter extends BioFileConverter {
 			String start = cols[3];
 			String end = cols[4];
 			String strand = cols[6];
-			Item location = createItem("Location");
-			location.setAttribute("start", start);
-			location.setAttribute("end", end);
-			location.setAttribute("strand", strand);
-			store(location);
 
 			Map<String, String> ids = new HashMap<String, String>();
 			for (String pair : cols[8].split(";")) {
@@ -68,6 +68,18 @@ public class MirbaseGenomeConverter extends BioFileConverter {
 				ids.put(kv[0], kv[1]);
 			}
 			String accession = ids.get("accession_number");
+			if (processedIdentifier.contains(accession)) {
+				LOG.info(String.format("Duplicated identifier: %s (%s), skipped.", accession,
+						getCurrentFile().getName()));
+				continue;
+			}
+
+			Item location = createItem("Location");
+			location.setAttribute("start", start);
+			location.setAttribute("end", end);
+			location.setAttribute("strand", strand);
+			store(location);
+
 			Item item;
 			if (type.equals("miRNA")) {
 				item = createItem("MiRNA");
@@ -83,6 +95,7 @@ public class MirbaseGenomeConverter extends BioFileConverter {
 					getChromosome(chr, getTaxonIdByFilename(getCurrentFile().getName())));
 
 			store(item);
+			processedIdentifier.add(accession);
 		}
 	}
 
@@ -103,14 +116,14 @@ public class MirbaseGenomeConverter extends BioFileConverter {
 		}
 		return ret;
 	}
-	
+
 	private String getTaxonIdByFilename(String fileName) {
 		String taxonId = taxonIdMap.get(fileName.substring(0, fileName.indexOf(".")));
 		if (taxonId != null) {
 			return taxonId;
 		} else {
-			throw new RuntimeException("unexpected organism code: "
-					+ fileName.substring(0, 3) + " from file: " + fileName);
+			throw new RuntimeException("unexpected organism code: " + fileName.substring(0, 3)
+					+ " from file: " + fileName);
 		}
 	}
 
