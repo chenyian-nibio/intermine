@@ -28,7 +28,7 @@ public class MirbaseGenomeConverter extends BioFileConverter {
 
 	private Map<String, String> chromosomeMap = new HashMap<String, String>();
 
-	private Set<String> processedIdentifier = new HashSet<String>();
+	private Map<String, String> accessionMap = new HashMap<String, String>();
 
 	/**
 	 * Constructor
@@ -68,34 +68,33 @@ public class MirbaseGenomeConverter extends BioFileConverter {
 				ids.put(kv[0], kv[1]);
 			}
 			String accession = ids.get("accession_number");
-			if (processedIdentifier.contains(accession)) {
-				LOG.info(String.format("Duplicated identifier: %s (%s), skipped.", accession,
-						getCurrentFile().getName()));
-				continue;
+			String refId = accessionMap.get(accession);
+			if (refId == null) {
+				Item item;
+				if (type.equals("miRNA")) {
+					item = createItem("MiRNA");
+				} else if (type.equals("miRNA_primary_transcript")) {
+					item = createItem("MiRNAPrimaryTranscript");
+				} else {
+					throw new RuntimeException("Unexpect type: " + type);
+				}
+				item.setAttribute("primaryIdentifier", accession);
+
+				refId = item.getIdentifier();
+				store(item);
+
+				accessionMap.put(accession, refId);
 			}
 
 			Item location = createItem("Location");
 			location.setAttribute("start", start);
 			location.setAttribute("end", end);
 			location.setAttribute("strand", strand);
+			location.setReference("feature", refId);
+			location.setReference("locatedOn",
+					getChromosome(chr, getTaxonIdByFilename(getCurrentFile().getName())));
 			store(location);
 
-			Item item;
-			if (type.equals("miRNA")) {
-				item = createItem("MiRNA");
-			} else if (type.equals("miRNA_primary_transcript")) {
-				item = createItem("MiRNAPrimaryTranscript");
-			} else {
-				throw new RuntimeException("Unexpect type: " + type);
-			}
-			item.setAttribute("primaryIdentifier", accession);
-			item.setReference("chromosomeLocation", location);
-
-			item.setReference("chromosome",
-					getChromosome(chr, getTaxonIdByFilename(getCurrentFile().getName())));
-
-			store(item);
-			processedIdentifier.add(accession);
 		}
 	}
 

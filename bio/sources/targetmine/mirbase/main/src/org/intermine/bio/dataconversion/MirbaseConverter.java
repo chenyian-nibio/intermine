@@ -155,7 +155,8 @@ public class MirbaseConverter extends BioFileConverter {
 				}
 			} else if (line.startsWith("DR")) {
 				// DR ENTREZGENE; 406881; MIRLET7A1.
-				Pattern pattern = Pattern.compile("DR\\s+\\w+; (\\d+); \\w+\\.");
+				// DR   ENTREZGENE; 100422902; MIR3116-1.
+				Pattern pattern = Pattern.compile("DR\\s+ENTREZGENE; (\\d+); (.+)\\.");
 				Matcher matcher = pattern.matcher(line);
 				if (matcher.matches()) {
 					entry.geneId = matcher.group(1);
@@ -186,7 +187,7 @@ public class MirbaseConverter extends BioFileConverter {
 			item.addToCollection("publications", getPublication(pubmedId));
 		}
 		for (String mature : entry.matures) {
-			getMatureMicroRNA(mature, item);
+			item.addToCollection("microRNAs", getMiRNA(mature, item));
 		}
 		item.setReference("organism", getOrganism(getTaxonIdByIdentifier(entry.identifier)));
 		store(item);
@@ -200,14 +201,13 @@ public class MirbaseConverter extends BioFileConverter {
 		return item.getIdentifier();
 	}
 
-	private Item getMatureMicroRNA(String accession, Item microRNA) throws ObjectStoreException {
+	private Item getMiRNA(String accession, Item microRNA) throws ObjectStoreException {
 		Item ret = matureMap.get(accession);
 		if (ret == null) {
 			ret = createItem("MiRNA");
 			ret.setAttribute("primaryIdentifier", accession);
 			matureMap.put(accession, ret);
 		}
-		ret.setReference("transcript", microRNA);
 		return ret;
 	}
 
