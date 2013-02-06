@@ -61,6 +61,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase-genome/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirtarbase/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/affy-probe-annot/main/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/bbop.jar"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/jakarta-regexp-1.4.jar"/>

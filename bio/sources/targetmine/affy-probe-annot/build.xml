@@ -1,0 +1,5 @@
+<project name="affy-probe-annot" default="default" basedir=".">
+  <description>build, test, package affy-probe-annot</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>
