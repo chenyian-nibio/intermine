@@ -1,0 +1,4 @@
+<project name="oreganno-tasks" default="default" basedir=".">
+  <description>build oreganno tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

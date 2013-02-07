@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="MacroMolecularStructure" is-interface="true">
+	</class>
+	
+	<class name="ProteinStructure" extends="MacroMolecularStructure" is-interface="true">
+		<attribute name="pdbId" type="java.lang.String"/>
+    	<attribute name="resolution" type="java.lang.String"/>
+    	<attribute name="experimentType" type="java.lang.String"/>
+    	<attribute name="name" type="java.lang.String"/>
+    	<attribute name="source" type="java.lang.String"/>
+    	<attribute name="classification" type="java.lang.String"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
+	</class>
+
+</classes>

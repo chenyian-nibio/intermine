@@ -24,6 +24,9 @@
 		<attribute name="identifier" type="java.lang.String"/>
 		<reference name="structure" referenced-type="ProteinStructure" ordered="true" reverse-reference="chains"/>
 		<collection name="structureRegions" referenced-type="ProteinStructureRegion" reverse-reference="chain"/>
+		<attribute name="moleculeType" type="java.lang.String"/>
+		<collection name="organism" referenced-type="Organism"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
 	
 	<class name="MacroMolecularStructure" is-interface="true">
@@ -32,6 +35,12 @@
 	<class name="ProteinStructure" extends="MacroMolecularStructure" is-interface="true">
 		<attribute name="pdbId" type="java.lang.String"/>
 		<collection name="chains" referenced-type="ProteinChain" reverse-reference="structure"/>
+		<collection name="publications" referenced-type="Publication"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
+	</class>
+
+	<class name="Organism" is-interface="true">
+		<attribute name="taxonId" type="java.lang.Integer"/>
 	</class>
 
 </classes>

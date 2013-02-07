@@ -56,6 +56,8 @@
     <source name="sifts" type="sifts">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/sifts"/>
       <property name="src.data.dir.includes" value="pdb_chain_uniprot.lst"/>
+      <property name="pdbPubmedFile" value="/data/bio/db/Targetmine/sifts/pdb_pubmed.lst" />
+      <property name="pdbChainTaxonFile" value="/data/bio/db/Targetmine/sifts/pdb_chain_taxonomy.lst" />
     </source>
     <source name="scop" type="scop">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/scop"/>
@@ -74,8 +76,8 @@
       <property name="src.data.dir.includes" value="gene3d.HRM.txt"/>
     </source>
     <source name="kegg-orthology" type="tm-kegg-orthology">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg/orthology"/>
-      <property name="src.data.dir.includes" value="*" />
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-orthology"/>
+      <property name="src.data.dir.includes" value="ko.*" />
       <property name="kegg.organisms" value="9606 10090 10116"/>
     </source>
 
@@ -85,9 +87,9 @@
     </source>
   	
     <source name="kegg-pathway" type="tm-kegg-pathway">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg/pathway"/>
-      <property name="src.data.dir.includes" value="*"/>
-      <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg/pathway_class_20121101"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-pathway"/>
+      <property name="src.data.dir.includes" value="*.pathway*"/>
+      <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg-pathway/pathway_class_20121101"/>
       <property name="kegg.organisms" value="9606 10090 10116"	/>
     </source>
     
@@ -108,6 +110,11 @@
     </source>
 <!--Added by Chen: Start -->
 
+    <source name="wwpdb" type="wwpdb">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/wwpdb/" />
+      <property name="src.data.dir.includes" value="entries.idx" />
+    </source>
+    <!--
     <source name="pdb_ext" type="pdb_ext">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pdb/derived_data/index" />
       <property name="src.data.dir.includes" value="entries.idx" />
@@ -117,16 +124,18 @@
       <property name="src.data.dir" location="/data/bio/db/MSD/sifts" />
       <property name="src.data.dir.includes" value="pdb_chain_taxonomy.lst" />
     </source>
+    -->
     <source name="ligand_expo" type="ligand_expo">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ligand_expo" />
       <property name="src.data.dir.includes" value="cc-to-pdb.tdd" />
       <property name="inchiKeyFile" value="/data/bio/db/Targetmine/ligand_expo/Components-inchikey.ich" />
     </source>
-    <source name="amadeus" type="metazoan">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/metazoan" />
+    <source name="amadeus" type="amadeus">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/amadeus" />
+      <property name="src.data.dir.includes" value="*.geneid.txt" />
     </source>
-    <source name="oreg" type="tfactor">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/tfactor" />
+    <source name="oreganno" type="oreganno">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/oreganno" />
       <property name="src.data.dir.includes" value="oreg.all.txt" />
     </source>
     <source name="enzyme" type="enzyme">
@@ -218,10 +227,12 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/affymetrix" />
       <property name="src.data.dir.includes" value="*.annot.csv" />
     </source>
+    <!--
     <source name="test" type="dir-test">
       <property name="src.data.dir" location="/data/bio/db/Targetmine" />
       <property name="src.data.dir.includes" value="*/current_ver.txt" />
     </source>
+	-->
 
   	<source name="fill-missing-proteins" type="fill-missing-proteins">
       <property name="src.data.file" location="build/proteins.txt"/>

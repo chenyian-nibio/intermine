@@ -32,7 +32,7 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 	private static final String PROP_FILE = "kegg_config.properties";
 	//
 	private static final String DATASET_TITLE = "KEGG pathways data set";
-	private static final String DATA_SOURCE_NAME = "GenomeNet";
+	private static final String DATA_SOURCE_NAME = "KEGG";
 
 	private Map<String, String[]> config = new HashMap<String, String[]>();
 	private Set<String> taxonIds = new HashSet<String>();

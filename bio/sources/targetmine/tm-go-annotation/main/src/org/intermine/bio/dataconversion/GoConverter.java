@@ -603,7 +603,9 @@ public class GoConverter extends BioFileConverter {
 			String title = "GO Annotation from " + dataSourceName;
 			Item item = createItem("DataSet");
 			item.setAttribute("name", title);
-			item.setReference("dataSource", getDataSource(dataSourceName));
+			// chenyian: all data sources are unified as "UniProtKB-GOA"
+//			item.setReference("dataSource", getDataSource(dataSourceName));
+			item.setReference("dataSource", getDataSource("UniProtKB-GOA"));
 			dataSetIdentifier = item.getIdentifier();
 			dataSets.put(code, dataSetIdentifier);
 			store(item);

@@ -30,8 +30,8 @@ import org.intermine.xml.full.Item;
 public class NciPathwayConverter extends BioFileConverter {
 //	private static final Logger LOG = Logger.getLogger(NciPathwayConverter.class);
 	//
-	private static final String DATASET_TITLE = "NCI-Nature data set";
-	private static final String DATA_SOURCE_NAME = "NCI-Nature Pathway Interaction Database";
+	private static final String DATASET_TITLE = "Pathway Interaction Database";
+	private static final String DATA_SOURCE_NAME = "NCI-Nature";
 
 	private Map<String, Item> proteinMap = new HashMap<String, Item>();
 	private Map<String, String> pathwayMap = new HashMap<String, String>();

@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -27,9 +26,12 @@ import org.intermine.xml.full.Item;
  * @author ishikawa
  * @author chenyian 2012.2.23 refactoring; 2012.11.5 refactoring
  */
-public class ScopConverter extends FileConverter {
+public class ScopConverter extends BioFileConverter {
 
 	// private static Logger LOG = Logger.getLogger(ScopConverter.class);
+
+	private static final String DATASET_TITLE = "SCOP";
+	private static final String DATA_SOURCE_NAME = "SCOP";
 
 	private static Map<String, String> levelMap = new HashMap<String, String>();
 	{
@@ -56,7 +58,7 @@ public class ScopConverter extends FileConverter {
 	private File claFile;
 
 	public ScopConverter(ItemWriter writer, Model model) {
-		super(writer, model);
+		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
 	}
 
 	@Override

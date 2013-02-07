@@ -1,0 +1,4 @@
+<project name="dataset-info-tasks" default="default" basedir=".">
+  <description>build dataset-info tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

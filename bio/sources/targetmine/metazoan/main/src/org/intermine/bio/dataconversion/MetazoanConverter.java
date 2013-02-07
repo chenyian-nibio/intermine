@@ -1,15 +1,5 @@
 package org.intermine.bio.dataconversion;
 
-/*
- * Copyright (C) 2002-2009 FlyMine
- *
- * This code may be freely distributed and modified under the
- * terms of the GNU Lesser General Public Licence.  This should
- * be distributed with the code.  See the LICENSE file for more
- * information or http://www.gnu.org/copyleft/lesser.html.
- *
- */
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -26,8 +16,9 @@ import org.intermine.xml.full.Item;
 
 /**
  * 
- * @author Chen Yian
+ * @author chenyian
  */
+@Deprecated
 public class MetazoanConverter extends DirectoryConverter {
 
 	private static final String INTERACTION_TYPE = "Transcriptional regulation";
@@ -61,10 +52,10 @@ public class MetazoanConverter extends DirectoryConverter {
 		dataSource.setAttribute("name", "Amadeus");
 
 		Item dataSet = createItem("DataSet");
-		dataSet.setAttribute("name", "Metazoan compendium");
+		dataSet.setAttribute("name", "Amadeus");
 		dataSet.setReference("dataSource", dataSource);
-		dataSet.setAttribute("url", "http://acgt.cs.tau.ac.il/amadeus");
-		dataSet.setAttribute("description", "Compendium of metazoan TF and miRNA target sets");
+//		dataSet.setAttribute("url", "http://acgt.cs.tau.ac.il/amadeus");
+//		dataSet.setAttribute("description", "Compendium of metazoan TF and miRNA target sets");
 
 		try {
 			store(dataSource);

@@ -48,10 +48,12 @@ import org.intermine.xml.full.Item;
  * 
  * @author chenyian
  */
-public class EnzymeConverter extends FileConverter {
+public class EnzymeConverter extends BioFileConverter {
 	private static final Logger LOG = Logger.getLogger(EnzymeConverter.class);
 
 	//
+	private static final String DATASET_TITLE = "ENZYME";
+	private static final String DATA_SOURCE_NAME = "ENZYME nomenclature database";
 
 	private Set<String> organismNames;
 
@@ -72,7 +74,7 @@ public class EnzymeConverter extends FileConverter {
 	 *            the Model
 	 */
 	public EnzymeConverter(ItemWriter writer, Model model) {
-		super(writer, model);
+		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
 	}
 
 	/**

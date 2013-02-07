@@ -23,8 +23,8 @@ import org.intermine.xml.full.ItemHelper;
 
 public class PpiViewConverter extends BioFileConverter {
 	
-	public static final String DATASET_TITLE = "PPIView";
-	private static final String DATA_SOURCE_NAME = "PPIView";
+	public static final String DATASET_TITLE = "PPI view";
+	private static final String DATA_SOURCE_NAME = "H-InvDB";
 
 	private static Logger m_oLogger = Logger.getLogger(PpiViewConverter.class);
 	
