@@ -1,7 +1,7 @@
 package org.intermine.bio.postprocess;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2012 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -44,7 +44,6 @@ import org.intermine.postprocess.PostProcessor;
  * Take any GOAnnotation objects assigned to proteins and copy them to corresponding genes.
  *
  * @author Richard Smith
- * @author chenyian - fix a logical bug, 2012/09/04
  */
 public class GoPostprocess extends PostProcessor
 {
@@ -84,12 +83,12 @@ public class GoPostprocess extends PostProcessor
             Gene thisGene = (Gene) rr.get(0);
             GOAnnotation thisAnnotation = (GOAnnotation) rr.get(1);
 
-            // should be check before do any operation on the map, annotations 
+            // process last set of annotations if this is a new gene
             if (lastGene != null && !(lastGene.equals(thisGene))) {
                 for (GOAnnotation item : annotations.values()) {
                     osw.store(item);
                 }
-                lastGene.setGoAnnotation(new HashSet<GOAnnotation>(annotations.values()));
+                lastGene.setGoAnnotation(new HashSet(annotations.values()));
                 LOG.debug("store gene " + lastGene.getSecondaryIdentifier() + " with "
                         + lastGene.getGoAnnotation().size() + " GO.");
                 osw.store(lastGene);
@@ -98,7 +97,6 @@ public class GoPostprocess extends PostProcessor
                 annotations = new HashMap<OntologyTerm, GOAnnotation>();
             }
 
-            // gene can code multiple proteins
             OntologyTerm term = thisAnnotation.getOntologyTerm();
             Set<GOEvidence> evidence = thisAnnotation.getEvidence();
 
@@ -114,6 +112,7 @@ public class GoPostprocess extends PostProcessor
                 continue;
             }
             tempAnnotation.setSubject(thisGene);
+
             lastGene = thisGene;
             count++;
         }
@@ -122,7 +121,7 @@ public class GoPostprocess extends PostProcessor
             for (GOAnnotation item : annotations.values()) {
                 osw.store(item);
             }
-            lastGene.setGoAnnotation(new HashSet<GOAnnotation>(annotations.values()));
+            lastGene.setGoAnnotation(new HashSet(annotations.values()));
             LOG.debug("store gene " + lastGene.getSecondaryIdentifier() + " with "
                     + lastGene.getGoAnnotation().size() + " GO.");
             osw.store(lastGene);
