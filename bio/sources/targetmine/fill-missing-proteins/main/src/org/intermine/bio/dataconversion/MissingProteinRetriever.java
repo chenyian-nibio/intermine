@@ -2,9 +2,11 @@ package org.intermine.bio.dataconversion;
 
 import java.io.BufferedReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,7 +46,7 @@ public class MissingProteinRetriever {
 	protected static final int BATCH_SIZE = 200;
 
 	// number of times to try the same bacth from the server
-//	private static final int MAX_TRIES = 5;
+	// private static final int MAX_TRIES = 5;
 
 	private Pattern SQ_PATTERN = Pattern.compile("SQ   SEQUENCE\\s+(\\d+) AA;\\s+(\\d+) MW;.*");
 
@@ -54,6 +56,8 @@ public class MissingProteinRetriever {
 	private String outputFile = null;
 
 	private Map<String, Item> organismMap = new HashMap<String, Item>();
+
+	private static final int RETRY = 10;
 
 	/**
 	 * Set the ObjectStore alias.
@@ -139,9 +143,7 @@ public class MissingProteinRetriever {
 									p.setAttribute("uniprotName", ph.primaryIdentifier);
 									p.setAttribute("primaryAccession", pAcc);
 									p.setAttribute("uniprotAccession", pAcc);
-									p
-											.setReference("organism", getOrganism(ph.taxonId,
-													itemFactory));
+									p.setReference("organism", getOrganism(ph.taxonId, itemFactory));
 
 									if (ph.ecNumber != null) {
 										p.setAttribute("ecNumber", ph.ecNumber);
@@ -252,14 +254,26 @@ public class MissingProteinRetriever {
 	 * Obtain the uniprot information for the protein
 	 * 
 	 * @param primaryAccessions
-	 *            the primart accessions of the proteins
+	 *            the primary accessions of the proteins
 	 * @return a Reader for the information
 	 * @throws Exception
 	 *             if an error occurs
 	 */
 	protected Reader getReader(Set<String> primaryAccessions) throws Exception {
 		URL url = new URL(DBFETCH_URL + StringUtil.join(primaryAccessions, ","));
-		return new BufferedReader(new InputStreamReader(url.openStream()));
+		int i = 1;
+		while (true) {
+			try {
+				return new BufferedReader(new InputStreamReader(url.openStream()));
+			} catch (IOException e) {
+				i++;
+				if (i > RETRY) {
+					throw new RuntimeException("Unable to read from Uniprot, after tried " + RETRY
+							+ " times. " + url.toString());
+				}
+				continue;
+			}
+		}
 	}
 
 	private class ProteinHolder {
@@ -273,8 +287,9 @@ public class MissingProteinRetriever {
 
 		@Override
 		public String toString() {
-			return String.format("%s, %s(%s), %s, [%s|%s], %s", StringUtils.join(primaryAccession,
-					"/"), primaryIdentifier, taxonId, ecNumber, length, molecularWeight, name);
+			return String.format("%s, %s(%s), %s, [%s|%s], %s",
+					StringUtils.join(primaryAccession, "/"), primaryIdentifier, taxonId, ecNumber,
+					length, molecularWeight, name);
 		}
 
 	}

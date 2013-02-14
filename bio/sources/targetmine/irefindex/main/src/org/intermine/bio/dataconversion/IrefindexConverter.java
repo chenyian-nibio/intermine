@@ -46,8 +46,8 @@ import org.intermine.xml.full.Item;
  */
 public class IrefindexConverter extends BioFileConverter {
 	//
-	private static final String DATASET_TITLE = "iRefIndex";
-	private static final String DATA_SOURCE_NAME = "iRefIndex interaction data set";
+	private static final String DATASET_TITLE = "iRefIndex interaction data set";
+	private static final String DATA_SOURCE_NAME = "iRefIndex";
 	private static final String TYPE_FILE = "interactiontype.txt";
 
 	private static final Logger LOG = Logger.getLogger(IrefindexConverter.class);

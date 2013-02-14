@@ -144,7 +144,7 @@
       <property name="enzyme.organisms" value="HUMAN RAT MOUSE DROME"/>
     </source>
     <source name="enzyme-pathway" type="enzyme-pathway">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg" />
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-pathway" />
       <property name="src.data.dir.includes" value="ec.list" />
     </source>
     <source name="drugebility" type="drugebility">
@@ -166,7 +166,7 @@
     </source>
   	<!--Intermine default : End-->
     <source name="reactome" type="biopax3">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/reactome/lv3"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/reactome"/>
       <property name="src.data.dir.includes" value="*.owl"/>
     </source>
     <source name="nci-pathway" type="nci-pathway">
@@ -174,12 +174,12 @@
       <property name="src.data.dir.includes" value="*.tab"/>
     </source>
     <!-- chenyian: disable for external server
-    -->
     <source name="gene-set" type="gene-set">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_set_cluster"/>
       <property name="src.data.dir.includes" value="lt600.*"/>
       <property name="clusterName" value="/data/bio/db/Targetmine/gene_set_cluster/autoname.ABCMNO.tsv"/>
     </source>
+    -->
     <source name="stitch" type="tm-stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
       <property name="src.data.dir.includes" value="*.detailed.tsv" />
@@ -229,7 +229,7 @@
     </source>
     <source name="dataset-info" type="dataset-info">
       <property name="src.data.dir" location="/data/bio/db/Targetmine" />
-      <property name="src.data.dir.includes" value="*/current_ver.txt" />
+      <property name="src.data.dir.includes" value="*/*current_ver.txt" />
     </source>
 
   	<source name="fill-missing-proteins" type="fill-missing-proteins">
