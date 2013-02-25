@@ -6,20 +6,14 @@ my $base_path="/data/bio/db/Targetmine";
 
 my $web_path="resources/webapp";
 
-my @sources = (
-	"gene_info", "uniprot", "go-annotation/obo", "go-annotation", 
-	"interpro", "kegg", "scop", "biogrid", "do", "do-annotation", 
-	"drugbank", "enzyme", "reactome/lv3", "irefindex", "stitch", 
-	"cath", "gene3d", "nci-pathway", "metazoan", "tfactor", "pubchem",
-	"chebi","chembl");
 
+my @files = `ls $base_path/*/*current_ver.txt`;
 
 my @time = localtime(time);
 my $year = 1900 + $time[5];
 my $month = sprintf "%02d", ($time[4] + 1);
 my $date = sprintf "%02d", $time[3];
 
-# print "path = /news/$year/$month/\n";
 
 #check the folder
 unless (-d "$web_path/news") {
@@ -34,15 +28,24 @@ unless (-d "$web_path/news/$year/$month") {
 
 # read in release info
 my %current_ver = ();
-foreach my $s(@sources) {
-	open FILE,"$base_path/$s/current_ver.txt", or die "$!; $base_path/$s/current_ver.txt";
+foreach my $file(@files) {
+	open FILE,"$file", or die "$! : $file";
+	my %map = ();
 	while (<FILE>) {
+		chomp;
 		my ($name, $value) = split "=", $_;
-		$current_ver{$s}{$name} = $value;
+		$map{$name} = $value;
 	}
 	close FILE;
+	if ($map{'data_set'}) {
+		$current_ver{$map{'data_set'}} = \%map;
+	}
 }
 
+#foreach my $s(keys %current_ver) {
+#	print $s,"\t",$current_ver{$s}{'url'},"\n";
+#}
+#exit;
 
 open SAVE,">$web_path/news/$year/$month/index.html" or die $!;
 open TEMPLATE,"release_info_template" or die $!;
@@ -50,12 +53,12 @@ while (my $line = <TEMPLATE>) {
 	if ($line =~ "release_info_table") {
 		#create table header here
 		
-		foreach my $s(@sources) {
+		foreach my $s(sort keys %current_ver) {
 			print SAVE "<tr>";
 			if ($current_ver{$s}{'url'}) {
-				print SAVE "<td class=\"leftcol\"><a href=\"$current_ver{$s}{'url'}\" target=\"blank\">$current_ver{$s}{'data_source'}</a></td>";
+				print SAVE "<td class=\"leftcol\"><a href=\"$current_ver{$s}{'url'}\" target=\"blank\">$current_ver{$s}{'data_set'}</a></td>";
 			} else {
-				print SAVE "<td class=\"leftcol\">$current_ver{$s}{'data_source'}</td>";
+				print SAVE "<td class=\"leftcol\">$current_ver{$s}{'data_set'}</td>";
 			}
 			if ($current_ver{$s}{'version'}) {
 				print SAVE "<td>$current_ver{$s}{'version'}</td>";
@@ -70,8 +73,6 @@ while (my $line = <TEMPLATE>) {
 			
 			print SAVE "</tr>\n";
 		}
-		# add pdb information here
-		print SAVE "<tr><td class=\"leftcol\">PDB</td><td>-</td><td>Download Date:<br \>$year/$month/$date</td></tr>\n";
 		
 		# create table footer here
 	} else {
