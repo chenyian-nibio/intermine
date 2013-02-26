@@ -274,8 +274,8 @@
 <!-- /hints.jsp -->
 <!-- dataCategories -->
 
-        <script type="text/javascript" src="/targetmine/vendor/imtables.deps.js"></script>
-        <script type="text/javascript" src="/targetmine/vendor/imtables.js"></script>
+        <script type="text/javascript" src="/targetmine/js/etc/imtables.deps.js"></script>
+        <script type="text/javascript" src="/targetmine/js/etc/imtables.js"></script>
         <script type="text/javascript">
         $(function() {
             var pq, service, view;
