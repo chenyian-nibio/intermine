@@ -12,6 +12,12 @@
     <pubDate>Wed, 27 Feb 2013 12:00:00 +0900</pubDate>
   </item>
   <item>
+    <title>News</title>
+    <link>news/</link>
+    <description>Upgrade InterMine framework; new data sources added.</description>
+    <pubDate>Fri, 22 Feb 2013 12:00:00 +0900</pubDate>
+  </item>
+  <item>
     <title>Update</title>
     <link>news/2012/11/</link>
     <description>build 20121115 released</description>
