@@ -240,6 +240,7 @@
 
   <class className="org.intermine.model.bio.ProteinStructureRegion">
     <fields>
+      <fieldconfig fieldExpr="protein.primaryAccession"/>
       <fieldconfig fieldExpr="start"/>
       <fieldconfig fieldExpr="end"/>
       <fieldconfig fieldExpr="pdbSeqStart"/>
@@ -459,6 +460,20 @@
       <fieldconfig fieldExpr="proteinStructure.pdbId"/>
     </fields>
   </class>
+
+  <class className="org.intermine.model.bio.Interaction">
+    <fields>
+      <fieldconfig fieldExpr="gene1.symbol"/>
+      <fieldconfig fieldExpr="gene2.symbol"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.MiRNAInteraction">
+    <fields>
+      <fieldconfig fieldExpr="miRNA.secondaryIdentifier"/>
+      <fieldconfig fieldExpr="targetGene.symbol"/>
+    </fields>
+  </class>
+
 
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
