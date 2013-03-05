@@ -34,7 +34,10 @@
   <class className="org.intermine.model.bio.DataSet">
     <fields>
       <fieldconfig fieldExpr="name"/>
-      <fieldconfig fieldExpr="url" doNotTruncate="true"/>
+      <fieldconfig fieldExpr="version"/>
+      <fieldconfig fieldExpr="dateType"/>
+      <fieldconfig fieldExpr="date"/>
+      <!--fieldconfig fieldExpr="url" doNotTruncate="true"/-->
     </fields>
   </class>
 
@@ -237,6 +240,7 @@
 
   <class className="org.intermine.model.bio.ProteinStructureRegion">
     <fields>
+      <fieldconfig fieldExpr="protein.primaryAccession"/>
       <fieldconfig fieldExpr="start"/>
       <fieldconfig fieldExpr="end"/>
       <fieldconfig fieldExpr="pdbSeqStart"/>
@@ -457,6 +461,20 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.Interaction">
+    <fields>
+      <fieldconfig fieldExpr="gene1.symbol"/>
+      <fieldconfig fieldExpr="gene2.symbol"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.MiRNAInteraction">
+    <fields>
+      <fieldconfig fieldExpr="miRNA.secondaryIdentifier"/>
+      <fieldconfig fieldExpr="targetGene.symbol"/>
+    </fields>
+  </class>
+
+
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
   <tableExportConfig id="gff3" className="org.intermine.bio.web.export.GFF3HttpExporter"/>
@@ -511,7 +529,7 @@
                                  startClassDisplay="symbol"
                                  enrich="pathways.name"
                                  enrichIdentifier="pathways.identifier"
-                                 constraints="pathways.dataSets.name=[DataSet],organism.taxonId=[list], primaryIdentifier != null"
+                                 constraints="pathways.dataSets.name=[DataSet],organism.taxonId=[list]"
                                  typeClass="Gene"
                                  views="ncbiGeneId, symbol, organism.name, pathways.identifier, pathways.name, pathways.dataSets.name"/>
 
@@ -526,7 +544,7 @@
                                  enrich="goAnnotation.ontologyTerm.parents.name"
                                  enrichIdentifier="goAnnotation.ontologyTerm.parents.identifier"
                                  constraints="goAnnotation.ontologyTerm.parents.namespace=[Ontology],organism.name=[list],
-                                              primaryIdentifier != null, goAnnotation.qualifier = null,
+                                              goAnnotation.qualifier = null,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0008150,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0003674,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0005575"
@@ -544,8 +562,7 @@
                                  startClassDisplay="symbol"
                                  enrich="doAnnotations.ontologyTerm.parents.name"
                                  enrichIdentifier="doAnnotations.ontologyTerm.parents.identifier"
-                                 constraints="organism.name=[list],
-                                              primaryIdentifier != null, doAnnotations.qualifier = null"
+                                 constraints="organism.name=[list], doAnnotations.qualifier = null"
                                  typeClass="Gene"
                                  views="ncbiGeneId,symbol,organism.name,
                                        doAnnotations.ontologyTerm.identifier, doAnnotations.ontologyTerm.name,
@@ -560,7 +577,7 @@
                                  startClassDisplay="symbol"
                                  enrich="diseases.title"
                                  enrichIdentifier="diseases.omimId"
-                                 constraints="organism.taxonId=[list], primaryIdentifier != null"
+                                 constraints="organism.taxonId=[list]"
                                  typeClass="Gene"
                                  views="ncbiGeneId, symbol, organism.name, diseases.omimId, diseases.title"/>
 

@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -18,11 +17,14 @@ import org.intermine.xml.full.Item;
  * @author chenyian - refactoring
  * 
  */
-public class DOAnnotationConverter extends FileConverter {
+public class DOAnnotationConverter extends BioFileConverter {
 
 //	private static Logger m_oLogger = Logger.getLogger(DOAnnotationConverter.class);
 
-	private Map<String, Item> m_oDOTermMap = new TreeMap<String, Item>();
+    private static final String DATASET_TITLE = "DO Annotation";
+    private static final String DATA_SOURCE_NAME = "DO Annotation";
+
+    private Map<String, Item> m_oDOTermMap = new TreeMap<String, Item>();
 
 	private Map<String, Item> m_oGeneMap = new TreeMap<String, Item>();
 
@@ -33,7 +35,7 @@ public class DOAnnotationConverter extends FileConverter {
 	private Map<String, Item> doAnnotationMap = new HashMap<String, Item>();
 	
 	public DOAnnotationConverter(ItemWriter writer, Model model) {
-		super(writer, model);
+		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
 	}
 
 	@Override

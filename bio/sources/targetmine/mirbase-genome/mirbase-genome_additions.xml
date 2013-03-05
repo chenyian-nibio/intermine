@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<classes>
+	<class name="MiRNAPrimaryTranscript" extends="Transcript" is-interface="true">
+		<collection name="microRNAs" referenced-type="MiRNA" reverse-reference="transcripts"/>
+	</class>
+	<class name="MiRNA" is-interface="true">
+		<collection name="transcripts" referenced-type="MiRNAPrimaryTranscript" reverse-reference="microRNAs"/>
+	</class>
+
+</classes>

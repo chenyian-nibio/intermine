@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<classes>
+	<class name="MiRNA" is-interface="true">
+		<attribute name="primaryIdentifier" type="java.lang.String"/>
+		<collection name="miRNAInteractions" referenced-type="MiRNAInteraction" reverse-reference="miRNA"/>
+	</class>
+	<class name="Gene" is-interface="true">
+        <attribute name="ncbiGeneId" type="java.lang.String"/>
+		<collection name="miRNAInteractions" referenced-type="MiRNAInteraction" reverse-reference="targetGene"/>
+	</class>
+	<class name="MiRNAInteraction" is-interface="true">
+        <attribute name="identifier" type="java.lang.String"/>
+        <attribute name="sourceId" type="java.lang.String"/>
+		<collection name="experiments" referenced-type="MiRNAExperiment"/>
+		<reference name="targetGene" referenced-type="Gene" reverse-reference="miRNAInteractions"/>
+		<reference name="miRNA" referenced-type="MiRNA" reverse-reference="miRNAInteractions"/>
+		<reference name="publication" referenced-type="Publication"/>
+	</class>
+		<class name="MiRNAExperiment" is-interface="true">
+		<attribute name="name" type="java.lang.String"/>
+	</class>
+
+</classes>

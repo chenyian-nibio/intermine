@@ -1,0 +1,4 @@
+<project name="wwpdb-tasks" default="default" basedir=".">
+  <description>build wwpdb tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

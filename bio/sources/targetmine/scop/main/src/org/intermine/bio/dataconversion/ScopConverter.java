@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -25,11 +24,14 @@ import org.intermine.xml.full.Item;
 /**
  * 
  * @author ishikawa
- * @author chenyian 2012.2.23 refactoring; 2012.11.5 refactoring
+ * @author chenyian 2012.2.23 refactoring; 2012.11.5 refactoring; 2013.2.25 bug fix
  */
-public class ScopConverter extends FileConverter {
+public class ScopConverter extends BioFileConverter {
 
 	// private static Logger LOG = Logger.getLogger(ScopConverter.class);
+
+	private static final String DATASET_TITLE = "SCOP";
+	private static final String DATA_SOURCE_NAME = "SCOP";
 
 	private static Map<String, String> levelMap = new HashMap<String, String>();
 	{
@@ -56,7 +58,7 @@ public class ScopConverter extends FileConverter {
 	private File claFile;
 
 	public ScopConverter(ItemWriter writer, Model model) {
-		super(writer, model);
+		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
 	}
 
 	@Override
@@ -95,20 +97,16 @@ public class ScopConverter extends FileConverter {
 			}
 
 			Integer sunid = Integer.valueOf(fields[0]);
-			Item oItem = createItem("ScopClassification");
-			oItem.setAttribute("type", "SCOP");
-			oItem.setAttribute("level", levelMap.get(fields[1]));
+			Item item = createItem("ScopClassification");
+			item.setAttribute("type", "SCOP");
+			item.setAttribute("level", levelMap.get(fields[1]));
 
-//			if (!fields[3].equals("-")) {
-//				domainIdMap.put(sunid, fields[3]);
-//			}
+			item.setAttribute("code", fields[2]);
+			item.setAttribute("sunid", fields[0]);
+			item.setAttribute("sccs", fields[2]);
+			item.setAttribute("description", fields[4]);
 
-			oItem.setAttribute("code", fields[2]);
-			oItem.setAttribute("sunid", fields[0]);
-			oItem.setAttribute("sccs", fields[2]);
-			oItem.setAttribute("description", fields[4]);
-
-			scopEntryMap.put(sunid, oItem);
+			scopEntryMap.put(sunid, item);
 		}
 	}
 
@@ -140,13 +138,13 @@ public class ScopConverter extends FileConverter {
 				for (int i = 0; i < 7; i++) {
 					Integer identifier = Integer.valueOf(matcher.group(i + 1));
 					Item item = scopEntryMap.get(identifier);
-					if (savedEntries.contains(item.getIdentifier())) {
-						continue;
-					}
 					if (i > 0) {
 						parentRefIds.add(scopEntryMap.get(Integer.valueOf(matcher.group(i)))
 								.getIdentifier());
 						item.setCollection("parents", parentRefIds);
+					}
+					if (savedEntries.contains(item.getIdentifier())) {
+						continue;
 					}
 					if (i == 6) {
 						createStructuralRegion(cols[1], cols[2], item.getIdentifier());

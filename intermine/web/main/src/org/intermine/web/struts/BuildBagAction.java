@@ -172,6 +172,15 @@ public class BuildBagAction extends InterMineAction
                 }
             }
         }
+        // chenyian
+        if (buildBagForm.getRemoveVersionTag()) {
+        	List<String> newList = new ArrayList<String>();
+        	for (String string : list) {
+				newList.add(string.substring(0, string.indexOf(".")));
+			}
+        	list = newList;
+        }
+        
         BagQueryResult bagQueryResult = bagRunner.search(type, list,
                 buildBagForm.getExtraFieldValue(), false, buildBagForm.getCaseSensitive());
         session.setAttribute("bagQueryResult", bagQueryResult);

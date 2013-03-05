@@ -59,6 +59,8 @@ public class Biopax3Converter extends BioFileConverter {
 
 	private Traverser traverser;
 
+	private String taxonId = null;
+
 	/**
 	 * Constructor
 	 * 
@@ -77,6 +79,17 @@ public class Biopax3Converter extends BioFileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
+		String fn = getCurrentFile().getName();
+		String org = fn.substring(0, fn.indexOf("."));
+		if (org.equals("Homo sapiens")){
+			taxonId = "9606";
+		} else if(org.equals("Mus musculus")){
+			taxonId = "10090";
+		} else if (org.equals("Rattus norvegicus")){
+			taxonId = "10116";
+		} else {
+			throw new RuntimeException("Unknown species: " + fn);
+		}
 
 		SimpleIOHandler handler = new SimpleIOHandler();
 		// JenaIOHandler handler = new JenaIOHandler(new Level3FactoryImpl(), BioPAXLevel.L3);
@@ -179,6 +192,7 @@ public class Biopax3Converter extends BioFileConverter {
 		if (ret == null) {
 			ret = createItem("Pathway");
 			ret.setAttribute("identifier", pathwayId);
+			ret.setReference("organism", getOrganism(taxonId));
 			pathwayMap.put(pathwayId, ret);
 		}
 		return ret;

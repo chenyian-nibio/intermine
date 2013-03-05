@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<classes>
+    <class name="ProteinDNAExperiment" is-interface="true">
+		<attribute name="name" type="java.lang.String"/>
+		<attribute name="description" type="java.lang.String"/>
+		<collection name="interactions" referenced-type="ProteinDNAInteraction" reverse-reference="experiment"/>
+		<reference name="publication" referenced-type="Publication"/>
+    </class>
+    <class name="ProteinDNAInteraction" is-interface="true">
+		<attribute name="role" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+		<attribute name="interactionType" type="java.lang.String"/>
+		<reference name="gene" referenced-type="Gene" reverse-reference="proteinDNAInteractions" />
+		<reference name="interactWith" referenced-type="Gene"/>
+		<reference name="experiment" referenced-type="ProteinDNAExperiment" reverse-reference="interactions"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
+		<reference name="bindingSite" referenced-type="BindingSiteInfo" reverse-reference="interactions"/>
+    </class>
+
+    <class name="Gene" is-interface="true">
+        <attribute name="ncbiGeneId" type="java.lang.String"/>
+        <collection name="proteinDNAInteractions" referenced-type="ProteinDNAInteraction" reverse-reference="gene"/>
+    </class>
+
+    <class name="BindingSiteInfo" is-interface="true">
+		<attribute name="sequence" type="java.lang.String"/>
+		<attribute name="start" type="java.lang.Integer"/>
+		<attribute name="end" type="java.lang.Integer"/>
+		<attribute name="chromosome" type="java.lang.String"/>
+		<attribute name="strand" type="java.lang.String"/>
+		<attribute name="genomeBuild" type="java.lang.String"/>
+		<attribute name="stableId" type="java.lang.String"/>
+		<collection name="interactions" referenced-type="ProteinDNAInteraction" reverse-reference="bindingSite" />
+    </class>
+
+</classes>

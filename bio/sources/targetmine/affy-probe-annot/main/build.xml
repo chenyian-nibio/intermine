@@ -1,0 +1,4 @@
+<project name="affy-probe-annot-tasks" default="default" basedir=".">
+  <description>build affy-probe-annot tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

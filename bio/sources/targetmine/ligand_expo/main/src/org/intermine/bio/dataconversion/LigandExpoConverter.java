@@ -147,6 +147,10 @@ public class LigandExpoConverter extends BioFileConverter {
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
 
+			if (cols.length < 3) {
+				LOG.error(StringUtils.join(cols,"\t"));
+				continue;
+			}
 			// process het name
 			String name = cols[2].trim();
 			name = name.replaceAll("^[;|\"]", "");

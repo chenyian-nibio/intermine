@@ -240,6 +240,13 @@
 
                     jQuery("#cytoscape-network-query-xml").val('${cytoscapeNetworkQueryXML}');
                 }
+                // chenyian: deal with the case that the protein is not able to find associated gene
+                 else if (response.match("No associated gene found.")) {
+                    geneWithNoDatasourceMessage = response; 
+                    jQuery("#interactions-wrap").html(geneWithNoDatasourceMessage)
+                                             .css({'font-style': 'italic', 'border': 'none'})
+                                             .width(600);
+                }
                 else {
                     networkdata = response;
                     <%-- attach overflow --%>

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<classes>
+<class name="DataSet" is-interface="true">
+	<attribute name="name" type="java.lang.String"/>
+	<attribute name="version" type="java.lang.String"/>
+	<attribute name="dateType" type="java.lang.String"/>
+	<attribute name="date" type="java.lang.String"/>
+	<attribute name="category" type="java.lang.String"/>
+	<attribute name="description" type="java.lang.String"/>
+	<attribute name="url" type="java.lang.String"/>
+</class>
+
+</classes>

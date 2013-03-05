@@ -28,6 +28,7 @@ import org.intermine.xml.full.Item;
  * 
  * @author chenyian
  */
+@Deprecated
 public class TfactorConverter extends FileConverter {
 	private static final String INTERACTION_TYPE = "Transcriptional regulation";
 
@@ -60,14 +61,14 @@ public class TfactorConverter extends FileConverter {
 		Item dataSet = createItem("DataSet");
 		dataSet.setAttribute("name", "ORegAnno");
 		dataSet.setReference("dataSource", dataSource);
-		dataSet.setAttribute("url", "http://www.oreganno.org/oregano/");
-		dataSet.setAttribute("description", "Open regulatory annotation database");
+//		dataSet.setAttribute("url", "http://www.oreganno.org/oregano/");
+//		dataSet.setAttribute("description", "Open regulatory annotation database");
 
 		try {
 			store(dataSource);
 			store(dataSet);
 		} catch (ObjectStoreException e) {
-			LOG.error("failed to store DataSource/DataSet of Amadeus");
+			LOG.error("failed to store DataSource/DataSet of ORegAnno");
 		}
 
 		return dataSet;

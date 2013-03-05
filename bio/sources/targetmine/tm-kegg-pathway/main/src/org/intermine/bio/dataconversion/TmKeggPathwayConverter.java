@@ -32,7 +32,7 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 	private static final String PROP_FILE = "kegg_config.properties";
 	//
 	private static final String DATASET_TITLE = "KEGG pathways data set";
-	private static final String DATA_SOURCE_NAME = "GenomeNet";
+	private static final String DATA_SOURCE_NAME = "KEGG";
 
 	private Map<String, String[]> config = new HashMap<String, String[]>();
 	private Set<String> taxonIds = new HashSet<String>();
@@ -165,6 +165,8 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 					String[] genes = geneIds.split(",");
 					Item pathway = getPathway(pathwayId);
 
+					pathway.setReference("organism", getOrganism(taxonId));
+
 					// assign main and sub classes
 					String subclass = subClass.get(pathwayId.substring(3));
 					if (subclass == null) {
@@ -175,21 +177,7 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 					}
 
 					for (String gene : genes) {
-						// ids for dme should be further processed
 						String geneId = gene.substring(4);
-						if ("7227".equals(taxonId)) {
-							// There are some strange ids for D. melanogaster, the rest start with
-							// Dmel_, ignore any D. melanogaster ids without Dmel_ and strip this
-							// off the rest
-							if (!geneId.startsWith("Dmel_")) {
-								continue;
-							}
-							// We don't want Dmel_ prefix on D. melanogaster genes
-							if (geneId.startsWith("Dmel_")) {
-								geneId = geneId.substring(5);
-							}
-						}
-
 						pathway.addToCollection("genes", getGene(geneId, organism));
 
 					}

@@ -667,7 +667,7 @@
             <param type="String" required="true" description="The name of the enrichment widget to display">widget</param>
             <param type="String" required="false" description="The name of the list to use as the background population">population</param>
             <param type="Float" default="0.05" required="true" description="The maximum p-value of results to display. The range is 0.0 - 1.0">maxp</param>
-            <param type="enumerated" values="Holm-Bonferroni,Benjamini and Hochberg,Bonferroni,None" default="Holm-Bonferroni" required="true" description="The error correction algorithm to use.">correction</param>
+            <param type="enumerated" values="Holm-Bonferroni,Benjamini Hochberg,Bonferroni,None" default="Benjamini Hochberg" required="true" description="The error correction algorithm to use.">correction</param>
             <param type="String" required="false" description="An optional filter that some widgets accept">filter</param>
             <returns>
 	            <format key="results">json</format>
@@ -1131,6 +1131,8 @@
   </session-config>
 
   <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>
 

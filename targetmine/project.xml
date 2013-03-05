@@ -30,6 +30,7 @@
       <property name="unigene.organisms" value="Hs Rn Mm"/>
       <property name="gene2unigeneFile" value="/data/bio/db/Targetmine/gene_info/gene2unigene"/>
       <property name="gene2accessionFile" value="/data/bio/db/Targetmine/gene_info/gene2accession"/>
+      <property name="knownToLocusLinkFile" value="/data/bio/db/Targetmine/ucsc/knownToLocusLink.txt"/>
     </source>
   	<source name="do-annotation" type="do-annotation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/do-annotation"/>
@@ -55,6 +56,8 @@
     <source name="sifts" type="sifts">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/sifts"/>
       <property name="src.data.dir.includes" value="pdb_chain_uniprot.lst"/>
+      <property name="pdbPubmedFile" value="/data/bio/db/Targetmine/sifts/pdb_pubmed.lst" />
+      <property name="pdbChainTaxonFile" value="/data/bio/db/Targetmine/sifts/pdb_chain_taxonomy.lst" />
     </source>
     <source name="scop" type="scop">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/scop"/>
@@ -73,8 +76,8 @@
       <property name="src.data.dir.includes" value="gene3d.HRM.txt"/>
     </source>
     <source name="kegg-orthology" type="tm-kegg-orthology">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg/orthology"/>
-      <property name="src.data.dir.includes" value="*" />
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-orthology"/>
+      <property name="src.data.dir.includes" value="ko.*" />
       <property name="kegg.organisms" value="9606 10090 10116"/>
     </source>
 
@@ -84,9 +87,9 @@
     </source>
   	
     <source name="kegg-pathway" type="tm-kegg-pathway">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg/pathway"/>
-      <property name="src.data.dir.includes" value="*"/>
-      <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg/pathway_class"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-pathway"/>
+      <property name="src.data.dir.includes" value="*.pathway*"/>
+      <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg-pathway/pathway_class_20121101"/>
       <property name="kegg.organisms" value="9606 10090 10116"	/>
     </source>
     
@@ -107,6 +110,11 @@
     </source>
 <!--Added by Chen: Start -->
 
+    <source name="wwpdb" type="wwpdb">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/wwpdb/" />
+      <property name="src.data.dir.includes" value="entries.idx" />
+    </source>
+    <!--
     <source name="pdb_ext" type="pdb_ext">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pdb/derived_data/index" />
       <property name="src.data.dir.includes" value="entries.idx" />
@@ -116,16 +124,18 @@
       <property name="src.data.dir" location="/data/bio/db/MSD/sifts" />
       <property name="src.data.dir.includes" value="pdb_chain_taxonomy.lst" />
     </source>
+    -->
     <source name="ligand_expo" type="ligand_expo">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ligand_expo" />
       <property name="src.data.dir.includes" value="cc-to-pdb.tdd" />
       <property name="inchiKeyFile" value="/data/bio/db/Targetmine/ligand_expo/Components-inchikey.ich" />
     </source>
-    <source name="amadeus" type="metazoan">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/metazoan" />
+    <source name="amadeus" type="amadeus">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/amadeus" />
+      <property name="src.data.dir.includes" value="*.geneid.txt" />
     </source>
-    <source name="oreg" type="tfactor">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/tfactor" />
+    <source name="oreganno" type="oreganno">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/oreganno" />
       <property name="src.data.dir.includes" value="oreg.all.txt" />
     </source>
     <source name="enzyme" type="enzyme">
@@ -134,7 +144,7 @@
       <property name="enzyme.organisms" value="HUMAN RAT MOUSE DROME"/>
     </source>
     <source name="enzyme-pathway" type="enzyme-pathway">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg" />
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-pathway" />
       <property name="src.data.dir.includes" value="ec.list" />
     </source>
     <source name="drugebility" type="drugebility">
@@ -156,7 +166,7 @@
     </source>
   	<!--Intermine default : End-->
     <source name="reactome" type="biopax3">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/reactome/lv3"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/reactome"/>
       <property name="src.data.dir.includes" value="*.owl"/>
     </source>
     <source name="nci-pathway" type="nci-pathway">
@@ -164,12 +174,12 @@
       <property name="src.data.dir.includes" value="*.tab"/>
     </source>
     <!-- chenyian: disable for external server
-    -->
     <source name="gene-set" type="gene-set">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_set_cluster"/>
       <property name="src.data.dir.includes" value="lt600.*"/>
       <property name="clusterName" value="/data/bio/db/Targetmine/gene_set_cluster/autoname.ABCMNO.tsv"/>
     </source>
+    -->
     <source name="stitch" type="tm-stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
       <property name="src.data.dir.includes" value="*.detailed.tsv" />
@@ -198,6 +208,30 @@
 		<property name="src.data.dir.includes" value="*.mitab.*.txt"/>
 		<property name="osAlias" value="os.production"/>
 	</source>
+
+    <source name="mirbase" type="mirbase">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/mirbase" />
+      <property name="src.data.dir.includes" value="m*.*" />
+      <property name="taxonIdFile" value="/data/bio/db/Targetmine/mirbase/taxonId" />
+    </source>
+    <source name="mirbase-genome" type="mirbase-genome">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/mirbase/genomes" />
+      <property name="src.data.dir.includes" value="*.gff3" />
+      <property name="taxonIdFile" value="/data/bio/db/Targetmine/mirbase/taxonId" />
+    </source>
+    <source name="mirtarbase" type="mirtarbase">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/mirtarbase" />
+      <property name="src.data.dir.includes" value="*_MTI.txt" />
+    </source>
+    <source name="affy-probe" type="affy-probe-annot">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/affymetrix" />
+      <property name="src.data.dir.includes" value="*.annot.csv" />
+    </source>
+    <source name="dataset-info" type="dataset-info">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine" />
+      <property name="src.data.dir.includes" value="*/*current_ver.txt" />
+    </source>
+
   	<source name="fill-missing-proteins" type="fill-missing-proteins">
       <property name="src.data.file" location="build/proteins.txt"/>
     </source>

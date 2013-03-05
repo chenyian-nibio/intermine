@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutionException;
 
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.api.InterMineAPI;
 import org.intermine.api.config.ClassKeyHelper;
@@ -64,6 +65,10 @@ public class CytoscapeNetworkService
     public String getNetwork(String fullInteractingGeneSetStr,
             HttpSession session, boolean ignoreLargeNetworkTest) throws ObjectStoreException,
             InterruptedException, ExecutionException {
+    	// chenyian: deal with the case that the protein is not able to find associated gene
+    	if (StringUtils.isEmpty(fullInteractingGeneSetStr)){
+    		return "No associated gene found.";
+    	}
 
         final InterMineAPI im = SessionMethods.getInterMineAPI(session); // Get InterMineAPI
         ObjectStore os = im.getObjectStore(); // Get OS
