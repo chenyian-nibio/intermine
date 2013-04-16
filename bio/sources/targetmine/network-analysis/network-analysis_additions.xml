@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<classes>
+    <class name="Interaction" is-interface="true">
+        <attribute name="isLcc" type="java.lang.Boolean" />
+        <attribute name="isHcppi" type="java.lang.Boolean" />
+    </class>
+    <class name="NetworkProperty" is-interface="true">
+        <attribute name="networkType" type="java.lang.String" />
+        <attribute name="name" type="java.lang.String" />
+        <attribute name="value" type="java.lang.String" />
+        <reference name="gene" referenced-type="Gene" reverse-reference="networkProperties" />
+    </class>
+    <class name="Gene" is-interface="true">
+        <attribute name="ncbiGeneId" type="java.lang.String"/>
+        <collection name="networkProperties" referenced-type="NetworkProperty" reverse-reference="gene"/>
+    </class>
+
+</classes>

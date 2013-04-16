@@ -235,6 +235,8 @@
   	<source name="fill-missing-proteins" type="fill-missing-proteins">
       <property name="src.data.file" location="build/proteins.txt"/>
     </source>
+  	<source name="network-analysis" type="network-analysis">
+    </source>
   	<source name="organism" type="organism">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/taxonomy"/>
       <property name="src.data.dir.includes" value="taxno.name"/>
@@ -257,6 +259,7 @@
 
   <post-processing>
 	<post-process name="do-sources"/>
+	<post-process name="network-analysis"/>
 	<post-process name="create-references"/>
 	<post-process name="summarise-objectstore"/>
 	<post-process name="create-attribute-indexes"/>

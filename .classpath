@@ -66,6 +66,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/oreganno/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/wwpdb/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/dataset-info/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/network-analysis/main/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/bbop.jar"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/jakarta-regexp-1.4.jar"/>
@@ -141,5 +142,9 @@
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/opencsv-2.3.jar"/>
 	<classpathentry kind="lib" path="bio/sources/targetmine/drugbank/main/lib/xom-1.2.8.jar"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/biojava-1.7.1.jar"/>
+	<classpathentry kind="lib" path="bio/postprocess/main/lib/collections-generic-4.01.jar"/>
+	<classpathentry kind="lib" path="bio/postprocess/main/lib/jung-algorithms-2.0.1.jar"/>
+	<classpathentry kind="lib" path="bio/postprocess/main/lib/jung-api-2.0.1.jar"/>
+	<classpathentry kind="lib" path="bio/postprocess/main/lib/jung-graph-impl-2.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
