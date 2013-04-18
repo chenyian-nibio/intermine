@@ -2,13 +2,15 @@
 
 <classes>
     <class name="Interaction" is-interface="true">
-        <attribute name="isLcc" type="java.lang.Boolean" />
-        <attribute name="isHcppi" type="java.lang.Boolean" />
+        <attribute name="confidence" type="java.lang.String" />
     </class>
     <class name="NetworkProperty" is-interface="true">
+        <attribute name="isBottleneck" type="java.lang.Boolean" />
+        <attribute name="isHub" type="java.lang.Boolean" />
         <attribute name="networkType" type="java.lang.String" />
-        <attribute name="name" type="java.lang.String" />
-        <attribute name="value" type="java.lang.String" />
+        <attribute name="betweenness" type="java.lang.Double" />
+        <attribute name="closeness" type="java.lang.Double" />
+        <attribute name="degree" type="java.lang.Integer" />
         <reference name="gene" referenced-type="Gene" reverse-reference="networkProperties" />
     </class>
     <class name="Gene" is-interface="true">

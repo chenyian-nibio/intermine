@@ -30,7 +30,6 @@ import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.Interaction;
 import org.intermine.model.bio.Organism;
-import org.intermine.model.bio.Pathway;
 import org.intermine.model.bio.Publication;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
@@ -53,11 +52,14 @@ import org.intermine.util.DynamicUtil;
 import edu.uci.ics.jung.algorithms.cluster.WeakComponentClusterer;
 import edu.uci.ics.jung.algorithms.filters.FilterUtils;
 import edu.uci.ics.jung.algorithms.scoring.BetweennessCentrality;
+import edu.uci.ics.jung.algorithms.scoring.ClosenessCentrality;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
 
 public class NetworkAnalysisTool {
 	private static final Logger LOG = Logger.getLogger(NetworkAnalysisTool.class);
+
+	private static final int CUT_OFF_PERCENTAGE = 10; // top 10 percent as bottle and hub
 
 	// the post used by PostgreSQL
 	private static final String PORT = "5432";
@@ -73,10 +75,19 @@ public class NetworkAnalysisTool {
 	}
 
 	public void doAnalysis() {
+		int i = 0;
+		long[] currentTime = new long[100];
+		currentTime[i] = System.currentTimeMillis();
+		i++;
+
 		LOG.info("Start to do network analysis......");
 		System.out.println("Start to do network analysis......");
 		readDbConfig();
 		readDirectMiTerm();
+		
+		currentTime[i] = System.currentTimeMillis();
+		System.out.println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
+		i++;
 
 		// String taxonId = "9606";
 		List<String> species = Arrays.asList("9606", "10090", "10116");
@@ -85,32 +96,41 @@ public class NetworkAnalysisTool {
 			Collection<InteractionData> interactions = getPhysicalInteractions(taxonId);
 
 			Iterator<InteractionData> iterator = interactions.iterator();
-			Set<InteractionData> hcppi = new HashSet<InteractionData>();
+			Set<InteractionData> hcdp = new HashSet<InteractionData>();
+			Set<InteractionData> hc = new HashSet<InteractionData>();
 			// TODO distinguish HC, HCDP
 			while (iterator.hasNext()) {
 				InteractionData intData = iterator.next();
-				if (intData.isHighConfidentDirect()) {
-					hcppi.add(intData);
+				if (intData.isHighConfident()) {
+					hc.add(intData);
+					if (intData.hasDirectInt) {
+						hcdp.add(intData);
+					}
 				}
 			}
-			System.out.println("HCPPI contains " + hcppi.size() + " interactions (" + taxonId
-					+ ").");
+			System.out.println("HCDP contains " + hcdp.size() + " interactions (" + taxonId + ").");
+			System.out.println("HC contains " + hc.size() + " interactions (" + taxonId + ").");
 
-			Graph<String, String> lcc = findLargestConnectiveNetwork(hcppi);
-			System.out.println("LCC contains " + lcc.getEdgeCount() + " interactions (" + taxonId
-					+ ").");
+			Graph<String, String> hcdplcc = findLargestConnectiveNetwork(hcdp);
+			System.out.println("HCDPLCC contains " + hcdplcc.getEdgeCount() + " interactions ("
+					+ taxonId + ").");
+			Graph<String, String> hclcc = findLargestConnectiveNetwork(hc);
+			System.out.println("HCLCC contains " + hclcc.getEdgeCount() + " interactions ("
+					+ taxonId + ").");
 
 			Results intResults = queryInteractionByTaxonId(taxonId);
 			System.out.println("There are " + intResults.size() + " interactions (" + taxonId
 					+ ").");
 
-			Set<String> hcppiPairs = getHcppiPairs(hcppi);
-			Set<String> lccPairs = getLccPairs(lcc);
+			Set<String> hcdpPairs = getInteractionPairs(hcdp);
+			Set<String> hcPairs = getInteractionPairs(hc);
 
 			Iterator<?> resIter = intResults.iterator();
 			try {
 				osw.beginTransaction();
-				int i = 0;
+				int x = 0;
+				int y = 0;
+				int z = 0;
 				while (resIter.hasNext()) {
 					ResultsRow<?> rr = (ResultsRow<?>) resIter.next();
 					Interaction interaction = (Interaction) rr.get(0);
@@ -118,34 +138,55 @@ public class NetworkAnalysisTool {
 					Gene gene2 = (Gene) rr.get(2);
 					String gene1Id = gene1.getNcbiGeneId();
 					String gene2Id = gene2.getNcbiGeneId();
-					if (hcppiPairs.contains(gene1Id + "-" + gene2Id)
-							|| hcppiPairs.contains(gene2Id + "-" + gene1Id)) {
-						interaction.setFieldValue("isHcppi", Boolean.TRUE);
-						i++;
+					if (hcdpPairs.contains(gene1Id + "-" + gene2Id)
+							|| hcdpPairs.contains(gene2Id + "-" + gene1Id)) {
+						interaction.setFieldValue("confidence", "HCDP");
+						x++;
+					} else if (hcPairs.contains(gene1Id + "-" + gene2Id)
+							|| hcPairs.contains(gene2Id + "-" + gene1Id)) {
+						interaction.setFieldValue("confidence", "HC");
+						y++;
 					} else {
-						interaction.setFieldValue("isHcppi", Boolean.FALSE);
-					}
-					if (lccPairs.contains(gene1Id + "-" + gene2Id)
-							|| lccPairs.contains(gene2Id + "-" + gene1Id)) {
-						interaction.setFieldValue("isLcc", Boolean.TRUE);
-						i++;
-					} else {
-						interaction.setFieldValue("isLcc", Boolean.FALSE);
+						interaction.setFieldValue("confidence", "NA");
+						z++;
 					}
 					osw.store(interaction);
 				}
-				System.out.println("There are " + i + " HCPPI interactions pairs. (" + taxonId
+				System.out.println("There are " + x + " interactions tag with HCDP. (" + taxonId
+						+ ").");
+				System.out.println("There are " + y + " interactions tag with HC. (" + taxonId
+						+ ").");
+				System.out.println("There are " + z + " interactions tag with NA. (" + taxonId
 						+ ").");
 				osw.commitTransaction();
 
-				Map<String, Double> betweennessCentrality = calcBetweennessCentrality(lcc);
-				System.out.println("Betweenness Centrality has been calculated (" + taxonId + ").");
+				// For tracing
+				currentTime[i] = System.currentTimeMillis();
+				System.out.println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
+				i++;
 
-				Collection<String> vertices = lcc.getVertices();
+				System.out.println("calculateNetworkProperties(hcdplcc)...");
+				
+				Map<String, NetworkData> hcdplccNp = calculateNetworkProperties(hcdplcc);
+
+				// For tracing
+				currentTime[i] = System.currentTimeMillis();
+				System.out.println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
+				i++;
+
+				System.out.println("calculateNetworkProperties(hclcc)...");
+				
+				Map<String, NetworkData> hclccNp = calculateNetworkProperties(hclcc);
+
+				// For tracing
+				currentTime[i] = System.currentTimeMillis();
+				System.out.println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
+				i++;
+
 				Set<String> geneIds = new HashSet<String>();
-				for (String id : vertices) {
-					geneIds.add(id);
-				}
+				geneIds.addAll(hcdplccNp.keySet());
+				geneIds.addAll(hclccNp.keySet());
+				
 				System.out
 						.println("Querying by " + geneIds.size() + " gene IDs (" + taxonId + ").");
 				Results geneResults = queryGenesByGeneIdList(geneIds);
@@ -158,39 +199,78 @@ public class NetworkAnalysisTool {
 					ResultsRow<?> rr = (ResultsRow<?>) geneIter.next();
 					Gene gene = (Gene) rr.get(0);
 					String geneId = gene.getNcbiGeneId();
-					if (betweennessCentrality.get(geneId) != null) {
+					NetworkData hcdpData = hcdplccNp.get(geneId);
+					if (hcdpData != null) {
 						InterMineObject item = (InterMineObject) DynamicUtil
 								.simpleCreateObject(model.getClassDescriptorByName(
 										"NetworkProperty").getType());
-						item.setFieldValue("networkType", "HCPPI");
-						item.setFieldValue("name", "Betweeness");
-						item.setFieldValue("value", formatValue(betweennessCentrality.get(geneId)));
+						item.setFieldValue("networkType", "HCDPLCC");
+						item.setFieldValue("isBottleneck", hcdpData.isBottleneck());
+						item.setFieldValue("isHub", hcdpData.isHub());
+						item.setFieldValue("betweenness", hcdpData.getBetweenness());
+						item.setFieldValue("closeness", hcdpData.getCloseness());
+						item.setFieldValue("degree", hcdpData.getDegree());
 						item.setFieldValue("gene", gene);
 
 						osw.store(item);
-
-						item = (InterMineObject) DynamicUtil.simpleCreateObject(model
-								.getClassDescriptorByName("NetworkProperty").getType());
-						item.setFieldValue("networkType", "HCPPI");
-						item.setFieldValue("name", "Degree");
-						item.setFieldValue("value", String.valueOf(lcc.degree(geneId)));
+					}
+					NetworkData hcData = hclccNp.get(geneId);
+					if (hcData != null) {
+						InterMineObject item = (InterMineObject) DynamicUtil
+								.simpleCreateObject(model.getClassDescriptorByName(
+										"NetworkProperty").getType());
+						item.setFieldValue("networkType", "HCLCC");
+						item.setFieldValue("isBottleneck", hcData.isBottleneck());
+						item.setFieldValue("isHub", hcData.isHub());
+						item.setFieldValue("betweenness", hcData.getBetweenness());
+						item.setFieldValue("closeness", hcData.getCloseness());
+						item.setFieldValue("degree", hcData.getDegree());
 						item.setFieldValue("gene", gene);
-
+						
 						osw.store(item);
-
 					}
 
 				}
 				osw.commitTransaction();
+				
+				// For tracing
+				currentTime[i] = System.currentTimeMillis();
+				System.out.println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
+				i++;
+
 			} catch (ObjectStoreException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		// process untagged interaction (cross species interactions)
+		try {
+			osw.beginTransaction();
+			Results untaggedInteraction = queryUntaggedInteraction();
+			System.out.println("Process " + untaggedInteraction.size() + " untagged interactions.");
+			Iterator<Object> utiIter = untaggedInteraction.iterator();
+			while (utiIter.hasNext()) {
+				ResultsRow<?> rr = (ResultsRow<?>) utiIter.next();
+				Interaction interaction = (Interaction) rr.get(0);
+				interaction.setFieldValue("confidence", "NA");
+				osw.store(interaction);
+			}
+			
+			osw.commitTransaction();
+			
+			// For tracing
+			currentTime[i] = System.currentTimeMillis();
+			System.out.println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
+			i++;
 
+		} catch (ObjectStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
-	private Set<String> getLccPairs(Graph<String, String> lcc) {
+	private Set<String> getInteractionPairs(Graph<String, String> lcc) {
 		Set<String> ret = new HashSet<String>();
 		Collection<String> edges = lcc.getEdges();
 		for (String edge : edges) {
@@ -200,7 +280,7 @@ public class NetworkAnalysisTool {
 		return ret;
 	}
 
-	private Set<String> getHcppiPairs(Set<InteractionData> hcppi) {
+	private Set<String> getInteractionPairs(Set<InteractionData> hcppi) {
 		Set<String> ret = new HashSet<String>();
 		for (InteractionData data : hcppi) {
 			List<String> genes = data.getGenes();
@@ -271,6 +351,21 @@ public class NetworkAnalysisTool {
 		cs.addConstraint(new SimpleConstraint(qfTaxonId2, ConstraintOp.EQUALS, new QueryValue(
 				Integer.valueOf(taxonId))));
 		q.setConstraint(cs);
+
+		ObjectStore os = osw.getObjectStore();
+
+		return os.execute(q);
+	}
+
+	private Results queryUntaggedInteraction() {
+		Query q = new Query();
+		QueryClass qcInteraction = new QueryClass(Interaction.class);
+
+		QueryField qfNetworkTypeId2 = new QueryField(qcInteraction, "confidence");
+
+		q.addFrom(qcInteraction);
+		q.addToSelect(qcInteraction);
+		q.setConstraint(new SimpleConstraint(qfNetworkTypeId2, ConstraintOp.IS_NULL));
 
 		ObjectStore os = osw.getObjectStore();
 
@@ -573,6 +668,46 @@ public class NetworkAnalysisTool {
 		return g;
 	}
 
+	private Map<String, NetworkData> calculateNetworkProperties(Graph<String, String> graph) {
+		Collection<String> vertices = graph.getVertices();
+		Set<String> geneIds = new HashSet<String>();
+		for (String id : vertices) {
+			geneIds.add(id);
+		}
+
+		BetweennessCentrality<String, String> bc = new BetweennessCentrality<String, String>(graph);
+
+		ClosenessCentrality<String, String> cc = new ClosenessCentrality<String, String>(graph);
+
+		int n = graph.getVertexCount();
+		double nor = (n - 1d) * (n - 2d);
+		int pos = n - n / CUT_OFF_PERCENTAGE;
+
+		List<Integer> allDegree = new ArrayList<Integer>();
+		List<Double> allBetweenness = new ArrayList<Double>();
+		Map<String, NetworkData> ret = new HashMap<String, NetworkData>();
+		for (String id : geneIds) {
+			Double b = bc.getVertexScore(id) / nor;
+			ret.put(id, new NetworkData(id, graph.degree(id), b, cc.getVertexScore(id)));
+			allBetweenness.add(b);
+			allDegree.add(graph.degree(id));
+		}
+		Collections.sort(allDegree);
+		Collections.sort(allBetweenness);
+		Integer minHub = allDegree.get(pos);
+		Double minBn = allBetweenness.get(pos);
+		Set<String> keys = ret.keySet();
+		for (String key : keys) {
+			if (ret.get(key).getBetweenness() >= minBn) {
+				ret.get(key).setAsBottleneck();
+			}
+			if (ret.get(key).getDegree() >= minHub) {
+				ret.get(key).setAsHub();
+			}
+		}
+		return ret;
+	}
+
 	private Map<String, Double> calcBetweennessCentrality(Graph<String, String> graph) {
 		int n = graph.getVertexCount();
 		// number of node pairs excluding n; for normalization
@@ -589,6 +724,58 @@ public class NetworkAnalysisTool {
 		}
 
 		return ret;
+	}
+
+	public static class NetworkData {
+		private String geneId;
+		private Integer degree;
+		private Double betweenness;
+		private Double closeness;
+		private Boolean isBottleneck;
+		private Boolean isHub;
+
+		public NetworkData(String geneId, Integer degree, Double betweenness, Double closeness) {
+			super();
+			this.geneId = geneId;
+			this.degree = degree;
+			this.betweenness = betweenness;
+			this.closeness = closeness;
+			this.isBottleneck = Boolean.FALSE;
+			this.isHub = Boolean.FALSE;
+		}
+
+		public String getGeneId() {
+			return geneId;
+		}
+
+		public Integer getDegree() {
+			return degree;
+		}
+
+		public Double getBetweenness() {
+			return betweenness;
+		}
+
+		public Double getCloseness() {
+			return closeness;
+		}
+
+		public Boolean isBottleneck() {
+			return isBottleneck;
+		}
+
+		public void setAsBottleneck() {
+			this.isBottleneck = Boolean.TRUE;
+		}
+
+		public Boolean isHub() {
+			return isHub;
+		}
+
+		public void setAsHub() {
+			this.isHub = Boolean.TRUE;
+		}
+
 	}
 
 	public static class InteractionData {

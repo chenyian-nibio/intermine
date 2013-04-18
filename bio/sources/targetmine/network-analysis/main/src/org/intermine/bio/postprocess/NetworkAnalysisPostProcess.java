@@ -3,14 +3,12 @@ package org.intermine.bio.postprocess;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.intermine.metadata.Model;
 import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.Organism;
 import org.intermine.model.bio.Publication;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
-import org.intermine.objectstore.ObjectStoreFactory;
 import org.intermine.objectstore.ObjectStoreWriter;
 import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.ConstraintSet;
@@ -24,7 +22,6 @@ import org.intermine.postprocess.PostProcessor;
 
 public class NetworkAnalysisPostProcess extends PostProcessor {
 	
-	private static final Logger LOG = Logger.getLogger(LigandExpoPostProcess.class);
 	private Model model;
 
 
@@ -88,7 +85,7 @@ public class NetworkAnalysisPostProcess extends PostProcessor {
 
 	List<String> ret = new ArrayList<String>();
 	Results results = os.execute(q);
-	LOG.info("There are " + results.size() + " rows.");
+	System.out.println("There are " + results.size() + " rows.");
 //	Iterator iterator = results.iterator();
 //	while (iterator.hasNext()) {
 //		ResultsRow<Integer> rr = (ResultsRow<Integer>) iterator.next();
