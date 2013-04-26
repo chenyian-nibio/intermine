@@ -174,18 +174,19 @@ public class NetworkAnalysisTool {
 				System.out.println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
 				i++;
 
-				System.out.println("calculateNetworkProperties(hclcc)...");
-				
-				Map<String, NetworkData> hclccNp = calculateNetworkProperties(hclcc);
+//				System.out.println("calculateNetworkProperties(hclcc)...");
+//				
+//				Map<String, NetworkData> hclccNp = calculateNetworkProperties(hclcc);
+//
+//				// For tracing
+//				currentTime[i] = System.currentTimeMillis();
+//				System.out.println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
+//				i++;
 
-				// For tracing
-				currentTime[i] = System.currentTimeMillis();
-				System.out.println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
-				i++;
-
-				Set<String> geneIds = new HashSet<String>();
-				geneIds.addAll(hcdplccNp.keySet());
-				geneIds.addAll(hclccNp.keySet());
+//				Set<String> geneIds = new HashSet<String>();
+//				geneIds.addAll(hcdplccNp.keySet());
+//				geneIds.addAll(hclccNp.keySet());
+				Set<String> geneIds = hcdplccNp.keySet();
 				
 				System.out
 						.println("Querying by " + geneIds.size() + " gene IDs (" + taxonId + ").");
@@ -214,21 +215,21 @@ public class NetworkAnalysisTool {
 
 						osw.store(item);
 					}
-					NetworkData hcData = hclccNp.get(geneId);
-					if (hcData != null) {
-						InterMineObject item = (InterMineObject) DynamicUtil
-								.simpleCreateObject(model.getClassDescriptorByName(
-										"NetworkProperty").getType());
-						item.setFieldValue("networkType", "HCLCC");
-						item.setFieldValue("isBottleneck", hcData.isBottleneck());
-						item.setFieldValue("isHub", hcData.isHub());
-						item.setFieldValue("betweenness", hcData.getBetweenness());
-						item.setFieldValue("closeness", hcData.getCloseness());
-						item.setFieldValue("degree", hcData.getDegree());
-						item.setFieldValue("gene", gene);
-						
-						osw.store(item);
-					}
+//					NetworkData hcData = hclccNp.get(geneId);
+//					if (hcData != null) {
+//						InterMineObject item = (InterMineObject) DynamicUtil
+//								.simpleCreateObject(model.getClassDescriptorByName(
+//										"NetworkProperty").getType());
+//						item.setFieldValue("networkType", "HCLCC");
+//						item.setFieldValue("isBottleneck", hcData.isBottleneck());
+//						item.setFieldValue("isHub", hcData.isHub());
+//						item.setFieldValue("betweenness", hcData.getBetweenness());
+//						item.setFieldValue("closeness", hcData.getCloseness());
+//						item.setFieldValue("degree", hcData.getDegree());
+//						item.setFieldValue("gene", gene);
+//						
+//						osw.store(item);
+//					}
 
 				}
 				osw.commitTransaction();
