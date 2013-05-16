@@ -67,7 +67,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/wwpdb/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/dataset-info/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/network-analysis/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/rcsb-pdb/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/pdb-chaintype/main/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/bbop.jar"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/jakarta-regexp-1.4.jar"/>

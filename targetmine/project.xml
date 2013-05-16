@@ -59,9 +59,10 @@
       <property name="pdbPubmedFile" value="/data/bio/db/Targetmine/sifts/pdb_pubmed.lst" />
       <property name="pdbChainTaxonFile" value="/data/bio/db/Targetmine/sifts/pdb_chain_taxonomy.lst" />
     </source>
-    <source name="pdb-mol-type" type="rcsb-pdb">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/rcsb_pdb"/>
-      <property name="src.data.dir.includes" value="entityMacromoleculeType.csv"/>
+    <source name="pdb-chaintype" type="pdb-chaintype">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/pdbj"/>
+      <property name="src.data.dir.includes" value="chainType_pdbj.csv"/>
+      <property name="mapFile" value="/data/bio/db/Targetmine/pdbj/type_mapping"/>
     </source>
     <source name="scop" type="scop">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/scop"/>

@@ -1,0 +1,4 @@
+<project name="pdb-chaintype-tasks" default="default" basedir=".">
+  <description>build pdb-chaintype tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>
