@@ -1,0 +1,5 @@
+<project name="rcsb-pdb" default="default" basedir=".">
+  <description>build, test, package rcsb-pdb</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

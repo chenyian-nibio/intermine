@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<classes>
+	<class name="ProteinChain" is-interface="true">
+		<attribute name="pdbId" type="java.lang.String"/>
+		<attribute name="chain" type="java.lang.String"/>
+		<attribute name="identifier" type="java.lang.String"/>
+		<reference name="structure" referenced-type="ProteinStructure" ordered="true" reverse-reference="chains"/>
+		<attribute name="chainType" type="java.lang.String"/>
+	</class>
+	
+	<class name="ProteinStructure" is-interface="true">
+		<attribute name="pdbId" type="java.lang.String"/>
+		<collection name="chains" referenced-type="ProteinChain" reverse-reference="structure"/>
+	</class>
+
+</classes>

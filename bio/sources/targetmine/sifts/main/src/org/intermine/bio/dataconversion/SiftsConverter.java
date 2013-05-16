@@ -65,8 +65,13 @@ public class SiftsConverter extends BioFileConverter {
 		if (chainOrganismMap == null || chainMolTypeMap == null) {
 			readPdbChainTaxonFile();
 		}
-		if (pdbIdPubmedIdMap==null) {
+		if (pdbIdPubmedIdMap == null) {
 			readPdbPubmedFile();
+		}
+		// process known pdb chains first
+		Set<String> pdbChains = chainMolTypeMap.keySet();
+		for (String identifier : pdbChains) {
+			getProteinChain(identifier.substring(0, 4), identifier.substring(4));
 		}
 
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
@@ -83,7 +88,7 @@ public class SiftsConverter extends BioFileConverter {
 			item.setAttribute("start", cols[8]);
 			item.setAttribute("end", cols[9]);
 			item.setReference("protein", getProtein(cols[2]));
-			item.setReference("chain", getProteinChain(cols[0], cols[1]));
+			item.setReference("chain", getProteinChain(cols[0], cols[1], "PROTEIN"));
 
 			store(item);
 		}
@@ -102,6 +107,11 @@ public class SiftsConverter extends BioFileConverter {
 	}
 
 	private String getProteinChain(String pdbId, String chainId) throws ObjectStoreException {
+		return getProteinChain(pdbId, chainId, null);
+	}
+
+	private String getProteinChain(String pdbId, String chainId, String moleculeType)
+			throws ObjectStoreException {
 		String identifier = pdbId + chainId;
 		String ret = proteinChainMap.get(identifier);
 		if (ret == null) {
@@ -110,10 +120,12 @@ public class SiftsConverter extends BioFileConverter {
 			item.setAttribute("chain", chainId);
 			item.setAttribute("identifier", identifier);
 			item.setReference("structure", getProteinStructure(pdbId));
-			
+
 			String type = chainMolTypeMap.get(identifier);
 			if (type != null) {
 				item.setAttribute("moleculeType", type);
+			} else if (moleculeType != null) {
+				item.setAttribute("moleculeType", moleculeType);
 			}
 
 			Set<String> organism = chainOrganismMap.get(identifier);
@@ -181,7 +193,7 @@ public class SiftsConverter extends BioFileConverter {
 				chainOrganismMap.get(identifier).add(taxId);
 			}
 
-			if (!StringUtils.isEmpty(molType)){
+			if (!StringUtils.isEmpty(molType)) {
 				chainMolTypeMap.put(identifier, molType);
 			}
 
@@ -201,7 +213,7 @@ public class SiftsConverter extends BioFileConverter {
 		if (pdbPubmedFile == null) {
 			throw new NullPointerException("pdbPubmedFile property not set");
 		}
-		
+
 		pdbIdPubmedIdMap = new HashMap<String, List<String>>();
 
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(new FileReader(
