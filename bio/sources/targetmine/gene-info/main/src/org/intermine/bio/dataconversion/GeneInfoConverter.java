@@ -327,6 +327,7 @@ public class GeneInfoConverter extends BioFileConverter {
 				}
 				ucscMap.get(cols[1]).add(cols[0]);
 			}
+			in.close();
 		} catch (FileNotFoundException e) {
 			LOG.error(e);
 		} catch (IOException e) {
@@ -360,6 +361,7 @@ public class GeneInfoConverter extends BioFileConverter {
 				}
 				line = reader.readLine();
 			}
+			reader.close();
 
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block

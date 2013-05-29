@@ -21,9 +21,9 @@ import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
 /**
- * This parser is modified from intermine default one, because free kegg archive file is no longer
- * available and the data source is retrieved by using api thus the data format is different now 
- * Some unused attribute are removed, and paralogue/orthologue tag is introduced
+ * The parser has been modified to use the downloadable file from KEGG FTP.
+ * The parser is customized for TargetMine. 
+ * (species other than human, mouse and rat may not work properly)
  * 
  * @author chenyian
  */
@@ -106,29 +106,21 @@ public class TmKeggOrthologyConverter extends BioFileConverter {
 		}
 
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
+		Map<String, Set<String>> koMap = new HashMap<String, Set<String>>();
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
-			if (cols.length <= 1 || cols[0].startsWith("#")) {
-				continue;
+			String organism = cols[1].substring(0, 3);
+			if (interestedOrganism.contains(organism)) {
+				if (koMap.get(cols[0]) == null) {
+					koMap.put(cols[0], new HashSet<String>());
+				}
+				koMap.get(cols[0]).add(cols[1]);
 			}
-			String[] homologues = cols[1].split(",");
-			List<String> selected = new ArrayList<String>();
-			for (String geneEntry : homologues) {
-				if (StringUtils.isEmpty(geneEntry)){
-					continue;
-				}
-				String organism = geneEntry.substring(0, 3);
-				// There are some strange ids for D. melanogaster, the rest start with
-				// Dmel_, ignore any D. melanogaster ids without Dmel_ and strip this
-				// off the rest
-				if (organism.equals("dme") && !geneEntry.startsWith("dme:Dmel_")) {
-					continue;
-				}
-				if (interestedOrganism.contains(organism)) {
-					selected.add(geneEntry);
-				}
-			}
-			
+		}
+		System.out.println("There are " + koMap.keySet().size() + " KO entries.");
+
+		for (String koId: koMap.keySet()) {	
+			Set<String> selected = koMap.get(koId);
 			for (String geneEntry1 : selected) {
 				for (String geneEntry2 : selected) {
 					if (!geneEntry1.equals(geneEntry2)){
@@ -144,6 +136,8 @@ public class TmKeggOrthologyConverter extends BioFileConverter {
 	private List<String> getOrganismCodes() {
 		List<String> ret = new ArrayList<String>();
 		for (String organism : config.keySet()) {
+			// TODO could be improved: 
+			// alert user if the config of the set taxonId cannot be found
 			if (taxonIds.contains(config.get(organism)[0])) {
 				ret.add(organism);
 			}
@@ -152,7 +146,7 @@ public class TmKeggOrthologyConverter extends BioFileConverter {
 	}
 
 	private void createHomologue(String gene1, String gene2) throws ObjectStoreException {
-		// examples: dme:Dmel_CG3481; hsa:10327; mmu:14555; rno:24788
+		// examples: hsa:10327; mmu:14555; rno:24788
 		Item homologue = createItem("Homologue");
 		String org1 = gene1.substring(0, 3);
 		String org2 = gene2.substring(0, 3);
@@ -168,9 +162,6 @@ public class TmKeggOrthologyConverter extends BioFileConverter {
 	}
 
 	private String getGene(String geneId, String organism) throws ObjectStoreException {
-		if (geneId.startsWith("Dmel_")) {
-			geneId = geneId.substring(5);
-		}
 		String ret = geneMap.get(geneId);
 		String taxonId = config.get(organism)[0];
 		if (ret == null) {
