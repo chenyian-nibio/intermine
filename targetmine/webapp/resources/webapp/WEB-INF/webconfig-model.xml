@@ -463,6 +463,7 @@
 
   <class className="org.intermine.model.bio.Interaction">
     <fields>
+      <fieldconfig fieldExpr="confidence"/>
       <fieldconfig fieldExpr="gene1.symbol"/>
       <fieldconfig fieldExpr="gene2.symbol"/>
     </fields>
@@ -471,6 +472,16 @@
     <fields>
       <fieldconfig fieldExpr="miRNA.secondaryIdentifier"/>
       <fieldconfig fieldExpr="targetGene.symbol"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.NetworkProperty">
+    <fields>
+      <fieldconfig fieldExpr="networkType"/>
+      <fieldconfig fieldExpr="isBottleneck"/>
+      <fieldconfig fieldExpr="isHub"/>
+      <fieldconfig fieldExpr="degree"/>
+      <fieldconfig fieldExpr="betweenness"/>
+      <fieldconfig fieldExpr="closeness"/>
     </fields>
   </class>
 
@@ -550,7 +561,6 @@
                                               goAnnotation.ontologyTerm.parents.identifier != go:0005575"
                                  typeClass="Gene"
                                  views="ncbiGeneId,symbol,organism.name,
-                                       goAnnotation.ontologyTerm.identifier, goAnnotation.ontologyTerm.name,
                                        goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name"
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
 
@@ -565,10 +575,11 @@
                                  constraints="organism.name=[list], doAnnotations.qualifier = null"
                                  typeClass="Gene"
                                  views="ncbiGeneId,symbol,organism.name,
-                                       doAnnotations.ontologyTerm.identifier, doAnnotations.ontologyTerm.name,
                                        doAnnotations.ontologyTerm.parents.identifier,doAnnotations.ontologyTerm.parents.name"
                                  externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/"/>
-                                 
+
+<!-- chenyian: disable for external server 
+-->
       <enrichmentwidgetdisplayer id="gene_omim_enrichment"
                                  title="OMIM Enrichment"
                                  description="OMIM enriched for genes in this list"
@@ -612,7 +623,6 @@
                                               goAnnotation.ontologyTerm.parents.identifier != go:0005575"
                                  typeClass="Protein"
                                  views="primaryAccession, name, organism.name,
-                                       goAnnotation.ontologyTerm.identifier, goAnnotation.ontologyTerm.name,
                                        goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name"
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
 

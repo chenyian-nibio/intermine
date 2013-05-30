@@ -127,6 +127,11 @@ public class IrefindexConverter extends BioFileConverter {
 			if (geneB == null) {
 				continue;
 			}
+			// TODO chenyian: to be improved
+
+			if (cols[8].equals("-")) {
+				continue;
+			}
 
 			String expRefId = getExperiment(cols[8].substring(7), cols[7], cols[6], cols[28],
 					sourceDb, ids[0]);

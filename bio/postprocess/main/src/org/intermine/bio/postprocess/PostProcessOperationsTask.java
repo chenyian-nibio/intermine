@@ -21,8 +21,6 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.BuildException;
-
-
 import org.intermine.api.config.ClassKeyHelper;
 import org.intermine.metadata.FieldDescriptor;
 import org.intermine.modelproduction.MetadataManager;
@@ -280,6 +278,11 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
                 CreateFlyBaseLinkIns.createLinkInFile(getObjectStoreWriter().getObjectStore());
             } else if ("modmine-metadata-cache".equals(operation)) {
                 CreateModMineMetaDataCache.createCache(getObjectStoreWriter().getObjectStore());
+            // chenyian:
+            } else if ("network-analysis".equals(operation)) {
+            	NetworkAnalysisTool nat = new NetworkAnalysisTool(getObjectStoreWriter());
+            	nat.doAnalysis();
+//            	nat.test();
             } else {
                 throw new BuildException("unknown operation: " + operation);
             }

@@ -71,7 +71,7 @@ public class LigandExpoConverter extends BioFileConverter {
 			Item het = createItem("PDBCompound");
 			het.setAttribute("hetId", cols[0]);
 			String name = hetNameMap.get(cols[0]);
-			if (name != null) {
+			if (name != null && !name.equals("")) {
 				het.setAttribute("name", name);
 			}
 			String inchiKey = inchiKeyMap.get(cols[0]);
@@ -119,7 +119,7 @@ public class LigandExpoConverter extends BioFileConverter {
 		if (ret == null) {
 			Item item = createItem("CompoundGroup");
 			item.setAttribute("identifier", inchiKey);
-			if (name != null) {
+			if (name != null && !name.equals("")) {
 				item.setAttribute("name", name);
 			}
 			store(item);

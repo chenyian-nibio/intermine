@@ -37,11 +37,11 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 	private Map<String, String[]> config = new HashMap<String, String[]>();
 	private Set<String> taxonIds = new HashSet<String>();
 
-	private Map<String, String> mainClass = new HashMap<String, String>();
-	private Map<String, String> subClass = new HashMap<String, String>();
+	private Map<String, String> mainClassMap = new HashMap<String, String>();
+	private Map<String, String> subClassMap = new HashMap<String, String>();
+	private Map<String, String> pathwayNameMap = new HashMap<String, String>();
 
-	private Map<String, String> geneMap = new HashMap<String, String>();
-	private Map<String, Item> pathwayMap = new HashMap<String, Item>();
+	private Map<String, String> pathwayMap = new HashMap<String, String>();
 
 	private File pathwayClassFile;
 	private boolean readClass;
@@ -54,21 +54,39 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 		if (pathwayClassFile == null) {
 			throw new NullPointerException("pathwayClassFile property not set");
 		}
-		BufferedReader reader;
 		try {
-			reader = new BufferedReader(new FileReader(pathwayClassFile));
-
-			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
-
-			while (iterator.hasNext()) {
-				String[] strings = iterator.next();
-				mainClass.put(strings[1], strings[2]);
-				subClass.put(strings[0], strings[1]);
+			BufferedReader reader = new BufferedReader(new FileReader(pathwayClassFile));
+			String line;
+			String mainClass = "";
+			String subClass = "";
+			while ((line = reader.readLine()) != null) {
+				if (line.startsWith("##")) {
+					if (mainClass.equals("")) {
+						reader.close();
+						throw new RuntimeException("Missing main class when processing the line: "
+								+ line);
+					}
+					subClass = line.substring(2).trim();
+					mainClassMap.put(subClass, mainClass);
+				} else if (line.startsWith("#")) {
+					mainClass = line.substring(1).trim();
+				} else {
+					if (subClass.equals("")) {
+						reader.close();
+						throw new RuntimeException("Missing sub class when processing the line: "
+								+ line);
+					}
+					String[] cols = line.split("\\t");
+					String pathwayId = cols[0].trim();
+					subClassMap.put(pathwayId, subClass);
+					pathwayNameMap.put(pathwayId, cols[1].trim());
+				}
 			}
+			reader.close();
+			readClass = true;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		readClass = true;
 	}
 
 	public void setKeggOrganisms(String taxonIds) {
@@ -139,78 +157,47 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
 		File currentFile = getCurrentFile();
 		String fileName = currentFile.getName();
+		String organism = fileName.substring(0, 3);
+		String taxonId = config.get(organism)[0];
 		while (iterator.hasNext()) {
 			String[] line = iterator.next();
 
-			if (line.length <= 1 || line[0].startsWith("#")) {
+			if (line.length <= 1) {
 				continue;
 			}
-			if (fileName.endsWith(".pathways")) {
-				String pathwayName = line[1].substring(0, line[1].lastIndexOf(" - "));
-				Item pathway = getPathway(line[0].substring(5));
-				pathway.setAttribute("name", pathwayName);
-			} else if (fileName.endsWith(".pathway_genes")) {
-				String organism = fileName.substring(0, 3);
-				String taxonId = config.get(organism)[0];
-
-				// only process organisms set in project.xml
-				if (!taxonIds.isEmpty() && !taxonIds.contains(taxonId)) {
-					continue;
-				}
-				if (!StringUtils.isEmpty(taxonId)) {
-					// eg. path:hsa00010
-					String pathwayId = line[0].substring(5);
-
-					String geneIds = line[1];
-					String[] genes = geneIds.split(",");
-					Item pathway = getPathway(pathwayId);
-
-					pathway.setReference("organism", getOrganism(taxonId));
-
-					// assign main and sub classes
-					String subclass = subClass.get(pathwayId.substring(3));
-					if (subclass == null) {
-						LOG.error("No subclass found for " + pathwayId);
-					} else {
-						pathway.setAttribute("subClass", subclass);
-						pathway.setAttribute("mainClass", mainClass.get(subclass));
-					}
-
-					for (String gene : genes) {
-						String geneId = gene.substring(4);
-						pathway.addToCollection("genes", getGene(geneId, organism));
-
-					}
-				}
+			
+			Item item = createItem("Gene");
+			item.setAttribute(config.get(organism)[1], line[0]);
+			item.setReference("organism", getOrganism(taxonId));
+			String[] pathwayIds = line[1].split("\\s");
+			for (String pid : pathwayIds) {
+				item.addToCollection("pathways", getPathway(pid, organism));
 			}
+			store(item);
+			
+			
 		}
 	}
 
 	@Override
 	public void close() throws Exception {
-		store(pathwayMap.values());
 	}
 
-	private String getGene(String geneId, String organism) throws ObjectStoreException {
-		String ret = geneMap.get(geneId);
+	private String getPathway(String pathwayId, String organism) throws ObjectStoreException {
+		String fullId = organism + pathwayId;
+		String ret = pathwayMap.get(fullId);
 		String taxonId = config.get(organism)[0];
 		if (ret == null) {
-			Item item = createItem("Gene");
-			item.setAttribute(config.get(organism)[1], geneId);
+			Item item = createItem("Pathway");
+			item.setAttribute("name", pathwayNameMap.get(pathwayId));
+			String subClass = subClassMap.get(pathwayId);
+			item.setAttribute("subClass", subClass);
+			item.setAttribute("mainClass", mainClassMap.get(subClass));
+			item.setAttribute("identifier", fullId);
 			item.setReference("organism", getOrganism(taxonId));
-			ret = item.getIdentifier();
 			store(item);
-			geneMap.put(geneId, ret);
-		}
-		return ret;
-	}
-
-	private Item getPathway(String pathwayId) {
-		Item ret = pathwayMap.get(pathwayId);
-		if (ret == null) {
-			ret = createItem("Pathway");
-			ret.setAttribute("identifier", pathwayId);
-			pathwayMap.put(pathwayId, ret);
+			ret = item.getIdentifier();
+			pathwayMap.put(fullId, ret);
 		}
 		return ret;
 	}

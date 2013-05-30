@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -35,7 +34,7 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class SiftsConverter extends BioFileConverter {
-	private static Logger LOG = Logger.getLogger(SiftsConverter.class);
+//	private static Logger LOG = Logger.getLogger(SiftsConverter.class);
 	//
 	private static final String DATASET_TITLE = "SIFTS";
 	private static final String DATA_SOURCE_NAME = "PDBe";
@@ -62,10 +61,10 @@ public class SiftsConverter extends BioFileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
-		if (chainOrganismMap == null || chainMolTypeMap == null) {
+		if (chainOrganismMap == null) {
 			readPdbChainTaxonFile();
 		}
-		if (pdbIdPubmedIdMap==null) {
+		if (pdbIdPubmedIdMap == null) {
 			readPdbPubmedFile();
 		}
 
@@ -101,7 +100,8 @@ public class SiftsConverter extends BioFileConverter {
 		return ret;
 	}
 
-	private String getProteinChain(String pdbId, String chainId) throws ObjectStoreException {
+	private String getProteinChain(String pdbId, String chainId)
+			throws ObjectStoreException {
 		String identifier = pdbId + chainId;
 		String ret = proteinChainMap.get(identifier);
 		if (ret == null) {
@@ -110,11 +110,6 @@ public class SiftsConverter extends BioFileConverter {
 			item.setAttribute("chain", chainId);
 			item.setAttribute("identifier", identifier);
 			item.setReference("structure", getProteinStructure(pdbId));
-			
-			String type = chainMolTypeMap.get(identifier);
-			if (type != null) {
-				item.setAttribute("moleculeType", type);
-			}
 
 			Set<String> organism = chainOrganismMap.get(identifier);
 			if (organism != null) {
@@ -154,15 +149,13 @@ public class SiftsConverter extends BioFileConverter {
 		this.pdbChainTaxonFile = pdbChainTaxonFile;
 	}
 
-	private HashMap<String, Set<String>> chainOrganismMap;
-	private HashMap<String, String> chainMolTypeMap;
+	private Map<String, Set<String>> chainOrganismMap;
 
 	private void readPdbChainTaxonFile() throws Exception {
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(new FileReader(
 				pdbChainTaxonFile));
 
 		chainOrganismMap = new HashMap<String, Set<String>>();
-		chainMolTypeMap = new HashMap<String, String>();
 
 		// skip header
 		iterator.next();
@@ -172,17 +165,12 @@ public class SiftsConverter extends BioFileConverter {
 			String[] cols = iterator.next();
 			String identifier = cols[0] + cols[1];
 			String taxId = cols[2];
-			String molType = cols[4];
 
 			if (!StringUtils.isEmpty(taxId) && StringUtils.isNumeric(taxId)) {
 				if (chainOrganismMap.get(identifier) == null) {
 					chainOrganismMap.put(identifier, new HashSet<String>());
 				}
 				chainOrganismMap.get(identifier).add(taxId);
-			}
-
-			if (!StringUtils.isEmpty(molType)){
-				chainMolTypeMap.put(identifier, molType);
 			}
 
 		}
@@ -201,7 +189,7 @@ public class SiftsConverter extends BioFileConverter {
 		if (pdbPubmedFile == null) {
 			throw new NullPointerException("pdbPubmedFile property not set");
 		}
-		
+
 		pdbIdPubmedIdMap = new HashMap<String, List<String>>();
 
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(new FileReader(
