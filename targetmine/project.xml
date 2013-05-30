@@ -81,8 +81,8 @@
       <property name="src.data.dir.includes" value="gene3d.HRM.txt"/>
     </source>
     <source name="kegg-orthology" type="tm-kegg-orthology">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-orthology"/>
-      <property name="src.data.dir.includes" value="ko.*" />
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/ko"/>
+      <property name="src.data.dir.includes" value="ko_genes.list" />
       <property name="kegg.organisms" value="9606 10090 10116"/>
     </source>
 
@@ -92,9 +92,9 @@
     </source>
   	
     <source name="kegg-pathway" type="tm-kegg-pathway">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-pathway"/>
-      <property name="src.data.dir.includes" value="*.pathway*"/>
-      <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg-pathway/pathway_class_20121101"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp"/>
+      <property name="src.data.dir.includes" value="*/*_gene_map.tab"/>
+      <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.list"/>
       <property name="kegg.organisms" value="9606 10090 10116"	/>
     </source>
     
@@ -119,21 +119,10 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/wwpdb/" />
       <property name="src.data.dir.includes" value="entries.idx" />
     </source>
-    <!--
-    <source name="pdb_ext" type="pdb_ext">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/pdb/derived_data/index" />
-      <property name="src.data.dir.includes" value="entries.idx" />
-      <property name="pdbPubmedFile" value="/data/bio/db/MSD/sifts/pdb_pubmed.lst" />
-    </source>
-    <source name="pdbchain-organism" type="pdbchain-organism">
-      <property name="src.data.dir" location="/data/bio/db/MSD/sifts" />
-      <property name="src.data.dir.includes" value="pdb_chain_taxonomy.lst" />
-    </source>
-    -->
     <source name="ligand_expo" type="ligand_expo">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ligand_expo" />
       <property name="src.data.dir.includes" value="cc-to-pdb.tdd" />
-      <property name="inchiKeyFile" value="/data/bio/db/Targetmine/ligand_expo/Components-inchikey.ich" />
+      <property name="inchiKeyFile" value="/data/bio/db/Targetmine/ligand_expo/Components-inchikey.ich.fixed" />
     </source>
     <source name="amadeus" type="amadeus">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/amadeus" />
@@ -149,7 +138,7 @@
       <property name="enzyme.organisms" value="HUMAN RAT MOUSE DROME"/>
     </source>
     <source name="enzyme-pathway" type="enzyme-pathway">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-pathway" />
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/ec" />
       <property name="src.data.dir.includes" value="ec.list" />
     </source>
     <source name="drugebility" type="drugebility">
@@ -178,13 +167,13 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/nci-pathway"/>
       <property name="src.data.dir.includes" value="*.tab"/>
     </source>
-    <!-- chenyian: disable for external server
+    <!-- chenyian: just a temporary solution
+    -->
     <source name="gene-set" type="gene-set">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_set_cluster"/>
-      <property name="src.data.dir.includes" value="lt600.*"/>
-      <property name="clusterName" value="/data/bio/db/Targetmine/gene_set_cluster/autoname.ABCMNO.tsv"/>
+      <property name="src.data.dir.includes" value="*.lt600.hie.co70.*"/>
     </source>
-    -->
+
     <source name="stitch" type="tm-stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
       <property name="src.data.dir.includes" value="*.detailed.tsv" />
