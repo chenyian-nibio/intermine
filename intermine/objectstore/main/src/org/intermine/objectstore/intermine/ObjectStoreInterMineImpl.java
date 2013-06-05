@@ -36,6 +36,13 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
 import org.apache.log4j.Logger;
 import org.intermine.metadata.ClassDescriptor;
 import org.intermine.metadata.FieldDescriptor;
@@ -89,6 +96,7 @@ import org.intermine.sql.query.PostgresExplainResult;
 import org.intermine.sql.writebatch.Batch;
 import org.intermine.sql.writebatch.BatchWriterPostgresCopyImpl;
 import org.intermine.util.CacheMap;
+import org.intermine.util.PropertiesUtil;
 import org.intermine.util.ShutdownHook;
 import org.intermine.util.Shutdownable;
 import org.intermine.util.TypeUtil;
@@ -2356,7 +2364,7 @@ public class ObjectStoreInterMineImpl extends ObjectStoreAbstractImpl implements
 					LOG.error("Send a mail to " + address);
 					// Map<String, String> props = new HashMap<String, String>();
 					String content = "Seems that the db connection on "
-							+ properties.getProperty("server.name") + " is brocken. "
+							+ properties.getProperty("server.name") + " is broken. "
 							+ "Probably, you need to restart TargetMine application.\n\n"
 							+ "Exception:\n" + e.getMessage();
 					sendMail(address, "TargetMine DB broken!", content,
