@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-1-transitional.dtd">
+<!DOCTYPE html>
 
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
@@ -50,6 +49,9 @@
       <tiles:put name="pageNameTitle" value="${pageNameTitle}"/>
       <tiles:put name="scope" value="${scope}"/>
     </tiles:insert>
+
+    <link rel="shortcut icon" type="image/x-icon" href="model/images/favicon.ico">
+
   </head>
 
   <!-- Check if the current page has fixed layout -->
@@ -105,8 +107,9 @@ jQuery(document).ready(function() {
 
 if ((typeof intermine != 'undefined') && (intermine.Service != null)) {
     // Set up the service, if required.
+    var root = window.location.protocol + "//" + window.location.host + "/${WEB_PROPERTIES['webapp.path']}";
     $SERVICE = new intermine.Service({
-        "root": "${WEB_PROPERTIES['webapp.baseurl']}/${WEB_PROPERTIES['webapp.path']}",
+        "root": root,
         "token": "${PROFILE.dayToken}",
         "help": "${WEB_PROPERTIES['feedback.destination']}"
     });
@@ -114,6 +117,15 @@ if ((typeof intermine != 'undefined') && (intermine.Service != null)) {
     $SERVICE.fetchVersion().fail(notification.render).done(function(v) {
         console.log("Webservice is at version " + v);
     });
+    if (intermine.widgets != null) {
+        // Make sure we have all deps required in `global.web.properties`, otherwise we fail!!!
+        var opts = { 'root': $SERVICE.root, 'token': $SERVICE.token, 'skipDeps': true };
+        window.widgets = new intermine.widgets($SERVICE.root, $SERVICE.token, opts);
+    }
+    var ua = jQuery.browser; // kinda evil, but best way to do this for now
+    if (ua.msie && parseInt(ua.version, 10) < 9) {
+        new Notification({message: '<fmt:message key="old.browser"/>'}).render();
+    }
 }
 
 $MODEL_TRANSLATION_TABLE = {

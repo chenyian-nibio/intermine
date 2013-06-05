@@ -1,7 +1,7 @@
 package org.intermine.bio.dataconversion;
 
 /*
- * Copyright (C) 2002-2012 FlyMine
+ * Copyright (C) 2002-2013 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -26,7 +26,7 @@ public class OrthodbConverterTest extends ItemsTestCase
     OrthodbConverter converter;
     MockItemWriter itemWriter;
 
-    String taxonIds = "9606 10090 10116";
+    String taxonIds = "4932";
 
     public OrthodbConverterTest(String arg) {
         super(arg);
@@ -41,14 +41,14 @@ public class OrthodbConverterTest extends ItemsTestCase
 
     public void testProcess() throws Exception {
         File srcFile = new File(getClass().getClassLoader().
-                getResource("OrthoDB5_ALL_tabtext").toURI());
+                getResource("OrthoDB6_test").toURI());
         converter.setCurrentFile(srcFile);
         converter.process(new FileReader(srcFile));
 
         converter.close();
 
         // uncomment to write out a new target items file
-//        writeItemsFile(itemWriter.getItems(), "orthodb-tgt-items.xml");
+        writeItemsFile(itemWriter.getItems(), "orthodb-tgt-items.xml");
 
         Set<org.intermine.xml.full.Item> expected = readItemSet("OrthodbConverterTest_tgt.xml");
         assertEquals(expected, itemWriter.getItems());

@@ -1,7 +1,7 @@
 package org.intermine.bio.dataconversion;
 
 /*
- * Copyright (C) 2002-2012 FlyMine
+ * Copyright (C) 2002-2013 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -209,7 +209,7 @@ public class OboConverter extends DataConverter
                 refId = xrefTerm.getIdentifier();
                 xrefs.put(identifier, refId);
                 xrefTerm.setAttribute("identifier", identifier);
-//                xrefTerm.addToCollection("crossReferences", item.getIdentifier());
+                xrefTerm.addToCollection("crossReferences", item.getIdentifier());
                 store(xrefTerm);
             }
             item.addToCollection("crossReferences", refId);

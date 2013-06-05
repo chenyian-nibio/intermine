@@ -10,6 +10,7 @@ client-build/
 executeLog*
 *.pyc
 *.class
+productionLog
 
 # Add by chenyian
 autogen/
