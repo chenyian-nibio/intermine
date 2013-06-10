@@ -19,8 +19,7 @@
     <td>
       <div class="body">
         <p>
-          TargetMine</a> contains <i>Human </i> genome
-          data.
+          TargetMine contains <i>human</i>, <i>rat</i> and <i>mouse</i> gene data.
         </p>
       </div>
     </td>
