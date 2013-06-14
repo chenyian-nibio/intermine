@@ -53,9 +53,7 @@
     <fields>
       <fieldconfig fieldExpr="ncbiGeneId"/>
       <fieldconfig fieldExpr="primaryIdentifier" showInSummary="false"/>
-      <fieldconfig fieldExpr="secondaryIdentifier" showInSummary="false"/>
       <fieldconfig fieldExpr="symbol"/>
-      <fieldconfig fieldExpr="name" showInSummary="false"/>
       <fieldconfig fieldExpr="organism.shortName" />
     </fields>
   </class>
@@ -546,7 +544,7 @@
 
       <enrichmentwidgetdisplayer id="gene_go_enrichment"
                                  title="Gene Ontology Enrichment"
-                                 description="GO terms enriched for genes in this list."
+                                 description="GO terms enriched for genes in this list. (IEA annotations are excluded)"
                                  label="GO Term"
                                  filterLabel="Ontology"
                                  filters="biological_process,cellular_component,molecular_function"
@@ -556,12 +554,14 @@
                                  enrichIdentifier="goAnnotation.ontologyTerm.parents.identifier"
                                  constraints="goAnnotation.ontologyTerm.parents.namespace=[Ontology],organism.name=[list],
                                               goAnnotation.qualifier = null,
+                                              goAnnotation.evidence.code.code != IEA,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0008150,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0003674,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0005575"
                                  typeClass="Gene"
                                  views="ncbiGeneId,symbol,organism.name,
                                        goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name"
+                                 constraintsForView="goAnnotation.evidence.code.code != IEA"
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
 
       <enrichmentwidgetdisplayer id="gene_do_enrichment"
@@ -594,7 +594,7 @@
 
       <enrichmentwidgetdisplayer id="protein_go_enrichment"
                                  title="Gene Ontology Enrichment"
-                                 description="GO terms enriched for proteins in this list."
+                                 description="GO terms enriched for proteins in this list. (IEA annotations are excluded)"
                                  label="GO Term"
                                  filterLabel="Ontology"
                                  filters="biological_process,cellular_component,molecular_function"
@@ -604,12 +604,14 @@
                                  enrichIdentifier="goAnnotation.ontologyTerm.parents.identifier"
                                  constraints="goAnnotation.ontologyTerm.parents.namespace=[Ontology],organism.name=[list],
                                               primaryIdentifier != null, goAnnotation.qualifier = null,
+                                              goAnnotation.evidence.code.code != IEA,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0008150,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0003674,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0005575"
                                  typeClass="Protein"
                                  views="primaryAccession, name, organism.name,
-                                       goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name"
+                                       goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name" 
+                                 constraintsForView="goAnnotation.evidence.code.code != IEA" 
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
 
       <enrichmentwidgetdisplayer id="protein_do_enrichment"
