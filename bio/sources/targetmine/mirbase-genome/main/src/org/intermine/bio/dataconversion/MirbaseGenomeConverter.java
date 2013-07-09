@@ -4,12 +4,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -21,7 +18,7 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class MirbaseGenomeConverter extends BioFileConverter {
-	private static Logger LOG = Logger.getLogger(MirbaseGenomeConverter.class);
+//	private static Logger LOG = Logger.getLogger(MirbaseGenomeConverter.class);
 	//
 	private static final String DATASET_TITLE = "miRBase";
 	private static final String DATA_SOURCE_NAME = "miRBase";
@@ -67,7 +64,7 @@ public class MirbaseGenomeConverter extends BioFileConverter {
 				String[] kv = pair.split("=");
 				ids.put(kv[0], kv[1]);
 			}
-			String accession = ids.get("accession_number");
+			String accession = ids.get("ID");
 			String refId = accessionMap.get(accession);
 			if (refId == null) {
 				Item item;

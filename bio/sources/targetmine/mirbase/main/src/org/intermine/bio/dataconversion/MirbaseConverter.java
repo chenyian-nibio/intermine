@@ -104,11 +104,14 @@ public class MirbaseConverter extends BioFileConverter {
 					}
 					item.setAttribute("secondaryIdentifier", id);
 					item.setAttribute("name", name);
-					item.setAttribute("symbol", id.substring(id.indexOf("-")+1));
+					item.setAttribute("symbol", id.substring(id.indexOf("-") + 1));
 					String seq = in.readLine();
 					item.setReference("sequence", createSequence(seq));
 					item.setAttribute("length", String.valueOf(seq.length()));
-					item.setReference("organism", getOrganism(getTaxonIdByIdentifier(id)));
+					String taxonId = getTaxonIdByIdentifier(id);
+					if (!StringUtils.isEmpty(taxonId)) {
+						item.setReference("organism", getOrganism(taxonId));
+					}
 					matureMap.put(accession, item);
 
 				}
@@ -117,14 +120,14 @@ public class MirbaseConverter extends BioFileConverter {
 		}
 
 	}
-	
+
 	private String getTaxonIdByIdentifier(String identifier) {
 		String taxonId = taxonIdMap.get(identifier.substring(0, identifier.indexOf("-")));
 		if (taxonId != null) {
 			return taxonId;
 		} else {
-			throw new RuntimeException("unexpected organism code: "
-					+ identifier.substring(0, 3) + " from entry: " + identifier);
+			throw new RuntimeException("unexpected organism code: " + identifier.substring(0, 3)
+					+ " from entry: " + identifier);
 		}
 	}
 
@@ -155,7 +158,7 @@ public class MirbaseConverter extends BioFileConverter {
 				}
 			} else if (line.startsWith("DR")) {
 				// DR ENTREZGENE; 406881; MIRLET7A1.
-				// DR   ENTREZGENE; 100422902; MIR3116-1.
+				// DR ENTREZGENE; 100422902; MIR3116-1.
 				Pattern pattern = Pattern.compile("DR\\s+ENTREZGENE; (\\d+); (.+)\\.");
 				Matcher matcher = pattern.matcher(line);
 				if (matcher.matches()) {
@@ -177,7 +180,7 @@ public class MirbaseConverter extends BioFileConverter {
 		item.setAttribute("primaryIdentifier", entry.accession);
 		item.setAttribute("secondaryIdentifier", entry.identifier);
 		item.setAttribute("name", entry.description);
-		item.setAttribute("symbol", entry.identifier.substring(entry.identifier.indexOf("-")+1));
+		item.setAttribute("symbol", entry.identifier.substring(entry.identifier.indexOf("-") + 1));
 		item.setReference("sequence", createSequence(entry.getSequence()));
 		item.setAttribute("length", String.valueOf(entry.getSequence().length()));
 		if (entry.geneId != null) {
@@ -189,15 +192,18 @@ public class MirbaseConverter extends BioFileConverter {
 		for (String mature : entry.matures) {
 			item.addToCollection("microRNAs", getMiRNA(mature, item));
 		}
-		item.setReference("organism", getOrganism(getTaxonIdByIdentifier(entry.identifier)));
+		String taxonId = getTaxonIdByIdentifier(entry.identifier);
+		if (!StringUtils.isEmpty(taxonId)) {
+			item.setReference("organism", getOrganism(taxonId));
+		}
 		store(item);
 	}
 
 	private String createSequence(String sequence) throws ObjectStoreException {
-        Item item = createItem("Sequence");
-        item.setAttribute("residues", sequence);
-        item.setAttribute("length", String.valueOf(sequence.length()));
-        store(item);
+		Item item = createItem("Sequence");
+		item.setAttribute("residues", sequence);
+		item.setAttribute("length", String.valueOf(sequence.length()));
+		store(item);
 		return item.getIdentifier();
 	}
 
