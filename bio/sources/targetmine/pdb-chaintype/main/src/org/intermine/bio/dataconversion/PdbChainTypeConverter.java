@@ -19,8 +19,10 @@ import org.intermine.xml.full.Item;
  */
 public class PdbChainTypeConverter extends BioFileConverter {
 	//
-	private static final String DATASET_TITLE = "PDBj";
-	private static final String DATA_SOURCE_NAME = "Protein Data Bank Japan";
+//	private static final String DATASET_TITLE = "PDBj";
+//	private static final String DATA_SOURCE_NAME = "Protein Data Bank Japan";
+	private static final String DATASET_TITLE = "wwPDB";
+	private static final String DATA_SOURCE_NAME = "World Wide Protein Data Bank";
 
 	private Map<String, String> proteinStructureMap = new HashMap<String, String>();
 	private Map<String, String> proteinChainMap = new HashMap<String, String>();
