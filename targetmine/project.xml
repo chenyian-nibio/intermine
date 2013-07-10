@@ -108,7 +108,7 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis/fugue_result"/>
       <property name="src.data.dir.includes" value="*"/>
     </source>
-    <source name="omim-gene" type="omim-gene">
+    <source name="omim" type="omim-gene">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/omim"/>
       <property name="src.data.dir.includes" value="omim_phenotype_title"/>
       <property name="mim2geneFile" value="/data/bio/db/Targetmine/omim/mim2gene" />

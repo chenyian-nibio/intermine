@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
@@ -32,9 +33,6 @@ public class OmimGeneConverter extends BioFileConverter {
 	private Set<String> phenotypeOmimIds = new HashSet<String>();
 
 	private static final Logger LOG = Logger.getLogger(OmimGeneConverter.class);
-
-//	private static final String[] evidences = new String[] { "(1) mapping the wildtype gene",
-//			"(2) mapping the disease phenotype", "(3) mapping both", "(4) exception" };
 
 	// omim and geneId mapping file
 	private File mim2geneFile;
@@ -66,7 +64,7 @@ public class OmimGeneConverter extends BioFileConverter {
 		
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
-			getDisease(cols[0], cols[1]);
+			getDisease(cols[0], cols[1], cols[2]);
 		}
 
 		// create gene items
@@ -100,13 +98,21 @@ public class OmimGeneConverter extends BioFileConverter {
 
 	}
 
-	private String getDisease(String omimId, String title) throws Exception {
+	private String getDisease(String omimId, String title, String aliasString) throws Exception {
 		String ret = omimMap.get(omimId);
 		if (ret == null) {
 			Item disease = createItem("Disease");
 			disease.setAttribute("omimId", omimId);
 			disease.setAttribute("title", title);
-
+			if (!StringUtils.isEmpty(aliasString)){
+				String[] alias = aliasString.split(";;");
+				for (String name : alias) {
+					Item synonym = createItem("DiseaseSynonym");
+					synonym.setAttribute("name", name);
+					synonym.setReference("disease", disease);
+					store(synonym);
+				}
+			}
 			ret = disease.getIdentifier();
 			omimMap.put(omimId, ret);
 

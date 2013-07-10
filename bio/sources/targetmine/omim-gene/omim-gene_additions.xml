@@ -1,16 +1,21 @@
 <?xml version="1.0"?>
 
 <classes>
-<class name="Disease" is-interface="true" >
-    <attribute name="omimId" type="java.lang.String"/>
-    <attribute name="title" type="java.lang.String"/>
-    <collection name="genes" referenced-type="Gene" reverse-reference="diseases"/>
-  <collection name="dataSets" referenced-type="DataSet"/>
-</class>
+    <class name="Disease" is-interface="true" >
+        <attribute name="omimId" type="java.lang.String"/>
+        <attribute name="title" type="java.lang.String"/>
+        <collection name="genes" referenced-type="Gene" reverse-reference="diseases"/>
+        <reference name="dataSet" referenced-type="DataSet"/>
+        <collection name="synonyms" referenced-type="DiseaseSynonym" reverse-reference="disease"/>
+    </class>
+    <class name="DiseaseSynonym" is-interface="true">
+        <attribute name="name" type="java.lang.String"/>
+        <reference name="disease" referenced-type="Disease" reverse-reference="synonyms"/>
+    </class>
 
-<class name="Gene" is-interface="true">
-    <attribute name="ncbiGeneId" type="java.lang.String"/>
-	<collection name="diseases" referenced-type="Disease" reverse-reference="genes"/>
-</class>
+    <class name="Gene" is-interface="true">
+        <attribute name="ncbiGeneId" type="java.lang.String"/>
+	    <collection name="diseases" referenced-type="Disease" reverse-reference="genes"/>
+    </class>
 
 </classes>
