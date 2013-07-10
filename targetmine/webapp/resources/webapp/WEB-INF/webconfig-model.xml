@@ -472,6 +472,20 @@
       <fieldconfig fieldExpr="targetGene.symbol"/>
     </fields>
   </class>
+  <class className="org.intermine.model.bio.MiRNA">
+    <fields>
+      <fieldconfig fieldExpr="primaryIdentifier"/>
+      <fieldconfig fieldExpr="secondaryIdentifier"/>
+      <fieldconfig fieldExpr="organism.name" />
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.MiRNAPrimaryTranscript">
+    <fields>
+      <fieldconfig fieldExpr="primaryIdentifier"/>
+      <fieldconfig fieldExpr="secondaryIdentifier"/>
+      <fieldconfig fieldExpr="organism.name" />
+    </fields>
+  </class>
   <class className="org.intermine.model.bio.NetworkProperty">
     <fields>
       <fieldconfig fieldExpr="networkType"/>
