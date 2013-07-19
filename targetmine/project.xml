@@ -194,7 +194,7 @@
     <source name="gwas" type="gwas">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gwas/nhgri" />
       <property name="src.data.dir.includes" value="gwascatalog.*.txt" />
-      <property name="diseaseMapFile" value="/data/bio/db/Targetmine/gwas/nhgri/diseaseMap.110801.txt" />
+      <property name="diseaseMapFile" value="/data/bio/db/Targetmine/gwas/nhgri/diseaseMap.130719.txt" />
     </source>
 
     <source name="irefindex" type="irefindex">
