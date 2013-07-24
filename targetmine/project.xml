@@ -113,6 +113,10 @@
       <property name="src.data.dir.includes" value="omim_phenotype_title"/>
       <property name="mim2geneFile" value="/data/bio/db/Targetmine/omim/mim2gene" />
     </source>
+    <source name="omim-info" type="dataset-info">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/omim" />
+      <property name="src.data.dir.includes" value="version_info.txt" />
+    </source>
 <!--Added by Chen: Start -->
 
     <source name="wwpdb" type="wwpdb">
