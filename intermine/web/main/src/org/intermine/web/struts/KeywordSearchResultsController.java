@@ -61,6 +61,8 @@ public class KeywordSearchResultsController extends TilesAction
 {
     private static final Logger LOG = Logger.getLogger(KeywordSearchResultsController.class);
     private static Logger searchLog = null;
+    // chenyian: specific the log folder
+    private static String LOG_PATH = "/var/log/targetmine/";
 
     /**
      * {@inheritDoc}
@@ -262,7 +264,8 @@ public class KeywordSearchResultsController extends TilesAction
         if (searchLog == null) {
             searchLog = Logger.getLogger(KeywordSearchResultsController.class.getName()
                         + ".searches");
-            String logFileName = projectName + "_searches.log";
+            // chenyian: specific the log folder
+            String logFileName = LOG_PATH + projectName + "_searches.log";
             Layout layout = new PatternLayout("%d{ISO8601}\t%m%n");
             try {
                 RollingFileAppender appender = new RollingFileAppender(layout, logFileName, true);
