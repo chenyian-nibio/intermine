@@ -111,6 +111,7 @@ public class GoConverter extends BioFileConverter
     }
 
 
+    // TODO to be refactored; we don't need 'FB' and it should be 'UniProtKB' not 'UniProt'
     static {
         WITH_TYPES.put("FB", "Gene");
         WITH_TYPES.put("UniProt", "Protein");

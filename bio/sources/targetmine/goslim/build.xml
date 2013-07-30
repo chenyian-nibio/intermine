@@ -1,0 +1,5 @@
+<project name="goslim" default="default" basedir=".">
+  <description>build, test, package goslim</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

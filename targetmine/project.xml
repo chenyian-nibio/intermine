@@ -9,15 +9,21 @@
     <source name="go" type="go">
       <property name="src.data.file" location="/data/bio/db/Targetmine/go-annotation/obo/gene_ontology.obo"/>
     </source>
+    <source name="goslim" type="goslim">
+      <property name="src.data.file" location="/data/bio/db/Targetmine/goslim/goslim_generic.obo"/>
+    </source>
     <source name="uniprot" type="tm-uniprot">
       <property name="uniprot.organisms" value="9606 10090 10116"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/uniprot/split"/>
     </source>
     <source name="go-annotation" type="tm-go-annotation">
-      <property name="ontologyfile" location="/data/bio/db/Targetmine/go-annotation/gene_ontology.obo"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/go-annotation"/>
       <property name="src.data.dir.includes" value="gene_association*"/>
       <property name="excludeComputational" value="true"/>
+    </source>
+    <source name="goslim-annotation" type="goslim-annotation">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/goslim"/>
+      <property name="src.data.dir.includes" value="gene_association*"/>
     </source>
   	<source name="do" type="do">
       <property name="src.data.file" location="/data/bio/db/Targetmine/do/HumanDO.obo"/>
@@ -97,9 +103,10 @@
       <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.list"/>
       <property name="kegg.organisms" value="9606 10090 10116"	/>
     </source>
-    
- <!-- chenyian: disabled for external version 
- -->
+
+<!-- chenyian: start for external version -->    
+<!-- chenyian: disabled for external version 
+-->
     <source name="protein-analysis" type="protein-analysis">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis"/>
       <property name="src.data.dir.includes" value="result.out"/>
@@ -117,7 +124,8 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/omim" />
       <property name="src.data.dir.includes" value="version_info.txt" />
     </source>
-<!--Added by Chen: Start -->
+
+<!-- chenyian: end for external version -->
 
     <source name="wwpdb" type="wwpdb">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/wwpdb/" />
@@ -150,7 +158,6 @@
       <property name="src.data.dir.includes" value="domain_drugebility.txt" />
     </source>
 
-  	<!--Intermine default : Start-->
     <source name="psi-mi" type="psi-mi-ontology">
       <property name="src.data.file" location="/data/bio/db/Targetmine/psi-mi/psi-mi25.obo"/>
     </source>
@@ -162,7 +169,7 @@
     <source name="so" type="so">
       <property name="src.data.file" location="../../bio/sources/so/so.obo"/>
     </source>
-  	<!--Intermine default : End-->
+
     <source name="reactome" type="biopax3">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/reactome"/>
       <property name="src.data.dir.includes" value="*.owl"/>
@@ -171,8 +178,8 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/nci-pathway"/>
       <property name="src.data.dir.includes" value="*.tab"/>
     </source>
-    <!-- chenyian: just a temporary solution
-    -->
+    
+    <!-- chenyian: a temporary solution; to be refactored -->
     <source name="gene-set" type="gene-set">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_set_cluster"/>
       <property name="src.data.dir.includes" value="*.lt600.hie.co70.*"/>
@@ -247,11 +254,10 @@
       <property name="pubmed.organisms" value="9606 10090 10116"/>
       <property name="src.data.dir.includes" value="gene2pubmed"/>
     </source>
-  	<!--Intermine default -->
+
     <source name="update-publications" type="update-publications">
       <property name="src.data.file" location="build/publications.xml"/>
     </source>
-    <!--Added by Chen: End   -->
 
   </sources>
 
