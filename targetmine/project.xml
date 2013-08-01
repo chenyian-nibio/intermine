@@ -16,10 +16,18 @@
       <property name="uniprot.organisms" value="9606 10090 10116"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/uniprot/split"/>
     </source>
+<!-- 
     <source name="go-annotation" type="tm-go-annotation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/go-annotation"/>
       <property name="src.data.dir.includes" value="gene_association*"/>
       <property name="excludeComputational" value="true"/>
+    </source>
+ -->    
+    <source name="go-annotation" type="go-goslim-annotation">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/go-annotation"/>
+      <property name="src.data.dir.includes" value="gene_association*"/>
+      <property name="excludeComputational" value="true"/>
+      <property name="goslim.map" value="/data/bio/db/Targetmine/goslim/goslim.map"/>
     </source>
     <source name="goslim-annotation" type="goslim-annotation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/goslim"/>

@@ -21,10 +21,9 @@ import org.intermine.xml.full.Item;
 import org.intermine.xml.full.ReferenceList;
 
 /**
- * This parser is modified and simplified from original GOA parser, 
- * thus probably is only suitable for TargetMine;
- * Human, mouse, rat GOA file format are same so far
- * BioEntity references in GOEvidence were ignored
+ * This parser is modified and simplified from original GOA parser, thus probably is only suitable
+ * for TargetMine; Human, mouse, rat GOA file format are same so far BioEntity references in
+ * GOEvidence were ignored
  * 
  * @author chenyian
  */
@@ -45,6 +44,8 @@ public class GoSlimAnnotationConverter extends BioFileConverter {
 	private Map<String, Integer> storedProductIds;
 
 	private Map<String, String> proteinMap = new HashMap<String, String>();
+
+	private Item ontology;
 
 	/**
 	 * Constructor
@@ -258,12 +259,22 @@ public class GoSlimAnnotationConverter extends BioFileConverter {
 		if (goTermIdentifier == null) {
 			Item item = createItem("GOSlimTerm");
 			item.setAttribute("identifier", identifier);
+			item.setReference("ontology", getOntology());
 			store(item);
 
 			goTermIdentifier = item.getIdentifier();
 			goSlimTerms.put(identifier, goTermIdentifier);
 		}
 		return goTermIdentifier;
+	}
+
+	private Item getOntology() throws ObjectStoreException {
+		if (ontology == null) {
+			ontology = createItem("Ontology");
+			ontology.setAttribute("name", "GOSlim");
+			store(ontology);
+		}
+		return ontology;
 	}
 
 	private void storeEvidenceCode(String code) throws ObjectStoreException {
