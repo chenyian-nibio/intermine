@@ -186,10 +186,18 @@
   <class className="org.intermine.model.bio.GOAnnotation">
     <fields>
       <fieldconfig fieldExpr="subject.primaryIdentifier"/>
-      <fieldconfig fieldExpr="subject.name"/>
-      <fieldconfig fieldExpr="subject.symbol"/>
       <fieldconfig fieldExpr="ontologyTerm.identifier" />
       <fieldconfig fieldExpr="ontologyTerm.name" />
+      <fieldconfig fieldExpr="ontologyTerm.namespace" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.GOSlimAnnotation">
+    <fields>
+      <fieldconfig fieldExpr="subject.primaryIdentifier"/>
+      <fieldconfig fieldExpr="ontologyTerm.identifier" />
+      <fieldconfig fieldExpr="ontologyTerm.name" />
+      <fieldconfig fieldExpr="ontologyTerm.namespace" />
     </fields>
   </class>
 
@@ -200,6 +208,19 @@
   </class>
 
     <class className="org.intermine.model.bio.GOTerm">
+    <headerconfig>
+        <titles>
+            <title mainTitles="identifier|name" subTitles="ontology.name" />
+        </titles>
+    </headerconfig>
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" />
+    </fields>
+  </class>
+
+    <class className="org.intermine.model.bio.GOSlimTerm">
     <headerconfig>
         <titles>
             <title mainTitles="identifier|name" subTitles="ontology.name" />
@@ -379,10 +400,9 @@
   <class className="org.intermine.model.bio.DOAnnotation">
     <fields>
       <fieldconfig fieldExpr="subject.primaryIdentifier"/>
-      <fieldconfig fieldExpr="subject.name"/>
-      <fieldconfig fieldExpr="subject.symbol"/>
       <fieldconfig fieldExpr="ontologyTerm.identifier" />
       <fieldconfig fieldExpr="ontologyTerm.name" />
+      <fieldconfig fieldExpr="ontologyTerm.namespace" />
     </fields>
   </class>
 
