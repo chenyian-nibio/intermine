@@ -36,7 +36,6 @@ public class GoSlimAnnotationConverter extends BioFileConverter {
 	protected Map<String, String> goSlimTerms = new LinkedHashMap<String, String>();
 	private Map<String, String> evidenceCodes = new LinkedHashMap<String, String>();
 	private Map<String, String> publications = new LinkedHashMap<String, String>();
-	protected Map<String, String> productMap = new LinkedHashMap<String, String>();
 	private Set<String> dbRefs = new HashSet<String>();
 
 	private Map<GoSlimTermToGene, Set<Evidence>> goSlimTermGeneToEvidence = new LinkedHashMap<GoSlimTermToGene, Set<Evidence>>();
@@ -104,54 +103,49 @@ public class GoSlimAnnotationConverter extends BioFileConverter {
 
 			String type = array[11];
 
-			// create unique key for go annotation
-			GoSlimTermToGene key = new GoSlimTermToGene(uniprotId, goId, qualifier);
-
 			String dataSourceCode = array[14]; // e.g. GDB, where uniprot collect the data from
 			String dataSource = array[0]; // e.g. UniProtKB, where the goa file comes from
 			String organism = getOrganism(taxonId);
 			String productIdentifier = getProtein(uniprotId, taxonId);
 
-			// null if resolver could not resolve an identifier
-			// TODO to be removed, should not be null
-			if (productIdentifier != null) {
+			// null if no pub found
+			String pubRefId = newPublication(array[5]);
 
-				// null if no pub found
-				String pubRefId = newPublication(array[5]);
+			// create unique key for go annotation
+			GoSlimTermToGene key = new GoSlimTermToGene(uniprotId, goId, qualifier);
+			
+			// get evidence codes for this goterm|gene pair
+			Set<Evidence> allEvidenceForAnnotation = goSlimTermGeneToEvidence.get(key);
 
-				// get evidence codes for this goterm|gene pair
-				Set<Evidence> allEvidenceForAnnotation = goSlimTermGeneToEvidence.get(key);
+			// new evidence
+			if (allEvidenceForAnnotation == null) {
+				String goTermIdentifier = getGoSlimTerm(goId);
+				Evidence evidence = new Evidence(strEvidence, pubRefId, withText, organism,
+						dataSource, dataSourceCode);
+				allEvidenceForAnnotation = new LinkedHashSet<Evidence>();
+				allEvidenceForAnnotation.add(evidence);
+				goSlimTermGeneToEvidence.put(key, allEvidenceForAnnotation);
+				Integer storedAnnotationId = createGoAnnotation(productIdentifier, type,
+						goTermIdentifier, qualifier, annotationExtension);
+				evidence.setStoredAnnotationId(storedAnnotationId);
+			} else {
+				boolean seenEvidenceCode = false;
+				Integer storedAnnotationId = null;
 
-				// new evidence
-				if (allEvidenceForAnnotation == null || !StringUtils.isEmpty(withText)) {
-					String goTermIdentifier = getGoSlimTerm(goId);
+				for (Evidence evidence : allEvidenceForAnnotation) {
+					String evidenceCode = evidence.getEvidenceCode();
+					storedAnnotationId = evidence.storedAnnotationId;
+					// already have evidence code, just add pub
+					if (evidenceCode.equals(strEvidence)) {
+						evidence.addPublicationRefId(pubRefId);
+						seenEvidenceCode = true;
+					}
+				}
+				if (!seenEvidenceCode) {
 					Evidence evidence = new Evidence(strEvidence, pubRefId, withText, organism,
 							dataSource, dataSourceCode);
-					allEvidenceForAnnotation = new LinkedHashSet<Evidence>();
+					evidence.storedAnnotationId = storedAnnotationId;
 					allEvidenceForAnnotation.add(evidence);
-					goSlimTermGeneToEvidence.put(key, allEvidenceForAnnotation);
-					Integer storedAnnotationId = createGoAnnotation(productIdentifier, type,
-							goTermIdentifier, qualifier, annotationExtension);
-					evidence.setStoredAnnotationId(storedAnnotationId);
-				} else {
-					boolean seenEvidenceCode = false;
-					Integer storedAnnotationId = null;
-
-					for (Evidence evidence : allEvidenceForAnnotation) {
-						String evidenceCode = evidence.getEvidenceCode();
-						storedAnnotationId = evidence.storedAnnotationId;
-						// already have evidence code, just add pub
-						if (evidenceCode.equals(strEvidence)) {
-							evidence.addPublicationRefId(pubRefId);
-							seenEvidenceCode = true;
-						}
-					}
-					if (!seenEvidenceCode) {
-						Evidence evidence = new Evidence(strEvidence, pubRefId, withText, organism,
-								dataSource, dataSourceCode);
-						evidence.storedAnnotationId = storedAnnotationId;
-						allEvidenceForAnnotation.add(evidence);
-					}
 				}
 			}
 		}
@@ -510,7 +504,7 @@ public class GoSlimAnnotationConverter extends BioFileConverter {
 		public String toString() {
 			StringBuffer toStringBuff = new StringBuffer();
 
-			toStringBuff.append("GoTermToGene - productId:");
+			toStringBuff.append("GoSlimTermToGene - productId:");
 			toStringBuff.append(productId);
 			toStringBuff.append(" goId:");
 			toStringBuff.append(goId);

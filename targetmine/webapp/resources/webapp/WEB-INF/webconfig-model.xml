@@ -598,6 +598,50 @@
                                  constraintsForView="goAnnotation.evidence.code.code != IEA"
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
 
+      <enrichmentwidgetdisplayer id="gene_gosa_enrichment"
+                                 title="GOSlim Enrichment"
+                                 description="GOSlim terms enriched for genes in this list. (IEA annotations are excluded)"
+                                 label="GOSlim Term"
+                                 filterLabel="Ontology"
+                                 filters="biological_process,cellular_component,molecular_function"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="goSlimAnnotation.ontologyTerm.parents.name"
+                                 enrichIdentifier="goSlimAnnotation.ontologyTerm.parents.identifier"
+                                 constraints="goSlimAnnotation.ontologyTerm.parents.namespace=[Ontology],organism.name=[list],
+                                              goSlimAnnotation.qualifier = null,
+                                              goSlimAnnotation.evidence.code.code != IEA,
+                                              goSlimAnnotation.ontologyTerm.parents.identifier != go:0008150,
+                                              goSlimAnnotation.ontologyTerm.parents.identifier != go:0003674,
+                                              goSlimAnnotation.ontologyTerm.parents.identifier != go:0005575"
+                                 typeClass="Gene"
+                                 views="ncbiGeneId,symbol,organism.name,
+                                       goSlimAnnotation.ontologyTerm.parents.identifier,goSlimAnnotation.ontologyTerm.parents.name"
+                                 constraintsForView="goSlimAnnotation.evidence.code.code != IEA"
+                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+
+      <enrichmentwidgetdisplayer id="gene_goagos_enrichment"
+                                 title="GOSlim Enrichment 2"
+                                 description="GOSlim terms enriched for genes in this list. (IEA annotations are excluded)"
+                                 label="GOSlim Term"
+                                 filterLabel="Ontology"
+                                 filters="biological_process,cellular_component,molecular_function"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="goAnnotation.goSlimTerms.parents.name"
+                                 enrichIdentifier="goAnnotation.goSlimTerms.parents.identifier"
+                                 constraints="goAnnotation.goSlimTerms.parents.namespace=[Ontology],organism.name=[list],
+                                              goAnnotation.qualifier = null,
+                                              goAnnotation.evidence.code.code != IEA,
+                                              goAnnotation.goSlimTerms.parents.identifier != go:0008150,
+                                              goAnnotation.goSlimTerms.parents.identifier != go:0003674,
+                                              goAnnotation.goSlimTerms.parents.identifier != go:0005575"
+                                 typeClass="Gene"
+                                 views="ncbiGeneId,symbol,organism.name,
+                                       goAnnotation.goSlimTerms.parents.identifier,goAnnotation.goSlimTerms.parents.name"
+                                 constraintsForView="goAnnotation.evidence.code.code != IEA"
+                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+
       <enrichmentwidgetdisplayer id="gene_do_enrichment"
                                  title="Disease Ontology Enrichment"
                                  description="DO terms enriched for genes in this list."
