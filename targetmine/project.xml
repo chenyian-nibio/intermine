@@ -126,7 +126,7 @@
     <source name="omim" type="omim-gene">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/omim"/>
       <property name="src.data.dir.includes" value="omim_phenotype_title"/>
-      <property name="mim2geneFile" value="/data/bio/db/Targetmine/omim/mim2gene" />
+      <property name="mim2geneFile" value="/data/bio/db/Targetmine/omim/mim2gene_medgen" />
     </source>
     <source name="omim-info" type="dataset-info">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/omim" />

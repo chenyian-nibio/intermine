@@ -30,7 +30,7 @@ public class OmimGeneConverter extends BioFileConverter {
 	private Map<String, String> geneMap = new HashMap<String, String>();
 
 	private Map<String, Set<String>> geneOminMap = new HashMap<String, Set<String>>();
-	private Set<String> phenotypeOmimIds = new HashSet<String>();
+//	private Set<String> phenotypeOmimIds = new HashSet<String>();
 
 	private static final Logger LOG = Logger.getLogger(OmimGeneConverter.class);
 
@@ -58,7 +58,7 @@ public class OmimGeneConverter extends BioFileConverter {
 	public void process(Reader reader) throws Exception {
 
 		// parse omim and geneId mapping file
-		readMim2gene();
+		readMim2geneMedgen();
 
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(new BufferedReader(reader));
 		
@@ -74,6 +74,7 @@ public class OmimGeneConverter extends BioFileConverter {
 
 	}
 
+	@Deprecated
 	private void readMim2gene() throws Exception {
 
 		Reader reader = new BufferedReader(new FileReader(mim2geneFile));
@@ -93,9 +94,33 @@ public class OmimGeneConverter extends BioFileConverter {
 				geneOminMap.put(geneId, new HashSet<String>());
 			}
 			geneOminMap.get(geneId).add(omimId);
-			phenotypeOmimIds.add(omimId);
+//			phenotypeOmimIds.add(omimId);
 		}
 
+	}
+	
+	private void readMim2geneMedgen() throws Exception {
+		
+		Reader reader = new BufferedReader(new FileReader(mim2geneFile));
+		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
+		
+		// generate gene -> omims map
+		while (iterator.hasNext()) {
+			String[] cols = iterator.next();
+			// we only want phenotypes, not genes
+			String type = cols[2];
+			if (type.equals("gene") || "-".equals(cols[1])) {
+				continue;
+			}
+			String geneId = cols[1];
+			String omimId = cols[0];
+			if (!geneOminMap.keySet().contains(geneId)) {
+				geneOminMap.put(geneId, new HashSet<String>());
+			}
+			geneOminMap.get(geneId).add(omimId);
+//			phenotypeOmimIds.add(omimId);
+		}
+		
 	}
 
 	private String getDisease(String omimId, String title, String aliasString) throws Exception {
