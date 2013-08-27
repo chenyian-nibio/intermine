@@ -12,13 +12,17 @@
 	<class name="MiRNAInteraction" is-interface="true">
         <attribute name="identifier" type="java.lang.String"/>
         <attribute name="sourceId" type="java.lang.String"/>
-		<collection name="experiments" referenced-type="MiRNAExperiment"/>
 		<reference name="targetGene" referenced-type="Gene" reverse-reference="miRNAInteractions"/>
 		<reference name="miRNA" referenced-type="MiRNA" reverse-reference="miRNAInteractions"/>
-		<reference name="publication" referenced-type="Publication"/>
+		<collection name="evidences" referenced-type="MiRNAEvidence" reverse-reference="interaction"/>
 	</class>
-		<class name="MiRNAExperiment" is-interface="true">
+	<class name="MiRNAExperiment" is-interface="true">
 		<attribute name="name" type="java.lang.String"/>
+	</class>
+	<class name="MiRNAEvidence" is-interface="true">
+		<reference name="interaction" referenced-type="MiRNAInteraction" reverse-reference="evidences"/>
+		<reference name="publication" referenced-type="Publication"/>
+		<collection name="experiments" referenced-type="MiRNAExperiment"/>
 	</class>
 
 </classes>
