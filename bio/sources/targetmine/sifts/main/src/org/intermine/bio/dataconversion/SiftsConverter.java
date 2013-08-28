@@ -75,12 +75,12 @@ public class SiftsConverter extends BioFileConverter {
 			String[] cols = iterator.next();
 
 			Item item = createItem("ProteinStructureRegion");
-			item.setAttribute("seqresStart", cols[4]);
-			item.setAttribute("seqresEnd", cols[5]);
-			item.setAttribute("pdbSeqStart", cols[6]);
-			item.setAttribute("pdbSeqEnd", cols[7]);
-			item.setAttribute("start", cols[8]);
-			item.setAttribute("end", cols[9]);
+			item.setAttribute("seqresStart", cols[3]);
+			item.setAttribute("seqresEnd", cols[4]);
+			item.setAttribute("pdbSeqStart", cols[5]);
+			item.setAttribute("pdbSeqEnd", cols[6]);
+			item.setAttribute("start", cols[7]);
+			item.setAttribute("end", cols[8]);
 			item.setReference("protein", getProtein(cols[2]));
 			item.setReference("chain", getProteinChain(cols[0], cols[1]));
 
