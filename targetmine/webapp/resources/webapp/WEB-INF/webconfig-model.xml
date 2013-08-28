@@ -488,8 +488,21 @@
   </class>
   <class className="org.intermine.model.bio.MiRNAInteraction">
     <fields>
+      <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="miRNA.secondaryIdentifier"/>
       <fieldconfig fieldExpr="targetGene.symbol"/>
+      <fieldconfig fieldExpr="targetGene.organism.name"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.MiRNAEvidence">
+    <fields>
+      <fieldconfig fieldExpr="interaction.identifier"/>
+      <fieldconfig fieldExpr="publication.pubMedId"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.MiRNAExperiment">
+    <fields>
+      <fieldconfig fieldExpr="name"/>
     </fields>
   </class>
   <class className="org.intermine.model.bio.MiRNA">
