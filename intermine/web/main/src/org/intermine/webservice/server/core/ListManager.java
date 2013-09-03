@@ -1,7 +1,7 @@
 package org.intermine.webservice.server.core;
 
 /*
- * Copyright (C) 2002-2012 FlyMine
+ * Copyright (C) 2002-2013 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -26,7 +26,7 @@ import org.intermine.api.profile.Profile;
  **/
 public class ListManager
 {
-    private static final long MAX_WAIT = 20000;
+    private static final long MAX_WAIT = 0;
     private final BagManager bagManager;
     private final Profile profile;
 

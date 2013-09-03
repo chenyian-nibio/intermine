@@ -104,8 +104,9 @@ public class CathNameConverter extends BioFileConverter {
 		if (description != null && !description.equals("")) {
 			item.setAttribute("description", description);
 		} else {
-			item.setAttribute("description", String.format(
-					"Not available. Representative protein domain: %s", cathDomainName));
+			// item.setAttribute("description", String.format(
+			// "Not available. Representative protein domain: %s", cathDomainName));
+			item.setAttribute("description", String.format("CATH Superfamily %s", nodeNumber));
 		}
 		// logical error here!!
 		// item.addToCollection("parents", item);

@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
@@ -29,12 +30,9 @@ public class OmimGeneConverter extends BioFileConverter {
 	private Map<String, String> geneMap = new HashMap<String, String>();
 
 	private Map<String, Set<String>> geneOminMap = new HashMap<String, Set<String>>();
-	private Set<String> phenotypeOmimIds = new HashSet<String>();
+//	private Set<String> phenotypeOmimIds = new HashSet<String>();
 
 	private static final Logger LOG = Logger.getLogger(OmimGeneConverter.class);
-
-//	private static final String[] evidences = new String[] { "(1) mapping the wildtype gene",
-//			"(2) mapping the disease phenotype", "(3) mapping both", "(4) exception" };
 
 	// omim and geneId mapping file
 	private File mim2geneFile;
@@ -60,13 +58,13 @@ public class OmimGeneConverter extends BioFileConverter {
 	public void process(Reader reader) throws Exception {
 
 		// parse omim and geneId mapping file
-		readMim2gene();
+		readMim2geneMedgen();
 
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(new BufferedReader(reader));
 		
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
-			getDisease(cols[0], cols[1]);
+			getDisease(cols[0], cols[1], cols[2]);
 		}
 
 		// create gene items
@@ -76,6 +74,7 @@ public class OmimGeneConverter extends BioFileConverter {
 
 	}
 
+	@Deprecated
 	private void readMim2gene() throws Exception {
 
 		Reader reader = new BufferedReader(new FileReader(mim2geneFile));
@@ -95,18 +94,50 @@ public class OmimGeneConverter extends BioFileConverter {
 				geneOminMap.put(geneId, new HashSet<String>());
 			}
 			geneOminMap.get(geneId).add(omimId);
-			phenotypeOmimIds.add(omimId);
+//			phenotypeOmimIds.add(omimId);
 		}
 
 	}
+	
+	private void readMim2geneMedgen() throws Exception {
+		
+		Reader reader = new BufferedReader(new FileReader(mim2geneFile));
+		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
+		
+		// generate gene -> omims map
+		while (iterator.hasNext()) {
+			String[] cols = iterator.next();
+			// we only want phenotypes, not genes
+			String type = cols[2];
+			if (type.equals("gene") || "-".equals(cols[1])) {
+				continue;
+			}
+			String geneId = cols[1];
+			String omimId = cols[0];
+			if (!geneOminMap.keySet().contains(geneId)) {
+				geneOminMap.put(geneId, new HashSet<String>());
+			}
+			geneOminMap.get(geneId).add(omimId);
+//			phenotypeOmimIds.add(omimId);
+		}
+		
+	}
 
-	private String getDisease(String omimId, String title) throws Exception {
+	private String getDisease(String omimId, String title, String aliasString) throws Exception {
 		String ret = omimMap.get(omimId);
 		if (ret == null) {
 			Item disease = createItem("Disease");
 			disease.setAttribute("omimId", omimId);
 			disease.setAttribute("title", title);
-
+			if (!StringUtils.isEmpty(aliasString)){
+				String[] alias = aliasString.split(";;");
+				for (String name : alias) {
+					Item synonym = createItem("DiseaseSynonym");
+					synonym.setAttribute("name", name);
+					synonym.setReference("disease", disease);
+					store(synonym);
+				}
+			}
 			ret = disease.getIdentifier();
 			omimMap.put(omimId, ret);
 

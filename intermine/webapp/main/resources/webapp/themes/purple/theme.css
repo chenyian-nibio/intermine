@@ -153,9 +153,6 @@ div#filter_tool_bar {
     max-height:400px;width: 450px;padding:15px;
     text-align: center;}
 
-.widget p {
-    font-size:10px;	}
-
 .widget_slide {
     margin-top:10px; max-height:350px;
     overflow-x:none;overflow-y:auto;overflow: auto;}
@@ -411,3 +408,7 @@ div.bagDetails-page div.widget table.table-striped tbody tr:hover td { backgroun
 .table td.im-highlight a { font-weight:normal; color:#5C0075; }
 .im-table-container .active { background:#FFF; color:#000; }
 .dropdown.open > .im-th-button { background: transparent; }
+
+.intermine .im-column-th .dropdown-menu:after {
+  border-bottom-color: #5C0075;
+}

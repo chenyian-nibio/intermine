@@ -61,8 +61,6 @@ public class GeneInfoConverter extends BioFileConverter {
 	private Map<String, Map<String, String>> idMap;
 	private Map<String, String> synonyms = new HashMap<String, String>();
 
-	private Set<String> primaryIds = new HashSet<String>();
-
 	private File gene2ensemblFile;
 	private File gene2unigeneFile;
 	private File gene2accessionFile;
@@ -189,6 +187,8 @@ public class GeneInfoConverter extends BioFileConverter {
 			}
 
 			Item gene = createItem("Gene");
+			// 2013/8/1 set NVBI gene id as primaryIdentifier
+			gene.setAttribute("primaryIdentifier", geneId);
 			gene.setAttribute("ncbiGeneId", geneId);
 			gene.setAttribute("name", name);
 			gene.setAttribute("description", desc);
@@ -204,25 +204,28 @@ public class GeneInfoConverter extends BioFileConverter {
 
 			List<String> allSynonyms = new ArrayList<String>();
 
-			if (!cols[5].trim().equals("-")) {
-				Map<String, String> dbNameIdMap = processDbXrefs(cols[5]);
+			if (!dbXrefs.equals("-")) {
+				Map<String, String> dbNameIdMap = processDbXrefs(dbXrefs);
 
-				for (String idType : idMap.get(taxId).keySet()) {
-					String dbId = dbNameIdMap.get(idMap.get(taxId).get(idType));
+				String dbId = dbNameIdMap.get(idMap.get(taxId).get("secondaryIdentifier"));
 
-					if (dbId != null) {
-						if (idType.equals("primaryIdentifier")) {
-							if (primaryIds.contains(dbId)) {
-								continue;
-							}
-							primaryIds.add(dbId);
-						}
-						gene.setAttribute(idType, dbId);
-						// add synonym for identifier
-						String synId = getSynonym(geneRefId, dbId);
-						if (synId != null) {
-							allSynonyms.add(synId);
-						}
+				if (dbId != null) {
+					gene.setAttribute("secondaryIdentifier", dbId);
+					// also add secondaryIdentifier as synonym
+					String synId = getSynonym(geneRefId, dbId);
+					if (synId != null) {
+						allSynonyms.add(synId);
+					}
+				}
+
+				// 2013/8/1
+				// set Ensembl ID as synonym
+				String ensemblId = dbNameIdMap.get("Ensembl");
+				if (ensemblId != null) {
+					// add synonym for identifier
+					String synId = getSynonym(geneRefId, ensemblId);
+					if (synId != null) {
+						allSynonyms.add(synId);
 					}
 				}
 
@@ -332,7 +335,7 @@ public class GeneInfoConverter extends BioFileConverter {
 			LOG.error(e);
 		} catch (IOException e) {
 			LOG.error(e);
-		} 
+		}
 
 	}
 

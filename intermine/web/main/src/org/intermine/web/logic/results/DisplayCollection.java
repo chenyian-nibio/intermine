@@ -1,7 +1,7 @@
 package org.intermine.web.logic.results;
 
 /*
- * Copyright (C) 2002-2012 FlyMine
+ * Copyright (C) 2002-2013 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -66,7 +66,7 @@ public class DisplayCollection extends DisplayField
      *
      * @return Collection for JSP instead of dealing with InlineResultsTable
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "rawtypes" })
     public Collection getCollection() {
         return this.collection;
     }

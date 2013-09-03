@@ -1,6 +1,6 @@
 <aspects>
 
-  <aspect name="Genomics">
+  <aspect name="Genes">
     <subtitle>Gene annotations</subtitle>
     <icon-image>model/images/genomics.gif</icon-image>
     <large-image>model/images/genomics.gif</large-image>
@@ -8,7 +8,7 @@
       The gene and genome annotations in TargetMine are provided by
       a variety of curated source databases. 
     </intro-text>
-    <tile-name>model/genomics.jsp</tile-name>
+    <tile-name>model/genes.jsp</tile-name>
     <aspect-source name="Entrez Gene" url="http://www.ncbi.nlm.nih.gov/gene"/>
     <aspect-source name="Ensembl" url="http://www.ensembl.org/"/>
   </aspect>

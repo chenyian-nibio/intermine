@@ -23,7 +23,6 @@
 .tb_button_active{border:1px solid #000;}
 .widget{max-height:400px;padding:15px;}
 div.bagDetails-page div.widget { width:455px; }
-.widget p{font-size:10px;}
 .widget_slide{margin-top:10px;max-height:350px;overflow:auto;overflow-x:none;overflow-y:auto;}
 .widgetcontainer{border:1px solid #888;}
 a,h1,h2,h3,h1 a,h1 a:visited,label,ul#nav a:hover,ul#nav li#mymine a:hover{color:#333;}
@@ -367,3 +366,7 @@ div.bagDetails-page div.widget table.table-striped tbody tr:hover td { backgroun
 .table td.im-highlight a { font-weight:normal; color:#1F7492; }
 .im-table-container .active { background:#FFF; color:#000; }
 .dropdown.open > .im-th-button { background:#FFF; }
+
+.intermine .im-column-th .dropdown-menu:after {
+  border-bottom-color: #1F7492;
+}

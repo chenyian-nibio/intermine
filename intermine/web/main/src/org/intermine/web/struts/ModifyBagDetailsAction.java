@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2012 FlyMine
+ * Copyright (C) 2002-2013 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -132,6 +132,18 @@ public class ModifyBagDetailsAction extends InterMineAction
                     return createBagAndGoToBagDetails(mapping, newBag, converted);
                 }
             }
+            
+            // "use in bag" link
+        } else if (request.getParameter("useBag") != null) {
+            PagedTable pc = SessionMethods.getResultsTable(session, bagIdentifier);
+            PathQuery pathQuery = pc.getWebTable().getPathQuery().clone();
+            SessionMethods.setQuery(session, pathQuery);
+            session.setAttribute("path", imBag.getType());
+            session.setAttribute("prefix", imBag.getType());
+            String msg = "You can now create a query using your list " + imBag.getName();
+            SessionMethods.recordMessage(msg, session);
+            return mapping.findForward("query");
+                
         // convert links
         } else if (request.getParameter("convert") != null
                         && request.getParameter("bagName") != null) {

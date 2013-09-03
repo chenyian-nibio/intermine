@@ -1,7 +1,7 @@
 package org.intermine.bio.web.displayer;
 
 /*
- * Copyright (C) 2002-2012 FlyMine
+ * Copyright (C) 2002-2013 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -116,6 +116,7 @@ public class UniProtCommentsDisplayer extends ReportDisplayer
      * @param values
      * @return
      */
+    @SuppressWarnings("unchecked")
     private Object geneComments2(ExportResultsIterator values) {
         // returned result columns positions
         int posCommentText = 0, posProteinID = 1, posObjectID = 2, posCommentType = 3;

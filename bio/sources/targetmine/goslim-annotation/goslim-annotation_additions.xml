@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<classes>
+<class name="GOSlimAnnotation" extends="OntologyAnnotation" is-interface="true">
+  <attribute name="annotationExtension" type="java.lang.String"/>
+  <collection name="evidence" referenced-type="GOEvidence"/>
+</class>
+<class name="Gene" is-interface="true">
+  <collection name="goSlimAnnotation" referenced-type="GOSlimAnnotation"/>
+</class>
+<class name="Protein" is-interface="true">
+  <collection name="goSlimAnnotation" referenced-type="GOSlimAnnotation"/>
+</class>
+<class name="GOEvidenceCode" is-interface="true">
+  <attribute name="code" type="java.lang.String" />
+</class>
+<class name="GOSlimTerm" extends="OntologyTerm" is-interface="true"/>
+<class name="GOEvidence" is-interface="true">
+  <attribute name="withText" type="java.lang.String"/>
+  <reference name="code" referenced-type="GOEvidenceCode"/>
+  <collection name="publications" referenced-type="Publication"/>
+  <collection name="with" referenced-type="BioEntity"/>
+</class>
+  <class name="DatabaseReference" is-interface="true">
+    <attribute name="identifier" type="java.lang.String"/>
+    <reference name="source" referenced-type="DataSource"/>
+    <reference name="subject" referenced-type="Publication" reverse-reference="crossReferences" />
+  </class>
+  <class name="Publication" is-interface="true">
+    <collection name="crossReferences" referenced-type="DatabaseReference" reverse-reference="subject"/>
+  </class>
+</classes>

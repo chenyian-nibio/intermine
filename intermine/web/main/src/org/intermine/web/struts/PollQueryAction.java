@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2012 FlyMine
+ * Copyright (C) 2002-2013 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -24,6 +24,7 @@ import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.intermine.api.results.ResultElement;
 import org.intermine.api.results.WebTable;
+import org.intermine.pathquery.PathQuery;
 import org.intermine.web.logic.Constants;
 import org.intermine.web.logic.query.QueryMonitorTimeout;
 import org.intermine.web.logic.results.PagedTable;
@@ -126,12 +127,21 @@ public class PollQueryAction extends InterMineAction
                 }
             }
 
+            // Send us off to see the results in a table.
             if (trail != null) {
                 trail += "|results." + qid;
             } else {
                 trail = "|results." + qid;
             }
-            ForwardParameters fp =  new ForwardParameters(mapping.findForward("results"))
+            PathQuery pq = null;
+            if (pr != null && pr.getPathQuery() != null) {
+            	pq = pr.getPathQuery();
+            } else {
+            	pq = controller.getPathQuery();
+            }
+            if (pq != null) request.setAttribute("query", pq);
+            
+            ForwardParameters fp = new ForwardParameters(mapping.findForward("results"))
                                     .addParameter("trail", trail)
                                     .addParameter("table", "results." + qid);
             if (queryBuilder != null) {

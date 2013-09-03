@@ -1,7 +1,7 @@
 package org.intermine.bio.web;
 
 /*
- * Copyright (C) 2002-2012 FlyMine
+ * Copyright (C) 2002-2013 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -60,6 +60,7 @@ public class AttributeLinksController extends TilesAction
 
     static final String ATTR_MARKER_RE = "<<attributeValue>>";
 
+    @SuppressWarnings("serial")
     private class ConfigMap extends HashMap<String, Object>
     {
         // empty

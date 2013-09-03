@@ -158,9 +158,6 @@ div#filter_tool_bar {
     max-height:400px;width: 450px;padding:15px;
     text-align: center; background-color: #F5F0FF;}
 
-.widget p {
-  font-size:10px;	}
-
 .widget_slide {
   margin-top:10px; max-height:350px;
     overflow-x:none;overflow-y:auto;overflow: auto;}
@@ -363,3 +360,7 @@ div.bagDetails-page div.widget h3 { color:#002575; } /* div.basic-table a.link *
 div.bagDetails-page div.widget table.table-striped tbody td { border-top-color:#DFF0DD; } /* div.collection-of-collections div.collection-table h3 */
 div.bagDetails-page div.widget table.table-striped tbody tr:nth-child(odd) td { background-color:#F8FAF7; } /* div.collection-table table tbody tr.odd td */
 div.bagDetails-page div.widget table.table-striped tbody tr:hover td { background-color:#FFF3D3; }
+
+.intermine .im-column-th .dropdown-menu:after {
+  border-bottom-color: #002575;
+}

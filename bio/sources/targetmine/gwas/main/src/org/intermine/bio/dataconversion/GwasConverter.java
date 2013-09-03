@@ -74,7 +74,7 @@ public class GwasConverter extends BioFileConverter {
 			String snpGeneId = cols[17];
 			// skip those intergenic snp or snp mapping to multiple genes
 			if (verifySnp(snpGeneId)) {
-				String gwaRefId = getGenomeWideAssociation(cols[7], cols[1]);
+				String gwaRefId = getGenomeWideAssociation(cols[7].trim(), cols[1], cols[27]);
 				String geneRefId = getGene(snpGeneId);
 				Item snp = getSnp(cols[21], cols[24]);
 				snp.setReference("gene", geneRefId);
@@ -126,12 +126,15 @@ public class GwasConverter extends BioFileConverter {
 		return ret;
 	}
 
-	private String getGenomeWideAssociation(String trait, String pubMedId)
+	private String getGenomeWideAssociation(String trait, String pubMedId, String pvalue)
 			throws ObjectStoreException {
 		String ret = gwaMap.get(trait + pubMedId);
 		if (ret == null) {
 			Item item = createItem("GenomeWideAssociation");
 			item.setAttribute("trait", trait);
+			if (!pvalue.equals("NS")){
+				item.setAttribute("pvalue", pvalue);
+			}
 			item.setReference("publication", getPublication(pubMedId));
 			String doTerms = diseaseMap.get(trait);
 			if (doTerms != null) {
@@ -140,7 +143,7 @@ public class GwasConverter extends BioFileConverter {
 					item.addToCollection("doTerms", getDoTerm(term));
 				}
 			} else {
-//				LOG.info("DOTerm for '" + trait + "' not found. ");
+				LOG.info("DOTerm for '" + trait + "' not found. ");
 			}
 			store(item);
 			ret = item.getIdentifier();
@@ -167,10 +170,10 @@ public class GwasConverter extends BioFileConverter {
 					.parseTabDelimitedReader(new BufferedReader(new FileReader(diseaseMapFile)));
 			while (iterator.hasNext()) {
 				String[] cols = iterator.next();
-				if (cols.length < 2) {
+				if (StringUtils.isEmpty(cols[1])) {
 					continue;
 				}
-				diseaseMap.put(cols[0], cols[1]);
+				diseaseMap.put(cols[0].trim(), cols[1]);
 			}
 
 		} catch (Exception e) {

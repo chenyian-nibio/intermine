@@ -1,7 +1,7 @@
 package org.intermine.web.logic;
 
 /*
- * Copyright (C) 2002-2012 FlyMine
+ * Copyright (C) 2002-2013 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -225,13 +225,21 @@ public abstract class WebUtil
      * 
      * @return A list of page resources, which are the urls for these resources. 
      */
-    public static List<HeadResource> getHeadResources(String section) {
+    public static List<HeadResource> getHeadResources(
+            String section, Map<String, String> userPreferences) {
         Properties webProperties = InterMineContext.getWebProperties();
         String cdnLocation = webProperties.getProperty("head.cdn.location");
+        boolean allowUserOverrides =
+            "true".equals(webProperties.getProperty("head.allow.user.overrides"));
         List<HeadResource> ret = new ArrayList<HeadResource>();
         for (String type: new String[]{ "css", "js" }) {
             String key = String.format("head.%s.%s.", type, section);
-            Properties matches = PropertiesUtil.getPropertiesStartingWith(key, webProperties);
+            Properties userProps = new Properties();
+            userProps.putAll(webProperties);
+            if (allowUserOverrides && userPreferences != null) {
+                userProps.putAll(userPreferences);
+            }
+            Properties matches = PropertiesUtil.getPropertiesStartingWith(key, userProps);
             Set<Object> keys = new TreeSet<Object>(matches.keySet());
             for (Object o: keys) {
                 String propName = String.valueOf(o);
@@ -532,7 +540,7 @@ public abstract class WebUtil
      * the class name.
      *
      * So <code>Employee.department.manager.age<code> becomes
-     * <code>Department > Manager > Years Alive</code>
+     * <code>Department &gt; Manager &gt; Years Alive</code>
      *
      * @param s The path string
      * @param api The InterMine API to use for model lookup.

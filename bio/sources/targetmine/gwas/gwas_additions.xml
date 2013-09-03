@@ -15,6 +15,7 @@
 
     <class name="GenomeWideAssociation" is-interface="true">
 		<attribute name="trait" type="java.lang.String"/>
+        <attribute name="pvalue" type="java.lang.Double" />
         <collection name="snps" referenced-type="SNP" reverse-reference="genomeWideAssociations"/>
         <collection name="doTerms" referenced-type="DOTerm"/>
 		<reference name="publication" referenced-type="Publication"/>

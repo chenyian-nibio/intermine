@@ -1,0 +1,5 @@
+<project name="goslim-annotation" default="default" basedir=".">
+  <description>build, test, package goslim-annotation</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

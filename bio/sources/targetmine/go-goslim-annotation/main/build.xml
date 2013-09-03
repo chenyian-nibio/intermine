@@ -1,0 +1,4 @@
+<project name="tm-go-annotation-tasks" default="default" basedir=".">
+  <description>build tm-go-annotation tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

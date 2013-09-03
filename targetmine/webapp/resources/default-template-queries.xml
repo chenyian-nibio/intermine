@@ -61,65 +61,65 @@
   </tag>
   <tag name="im:frontpage" objectIdentifier="Gene_GO" type="template">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Gene_Protein" type="template">
+  <tag name="im:aspect:Genes" objectIdentifier="Gene_Protein" type="template">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="GO_name_Gene" type="template">
+  <tag name="im:aspect:Genes" objectIdentifier="GO_name_Gene" type="template">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Organism_GoTerm_Gene" type="template">
+  <tag name="im:aspect:Genes" objectIdentifier="Organism_GoTerm_Gene" type="template">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Gene_particularGoannotation" type="template">
+  <tag name="im:aspect:Genes" objectIdentifier="Gene_particularGoannotation" type="template">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Gene_allGOTerms" type="template">
+  <tag name="im:aspect:Genes" objectIdentifier="Gene_allGOTerms" type="template">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Gene_GO" type="template">
+  <tag name="im:aspect:Genes" objectIdentifier="Gene_GO" type="template">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="LocatedSequenceFeature.overlappingFeatures" type="collection">
+  <tag name="im:aspect:Genes" objectIdentifier="LocatedSequenceFeature.overlappingFeatures" type="collection">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Chromosome.genes" type="collection">
+  <tag name="im:aspect:Genes" objectIdentifier="Chromosome.genes" type="collection">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="LocatedSequenceFeature.chromosome" type="reference">
+  <tag name="im:aspect:Genes" objectIdentifier="LocatedSequenceFeature.chromosome" type="reference">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="org.intermine.model.bio.Transcript" type="class">
+  <tag name="im:aspect:Genes" objectIdentifier="org.intermine.model.bio.Transcript" type="class">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Gene.transcripts" type="collection">
+  <tag name="im:aspect:Genes" objectIdentifier="Gene.transcripts" type="collection">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Gene.UTRs" type="collection">
+  <tag name="im:aspect:Genes" objectIdentifier="Gene.UTRs" type="collection">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="LocatedSequenceFeature.chromosomeLocation" type="reference">
+  <tag name="im:aspect:Genes" objectIdentifier="LocatedSequenceFeature.chromosomeLocation" type="reference">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Chromosome.transcripts" type="collection">
+  <tag name="im:aspect:Genes" objectIdentifier="Chromosome.transcripts" type="collection">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="org.intermine.model.bio.GOTerm" type="class">
+  <tag name="im:aspect:Genes" objectIdentifier="org.intermine.model.bio.GOTerm" type="class">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="org.intermine.model.bio.Gene" type="class">
+  <tag name="im:aspect:Genes" objectIdentifier="org.intermine.model.bio.Gene" type="class">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="org.intermine.model.bio.NcRNA" type="class">
+  <tag name="im:aspect:Genes" objectIdentifier="org.intermine.model.bio.NcRNA" type="class">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="LocatedSequenceFeature.sequence" type="reference">
+  <tag name="im:aspect:Genes" objectIdentifier="LocatedSequenceFeature.sequence" type="reference">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="CDS.MRNA" type="reference">
+  <tag name="im:aspect:Genes" objectIdentifier="CDS.MRNA" type="reference">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="org.intermine.model.bio.UTR" type="class">
+  <tag name="im:aspect:Genes" objectIdentifier="org.intermine.model.bio.UTR" type="class">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Transcript.gene" type="reference">
+  <tag name="im:aspect:Genes" objectIdentifier="Transcript.gene" type="reference">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="org.intermine.model.bio.ChromosomeBand" type="class">
+  <tag name="im:aspect:Genes" objectIdentifier="org.intermine.model.bio.ChromosomeBand" type="class">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Protein.genes" type="collection">
+  <tag name="im:aspect:Genes" objectIdentifier="Protein.genes" type="collection">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="org.intermine.model.bio.Chromosome" type="class">
+  <tag name="im:aspect:Genes" objectIdentifier="org.intermine.model.bio.Chromosome" type="class">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="MRNA.UTRs" type="collection">
+  <tag name="im:aspect:Genes" objectIdentifier="MRNA.UTRs" type="collection">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="org.intermine.model.bio.SnoRNA" type="class">
+  <tag name="im:aspect:Genes" objectIdentifier="org.intermine.model.bio.SnoRNA" type="class">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="org.intermine.model.bio.MRNA" type="class">
+  <tag name="im:aspect:Genes" objectIdentifier="org.intermine.model.bio.MRNA" type="class">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Transcript.introns" type="collection">
+  <tag name="im:aspect:Genes" objectIdentifier="Transcript.introns" type="collection">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="Chromosome.features" type="collection">
+  <tag name="im:aspect:Genes" objectIdentifier="Chromosome.features" type="collection">
   </tag>
-  <tag name="im:aspect:Genomics" objectIdentifier="org.intermine.model.bio.TFBindingSite" type="class">
+  <tag name="im:aspect:Genes" objectIdentifier="org.intermine.model.bio.TFBindingSite" type="class">
   </tag>
   <tag name="im:aspect:Proteins" objectIdentifier="Gene_Protein" type="template">
   </tag>

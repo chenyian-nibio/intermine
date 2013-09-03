@@ -1,7 +1,7 @@
 package org.intermine.web.logic.results;
 
 /*
- * Copyright (C) 2002-2012 FlyMine
+ * Copyright (C) 2002-2013 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -135,7 +135,7 @@ public class DisplayField
         if (size == -1) {
             if (collection instanceof LazyCollection) {
                 try {
-                    LazyCollection lazyCollection = (LazyCollection) collection;
+                    LazyCollection<?> lazyCollection = (LazyCollection<?>) collection;
                     try {
                         // get the first batch to make sure that small collections have an accurate
                         // size
@@ -156,5 +156,4 @@ public class DisplayField
         }
         return size;
     }
-
 }

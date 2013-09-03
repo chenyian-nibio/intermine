@@ -1,0 +1,4 @@
+<project name="goslim-annotation-tasks" default="default" basedir=".">
+  <description>build goslim-annotation tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

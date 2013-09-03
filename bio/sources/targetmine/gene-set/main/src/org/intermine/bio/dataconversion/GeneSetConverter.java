@@ -11,12 +11,11 @@ package org.intermine.bio.dataconversion;
  */
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.intermine.dataconversion.FileConverter;
@@ -27,6 +26,8 @@ import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
 /**
+ * Renewed for the new appication (2013/5/29)
+ * Could be re-implemented in the post processing in the future. 
  * 
  * @author chneyian
  */
@@ -35,11 +36,11 @@ public class GeneSetConverter extends FileConverter {
 	// private static final String DATASET_TITLE = "Gene set clustering";
 	// private static final String DATA_SOURCE_NAME = "TargetMine";
 	
-	private Item dataSource;
-
-	private Map<String, String> clusterNameMap;
+	private Map<String, String> clusterNameMap = new HashMap<String, String>();;
 	
-	private Map<String, Item> pathwayMap = new HashMap<String, Item>();
+	private Map<String, String> pathwayMap = new HashMap<String, String>();
+
+	private Map<String, Item> clusterMap = new HashMap<String, Item>();
 
 	/**
 	 * Constructor
@@ -51,86 +52,91 @@ public class GeneSetConverter extends FileConverter {
 	 */
 	public GeneSetConverter(ItemWriter writer, Model model) {
 		super(writer, model);
-		dataSource = createItem("DataSource");
-		dataSource.setAttribute("name", "TargetMine");
-		try {
-			store(dataSource);
-		} catch (ObjectStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	/**
-	 * 
-	 * 
 	 * {@inheritDoc}
+	 * <br/>
+	 * suppose the file name are as following: 
+	 * autoname.xxx.[org] and 
+	 * combined.xxx.[org] ;
+	 * where [org] means the 3-letter code for the organism 
 	 */
 	public void process(Reader reader) throws Exception {
 		
-		if (clusterNameMap == null) {
-			readClusterNameMap();
+		String filename = getCurrentFile().getName();
+		String org = filename.substring(filename.length()-3);
+		if (filename.startsWith("autoname")) {
+			readClusterNameMap(reader, org);
+		} else {
+			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
+			
+			while (iterator.hasNext()) {
+				String[] cols = iterator.next();
+				if (StringUtils.isEmpty(cols[0])) {
+					continue;
+				}
+				Item item = createItem("GeneSetCluster");
+				String identifier = getClusterId(cols[0], org);
+				item.setAttribute("identifier", identifier);
+				String[] pathwayIds = cols[2].split(",");
+				for (String pid : pathwayIds) {
+					item.addToCollection("pathways", getPathway(pid));
+				}
+				clusterMap.put(identifier, item);
+			}
 		}
 		
-		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
-		String[] header = iterator.next();
-		if (!header[0].equals("DataSet") || StringUtils.isEmpty(header[1])) {
-			throw new RuntimeException("Data set name is not set properly. "
-					+ "Check your data source. The first line should be 'DataSet\t[data set name]' " +
-					"but your first line is: " + StringUtils.join(header, "\t"));
-		}
-		Item dataSet = createItem("DataSet");
-		dataSet.setAttribute("name", header[1]);
-		dataSet.setReference("dataSource", dataSource);
-		store(dataSet);
-		
-		while (iterator.hasNext()) {
-			String[] cols = iterator.next();
-			if (StringUtils.isEmpty(cols[0])) {
-				continue;
-			}
-			Item item = createItem("GeneSetCluster");
-			item.setAttribute("identifier", cols[0]);
-			item.setAttribute("name", clusterNameMap.get(cols[0]));
-			String[] pathwayIds = cols[2].split(",");
-			for (String pid : pathwayIds) {
-				item.addToCollection("pathways", getPathway(pid));
-			}
-			item.setReference("dataSet", dataSet);
+	}
+	
+	@Override
+	public void close() throws Exception {
+//		for (String key : clusterNameMap.keySet()) {
+//			System.out.println(String.format("%s: %s", key, clusterNameMap.get(key)));
+//		}
+		for (String key : clusterMap.keySet()) {
+			Item item = clusterMap.get(key);
+			String name = clusterNameMap.get(key);
+//			if (StringUtils.isEmpty(name)) {
+//				System.out.println(key);
+//			}
+			item.setAttribute("name", name);
 			store(item);
 		}
 	}
 
-	private void readClusterNameMap() throws Exception {
-		BufferedReader reader = new BufferedReader(new FileReader(clusterName));
+	private void readClusterNameMap(Reader reader, String organismCode) throws Exception {
+		BufferedReader br = new BufferedReader(reader);
 
-		clusterNameMap = new HashMap<String, String>();
-		
-		String line = reader.readLine();
+		String line = br.readLine();
 		while (line != null) {
 			String[] cols = line.split("\\t");
-			clusterNameMap.put(cols[0], cols[2]);
-			line = reader.readLine();
+			clusterNameMap.put(getClusterId(cols[0], organismCode)
+					, cols[2]);
+			line = br.readLine();
 		}
-		
+		br.close();
 	}
 
-	private Item getPathway(String pathwayId) throws ObjectStoreException {
-		Item ret = pathwayMap.get(pathwayId);
+	private String getPathway(String pathwayId) throws ObjectStoreException {
+		String ret = pathwayMap.get(pathwayId);
 		if (ret == null) {
-			ret = createItem("Pathway");
-			ret.setAttribute("identifier", pathwayId);
-			store(ret);
+			Item item = createItem("Pathway");
+			item.setAttribute("identifier", pathwayId);
+			store(item);
+			ret = item.getIdentifier();
 			pathwayMap.put(pathwayId, ret);
 		}
 		return ret;
 	}
 	
-	private File clusterName;
-
-	public void setClusterName(File clusterName) {
-		this.clusterName = clusterName;
+	/**
+	 * 
+	 * @param originalId original ID start with no
+	 * @param organismCode 3-letter organism code
+	 * @return unique ID
+	 */
+	private String getClusterId(String originalId, String organismCode) {
+		return organismCode.substring(0, 1).toUpperCase() + originalId.substring(2);
 	}
-	
-
 }

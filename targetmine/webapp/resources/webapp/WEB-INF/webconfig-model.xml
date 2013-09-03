@@ -53,9 +53,7 @@
     <fields>
       <fieldconfig fieldExpr="ncbiGeneId"/>
       <fieldconfig fieldExpr="primaryIdentifier" showInSummary="false"/>
-      <fieldconfig fieldExpr="secondaryIdentifier" showInSummary="false"/>
       <fieldconfig fieldExpr="symbol"/>
-      <fieldconfig fieldExpr="name" showInSummary="false"/>
       <fieldconfig fieldExpr="organism.shortName" />
     </fields>
   </class>
@@ -188,10 +186,18 @@
   <class className="org.intermine.model.bio.GOAnnotation">
     <fields>
       <fieldconfig fieldExpr="subject.primaryIdentifier"/>
-      <fieldconfig fieldExpr="subject.name"/>
-      <fieldconfig fieldExpr="subject.symbol"/>
       <fieldconfig fieldExpr="ontologyTerm.identifier" />
       <fieldconfig fieldExpr="ontologyTerm.name" />
+      <fieldconfig fieldExpr="ontologyTerm.namespace" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.GOSlimAnnotation">
+    <fields>
+      <fieldconfig fieldExpr="subject.primaryIdentifier"/>
+      <fieldconfig fieldExpr="ontologyTerm.identifier" />
+      <fieldconfig fieldExpr="ontologyTerm.name" />
+      <fieldconfig fieldExpr="ontologyTerm.namespace" />
     </fields>
   </class>
 
@@ -202,6 +208,19 @@
   </class>
 
     <class className="org.intermine.model.bio.GOTerm">
+    <headerconfig>
+        <titles>
+            <title mainTitles="identifier|name" subTitles="ontology.name" />
+        </titles>
+    </headerconfig>
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" />
+    </fields>
+  </class>
+
+    <class className="org.intermine.model.bio.GOSlimTerm">
     <headerconfig>
         <titles>
             <title mainTitles="identifier|name" subTitles="ontology.name" />
@@ -381,10 +400,9 @@
   <class className="org.intermine.model.bio.DOAnnotation">
     <fields>
       <fieldconfig fieldExpr="subject.primaryIdentifier"/>
-      <fieldconfig fieldExpr="subject.name"/>
-      <fieldconfig fieldExpr="subject.symbol"/>
       <fieldconfig fieldExpr="ontologyTerm.identifier" />
       <fieldconfig fieldExpr="ontologyTerm.name" />
+      <fieldconfig fieldExpr="ontologyTerm.namespace" />
     </fields>
   </class>
 
@@ -470,8 +488,35 @@
   </class>
   <class className="org.intermine.model.bio.MiRNAInteraction">
     <fields>
+      <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="miRNA.secondaryIdentifier"/>
       <fieldconfig fieldExpr="targetGene.symbol"/>
+      <fieldconfig fieldExpr="targetGene.organism.name"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.MiRNAEvidence">
+    <fields>
+      <fieldconfig fieldExpr="interaction.identifier"/>
+      <fieldconfig fieldExpr="publication.pubMedId"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.MiRNAExperiment">
+    <fields>
+      <fieldconfig fieldExpr="name"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.MiRNA">
+    <fields>
+      <fieldconfig fieldExpr="primaryIdentifier"/>
+      <fieldconfig fieldExpr="secondaryIdentifier"/>
+      <fieldconfig fieldExpr="organism.name" />
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.MiRNAPrimaryTranscript">
+    <fields>
+      <fieldconfig fieldExpr="primaryIdentifier"/>
+      <fieldconfig fieldExpr="secondaryIdentifier"/>
+      <fieldconfig fieldExpr="organism.name" />
     </fields>
   </class>
   <class className="org.intermine.model.bio.NetworkProperty">
@@ -546,7 +591,7 @@
 
       <enrichmentwidgetdisplayer id="gene_go_enrichment"
                                  title="Gene Ontology Enrichment"
-                                 description="GO terms enriched for genes in this list."
+                                 description="GO terms enriched for genes in this list. (IEA annotations are excluded)"
                                  label="GO Term"
                                  filterLabel="Ontology"
                                  filters="biological_process,cellular_component,molecular_function"
@@ -556,12 +601,58 @@
                                  enrichIdentifier="goAnnotation.ontologyTerm.parents.identifier"
                                  constraints="goAnnotation.ontologyTerm.parents.namespace=[Ontology],organism.name=[list],
                                               goAnnotation.qualifier = null,
+                                              goAnnotation.evidence.code.code != IEA,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0008150,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0003674,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0005575"
                                  typeClass="Gene"
                                  views="ncbiGeneId,symbol,organism.name,
                                        goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name"
+                                 constraintsForView="goAnnotation.evidence.code.code != IEA"
+                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+
+      <enrichmentwidgetdisplayer id="gene_gosa_enrichment"
+                                 title="GOSlim Enrichment"
+                                 description="GOSlim terms enriched for genes in this list. (IEA annotations are excluded)"
+                                 label="GOSlim Term"
+                                 filterLabel="Ontology"
+                                 filters="biological_process,cellular_component,molecular_function"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="goSlimAnnotation.ontologyTerm.parents.name"
+                                 enrichIdentifier="goSlimAnnotation.ontologyTerm.parents.identifier"
+                                 constraints="goSlimAnnotation.ontologyTerm.parents.namespace=[Ontology],organism.name=[list],
+                                              goSlimAnnotation.qualifier = null,
+                                              goSlimAnnotation.evidence.code.code != IEA,
+                                              goSlimAnnotation.ontologyTerm.parents.identifier != go:0008150,
+                                              goSlimAnnotation.ontologyTerm.parents.identifier != go:0003674,
+                                              goSlimAnnotation.ontologyTerm.parents.identifier != go:0005575"
+                                 typeClass="Gene"
+                                 views="ncbiGeneId,symbol,organism.name,
+                                       goSlimAnnotation.ontologyTerm.parents.identifier,goSlimAnnotation.ontologyTerm.parents.name"
+                                 constraintsForView="goSlimAnnotation.evidence.code.code != IEA"
+                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+
+      <enrichmentwidgetdisplayer id="gene_goagos_enrichment"
+                                 title="GOSlim Enrichment 2"
+                                 description="GOSlim terms enriched for genes in this list. (IEA annotations are excluded)"
+                                 label="GOSlim Term"
+                                 filterLabel="Ontology"
+                                 filters="biological_process,cellular_component,molecular_function"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="goAnnotation.goSlimTerms.parents.name"
+                                 enrichIdentifier="goAnnotation.goSlimTerms.parents.identifier"
+                                 constraints="goAnnotation.goSlimTerms.parents.namespace=[Ontology],organism.name=[list],
+                                              goAnnotation.qualifier = null,
+                                              goAnnotation.evidence.code.code != IEA,
+                                              goAnnotation.goSlimTerms.parents.identifier != go:0008150,
+                                              goAnnotation.goSlimTerms.parents.identifier != go:0003674,
+                                              goAnnotation.goSlimTerms.parents.identifier != go:0005575"
+                                 typeClass="Gene"
+                                 views="ncbiGeneId,symbol,organism.name,
+                                       goAnnotation.goSlimTerms.parents.identifier,goAnnotation.goSlimTerms.parents.name"
+                                 constraintsForView="goAnnotation.evidence.code.code != IEA"
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
 
       <enrichmentwidgetdisplayer id="gene_do_enrichment"
@@ -577,20 +668,6 @@
                                  views="ncbiGeneId,symbol,organism.name,
                                        doAnnotations.ontologyTerm.parents.identifier,doAnnotations.ontologyTerm.parents.name"
                                  externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/"/>
-
-<!-- chenyian: disable for external server 
--->
-      <enrichmentwidgetdisplayer id="gene_omim_enrichment"
-                                 title="OMIM Enrichment"
-                                 description="OMIM enriched for genes in this list"
-                                 label="OMIM"
-                                 startClass="Gene"
-                                 startClassDisplay="symbol"
-                                 enrich="diseases.title"
-                                 enrichIdentifier="diseases.omimId"
-                                 constraints="organism.taxonId=[list]"
-                                 typeClass="Gene"
-                                 views="ncbiGeneId, symbol, organism.name, diseases.omimId, diseases.title"/>
 
       <enrichmentwidgetdisplayer id="protein_pathway_enrichment"
                                  title="Pathway Enrichment"
@@ -608,7 +685,7 @@
 
       <enrichmentwidgetdisplayer id="protein_go_enrichment"
                                  title="Gene Ontology Enrichment"
-                                 description="GO terms enriched for proteins in this list."
+                                 description="GO terms enriched for proteins in this list. (IEA annotations are excluded)"
                                  label="GO Term"
                                  filterLabel="Ontology"
                                  filters="biological_process,cellular_component,molecular_function"
@@ -618,13 +695,113 @@
                                  enrichIdentifier="goAnnotation.ontologyTerm.parents.identifier"
                                  constraints="goAnnotation.ontologyTerm.parents.namespace=[Ontology],organism.name=[list],
                                               primaryIdentifier != null, goAnnotation.qualifier = null,
+                                              goAnnotation.evidence.code.code != IEA,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0008150,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0003674,
                                               goAnnotation.ontologyTerm.parents.identifier != go:0005575"
                                  typeClass="Protein"
                                  views="primaryAccession, name, organism.name,
-                                       goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name"
+                                       goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name" 
+                                 constraintsForView="goAnnotation.evidence.code.code != IEA" 
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+
+      <enrichmentwidgetdisplayer id="protein_do_enrichment"
+                                 title="Disease Ontology Enrichment"
+                                 description="DO terms enriched for proteins in this list."
+                                 label="DO Term"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="genes.doAnnotations.ontologyTerm.parents.name"
+                                 enrichIdentifier="genes.doAnnotations.ontologyTerm.parents.identifier"
+                                 constraints="organism.name=[list], genes.doAnnotations.qualifier = null"
+                                 typeClass="Protein"
+                                 views="primaryAccession, name, organism.name,
+                                       genes.doAnnotations.ontologyTerm.parents.identifier,genes.doAnnotations.ontologyTerm.parents.name"
+                                 externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/"/>
+
+      <enrichmentwidgetdisplayer id="protein_cath_enrichment"
+                                 title="CATH classification Enrichment"
+                                 description="Structural domains enriched for proteins in this list."
+                                 label="CATH classification"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="structuralDomains.cathClassification.description"
+                                 enrichIdentifier="structuralDomains.cathClassification.cathCode"
+                                 constraints="organism.name=[list]"
+                                 typeClass="Protein"
+                                 views="primaryAccession, name, organism.name, structuralDomains.cathClassification.cathCode, 
+                                        structuralDomains.cathClassification.description"
+                                 externalLink="http://www.cathdb.info/cathnode/"/>
+
+      <enrichmentwidgetdisplayer id="protein_compound_enrichment"
+                                 title="Compound Enrichment"
+                                 description="Compound enriched for proteins in this list."
+                                 label="Compounds"
+                                 filterLabel="DataSet"
+                                 filters="DrugBank,ChEMBL,STITCH,Ligand Expo"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="compounds.compound.name"
+                                 enrichIdentifier="compounds.compound.identifier"
+                                 constraints="compounds.dataSet.name=[DataSet], organism.name=[list]"
+                                 typeClass="Protein"
+                                 views="primaryAccession, name, organism.name, compounds.compound.identifier, compounds.compound.name"
+                                 />
+
+      <enrichmentwidgetdisplayer id="gene_cath_enrichment"
+                                 title="CATH classification Enrichment"
+                                 description="Structural domains enriched for genes in this list."
+                                 label="CATH classification"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="proteins.structuralDomains.cathClassification.description"
+                                 enrichIdentifier="proteins.structuralDomains.cathClassification.cathCode"
+                                 constraints="organism.name=[list]"
+                                 typeClass="Gene"
+                                 views="ncbiGeneId, symbol, organism.name, proteins.structuralDomains.cathClassification.cathCode, 
+                                        proteins.structuralDomains.cathClassification.description"
+                                 externalLink="http://www.cathdb.info/cathnode/"/>
+
+      <enrichmentwidgetdisplayer id="gene_compound_enrichment"
+                                 title="Compound Enrichment"
+                                 description="Compound enriched for genes in this list."
+                                 label="Compounds"
+                                 filterLabel="DataSet"
+                                 filters="DrugBank,ChEMBL,STITCH,Ligand Expo"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="proteins.compounds.compound.name"
+                                 enrichIdentifier="proteins.compounds.compound.identifier"
+                                 constraints="proteins.compounds.dataSet.name=[DataSet], organism.name=[list]"
+                                 typeClass="Gene"
+                                 views="ncbiGeneId, symbol, organism.name, proteins.compounds.compound.identifier, proteins.compounds.compound.name"
+                                 />
+
+<!-- chenyian: disable for external server 
+-->
+      <enrichmentwidgetdisplayer id="gene_omim_enrichment"
+                                 title="OMIM Enrichment"
+                                 description="OMIM enriched for genes in this list"
+                                 label="OMIM"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="diseases.title"
+                                 enrichIdentifier="diseases.omimId"
+                                 constraints="organism.taxonId=[list]"
+                                 typeClass="Gene"
+                                 views="ncbiGeneId, symbol, organism.name, diseases.omimId, diseases.title"/>
+
+      <enrichmentwidgetdisplayer id="protein_omim_enrichment"
+                                 title="OMIM Enrichment"
+                                 description="OMIM enriched for proteins in this list"
+                                 label="OMIM"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="genes.diseases.title"
+                                 enrichIdentifier="genes.diseases.omimId"
+                                 constraints="organism.taxonId=[list]"
+                                 typeClass="Protein"
+                                 views="primaryAccession, name, organism.name, genes.diseases.omimId, genes.diseases.title"/>
 
 </widgets>
 </webconfig>

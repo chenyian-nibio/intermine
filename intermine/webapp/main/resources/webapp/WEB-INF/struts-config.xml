@@ -147,6 +147,7 @@
     <action path="/loadQuery" type="org.intermine.web.struts.LoadQueryAction" parameter="method">
       <forward name="query" redirect="true" path="/query.do"/>
       <forward name="waiting" redirect="true" path="/pollQuery.do"/>
+      <forward name="errors" redirect="true" path="/customQuery.do"/>
     </action>
     <action path="/loadTemplate" type="org.intermine.web.struts.LoadTemplateAction" parameter="method">
       <forward name="template" path="/template.do"/>
@@ -167,6 +168,9 @@
     <action path="/collectionDetails" type="org.intermine.web.struts.CollectionDetailsAction">
       <forward name="results" redirect="true" path="/results.do"/>
     </action>
+    <action path="/collectionToTable" type="org.intermine.web.struts.CollectionTableAction">
+     <forward name="table" path="/table.jsp"/>
+     </action>
     <action path="/queryBuilderChange" type="org.intermine.web.struts.QueryBuilderChange" parameter="method">
       <forward name="query" redirect="true" path="/query.do"/>
       <forward name="browserLines" path="/queryBuilderBrowserLines.jsp"/>
@@ -216,7 +220,7 @@
       <!-- implicitly cancelled by user -->
       <forward name="cancelled" redirect="true" path="/query.do"/>
       <!-- forward to results page -->
-      <forward name="results" redirect="true" path="/results.do"/>
+      <forward name="results" path="/results.do"/>
       <!-- continue waiting -->
       <forward name="waiting" path="waiting.page"/>
     </action>

@@ -1,0 +1,1 @@
+../bio/scripts/modmine/automine.sh

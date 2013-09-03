@@ -181,10 +181,12 @@
   <class className="org.intermine.model.bio.GWASResult">
     <fields>
       <fieldconfig fieldExpr="SNP.primaryIdentifier"/>
+      <fieldconfig fieldExpr="SNP.alleles"/>
+      <fieldconfig fieldExpr="SNP.chromosomeLocation.start"/>
+      <fieldconfig fieldExpr="SNP.chromosome.primaryIdentifier"/>
       <fieldconfig fieldExpr="phenotype"/>
       <fieldconfig fieldExpr="pValue"/>
       <fieldconfig fieldExpr="study.firstAuthor"/>
-      <fieldconfig fieldExpr="source.name"/>
     </fields>
   </class>
 
@@ -501,7 +503,23 @@
                       views="primaryIdentifier, organism.shortName, locations.locatedOn.primaryIdentifier,
                              locations.start, locations.end, locations.strand"/>
 
-      <enrichmentwidgetdisplayer id="go_enrichment_for_gene"
+     <graphdisplayer id="mouse_human_orthologue_pair"
+                      title="Mouse-human orthologue pair"
+                      description="dots would be where there is a mouse-human orthologue pair "
+                      graphType="ScatterChart"
+                      domainLabel="Chromosome location for humans"
+                      rangeLabel="Chromosome location for mouses"
+                      startClass="Gene"
+                      typeClass="Gene"
+                      categoryPath="organism.name"
+                      correlation="chromosomeLocation.locatedOn.primaryIdentifier,homologues.homologue.chromosomeLocation.locatedOn.primaryIdentifier"
+                      seriesPath=""
+                      seriesValues=""
+                      seriesLabels=""
+                      constraints="organism.name=Homo sapiens,homologues.homologue.organism.name=Mus musculus"
+                      views="primaryIdentifier,secondaryIdentifier,name,organism.name"/>
+
+     <enrichmentwidgetdisplayer id="go_enrichment_for_gene"
                                  title="Gene Ontology Enrichment"
                                  description="GO terms enriched for items in this list."
                                  label="GO Term"
