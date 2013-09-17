@@ -29,11 +29,13 @@
       <property name="excludeComputational" value="true"/>
       <property name="goslim.map" value="/data/bio/db/Targetmine/goslim/goslim.map"/>
     </source>
+<!--
     <source name="goslim-annotation" type="goslim-annotation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/goslim"/>
       <property name="src.data.dir.includes" value="gene_association*"/>
     </source>
-  	<source name="do" type="do">
+-->
+    <source name="do" type="do">
       <property name="src.data.file" location="/data/bio/db/Targetmine/do/HumanDO.obo"/>
     </source>
     <source name="gene-info" type="gene-info">

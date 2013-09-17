@@ -191,7 +191,7 @@
       <fieldconfig fieldExpr="ontologyTerm.namespace" />
     </fields>
   </class>
-
+<!--
   <class className="org.intermine.model.bio.GOSlimAnnotation">
     <fields>
       <fieldconfig fieldExpr="subject.primaryIdentifier"/>
@@ -200,7 +200,7 @@
       <fieldconfig fieldExpr="ontologyTerm.namespace" />
     </fields>
   </class>
-
+-->
   <class className="org.intermine.model.bio.GOEvidenceCode">
     <fields>
       <fieldconfig fieldExpr="code"/>
@@ -610,7 +610,7 @@
                                        goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name"
                                  constraintsForView="goAnnotation.evidence.code.code != IEA"
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
-
+<!--
       <enrichmentwidgetdisplayer id="gene_gosa_enrichment"
                                  title="GOSlim Enrichment"
                                  description="GOSlim terms enriched for genes in this list. (IEA annotations are excluded)"
@@ -632,9 +632,9 @@
                                        goSlimAnnotation.ontologyTerm.parents.identifier,goSlimAnnotation.ontologyTerm.parents.name"
                                  constraintsForView="goSlimAnnotation.evidence.code.code != IEA"
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
-
+-->
       <enrichmentwidgetdisplayer id="gene_goagos_enrichment"
-                                 title="GOSlim Enrichment 2"
+                                 title="GOSlim Enrichment"
                                  description="GOSlim terms enriched for genes in this list. (IEA annotations are excluded)"
                                  label="GOSlim Term"
                                  filterLabel="Ontology"
