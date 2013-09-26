@@ -705,6 +705,28 @@
                                  constraintsForView="goAnnotation.evidence.code.code != IEA" 
                                  externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
 
+      <enrichmentwidgetdisplayer id="protein_goagos_enrichment"
+                                 title="GOSlim Enrichment"
+                                 description="GOSlim terms enriched for proteins in this list. (IEA annotations are excluded)"
+                                 label="GOSlim Term"
+                                 filterLabel="Ontology"
+                                 filters="biological_process,cellular_component,molecular_function"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="goAnnotation.goSlimTerms.parents.name"
+                                 enrichIdentifier="goAnnotation.goSlimTerms.parents.identifier"
+                                 constraints="goAnnotation.goSlimTerms.parents.namespace=[Ontology],organism.name=[list],
+                                              goAnnotation.qualifier = null,
+                                              goAnnotation.evidence.code.code != IEA,
+                                              goAnnotation.goSlimTerms.parents.identifier != go:0008150,
+                                              goAnnotation.goSlimTerms.parents.identifier != go:0003674,
+                                              goAnnotation.goSlimTerms.parents.identifier != go:0005575"
+                                 typeClass="Protein"
+                                 views="primaryAccession, name, organism.name,
+                                       goAnnotation.goSlimTerms.parents.identifier,goAnnotation.goSlimTerms.parents.name"
+                                 constraintsForView="goAnnotation.evidence.code.code != IEA"
+                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+
       <enrichmentwidgetdisplayer id="protein_do_enrichment"
                                  title="Disease Ontology Enrichment"
                                  description="DO terms enriched for proteins in this list."
