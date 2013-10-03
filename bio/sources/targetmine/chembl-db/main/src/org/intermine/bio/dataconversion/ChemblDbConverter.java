@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
@@ -74,14 +75,10 @@ public class ChemblDbConverter extends BioDBConverter {
 		Statement stmt = connection.createStatement();
 		String queryName = "select distinct cr.molregno, compound_name "
 				+ " from compound_records as cr "
-				+ " join activities as act on act.molregno=cr.molregno "
-				+ " join assays as ass on ass.assay_id=act.assay_id "
-				+ " join assay2target as a2t on a2t.assay_id=ass.assay_id "
-				+ " where compound_name is not null " + " and standard_type  = 'IC50' "
-				+ " and standard_units = 'nM' " + " and curated_by = 'Expert' ";
+				+ " where compound_name is not null ";
 		ResultSet resName = stmt.executeQuery(queryName);
 		while (resName.next()) {
-			String molId = String.valueOf(resName.getInt("cr.molregno"));
+			String molId = String.valueOf(resName.getInt("molregno"));
 			String name = resName.getString("compound_name");
 			String value = nameMap.get(molId);
 			// take the shortest name (no reason; arbitrary)
@@ -120,26 +117,26 @@ public class ChemblDbConverter extends BioDBConverter {
 		}
 
 		String queryInteraction = " select distinct md.molregno, md.chembl_id, md.molecule_type, "
-				+ " act.standard_value, td.protein_accession, docs.pubmed_id, "
+				+ " act.standard_value, cseq.accession, cseq.tax_id, docs.pubmed_id, "
 				+ " cs.standard_inchi_key " + " from activities as act "
 				+ " join molecule_dictionary as md on md.molregno=act.molregno "
 				+ " join assays as ass on ass.assay_id=act.assay_id "
-				+ " join assay2target as a2t on a2t.assay_id=ass.assay_id "
-				+ " join target_dictionary as td on td.tid=a2t.tid "
+				+ " join target_components as tc on tc.tid=ass.tid "
+				+ " join component_sequences as cseq on cseq.component_id=tc.component_id "
 				+ " join docs on docs.doc_id=ass.doc_id "
 				+ " join compound_structures as cs on cs.molregno=md.molregno "
 				+ " where standard_type = 'IC50' " + " and standard_units = 'nM' "
-				+ " and protein_accession is not null " + " and curated_by = 'Expert' ";
+				+ " and curated_by = 'Expert' ";
 		ResultSet resInteraction = stmt.executeQuery(queryInteraction);
 		int i = 0;
 		while (resInteraction.next()) {
-			String molId = String.valueOf(resInteraction.getInt("md.molregno"));
-			String chemblId = resInteraction.getString("md.chembl_id");
-			String type = resInteraction.getString("md.molecule_type");
-			String uniprotId = resInteraction.getString("td.protein_accession");
-			String pubmedId = String.valueOf(resInteraction.getInt("docs.pubmed_id"));
-			String inchiKey = String.valueOf(resInteraction.getString("cs.standard_inchi_key"));
-			float ic50 = resInteraction.getFloat("act.standard_value");
+			String molId = String.valueOf(resInteraction.getInt("molregno"));
+			String chemblId = resInteraction.getString("chembl_id");
+			String type = resInteraction.getString("molecule_type");
+			String uniprotId = resInteraction.getString("accession");
+			String pubmedId = String.valueOf(resInteraction.getInt("pubmed_id"));
+			String inchiKey = String.valueOf(resInteraction.getString("standard_inchi_key"));
+			float ic50 = resInteraction.getFloat("standard_value");
 			String intId = uniprotId + "-" +chemblId;
 			String interactionRef = interactionMap.get(intId);
 			if (interactionRef == null) {
@@ -158,7 +155,10 @@ public class ChemblDbConverter extends BioDBConverter {
 						name = chemblId;
 					}
 					compound.setAttribute("name", name);
-					compound.addToCollection("drugTypes", getDrugType(drugTypeTranslateMap.get(type)));
+					String drugType = drugTypeTranslateMap.get(type);
+					if (!StringUtils.isEmpty(drugType)) {
+						compound.addToCollection("drugTypes", getDrugType(drugType));
+					}
 					String compoundGroupId = inchiKey.substring(0, inchiKey.indexOf("-"));
 					if (compoundGroupId.length() == 14) {
 						compound.setReference("compoundGroup", getCompoundGroup(compoundGroupId, name));
