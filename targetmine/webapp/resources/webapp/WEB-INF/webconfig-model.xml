@@ -587,7 +587,8 @@
                                  enrichIdentifier="pathways.identifier"
                                  constraints="pathways.dataSets.name=[DataSet],organism.taxonId=[list]"
                                  typeClass="Gene"
-                                 views="ncbiGeneId, symbol, organism.name, pathways.identifier, pathways.name, pathways.dataSets.name"/>
+                                 views="ncbiGeneId, symbol, organism.name, pathways.identifier, pathways.name, pathways.dataSets.name" 
+                                 externalLink="/targetmine/portal.do?class=Pathway&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_go_enrichment"
                                  title="Gene Ontology Enrichment"
@@ -681,7 +682,8 @@
                                  enrichIdentifier="genes.pathways.identifier"
                                  constraints="genes.pathways.dataSets.name=[DataSet],organism.taxonId=[list], primaryIdentifier != null"
                                  typeClass="Protein"
-                                 views="primaryAccession, name, organism.name, genes.pathways.identifier, genes.pathways.name, genes.pathways.dataSets.name"/>
+                                 views="primaryAccession, name, organism.name, genes.pathways.identifier, genes.pathways.name, genes.pathways.dataSets.name"
+                                 externalLink="/targetmine/portal.do?class=Pathway&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="protein_go_enrichment"
                                  title="Gene Ontology Enrichment"
