@@ -39,7 +39,7 @@
 	<link rel="stylesheet" type="text/css" href="/targetmine/themes/grey/theme.css"/>
 
 	<link href="http://cdn.intermine.org/css/bootstrap/2.0.3-prefixed/css/bootstrap.min.css" rel="stylesheet" />
-	<link href="http://cdn.intermine.org/js/intermine/im-tables/latest/tables.css" rel="stylesheet" />
+	<link href="/targetmine/js/etc/tables.css" rel="stylesheet" />
 	<link href="http://cdn.intermine.org/css/jquery-ui/1.8.19/jquery-ui-1.8.19.custom.css" rel="stylesheet" />
 	<link href="http://cdn.intermine.org/css/google-code-prettify/latest/prettify.css" rel="stylesheet" />
 	<link href="http://cdn.intermine.org/css/font-awesome/css/font-awesome.css" rel="stylesheet" />
