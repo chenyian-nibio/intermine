@@ -1,7 +1,10 @@
 package org.intermine.bio.dataconversion;
 
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -107,29 +110,49 @@ public class DrugBankXmlConverter extends BioFileConverter {
 					}
 				}
 			}
+			// 4 types
+			List<String> proteinTypes = Arrays.asList("target", "enzyme", "transporter", "carrier");
+			for (String proteinType : proteinTypes) {
+				Elements targets = drug.getFirstChildElement(proteinType + "s", NAMESPACE_URI)
+						.getChildElements(proteinType, NAMESPACE_URI);
+				for (int j = 0; j < targets.size(); j++) {
+					Element t = targets.get(j);
 
-			// get target proteins
-			Elements targets = drug.getFirstChildElement("targets", NAMESPACE_URI)
-					.getChildElements("target", NAMESPACE_URI);
-			for (int j = 0; j < targets.size(); j++) {
-				Element t = targets.get(j);
-				String id = t.getAttribute("partner").getValue();
-				if (idMap.get(id) != null) {
-					Item interaction = createItem("DrugBankInteraction");
-					interaction.setReference("protein", getProtein(idMap.get(id)));
-					interaction.setReference("compound", drugItem);
-					// interaction.setReference("dataSet", dat);
-					// get reference (pubmed id)
-					String ref = t.getFirstChildElement("references", NAMESPACE_URI).getValue();
-					Pattern pattern = Pattern
-							.compile("\"Pubmed\":http://www.ncbi.nlm.nih.gov/pubmed/(\\d+)");
-					Matcher matcher = pattern.matcher(ref);
-					while (matcher.find()) {
-						interaction.addToCollection("publications",
-								getPublication(matcher.group(1)));
+					// retrieve actions
+					Elements actions = t.getFirstChildElement("actions", NAMESPACE_URI)
+							.getChildElements("action", NAMESPACE_URI);
+					List<String> actionValues = new ArrayList<String>();
+					for (int k = 0; k < actions.size(); k++) {
+						String action = actions.get(k).getValue();
+						actionValues.add(action);
 					}
-					store(interaction);
+
+					String id = t.getAttribute("partner").getValue();
+					if (idMap.get(id) != null) {
+						Item interaction = createItem("DrugBankInteraction");
+						interaction.setReference("protein", getProtein(idMap.get(id)));
+						interaction.setReference("compound", drugItem);
+						String ref = t.getFirstChildElement("references", NAMESPACE_URI).getValue();
+						Pattern pattern = Pattern
+								.compile("\"Pubmed\":http://www.ncbi.nlm.nih.gov/pubmed/(\\d+)");
+						Matcher matcher = pattern.matcher(ref);
+						while (matcher.find()) {
+							interaction.addToCollection("publications",
+									getPublication(matcher.group(1)));
+						}
+						if (actionValues.size() > 0) {
+							for (String action : actionValues) {
+								interaction.addToCollection("actions", getDrugAction(action.trim()
+										.toLowerCase()));
+							}
+						} else {
+							interaction.addToCollection("actions", getDrugAction("unknown"));
+						}
+						interaction.setAttribute("proteinType", proteinType);
+						store(interaction);
+					}
 				}
+
 			}
 
 			// get brand names
@@ -143,8 +166,8 @@ public class DrugBankXmlConverter extends BioFileConverter {
 				store(cs);
 			}
 			// get synonyms
-			Elements synonyms = drug.getFirstChildElement("synonyms", NAMESPACE_URI).getChildElements(
-					"synonym", NAMESPACE_URI);
+			Elements synonyms = drug.getFirstChildElement("synonyms", NAMESPACE_URI)
+					.getChildElements("synonym", NAMESPACE_URI);
 			for (int j = 0; j < synonyms.size(); j++) {
 				String brandName = synonyms.get(j).getValue();
 				Item cs = createItem("CompoundSynonym");
@@ -178,6 +201,20 @@ public class DrugBankXmlConverter extends BioFileConverter {
 
 		}
 
+	}
+
+	private Map<String, String> actionMap = new HashMap<String, String>();
+
+	private String getDrugAction(String action) throws ObjectStoreException {
+		String ret = actionMap.get(action);
+		if (ret == null) {
+			Item item = createItem("DrugAction");
+			item.setAttribute("type", action);
+			store(item);
+			ret = item.getIdentifier();
+			actionMap.put(action, ret);
+		}
+		return ret;
 	}
 
 	private String getProtein(String uniprotId) throws ObjectStoreException {

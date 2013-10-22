@@ -64,7 +64,7 @@
     <source name="pdb-chaintype" type="pdb-chaintype">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pdbj"/>
       <property name="src.data.dir.includes" value="chainType_pdbj.csv"/>
-      <property name="mapFile" value="/data/bio/db/Targetmine/pdbj/type_mapping"/>
+      <property name="mapFile" value="/data/bio/db/Targetmine/pdbj/type_mapping.csv"/>
     </source>
     <source name="scop" type="scop">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/scop"/>
@@ -184,7 +184,7 @@
     <source name="stitch" type="tm-stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
       <property name="src.data.dir.includes" value="*.detailed.tsv" />
-      <property name="compoundMapFile" value="/data/bio/db/Targetmine/stitch/pubchem_mapping" />
+      <property name="compoundMapFile" value="/data/bio/db/Targetmine/stitch/pubchem_mapping.txt" />
       <property name="osAlias" value="os.production"/>
     </source>
     <source name="pubchem" type="pubchem">
@@ -213,7 +213,7 @@
     <source name="mirbase" type="mirbase">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/mirbase" />
       <property name="src.data.dir.includes" value="m*.*" />
-      <property name="taxonIdFile" value="/data/bio/db/Targetmine/mirbase/taxonId" />
+      <property name="taxonIdFile" value="/data/bio/db/Targetmine/mirbase/taxonId.txt" />
     </source>
     <source name="mirbase-genome" type="mirbase-genome">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/mirbase/genomes" />

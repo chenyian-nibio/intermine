@@ -7,6 +7,8 @@
 		<reference name="dataSet" referenced-type="DataSet"/>
     </class>
 	<class name="DrugBankInteraction" extends="CompoundProteinInteraction" is-interface="true">
+		<attribute name="proteinType" type="java.lang.String"/>
+		<collection name="actions" referenced-type="DrugAction"/>
 		<collection name="publications" referenced-type="Publication"/>
     </class>
 
@@ -16,6 +18,10 @@
 
 	<class name="DrugType" is-interface="true">
 		<attribute name="name" type="java.lang.String"/>
+    </class>
+
+	<class name="DrugAction" is-interface="true">
+		<attribute name="type" type="java.lang.String"/>
     </class>
 
     <class name="CompoundSynonym" is-interface="true">
