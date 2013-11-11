@@ -218,7 +218,7 @@
     <source name="mirbase-genome" type="mirbase-genome">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/mirbase/genomes" />
       <property name="src.data.dir.includes" value="*.gff3" />
-      <property name="taxonIdFile" value="/data/bio/db/Targetmine/mirbase/taxonId" />
+      <property name="taxonIdFile" value="/data/bio/db/Targetmine/mirbase/taxonId.txt" />
     </source>
     <source name="mirtarbase" type="mirtarbase">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/mirtarbase" />

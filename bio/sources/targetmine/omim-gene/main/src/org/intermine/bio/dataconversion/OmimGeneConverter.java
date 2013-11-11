@@ -24,7 +24,7 @@ import org.intermine.xml.full.Item;
 public class OmimGeneConverter extends BioFileConverter {
 	//
 	private static final String DATASET_TITLE = "OMIM data set";
-	private static final String DATA_SOURCE_NAME = "NCBI";
+	private static final String DATA_SOURCE_NAME = "OMIM";
 
 	private Map<String, String> omimMap = new HashMap<String, String>();
 	private Map<String, String> geneMap = new HashMap<String, String>();
@@ -74,31 +74,6 @@ public class OmimGeneConverter extends BioFileConverter {
 
 	}
 
-	@Deprecated
-	private void readMim2gene() throws Exception {
-
-		Reader reader = new BufferedReader(new FileReader(mim2geneFile));
-		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
-
-		// generate gene -> omims map
-		while (iterator.hasNext()) {
-			String[] cols = iterator.next();
-			// we only want phenotypes, not genes
-			String type = cols[2];
-			if (type.equals("gene")) {
-				continue;
-			}
-			String geneId = cols[1];
-			String omimId = cols[0];
-			if (!geneOminMap.keySet().contains(geneId)) {
-				geneOminMap.put(geneId, new HashSet<String>());
-			}
-			geneOminMap.get(geneId).add(omimId);
-//			phenotypeOmimIds.add(omimId);
-		}
-
-	}
-	
 	private void readMim2geneMedgen() throws Exception {
 		
 		Reader reader = new BufferedReader(new FileReader(mim2geneFile));
@@ -122,6 +97,10 @@ public class OmimGeneConverter extends BioFileConverter {
 		}
 		
 	}
+	
+//	private String formatTitle(String title) {
+//		return title.charAt(0) + title.substring(1).toLowerCase();
+//	}
 
 	private String getDisease(String omimId, String title, String aliasString) throws Exception {
 		String ret = omimMap.get(omimId);
