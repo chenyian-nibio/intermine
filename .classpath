@@ -70,6 +70,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/pdb-chaintype/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/goslim-annotation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/go-goslim-annotation/main/src"/>
+	<classpathentry kind="src" path="bio/sources/update-publications/main/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/bbop.jar"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/jakarta-regexp-1.4.jar"/>
@@ -149,5 +150,6 @@
 	<classpathentry kind="lib" path="bio/postprocess/main/lib/jung-graph-impl-2.0.1.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/commons-math3-3.2.jar"/>
 	<classpathentry kind="lib" path="imbuild/im-ant-tasks/lib/catalina-ant.jar"/>
+	<classpathentry kind="lib" path="bio/sources/update-publications/main/lib/je-3.2.23.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

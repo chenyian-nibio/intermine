@@ -1,19 +1,23 @@
 package org.intermine.bio.dataconversion;
 
-/*
- * Copyright (C) 2002-2009 FlyMine
- *
- * This code may be freely distributed and modified under the
- * terms of the GNU Lesser General Public Licence.  This should
- * be distributed with the code.  See the LICENSE file for more
- * information or http://www.gnu.org/copyleft/lesser.html.
- *
- */
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.intermine.dataconversion.DBConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.model.bio.Publication;
 import org.intermine.objectstore.ObjectStore;
+import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreFactory;
 import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.ConstraintSet;
@@ -24,103 +28,161 @@ import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.sql.Database;
 import org.intermine.xml.full.Item;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
-
 /**
  * 
- * @author
+ * @author chenyian
  */
-public class RetrievePublicationLocalConverter extends BioDBConverter
-{
-    // 
-    private static final String DATASET_TITLE = "Add DataSet.title here";
-    private static final String DATA_SOURCE_NAME = "Add DataSource.name here";
-
-
+public class RetrievePublicationLocalConverter extends DBConverter {
+	private static final Logger LOG = Logger.getLogger(RetrievePublicationLocalConverter.class);
+	//
 	private String osAlias;
 
 	public void setOsAlias(String osAlias) {
 		this.osAlias = osAlias;
 	}
 
-   /**
-     * Construct a new RetrievePublicationLocalConverter.
-     * @param database the database to read from
-     * @param model the Model used by the object store we will write to with the ItemWriter
-     * @param writer an ItemWriter used to handle Items created
-     */
-    public RetrievePublicationLocalConverter(Database database, Model model, ItemWriter writer) {
-        super(database, model, writer, DATA_SOURCE_NAME, DATASET_TITLE);
-    }
+	/**
+	 * Construct a new RetrievePublicationLocalConverter.
+	 * 
+	 * @param database
+	 *            the database to read from
+	 * @param model
+	 *            the Model used by the object store we will write to with the ItemWriter
+	 * @param writer
+	 *            an ItemWriter used to handle Items created
+	 */
+	public RetrievePublicationLocalConverter(Database database, Model model, ItemWriter writer) {
+		super(database, model, writer);
+	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	public void process() throws Exception {
+		// query publication
+		ObjectStore os = ObjectStoreFactory.getObjectStore(osAlias);
+		List<Publication> publications = getPublications(os);
 
-    /**
-     * {@inheritDoc}
-     */
-    public void process() throws Exception {
-    	// query publication
-    	ObjectStore os = ObjectStoreFactory.getObjectStore(osAlias);
-    	List<Publication> publications = getPublications(os);
-    	
-    	System.out.println(publications.size() + " publications found.");
-    	
-    	
-    	
-        // a database has been initialised from properties starting with db.retrieve-publication-local
+		System.out.println(publications.size() + " publications found.");
+		
+		Iterator<Publication> iterator = publications.iterator();
+		Set<String> pubmedIds = new HashSet<String>();
+		while (iterator.hasNext()) {
+			Publication publication = iterator.next();
+			pubmedIds.add(publication.getPubMedId());
+		}
+		System.out.println(pubmedIds.size() + " identifiers found.");
 
-        Connection connection = getDatabase().getConnection();
+		// a database has been initialised from properties starting with
+		// db.retrieve-publication-local
 
-        // process data with direct SQL queries on the source database, for example:
-        
-        // Statement stmt = connection.createStatement();
-        // String query = "select column from table;";
-        // ResultSet res = stmt.executeQuery(query);
-        // while (res.next()) {
-        // }   
-    }
+		Connection connection = getDatabase().getConnection();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getDataSetTitle(int taxonId) {
-        return DATASET_TITLE;
-    }
-    
-    /**
-     * Retrieve the publications to be updated
-     * @param os The ObjectStore to read from
-     * @return a List of publications
-     */
-    protected List<Publication> getPublications(ObjectStore os) {
-        Query q = new Query();
-        QueryClass qc = new QueryClass(Publication.class);
-        q.addFrom(qc);
-        q.addToSelect(qc);
+		// process data with direct SQL queries on the source database, for example:
 
-        ConstraintSet cs = new ConstraintSet(ConstraintOp.OR);
+		Statement stmt = connection.createStatement();
+		String query = "select * from publication ";
+		ResultSet res = stmt.executeQuery(query);
+		int i = 0;
+		while (res.next()) {
+			String pubMedId = res.getString("pubmedid");
+			if (pubmedIds.contains(pubMedId)) {
+				String pages = res.getString("pages");
+				String volume = res.getString("volume");
+				String issue = res.getString("issue");
+				String journal = res.getString("journal");
+				String title = res.getString("title");
+				String firstAuthor = res.getString("firstauthor");
+				String year = String.valueOf(res.getInt("intermine_year"));
+				
+				if (StringUtils.isEmpty(title) || StringUtils.isEmpty(year) || StringUtils.isEmpty(firstAuthor)) {
+					continue;
+				}
+				
+				Item publication = createItem("Publication");
+				publication.setAttribute("title", title);
+				publication.setAttribute("firstAuthor", firstAuthor);
+				publication.setAttribute("year", year);
+				
+				String queryAuthor = "select a.name "
+						+ " from publication as p "
+						+ " join authorspublications as ap on ap.publications= p.id "
+						+ " join author as a on a.id=ap.authors "
+						+ " where p.pubmedid = '" + pubMedId + "'";
+				Statement stmtAuthor = connection.createStatement();
+				ResultSet resAuthor = stmtAuthor.executeQuery(queryAuthor);
+				while (resAuthor.next()) {
+					publication.addToCollection("authors", getAuthor(resAuthor.getString("name")));
+				}
 
-        SimpleConstraint scTitle =
-            new SimpleConstraint(new QueryField(qc, "title"), ConstraintOp.IS_NULL);
-        cs.addConstraint(scTitle);
+				publication.setAttribute("pubMedId", pubMedId);
+				if (!StringUtils.isEmpty(pages)){
+					publication.setAttribute("pages", pages);
+				}
+				if (!StringUtils.isEmpty(volume)){
+					publication.setAttribute("volume", volume);
+				}
+				if (!StringUtils.isEmpty(issue)){
+					publication.setAttribute("issue", issue);
+				}
+				if (!StringUtils.isEmpty(journal)){
+					publication.setAttribute("journal", journal);
+				}
+				store(publication);
+				i++;
+			}
+		}
+		System.out.println(String.format("%d publication objects were created.",i));
+		System.out.println(String.format("%d author objects were created.",numAuthor));
+	}
+	
+	private int numAuthor = 0;
+	private Map<String, String> authorMap = new HashMap<String, String>();
+	private String getAuthor(String name) throws ObjectStoreException {
+		String ret = authorMap.get(name);
+		if (ret == null) {
+			Item item = createItem("Author");
+			item.setAttribute("name", name);
+			store(item);
+			ret = item.getIdentifier();
+			authorMap.put(name, ret);
+			numAuthor++;
+		}
+		return ret;
+	}
 
-        SimpleConstraint scYear =
-            new SimpleConstraint(new QueryField(qc, "year"), ConstraintOp.IS_NULL);
-        cs.addConstraint(scYear);
+	/**
+	 * Retrieve the publications to be updated
+	 * 
+	 * @param os
+	 *            The ObjectStore to read from
+	 * @return a List of publications
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	protected List<Publication> getPublications(ObjectStore os) {
+		Query q = new Query();
+		QueryClass qc = new QueryClass(Publication.class);
+		q.addFrom(qc);
+		q.addToSelect(qc);
 
-        SimpleConstraint scFirstAuthor =
-            new SimpleConstraint(new QueryField(qc, "firstAuthor"), ConstraintOp.IS_NULL);
-        cs.addConstraint(scFirstAuthor);
+		ConstraintSet cs = new ConstraintSet(ConstraintOp.OR);
 
-        q.setConstraint(cs);
+		SimpleConstraint scTitle = new SimpleConstraint(new QueryField(qc, "title"),
+				ConstraintOp.IS_NULL);
+		cs.addConstraint(scTitle);
 
-        @SuppressWarnings("unchecked") List<Publication> retval = (List<Publication>) ((List) os
-                .executeSingleton(q));
-        return retval;
-    }
+		SimpleConstraint scYear = new SimpleConstraint(new QueryField(qc, "year"),
+				ConstraintOp.IS_NULL);
+		cs.addConstraint(scYear);
+
+		SimpleConstraint scFirstAuthor = new SimpleConstraint(new QueryField(qc, "firstAuthor"),
+				ConstraintOp.IS_NULL);
+		cs.addConstraint(scFirstAuthor);
+
+		q.setConstraint(cs);
+
+		List<Publication> retval = (List<Publication>) ((List) os.executeSingleton(q));
+		return retval;
+	}
 
 }
