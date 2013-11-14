@@ -64,6 +64,7 @@ public class RetrievePublicationLocalConverter extends DBConverter {
 		List<Publication> publications = getPublications(os);
 
 		System.out.println(publications.size() + " publications found.");
+		LOG.info(publications.size() + " publications found.");
 		
 		Iterator<Publication> iterator = publications.iterator();
 		Set<String> pubmedIds = new HashSet<String>();
@@ -72,13 +73,24 @@ public class RetrievePublicationLocalConverter extends DBConverter {
 			pubmedIds.add(publication.getPubMedId());
 		}
 		System.out.println(pubmedIds.size() + " identifiers found.");
-
-		// a database has been initialised from properties starting with
-		// db.retrieve-publication-local
+		LOG.info(pubmedIds.size() + " identifiers found.");
 
 		Connection connection = getDatabase().getConnection();
 
-		// process data with direct SQL queries on the source database, for example:
+		String queryAuthor = "select p.pubmedid, a.name "
+				+ " from publication as p "
+				+ " join authorspublications as ap on ap.publications= p.id "
+				+ " join author as a on a.id=ap.authors ";
+		Statement stmtAuthor = connection.createStatement();
+		ResultSet resAuthor = stmtAuthor.executeQuery(queryAuthor);
+		Map<String,Set<String>> pubmedAuthorMap = new HashMap<String, Set<String>>();
+		while (resAuthor.next()) {
+			String pubmedId = resAuthor.getString("pubmedid");
+			if (pubmedAuthorMap.get(pubmedId) == null) {
+				pubmedAuthorMap.put(pubmedId, new HashSet<String>());
+			}
+			pubmedAuthorMap.get(pubmedId).add(resAuthor.getString("name"));
+		}
 
 		Statement stmt = connection.createStatement();
 		String query = "select * from publication ";
@@ -104,15 +116,11 @@ public class RetrievePublicationLocalConverter extends DBConverter {
 				publication.setAttribute("firstAuthor", firstAuthor);
 				publication.setAttribute("year", year);
 				
-				String queryAuthor = "select a.name "
-						+ " from publication as p "
-						+ " join authorspublications as ap on ap.publications= p.id "
-						+ " join author as a on a.id=ap.authors "
-						+ " where p.pubmedid = '" + pubMedId + "'";
-				Statement stmtAuthor = connection.createStatement();
-				ResultSet resAuthor = stmtAuthor.executeQuery(queryAuthor);
-				while (resAuthor.next()) {
-					publication.addToCollection("authors", getAuthor(resAuthor.getString("name")));
+				Set<String> authorSet = pubmedAuthorMap.get(pubMedId);
+				if (authorSet != null) {
+					for (String name : authorSet) {
+						publication.addToCollection("authors", getAuthor(name));
+					}
 				}
 
 				publication.setAttribute("pubMedId", pubMedId);
@@ -134,6 +142,8 @@ public class RetrievePublicationLocalConverter extends DBConverter {
 		}
 		System.out.println(String.format("%d publication objects were created.",i));
 		System.out.println(String.format("%d author objects were created.",numAuthor));
+		LOG.info(String.format("%d publication objects were created.",i));
+		LOG.info(String.format("%d author objects were created.",numAuthor));
 	}
 	
 	private int numAuthor = 0;
