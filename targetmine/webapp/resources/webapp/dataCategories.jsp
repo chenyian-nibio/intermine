@@ -283,11 +283,8 @@
                 model: {
                     name: "genomic"
                 },
-                select: ["DataSet.category", "DataSet.name", "DataSet.version", "DataSet.dateType", "DataSet.date", "DataSet.description"],
-                where: [ {  path:"DataSet.category",
-                			op:"IS NOT NULL",
-                			code:"A",
-                			value:"IS NOT NULL" } ]
+                select: ["DataSet.category", "DataSet.name", "DataSet.version", "DataSet.dateType", "DataSet.date", "DataSet.description"]
+
             };
             service = new intermine.Service({
                 root: "${WEB_PROPERTIES['project.sitePrefix']}/service/",
