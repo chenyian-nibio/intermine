@@ -721,6 +721,20 @@
                                        genes.doAnnotations.ontologyTerm.parents.identifier,genes.doAnnotations.ontologyTerm.parents.name"
                                  externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/"/>
 
+      <enrichmentwidgetdisplayer id="protein_interpro_enrichment"
+                                 title="InterPro domain Enrichment"
+                                 description="Protein domains enriched for proteins in this list."
+                                 label="Protein Domain"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="proteinDomainRegions.proteinDomain.name"
+                                 enrichIdentifier="proteinDomainRegions.proteinDomain.primaryIdentifier"
+                                 constraints="organism.name=[list]"
+                                 typeClass="Protein"
+                                 views="primaryAccession, name, organism.name, proteinDomainRegions.proteinDomain.primaryIdentifier, 
+                                        proteinDomainRegions.proteinDomain.name"
+                                 externalLink="http://www.ebi.ac.uk/interpro/entry/"/>
+
       <enrichmentwidgetdisplayer id="protein_cath_enrichment"
                                  title="CATH classification Enrichment"
                                  description="Structural domains enriched for proteins in this list."
@@ -749,6 +763,20 @@
                                  typeClass="Protein"
                                  views="primaryAccession, name, organism.name, compounds.compound.identifier, compounds.compound.name"
                                  />
+
+      <enrichmentwidgetdisplayer id="gene_interpro_enrichment"
+                                 title="InterPro domain Enrichment"
+                                 description="Protein domains enriched for genes in this list."
+                                 label="Protein Domain"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="proteins.proteinDomainRegions.proteinDomain.name"
+                                 enrichIdentifier="proteins.proteinDomainRegions.proteinDomain.primaryIdentifier"
+                                 constraints="organism.name=[list]"
+                                 typeClass="Gene"
+                                 views="primaryIdentifier, symbol, organism.name, proteins.proteinDomainRegions.proteinDomain.primaryIdentifier, 
+                                        proteins.proteinDomainRegions.proteinDomain.name"
+                                 externalLink="http://www.ebi.ac.uk/interpro/entry/"/>
 
       <enrichmentwidgetdisplayer id="gene_cath_enrichment"
                                  title="CATH classification Enrichment"
