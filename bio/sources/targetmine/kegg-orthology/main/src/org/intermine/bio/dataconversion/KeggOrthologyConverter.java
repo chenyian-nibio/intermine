@@ -211,6 +211,7 @@ public class KeggOrthologyConverter extends FileConverter {
 		if(!m_oGeneMap.containsKey(strGeneId)) {
 			
 			Item oGene = createItem("Gene");
+			oGene.setAttribute("primaryIdentifier", strGeneId);
 			oGene.setAttribute("ncbiGeneId", strGeneId);
 			m_oGeneMap.put(strGeneId, oGene);
 			store(oGene);

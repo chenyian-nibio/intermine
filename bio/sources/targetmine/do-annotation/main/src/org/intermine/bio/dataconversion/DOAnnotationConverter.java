@@ -118,6 +118,7 @@ public class DOAnnotationConverter extends BioFileConverter {
 		if (!m_oGeneMap.containsKey(ncbiGeneId)) {
 
 			Item oGene = createItem("Gene");
+			oGene.setAttribute("primaryIdentifier", ncbiGeneId);
 			oGene.setAttribute("ncbiGeneId", ncbiGeneId);
 			m_oGeneMap.put(ncbiGeneId, oGene);
 

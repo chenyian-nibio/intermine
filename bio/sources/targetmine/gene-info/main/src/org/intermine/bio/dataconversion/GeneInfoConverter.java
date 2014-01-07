@@ -167,7 +167,7 @@ public class GeneInfoConverter extends BioFileConverter {
 			}
 
 			Item gene = createItem("Gene");
-			// 2013/8/1 set NVBI gene id as primaryIdentifier
+			// 2013/8/1 set NCBI gene id as primaryIdentifier
 			gene.setAttribute("primaryIdentifier", geneId);
 			gene.setAttribute("ncbiGeneId", geneId);
 			gene.setAttribute("name", name);

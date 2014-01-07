@@ -4,10 +4,13 @@
 	<classpathentry kind="src" path="targetmine/webapp/src"/>
 	<classpathentry kind="src" path="bio/sources/biogrid/main/src"/>
 	<classpathentry kind="src" path="bio/sources/interpro/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/affy-probe-annot/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/amadeus/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/biopax3/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/cath-name/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/chebi-db/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/chembl-db/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/dataset-info/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/do-annotation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugbank/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugebility/main/src"/>
@@ -19,14 +22,20 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/gene-pubmed/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/gene-set/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/gene3d/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/go-goslim-annotation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/gwas/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/irefindex/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/ligand_expo/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/mirbase/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/mirbase-genome/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/mirtarbase/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/metazoan/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/nci-pathway/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/omim-gene/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/oreganno/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/organism/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pdbchain-organism/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/pdb-chaintype/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pdb_ext/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/ppiview/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein-analysis/main/src"/>
@@ -41,6 +50,8 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/tm-kegg-pathway/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/tm-stitch/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/tm-uniprot/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/wwpdb/main/src"/>
+	<classpathentry kind="src" path="bio/sources/update-publications/main/src"/>
 	<classpathentry kind="src" path="bio/core/main/src"/>
 	<classpathentry kind="src" path="bio/postprocess/main/src"/>
 	<classpathentry kind="src" path="bio/tools/main/src"/>
@@ -58,19 +69,6 @@
 	<classpathentry kind="src" path="intermine/integrate/model/fulldata/build/gen/src"/>
 	<classpathentry kind="src" path="intermine/api/model/userprofile/build/gen/src"/>
 	<classpathentry kind="src" path="intermine/pathquery/main/build/gen/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/mirbase/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/mirbase-genome/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/mirtarbase/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/affy-probe-annot/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/amadeus/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/oreganno/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/wwpdb/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/dataset-info/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/network-analysis/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/pdb-chaintype/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/goslim-annotation/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/go-goslim-annotation/main/src"/>
-	<classpathentry kind="src" path="bio/sources/update-publications/main/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/bbop.jar"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/jakarta-regexp-1.4.jar"/>

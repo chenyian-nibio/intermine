@@ -86,6 +86,7 @@ public class GenePubmedConverter extends FileConverter {
 		// create Genes and Publications
 		for (String geneId : genePubmedMap.keySet()) {
 			Item gene = createItem("Gene");
+			gene.setAttribute("primaryIdentifier", geneId);
 			gene.setAttribute("ncbiGeneId", geneId);
 			gene.setCollection("publications", new ArrayList<String>(genePubmedMap.get(geneId)));
 			store(gene);

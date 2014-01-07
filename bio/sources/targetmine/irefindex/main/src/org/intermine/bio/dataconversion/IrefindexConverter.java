@@ -262,6 +262,7 @@ public class IrefindexConverter extends BioFileConverter {
 		String taxonId = taxonField;
 		if (itemId == null) {
 			Item gene = createItem("Gene");
+			gene.setAttribute("primaryIdentifier", geneId);
 			gene.setAttribute("ncbiGeneId", geneId);
 			if (!taxonField.equals("-")) {
 				taxonId = taxonField.substring(6, taxonField.indexOf("("));

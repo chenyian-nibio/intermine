@@ -107,6 +107,7 @@ public class AmadeusConverter extends BioFileConverter {
 		String ret = geneMap.get(ncbiGeneId);
 		if (ret == null) {
 			Item item = createItem("Gene");
+			item.setAttribute("primaryIdentifier", ncbiGeneId);
 			item.setAttribute("ncbiGeneId", ncbiGeneId);
 			store(item);
 			ret = item.getIdentifier();

@@ -140,6 +140,7 @@ public class TfactorConverter extends FileConverter {
 			return geneIdMap.get(ncbiGeneId);
 		} else {
 			Item gene = createItem("Gene");
+			gene.setAttribute("primaryIdentifier", ncbiGeneId);
 			gene.setAttribute("ncbiGeneId", ncbiGeneId);
 			geneIdMap.put(ncbiGeneId, gene);
 			return gene;
