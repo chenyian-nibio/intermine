@@ -108,9 +108,13 @@ public class ChebiDbConverter extends BioDBConverter {
 			}
 
 			Item item = createItem("ChebiCompound");
-			item.setAttribute("identifier", String.format("CHEBI: %s", chebiId));
+			item.setAttribute("primaryIdentifier", String.format("CHEBI: %s", chebiId));
+			item.setAttribute("secondaryIdentifier", chebiId);
 			item.setAttribute("chebiId", chebiId);
 			item.setAttribute("inchiKey", inchiKey);
+			
+			setSynonyms(item, inchiKey);
+			
 			item.setAttribute("name", name);
 			if (casRegMap.get(chebiId) != null) {
 				item.setAttribute("casRegistryNumber", casRegMap.get(chebiId));
@@ -156,4 +160,12 @@ public class ChebiDbConverter extends BioDBConverter {
 	public String getDataSetTitle(int taxonId) {
 		return DATASET_TITLE;
 	}
+	
+	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
+		Item syn = createItem("Synonym");
+		syn.setAttribute("value", value);
+		syn.setReference("subject", subject);
+		store(syn);
+	}
+
 }

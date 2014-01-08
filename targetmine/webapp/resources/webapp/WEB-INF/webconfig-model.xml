@@ -235,7 +235,7 @@
 
   <class className="org.intermine.model.bio.Compound">
     <fields>
-      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="primaryIdentifier"/>
       <fieldconfig fieldExpr="name"/>
     </fields>
   </class>
@@ -328,7 +328,7 @@
   <class className="org.intermine.model.bio.CompoundProteinInteraction">
     <fields>
       <fieldconfig fieldExpr="protein.primaryAccession"/>
-      <fieldconfig fieldExpr="compound.identifier" />
+      <fieldconfig fieldExpr="compound.primaryIdentifier" />
       <fieldconfig fieldExpr="compound.name" />
       <fieldconfig fieldExpr="dataSet.name" />
     </fields>
@@ -580,7 +580,7 @@
                                  description="Pathways enriched for genes in this list - data from KEGG, Reactome and NCI"
                                  label="Pathways"
                                  filterLabel="DataSet"
-                                 filters="All,KEGG pathways data set,Reactome data set,NCI-Nature data set"
+                                 filters="All,KEGG pathways data set,Reactome data set,NCI Pathway Interaction Database"
                                  startClass="Gene"
                                  startClassDisplay="symbol"
                                  enrich="pathways.name"
@@ -754,14 +754,14 @@
                                  description="Compound enriched for proteins in this list."
                                  label="Compounds"
                                  filterLabel="DataSet"
-                                 filters="DrugBank,ChEMBL,STITCH,Ligand Expo"
+                                 filters="All,DrugBank,ChEMBL,STITCH,Ligand Expo"
                                  startClass="Protein"
                                  startClassDisplay="primaryIdentifier"
                                  enrich="compounds.compound.name"
-                                 enrichIdentifier="compounds.compound.identifier"
+                                 enrichIdentifier="compounds.compound.primaryIdentifier"
                                  constraints="compounds.dataSet.name=[DataSet], organism.name=[list]"
                                  typeClass="Protein"
-                                 views="primaryAccession, name, organism.name, compounds.compound.identifier, compounds.compound.name"
+                                 views="primaryAccession, name, organism.name, compounds.compound.primaryIdentifier, compounds.compound.name"
                                  />
 
       <enrichmentwidgetdisplayer id="gene_interpro_enrichment"
@@ -797,14 +797,14 @@
                                  description="Compound enriched for genes in this list."
                                  label="Compounds"
                                  filterLabel="DataSet"
-                                 filters="DrugBank,ChEMBL,STITCH,Ligand Expo"
+                                 filters="All,DrugBank,ChEMBL,STITCH,Ligand Expo"
                                  startClass="Gene"
                                  startClassDisplay="symbol"
                                  enrich="proteins.compounds.compound.name"
-                                 enrichIdentifier="proteins.compounds.compound.identifier"
+                                 enrichIdentifier="proteins.compounds.compound.primaryIdentifier"
                                  constraints="proteins.compounds.dataSet.name=[DataSet], organism.name=[list]"
                                  typeClass="Gene"
-                                 views="primaryIdentifier, symbol, organism.name, proteins.compounds.compound.identifier, proteins.compounds.compound.name"
+                                 views="primaryIdentifier, symbol, organism.name, proteins.compounds.compound.primaryIdentifier, proteins.compounds.compound.name"
                                  />
 
       <enrichmentwidgetdisplayer id="pathway_gene_enrichment"

@@ -80,7 +80,8 @@ public class DrugBankXmlConverter extends BioFileConverter {
 			Item drugItem = createItem("DrugCompound");
 			String drugBankId = drug.getFirstChildElement("drugbank-id", NAMESPACE_URI).getValue();
 			drugItem.setAttribute("drugBankId", drugBankId);
-			drugItem.setAttribute("identifier", String.format("DrugBank: %s", drugBankId));
+			drugItem.setAttribute("primaryIdentifier", String.format("DrugBank: %s", drugBankId));
+			drugItem.setAttribute("secondaryIdentifier", drugBankId);
 			String name = drug.getFirstChildElement("name", NAMESPACE_URI).getValue();
 			drugItem.setAttribute("name", name);
 			drugItem.setAttribute("genericName", name);
@@ -107,6 +108,10 @@ public class DrugBankXmlConverter extends BioFileConverter {
 						drugItem.setReference(
 								"compoundGroup",
 								getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
+
+						// assign inchikey as synonym
+						setSynonyms(drugItem, inchiKey);
+
 					}
 				}
 			}
@@ -160,20 +165,14 @@ public class DrugBankXmlConverter extends BioFileConverter {
 					"brand", NAMESPACE_URI);
 			for (int j = 0; j < brands.size(); j++) {
 				String brandName = brands.get(j).getValue();
-				Item cs = createItem("CompoundSynonym");
-				cs.setAttribute("value", brandName);
-				cs.setReference("compound", drugItem);
-				store(cs);
+				setSynonyms(drugItem, brandName);
 			}
 			// get synonyms
 			Elements synonyms = drug.getFirstChildElement("synonyms", NAMESPACE_URI)
 					.getChildElements("synonym", NAMESPACE_URI);
 			for (int j = 0; j < synonyms.size(); j++) {
-				String brandName = synonyms.get(j).getValue();
-				Item cs = createItem("CompoundSynonym");
-				cs.setAttribute("value", brandName);
-				cs.setReference("compound", drugItem);
-				store(cs);
+				String synonym = synonyms.get(j).getValue();
+				setSynonyms(drugItem, synonym);
 			}
 
 			drugItem.addToCollection("drugTypes", getDrugType(drug.getAttribute("type").getValue()));
@@ -264,6 +263,13 @@ public class DrugBankXmlConverter extends BioFileConverter {
 			compoundGroupMap.put(inchiKey, ret);
 		}
 		return ret;
+	}
+
+	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
+		Item syn = createItem("Synonym");
+		syn.setAttribute("value", value);
+		syn.setReference("subject", subject);
+		store(syn);
 	}
 
 }

@@ -26,25 +26,16 @@
 		<attribute name="name" type="java.lang.String"/>
     </class>
 
-    <class name="CompoundSynonym" is-interface="true">
-        <attribute name="value" type="java.lang.String"/>
-        <reference name="compound" referenced-type="Compound" reverse-reference="synonyms"/>
-        <reference name="dataSet" referenced-type="DataSet"/>
-    </class>
-
 	<class name="ChemblCompound" extends="Compound" is-interface="true">
 		<attribute name="chemblId" type="java.lang.String"/>
 		<collection name="drugTypes" referenced-type="DrugType"/>
    </class>
 
-    <class name="Compound" is-interface="true">
-		<attribute name="identifier" type="java.lang.String"/>
+    <class name="Compound" extends="BioEntity" is-interface="true">
 		<attribute name="inchiKey" type="java.lang.String"/>
 		<attribute name="casRegistryNumber" type="java.lang.String"/>
-		<attribute name="name" type="java.lang.String"/>
 		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
 		<collection name="targetProteins" referenced-type="CompoundProteinInteraction" reverse-reference="compound"/>
-		<collection name="synonyms" referenced-type="CompoundSynonym" reverse-reference="compound"/>
     </class>
 
     <class name="CompoundGroup" is-interface="true">

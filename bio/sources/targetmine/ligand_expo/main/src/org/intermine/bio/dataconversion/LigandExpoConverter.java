@@ -77,6 +77,8 @@ public class LigandExpoConverter extends BioFileConverter {
 			String inchiKey = inchiKeyMap.get(cols[0]);
 			if (inchiKey != null) {
 				het.setAttribute("inchiKey", inchiKey);
+				
+				setSynonyms(het, inchiKey);
 
 				String compoundGroupId = inchiKey.substring(0, inchiKey.indexOf("-"));
 				if (compoundGroupId.length() == 14) {
@@ -85,7 +87,8 @@ public class LigandExpoConverter extends BioFileConverter {
 					LOG.info(String.format("Bad InChIKey value: %s, %s .", cols[1], cols[0]));
 				}
 			}
-			het.setAttribute("identifier", String.format("PDBCompound: %s", cols[0]));
+			het.setAttribute("primaryIdentifier", String.format("PDBCompound: %s", cols[0]));
+			het.setAttribute("secondaryIdentifier", cols[0]);
 
 			String allPdbId = cols[1];
 			StringUtils.chomp(allPdbId);
@@ -165,6 +168,13 @@ public class LigandExpoConverter extends BioFileConverter {
 			String inchiKey = cols[0];
 			inchiKeyMap.put(cols[1], inchiKey);
 		}
+	}
+	
+	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
+		Item syn = createItem("Synonym");
+		syn.setAttribute("value", value);
+		syn.setReference("subject", subject);
+		store(syn);
 	}
 
 }

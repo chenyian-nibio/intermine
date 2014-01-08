@@ -148,8 +148,13 @@ public class ChemblDbConverter extends BioDBConverter {
 				if (compoundRef == null) {
 					Item compound = createItem("ChemblCompound");
 					compound.setAttribute("chemblId", chemblId);
-					compound.setAttribute("identifier", String.format("ChEMBL: %s", chemblId));
+					compound.setAttribute("primaryIdentifier", String.format("ChEMBL: %s", chemblId));
+					compound.setAttribute("secondaryIdentifier", chemblId);
 					compound.setAttribute("inchiKey", inchiKey);
+
+					// assign inchikey as synonym
+					setSynonyms(compound, inchiKey);
+
 					String name = nameMap.get(molId);
 					if (name == null) {
 						name = chemblId;
@@ -168,10 +173,7 @@ public class ChemblDbConverter extends BioDBConverter {
 					Set<String> synonyms = synonymMap.get(molId);
 					if (synonyms != null) {
 						for (String s : synonyms) {
-							Item bn = createItem("CompoundSynonym");
-							bn.setAttribute("value", s);
-							bn.setReference("compound", compound);
-							store(bn);
+							setSynonyms(compound, s);
 						}
 					}
 					
@@ -180,10 +182,7 @@ public class ChemblDbConverter extends BioDBConverter {
 						compound.addToCollection("drugTypes", getDrugType("approved"));
 						for (String tn : tradeNames) {
 							if (!synonyms.contains(tn)) {
-								Item bn = createItem("CompoundSynonym");
-								bn.setAttribute("value", tn);
-								bn.setReference("compound", compound);
-								store(bn);
+								setSynonyms(compound, tn);
 							}
 						}
 					}
@@ -265,5 +264,12 @@ public class ChemblDbConverter extends BioDBConverter {
 	@Override
 	public String getDataSetTitle(int taxonId) {
 		return DATASET_TITLE;
+	}
+
+	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
+		Item syn = createItem("Synonym");
+		syn.setAttribute("value", value);
+		syn.setReference("subject", subject);
+		store(syn);
 	}
 }
