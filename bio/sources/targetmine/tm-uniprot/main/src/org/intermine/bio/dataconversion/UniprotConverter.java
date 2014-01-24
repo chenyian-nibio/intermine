@@ -919,6 +919,8 @@ public class UniprotConverter extends BioDirectoryConverter
                         LOG.error("couldn't process GO annotation for gene - " + identifier);
                     }
                 }
+                // TODO to be verified
+                gene.setAttribute("ncbiGeneId", identifier);
                 geneRefId = gene.getIdentifier();
                 genes.put(identifier, geneRefId);
                 protein.addToCollection("genes", geneRefId);
