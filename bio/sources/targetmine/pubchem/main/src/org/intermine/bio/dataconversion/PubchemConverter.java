@@ -29,8 +29,6 @@ import org.intermine.xml.full.Item;
 /**
  * 
  * @author chenyian
- * 2012/04/23 modified
- * 2012/08/13 modified
  */
 public class PubchemConverter extends BioFileConverter {
 	private static final Logger LOG = Logger.getLogger(PubchemConverter.class);
@@ -93,7 +91,7 @@ public class PubchemConverter extends BioFileConverter {
 				continue;
 			}
 			Item item = createItem("PubChemCompound");
-			item.setAttribute("primaryIdentifier", String.format("PubChem: %s", cid));
+			item.setAttribute("primaryIdentifier", String.format("PubChem:%s", cid));
 			item.setAttribute("secondaryIdentifier", cid);
 			item.setAttribute("inchiKey", inchiKey);
 			
@@ -103,8 +101,14 @@ public class PubchemConverter extends BioFileConverter {
 			String name = cidNameMap.get(cid);
 			// if name is not available, use identifier instead; should not happen.
 			if (name == null) {
-				name = String.format("PubChem: %s", cid);
+				name = String.format("CID %s", cid);
 				LOG.error(String.format("Compound name not found. cid: %s", cid));
+			}
+			// if the length of the name is greater than 40 characters,
+			// use id instead and save the long name as the synonym
+			if (name.length() > 40) {
+				setSynonyms(item, name);
+				name = String.format("CID %s", cid);
 			}
 			item.setAttribute("name", name);
 			item.setReference("compoundGroup", getCompoundGroup(compoundGroupId, name));
@@ -122,11 +126,8 @@ public class PubchemConverter extends BioFileConverter {
 			compoundGroupMap.put(inchiKey, ret);
 		}
 		// randomly pick one name
-		if (nameMap.get(inchiKey) == null) {
-			// actually, this should not happen.
-			if (!name.startsWith("PubChem:")) {
-				nameMap.put(inchiKey, name);
-			}
+		if (nameMap.get(inchiKey) == null || !name.startsWith("CID")) {
+			nameMap.put(inchiKey, name);
 			ret.setAttribute("name", name);
 		}
 		return ret;

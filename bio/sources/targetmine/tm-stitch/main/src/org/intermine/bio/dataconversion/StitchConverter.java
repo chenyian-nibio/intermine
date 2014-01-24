@@ -1,6 +1,8 @@
 package org.intermine.bio.dataconversion;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,11 +37,11 @@ import org.intermine.xml.full.Item;
  * 
  * @author chenyian
  * 
- *         refined the compound model on 2012/8/10
  */
 public class StitchConverter extends BioFileConverter {
 	// Threshold of evidence score (experimental) , 700 means 0.7
-	private static int THRESHOLD = 700;
+	// 2014/1/20 Philip request to lower the threshold to 400
+	private static int THRESHOLD = 400;
 
 	private static final Logger LOG = Logger.getLogger(StitchConverter.class);
 	//
@@ -91,6 +93,13 @@ public class StitchConverter extends BioFileConverter {
 		if (primaryIdMap.isEmpty()) {
 			throw new RuntimeException(
 					"No primary id mapping found. Forget to load uniprot before loading stitch?");
+		}
+
+		if (cidNameMap.isEmpty()) {
+			readCompoundName();
+		}
+		if (cidInchikeyMap.isEmpty()) {
+			readCompoundInchikey();
 		}
 
 		Iterator<String[]> iterator = FormattedTextParser
@@ -154,9 +163,27 @@ public class StitchConverter extends BioFileConverter {
 		if (ret == null) {
 			Item item = createItem("PubChemCompound");
 			item.setAttribute("pubChemCid", cid);
-			item.setAttribute("primaryIdentifier", String.format("PubChem: %s", cid));
+			item.setAttribute("primaryIdentifier", String.format("PubChem:%s", cid));
 			item.setAttribute("secondaryIdentifier", cid);
-			item.setAttribute("name", String.format("PubChem: %s", cid));
+			String name = cidNameMap.get(cid);
+			if (name == null) {
+				name = String.format("CID %s", cid);
+			}
+			// if the length of the name is greater than 40 characters,
+			// use id instead and save the long name as the synonym
+			if (name.length() > 40) {
+				setSynonyms(item, name);
+				name = String.format("CID %s", cid);
+			}
+			item.setAttribute("name", name);
+
+			String inchiKey = cidInchikeyMap.get(cid);
+			if (inchiKey != null) {
+				item.setAttribute("inchiKey", inchiKey);
+				setSynonyms(item, inchiKey);
+				item.setReference("compoundGroup",
+						getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
+			}
 
 			store(item);
 			ret = item.getIdentifier();
@@ -200,6 +227,72 @@ public class StitchConverter extends BioFileConverter {
 			}
 			primaryIdMap.get(rr.get(0)).add(rr.get(1));
 		}
+	}
+
+	private File nameFile;
+
+	public void setNameFile(File file) {
+		this.nameFile = file;
+	}
+
+	private Map<String, String> cidNameMap = new HashMap<String, String>();
+
+	private void readCompoundName() throws Exception {
+		Iterator<String[]> iterator = FormattedTextParser
+				.parseTabDelimitedReader(new BufferedReader(new FileReader(nameFile)));
+		while (iterator.hasNext()) {
+			String[] cols = iterator.next();
+			String cid = cols[0].substring(4).replaceAll("^0*", "");
+			cidNameMap.put(cid, cols[1]);
+		}
+	}
+
+	private File inchikeyFile;
+
+	public void setInchikeyFile(File file) {
+		this.inchikeyFile = file;
+	}
+
+	private Map<String, String> cidInchikeyMap = new HashMap<String, String>();
+
+	private void readCompoundInchikey() throws Exception {
+		Iterator<String[]> iterator = FormattedTextParser
+				.parseTabDelimitedReader(new BufferedReader(new FileReader(inchikeyFile)));
+		while (iterator.hasNext()) {
+			String[] cols = iterator.next();
+			String cid = cols[0].substring(4).replaceAll("^0*", "");
+			cidInchikeyMap.put(cid, cols[1].trim());
+		}
+	}
+
+	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
+		Item syn = createItem("Synonym");
+		syn.setAttribute("value", value);
+		syn.setReference("subject", subject);
+		store(syn);
+	}
+
+	private Map<String, Item> compoundGroupMap = new HashMap<String, Item>();
+	private Map<String, String> nameMap = new HashMap<String, String>();
+
+	private Item getCompoundGroup(String inchiKey, String name) throws ObjectStoreException {
+		Item ret = compoundGroupMap.get(inchiKey);
+		if (ret == null) {
+			ret = createItem("CompoundGroup");
+			ret.setAttribute("identifier", inchiKey);
+			compoundGroupMap.put(inchiKey, ret);
+		}
+		// randomly pick one name
+		if (nameMap.get(inchiKey) == null || !name.startsWith("CID")) {
+			nameMap.put(inchiKey, name);
+			ret.setAttribute("name", name);
+		}
+		return ret;
+	}
+
+	@Override
+	public void close() throws Exception {
+		store(compoundGroupMap.values());
 	}
 
 }
