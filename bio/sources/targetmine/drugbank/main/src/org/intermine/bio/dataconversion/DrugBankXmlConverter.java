@@ -83,6 +83,12 @@ public class DrugBankXmlConverter extends BioFileConverter {
 			drugItem.setAttribute("primaryIdentifier", String.format("DrugBank: %s", drugBankId));
 			drugItem.setAttribute("secondaryIdentifier", drugBankId);
 			String name = drug.getFirstChildElement("name", NAMESPACE_URI).getValue();
+			// if the length of the name is greater than 40 characters,
+			// use id instead and save the long name as the synonym
+			if (name.length() > 40) {
+				setSynonyms(drugItem, name);
+				name = drugBankId;
+			}
 			drugItem.setAttribute("name", name);
 			drugItem.setAttribute("genericName", name);
 			String casReg = drug.getFirstChildElement("cas-number", NAMESPACE_URI).getValue();

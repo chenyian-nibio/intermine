@@ -108,7 +108,7 @@ public class ChebiDbConverter extends BioDBConverter {
 			}
 
 			Item item = createItem("ChebiCompound");
-			item.setAttribute("primaryIdentifier", String.format("CHEBI: %s", chebiId));
+			item.setAttribute("primaryIdentifier", String.format("CHEBI:%s", chebiId));
 			item.setAttribute("secondaryIdentifier", chebiId);
 			item.setAttribute("chebiId", chebiId);
 			item.setAttribute("inchiKey", inchiKey);

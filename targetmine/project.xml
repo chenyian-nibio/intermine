@@ -182,8 +182,9 @@
 
     <source name="stitch" type="tm-stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
-      <property name="src.data.dir.includes" value="*.detailed.tsv" />
-      <property name="compoundMapFile" value="/data/bio/db/Targetmine/stitch/pubchem_mapping.txt" />
+      <property name="src.data.dir.includes" value="*.detailed.*.tsv" />
+      <property name="nameFile" value="/data/bio/db/Targetmine/stitch/uniq.cid.names" />
+      <property name="inchikeyFile" value="/data/bio/db/Targetmine/stitch/uniq.cid.inchikeys" />
       <property name="osAlias" value="os.production"/>
     </source>
     <source name="pubchem" type="pubchem">
