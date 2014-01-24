@@ -7,7 +7,8 @@
 		<reference name="dataSet" referenced-type="DataSet"/>
     </class>
 	<class name="CompoundProteinInteractionAssay" is-interface="true">
-		<attribute name="ic50" type="java.lang.Float"/>
+		<attribute name="type" type="java.lang.String"/>
+		<attribute name="conc" type="java.lang.Float"/>
 		<reference name="interaction" referenced-type="CompoundProteinInteraction" reverse-reference="assay"/>
 		<reference name="publication" referenced-type="Publication"/>
     </class>

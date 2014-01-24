@@ -74,8 +74,7 @@ public class ChemblDbConverter extends BioDBConverter {
 
 		Statement stmt = connection.createStatement();
 		String queryName = "select distinct cr.molregno, compound_name "
-				+ " from compound_records as cr "
-				+ " where compound_name is not null ";
+				+ " from compound_records as cr " + " where compound_name is not null ";
 		ResultSet resName = stmt.executeQuery(queryName);
 		while (resName.next()) {
 			String molId = String.valueOf(resName.getInt("molregno"));
@@ -117,38 +116,44 @@ public class ChemblDbConverter extends BioDBConverter {
 		}
 
 		String queryInteraction = " select distinct md.molregno, md.chembl_id, md.molecule_type, "
-				+ " act.standard_value, cseq.accession, cseq.tax_id, docs.pubmed_id, "
+				+ " act.standard_type, act.standard_value, cseq.accession, cseq.tax_id, docs.pubmed_id, "
 				+ " cs.standard_inchi_key " + " from activities as act "
 				+ " join molecule_dictionary as md on md.molregno=act.molregno "
 				+ " join assays as ass on ass.assay_id=act.assay_id "
+				+ " join target_dictionary as td on td.tid=ass.tid "
 				+ " join target_components as tc on tc.tid=ass.tid "
 				+ " join component_sequences as cseq on cseq.component_id=tc.component_id "
 				+ " join docs on docs.doc_id=ass.doc_id "
 				+ " join compound_structures as cs on cs.molregno=md.molregno "
-				+ " where standard_type = 'IC50' " + " and standard_units = 'nM' "
-				+ " and curated_by = 'Expert' ";
+				+ " where ass.confidence_score >= 4 " + " and ass.assay_type = 'B' "
+				+ " and td.target_type = 'SINGLE PROTEIN' "
+				+ " and act.standard_type in ('IC50','Kd','Ki') "
+				+ " and act.standard_value < 10000 " + " and act.standard_relation = '=' "
+				+ " and act.standard_units = 'nM' ";
 		ResultSet resInteraction = stmt.executeQuery(queryInteraction);
 		int i = 0;
 		while (resInteraction.next()) {
 			String molId = String.valueOf(resInteraction.getInt("molregno"));
 			String chemblId = resInteraction.getString("chembl_id");
-			String type = resInteraction.getString("molecule_type");
+			String moleculeType = resInteraction.getString("molecule_type");
 			String uniprotId = resInteraction.getString("accession");
 			String pubmedId = String.valueOf(resInteraction.getInt("pubmed_id"));
 			String inchiKey = String.valueOf(resInteraction.getString("standard_inchi_key"));
-			float ic50 = resInteraction.getFloat("standard_value");
-			String intId = uniprotId + "-" +chemblId;
+			String standardType = resInteraction.getString("standard_type");
+			float conc = resInteraction.getFloat("standard_value");
+			String intId = uniprotId + "-" + chemblId;
 			String interactionRef = interactionMap.get(intId);
 			if (interactionRef == null) {
-				
+
 				Item item = createItem("ChemblInteraction");
 				item.setReference("protein", getProtein(uniprotId));
-				
+
 				String compoundRef = compoundMap.get(chemblId);
 				if (compoundRef == null) {
 					Item compound = createItem("ChemblCompound");
 					compound.setAttribute("chemblId", chemblId);
-					compound.setAttribute("primaryIdentifier", String.format("ChEMBL: %s", chemblId));
+					compound.setAttribute("primaryIdentifier",
+							String.format("ChEMBL:%s", chemblId));
 					compound.setAttribute("secondaryIdentifier", chemblId);
 					compound.setAttribute("inchiKey", inchiKey);
 
@@ -159,14 +164,22 @@ public class ChemblDbConverter extends BioDBConverter {
 					if (name == null) {
 						name = chemblId;
 					}
+					// if the length of the name is greater than 40 characters,
+					// use id instead and save the long name as the synonym
+					if (name.length() > 40) {
+						setSynonyms(compound, name);
+						name = chemblId;
+					}
 					compound.setAttribute("name", name);
-					String drugType = drugTypeTranslateMap.get(type);
+
+					String drugType = drugTypeTranslateMap.get(moleculeType);
 					if (!StringUtils.isEmpty(drugType)) {
 						compound.addToCollection("drugTypes", getDrugType(drugType));
 					}
 					String compoundGroupId = inchiKey.substring(0, inchiKey.indexOf("-"));
 					if (compoundGroupId.length() == 14) {
-						compound.setReference("compoundGroup", getCompoundGroup(compoundGroupId, name));
+						compound.setReference("compoundGroup",
+								getCompoundGroup(compoundGroupId, name));
 					} else {
 						LOG.error(String.format("Bad InChIKey value: %s, %s .", chemblId, inchiKey));
 					}
@@ -176,7 +189,7 @@ public class ChemblDbConverter extends BioDBConverter {
 							setSynonyms(compound, s);
 						}
 					}
-					
+
 					Set<String> tradeNames = drugMap.get(molId);
 					if (tradeNames != null) {
 						compound.addToCollection("drugTypes", getDrugType("approved"));
@@ -186,26 +199,27 @@ public class ChemblDbConverter extends BioDBConverter {
 							}
 						}
 					}
-					
+
 					store(compound);
 					compoundRef = compound.getIdentifier();
 					compoundMap.put(chemblId, compoundRef);
 					// LOG.info(chemblId +"; "+inchiKey+"; "+name+"; "+type);
 				}
 				item.setReference("compound", compoundRef);
-				
+
 				store(item);
 				interactionRef = item.getIdentifier();
 				interactionMap.put(intId, interactionRef);
 				i++;
 			}
 			Item assay = createItem("ChemblAssay");
-			assay.setAttribute("ic50", String.valueOf(ic50));
+			assay.setAttribute("type", standardType);
+			assay.setAttribute("conc", String.valueOf(conc));
 			assay.setReference("publication", getPublication(pubmedId));
 			assay.setReference("interaction", interactionRef);
 			store(assay);
 		}
-//		System.out.println(i + "ChEMBL interaction were integrated.");
+		// System.out.println(i + "ChEMBL interaction were integrated.");
 		LOG.info(i + "ChEMBL interaction were integrated.");
 	}
 
