@@ -69,7 +69,7 @@ public class LigandExpoPostProcess extends PostProcessor {
 			interaction.setFieldValue("dataSet", dataSet);
 			try {
 				String primaryAcc = (String) protein.getFieldValue("primaryAccession");
-				String pdbCompoundId = (String) pdbCompound.getFieldValue("identifier");
+				String pdbCompoundId = (String) pdbCompound.getFieldValue("primaryIdentifier");
 				interaction.setFieldValue("identifier", String.format("%s_%s", primaryAcc, pdbCompoundId));
 			} catch (IllegalAccessException e) {
 				throw new RuntimeException(e);

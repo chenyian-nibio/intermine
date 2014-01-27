@@ -499,14 +499,7 @@ public class UniprotConverter extends BioDirectoryConverter
             } else if ("entry".equals(qName)) {
                 try {
                     processCommentEvidence(entry);
-					// chenyian: don't process isoforms
 					processEntry(entry);
-//                    Set<UniprotEntry> isoforms = processEntry(entry);
-//                    if (isoforms != null) {
-//                        for (UniprotEntry isoform : isoforms) {
-//                            processEntry(isoform);
-//                        }
-//                    }
                 } catch (ObjectStoreException e) {
                     throw new SAXException(e);
                 }
@@ -661,7 +654,7 @@ public class UniprotConverter extends BioDirectoryConverter
             for (Map.Entry<Integer, List<String>> e : commentEvidence.entrySet()) {
                 Integer intermineObjectId = e.getKey();
                 List<String> evidenceCodes = e.getValue();
-                List<String> pubRefIds = new ArrayList();
+                List<String> pubRefIds = new ArrayList<String>();
                 for (String code : evidenceCodes) {
                     String pubRefId = uniprotEntry.getPubRefId(code);
                     if (pubRefId != null) {
@@ -926,6 +919,8 @@ public class UniprotConverter extends BioDirectoryConverter
                         LOG.error("couldn't process GO annotation for gene - " + identifier);
                     }
                 }
+                // TODO to be verified
+                gene.setAttribute("ncbiGeneId", identifier);
                 geneRefId = gene.getIdentifier();
                 genes.put(identifier, geneRefId);
                 protein.addToCollection("genes", geneRefId);

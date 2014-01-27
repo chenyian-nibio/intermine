@@ -1,7 +1,10 @@
 package org.intermine.bio.dataconversion;
 
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,8 +80,15 @@ public class DrugBankXmlConverter extends BioFileConverter {
 			Item drugItem = createItem("DrugCompound");
 			String drugBankId = drug.getFirstChildElement("drugbank-id", NAMESPACE_URI).getValue();
 			drugItem.setAttribute("drugBankId", drugBankId);
-			drugItem.setAttribute("identifier", String.format("DrugBank: %s", drugBankId));
+			drugItem.setAttribute("primaryIdentifier", String.format("DrugBank: %s", drugBankId));
+			drugItem.setAttribute("secondaryIdentifier", drugBankId);
 			String name = drug.getFirstChildElement("name", NAMESPACE_URI).getValue();
+			// if the length of the name is greater than 40 characters,
+			// use id instead and save the long name as the synonym
+			if (name.length() > 40) {
+				setSynonyms(drugItem, name);
+				name = drugBankId;
+			}
 			drugItem.setAttribute("name", name);
 			drugItem.setAttribute("genericName", name);
 			String casReg = drug.getFirstChildElement("cas-number", NAMESPACE_URI).getValue();
@@ -104,32 +114,56 @@ public class DrugBankXmlConverter extends BioFileConverter {
 						drugItem.setReference(
 								"compoundGroup",
 								getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
+
+						// assign inchikey as synonym
+						setSynonyms(drugItem, inchiKey);
+
 					}
 				}
 			}
+			// 4 types
+			List<String> proteinTypes = Arrays.asList("target", "enzyme", "transporter", "carrier");
+			for (String proteinType : proteinTypes) {
+				Elements targets = drug.getFirstChildElement(proteinType + "s", NAMESPACE_URI)
+						.getChildElements(proteinType, NAMESPACE_URI);
+				for (int j = 0; j < targets.size(); j++) {
+					Element t = targets.get(j);
 
-			// get target proteins
-			Elements targets = drug.getFirstChildElement("targets", NAMESPACE_URI)
-					.getChildElements("target", NAMESPACE_URI);
-			for (int j = 0; j < targets.size(); j++) {
-				Element t = targets.get(j);
-				String id = t.getAttribute("partner").getValue();
-				if (idMap.get(id) != null) {
-					Item interaction = createItem("DrugBankInteraction");
-					interaction.setReference("protein", getProtein(idMap.get(id)));
-					interaction.setReference("compound", drugItem);
-					// interaction.setReference("dataSet", dat);
-					// get reference (pubmed id)
-					String ref = t.getFirstChildElement("references", NAMESPACE_URI).getValue();
-					Pattern pattern = Pattern
-							.compile("\"Pubmed\":http://www.ncbi.nlm.nih.gov/pubmed/(\\d+)");
-					Matcher matcher = pattern.matcher(ref);
-					while (matcher.find()) {
-						interaction.addToCollection("publications",
-								getPublication(matcher.group(1)));
+					// retrieve actions
+					Elements actions = t.getFirstChildElement("actions", NAMESPACE_URI)
+							.getChildElements("action", NAMESPACE_URI);
+					List<String> actionValues = new ArrayList<String>();
+					for (int k = 0; k < actions.size(); k++) {
+						String action = actions.get(k).getValue();
+						actionValues.add(action);
 					}
-					store(interaction);
+
+					String id = t.getAttribute("partner").getValue();
+					if (idMap.get(id) != null) {
+						Item interaction = createItem("DrugBankInteraction");
+						interaction.setReference("protein", getProtein(idMap.get(id)));
+						interaction.setReference("compound", drugItem);
+						String ref = t.getFirstChildElement("references", NAMESPACE_URI).getValue();
+						Pattern pattern = Pattern
+								.compile("\"Pubmed\":http://www.ncbi.nlm.nih.gov/pubmed/(\\d+)");
+						Matcher matcher = pattern.matcher(ref);
+						while (matcher.find()) {
+							interaction.addToCollection("publications",
+									getPublication(matcher.group(1)));
+						}
+						if (actionValues.size() > 0) {
+							for (String action : actionValues) {
+								interaction.addToCollection("actions", getDrugAction(action.trim()
+										.toLowerCase()));
+							}
+						} else {
+							interaction.addToCollection("actions", getDrugAction("unknown"));
+						}
+						interaction.setAttribute("proteinType", proteinType);
+						store(interaction);
+					}
 				}
+
 			}
 
 			// get brand names
@@ -137,20 +171,14 @@ public class DrugBankXmlConverter extends BioFileConverter {
 					"brand", NAMESPACE_URI);
 			for (int j = 0; j < brands.size(); j++) {
 				String brandName = brands.get(j).getValue();
-				Item cs = createItem("CompoundSynonym");
-				cs.setAttribute("value", brandName);
-				cs.setReference("compound", drugItem);
-				store(cs);
+				setSynonyms(drugItem, brandName);
 			}
 			// get synonyms
-			Elements synonyms = drug.getFirstChildElement("synonyms", NAMESPACE_URI).getChildElements(
-					"synonym", NAMESPACE_URI);
+			Elements synonyms = drug.getFirstChildElement("synonyms", NAMESPACE_URI)
+					.getChildElements("synonym", NAMESPACE_URI);
 			for (int j = 0; j < synonyms.size(); j++) {
-				String brandName = synonyms.get(j).getValue();
-				Item cs = createItem("CompoundSynonym");
-				cs.setAttribute("value", brandName);
-				cs.setReference("compound", drugItem);
-				store(cs);
+				String synonym = synonyms.get(j).getValue();
+				setSynonyms(drugItem, synonym);
 			}
 
 			drugItem.addToCollection("drugTypes", getDrugType(drug.getAttribute("type").getValue()));
@@ -178,6 +206,20 @@ public class DrugBankXmlConverter extends BioFileConverter {
 
 		}
 
+	}
+
+	private Map<String, String> actionMap = new HashMap<String, String>();
+
+	private String getDrugAction(String action) throws ObjectStoreException {
+		String ret = actionMap.get(action);
+		if (ret == null) {
+			Item item = createItem("DrugAction");
+			item.setAttribute("type", action);
+			store(item);
+			ret = item.getIdentifier();
+			actionMap.put(action, ret);
+		}
+		return ret;
 	}
 
 	private String getProtein(String uniprotId) throws ObjectStoreException {
@@ -227,6 +269,13 @@ public class DrugBankXmlConverter extends BioFileConverter {
 			compoundGroupMap.put(inchiKey, ret);
 		}
 		return ret;
+	}
+
+	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
+		Item syn = createItem("Synonym");
+		syn.setAttribute("value", value);
+		syn.setReference("subject", subject);
+		store(syn);
 	}
 
 }

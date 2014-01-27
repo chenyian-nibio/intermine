@@ -10,11 +10,9 @@
      <!-- To be extended -->
    </class>
 
-    <class name="Compound" is-interface="true">
-		<attribute name="identifier" type="java.lang.String"/>
+    <class name="Compound" extends="BioEntity" is-interface="true">
 		<attribute name="inchiKey" type="java.lang.String"/>
 		<attribute name="casRegistryNumber" type="java.lang.String"/>
-		<attribute name="name" type="java.lang.String"/>
 		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
 		<collection name="targetProteins" referenced-type="CompoundProteinInteraction" reverse-reference="compound"/>
     </class>

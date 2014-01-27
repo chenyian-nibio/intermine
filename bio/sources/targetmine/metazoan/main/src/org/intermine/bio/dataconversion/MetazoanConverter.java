@@ -148,6 +148,7 @@ public class MetazoanConverter extends DirectoryConverter {
 			return geneIdMap.get(ncbiGeneId);
 		} else {
 			Item gene = createItem("Gene");
+			gene.setAttribute("primaryIdentifier", ncbiGeneId);
 			gene.setAttribute("ncbiGeneId", ncbiGeneId);
 			geneIdMap.put(ncbiGeneId, gene);
 			return gene;

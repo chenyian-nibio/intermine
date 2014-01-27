@@ -39,7 +39,7 @@
 	<link rel="stylesheet" type="text/css" href="/targetmine/themes/grey/theme.css"/>
 
 	<link href="http://cdn.intermine.org/css/bootstrap/2.0.3-prefixed/css/bootstrap.min.css" rel="stylesheet" />
-	<link href="http://cdn.intermine.org/js/intermine/im-tables/latest/tables.css" rel="stylesheet" />
+	<link href="/targetmine/js/etc/tables.css" rel="stylesheet" />
 	<link href="http://cdn.intermine.org/css/jquery-ui/1.8.19/jquery-ui-1.8.19.custom.css" rel="stylesheet" />
 	<link href="http://cdn.intermine.org/css/google-code-prettify/latest/prettify.css" rel="stylesheet" />
 	<link href="http://cdn.intermine.org/css/font-awesome/css/font-awesome.css" rel="stylesheet" />
@@ -284,6 +284,7 @@
                     name: "genomic"
                 },
                 select: ["DataSet.category", "DataSet.name", "DataSet.version", "DataSet.dateType", "DataSet.date", "DataSet.description"]
+
             };
             service = new intermine.Service({
                 root: "${WEB_PROPERTIES['project.sitePrefix']}/service/",
@@ -322,7 +323,6 @@
 	        <p>Powered by</p>
 	        <a target="new" href="http://intermine.org" title="InterMine">
 	            <img src="images/icons/intermine-footer-logo.png" alt="InterMine logo" />
-			    &nbsp;<span style="font-style: italic; color: #666">1.1</span>
 	        </a>
 	    </div>
 	</div>

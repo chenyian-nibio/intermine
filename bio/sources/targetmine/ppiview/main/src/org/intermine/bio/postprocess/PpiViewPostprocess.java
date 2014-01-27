@@ -102,8 +102,8 @@ public class PpiViewPostprocess extends PostProcessor {
 			// .getDbName(), thisSource.getIdentifier()));
 
 			try {
-				String thisGeneId = thisGene.getFieldValue("ncbiGeneId").toString();
-				String partGeneId = partGene.getFieldValue("ncbiGeneId").toString();
+				String thisGeneId = thisGene.getFieldValue("primaryIdentifier").toString();
+				String partGeneId = partGene.getFieldValue("primaryIdentifier").toString();
 				
 				if (thisGeneId == null || partGeneId == null) {
 					continue;

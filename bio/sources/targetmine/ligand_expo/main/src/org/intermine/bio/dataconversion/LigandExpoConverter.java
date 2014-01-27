@@ -71,12 +71,22 @@ public class LigandExpoConverter extends BioFileConverter {
 			Item het = createItem("PDBCompound");
 			het.setAttribute("hetId", cols[0]);
 			String name = hetNameMap.get(cols[0]);
-			if (name != null && !name.equals("")) {
-				het.setAttribute("name", name);
+			if (name == null || name.equals("")) {
+				name = String.format("HETID %s", cols[0]);
 			}
+			// if the length of the name is greater than 40 characters,
+			// use id instead and save the long name as the synonym
+			if (name.length() > 40) {
+				setSynonyms(het, name);
+				name = String.format("HETID %s", cols[0]);
+			}
+			het.setAttribute("name", name);
+
 			String inchiKey = inchiKeyMap.get(cols[0]);
 			if (inchiKey != null) {
 				het.setAttribute("inchiKey", inchiKey);
+				
+				setSynonyms(het, inchiKey);
 
 				String compoundGroupId = inchiKey.substring(0, inchiKey.indexOf("-"));
 				if (compoundGroupId.length() == 14) {
@@ -85,7 +95,8 @@ public class LigandExpoConverter extends BioFileConverter {
 					LOG.info(String.format("Bad InChIKey value: %s, %s .", cols[1], cols[0]));
 				}
 			}
-			het.setAttribute("identifier", String.format("PDBCompound: %s", cols[0]));
+			het.setAttribute("primaryIdentifier", String.format("PDBCompound:%s", cols[0]));
+			het.setAttribute("secondaryIdentifier", cols[0]);
 
 			String allPdbId = cols[1];
 			StringUtils.chomp(allPdbId);
@@ -119,9 +130,7 @@ public class LigandExpoConverter extends BioFileConverter {
 		if (ret == null) {
 			Item item = createItem("CompoundGroup");
 			item.setAttribute("identifier", inchiKey);
-			if (name != null && !name.equals("")) {
-				item.setAttribute("name", name);
-			}
+			item.setAttribute("name", name);
 			store(item);
 			ret = item.getIdentifier();
 			compoundGroupMap.put(inchiKey, ret);
@@ -165,6 +174,13 @@ public class LigandExpoConverter extends BioFileConverter {
 			String inchiKey = cols[0];
 			inchiKeyMap.put(cols[1], inchiKey);
 		}
+	}
+	
+	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
+		Item syn = createItem("Synonym");
+		syn.setAttribute("value", value);
+		syn.setReference("subject", subject);
+		store(syn);
 	}
 
 }
