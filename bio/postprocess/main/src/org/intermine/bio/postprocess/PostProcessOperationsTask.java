@@ -283,6 +283,10 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
             	NetworkAnalysisTool nat = new NetworkAnalysisTool(getObjectStoreWriter());
             	nat.doAnalysis();
 //            	nat.test();
+            // chenyian:
+            } else if ("gene-set-clustering".equals(operation)) {
+            	IntegratedPathwayClustering ipc = new IntegratedPathwayClustering(getObjectStoreWriter());
+            	ipc.testQuery();
             } else {
                 throw new BuildException("unknown operation: " + operation);
             }

@@ -56,6 +56,11 @@ import edu.uci.ics.jung.algorithms.scoring.ClosenessCentrality;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
 
+/**
+ * 
+ * @author chenyian
+ *
+ */
 public class NetworkAnalysisTool {
 	private static final Logger LOG = Logger.getLogger(NetworkAnalysisTool.class);
 
@@ -65,7 +70,6 @@ public class NetworkAnalysisTool {
 	private static final String PORT = "5432";
 
 	protected ObjectStoreWriter osw;
-	protected ObjectStore os;
 
 	private Model model;
 

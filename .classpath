@@ -149,5 +149,6 @@
 	<classpathentry kind="lib" path="imbuild/im-ant-tasks/lib/catalina-ant.jar"/>
 	<classpathentry kind="lib" path="bio/sources/update-publications/main/lib/je-3.2.23.jar"/>
 	<classpathentry kind="lib" path="intermine/integrate/main/lib/mysql-connector-java-5.1.26-bin.jar"/>
+	<classpathentry kind="lib" path="bio/postprocess/main/lib/guava-16.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
