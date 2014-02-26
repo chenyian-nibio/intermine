@@ -286,7 +286,7 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
             // chenyian:
             } else if ("gene-set-clustering".equals(operation)) {
             	IntegratedPathwayClustering ipc = new IntegratedPathwayClustering(getObjectStoreWriter());
-            	ipc.testQuery();
+            	ipc.doClustering();
             } else {
                 throw new BuildException("unknown operation: " + operation);
             }

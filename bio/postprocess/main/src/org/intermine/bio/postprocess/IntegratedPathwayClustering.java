@@ -16,19 +16,23 @@ import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.log4j.Logger;
 import org.intermine.metadata.Model;
 import org.intermine.model.bio.Gene;
+import org.intermine.model.bio.Interaction;
 import org.intermine.model.bio.Organism;
 import org.intermine.model.bio.Pathway;
 import org.intermine.objectstore.ObjectStore;
+import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
 import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.ConstraintSet;
 import org.intermine.objectstore.query.ContainsConstraint;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
+import org.intermine.objectstore.query.QueryCollectionReference;
 import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.QueryObjectReference;
 import org.intermine.objectstore.query.QueryValue;
 import org.intermine.objectstore.query.Results;
+import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.objectstore.query.SimpleConstraint;
 
 import com.google.common.collect.Sets;
@@ -55,11 +59,13 @@ public class IntegratedPathwayClustering {
 	public void doClustering(){
 		List<String> species = Arrays.asList("9606", "10090", "10116");
 		for (String taxonId : species) {
-			Results pathwayGenes = queryPathwayGenes(taxonId);
-			// TODO format for next step
-			Map<String, Set<String>> allPathwayGene = new HashMap<String, Set<String>>();
+			queryAllPathwayGenes(taxonId);
 			
-			Map<String, Set<String>> filteredPathwayGene = filterSubsets(allPathwayGene);
+			System.out.println("All pathways (" + taxonId + "): " + allPathwayGenes.size());
+
+			Map<String, Set<String>> filteredPathwayGene = filterSubsets(allPathwayGenes);
+			
+			System.out.println("Filtered (" + taxonId + "): " + filteredPathwayGene.size());
 			
 			Map<String, List<Double>> similarityIndex = calculateSimilarityIndex(filteredPathwayGene);
 			
@@ -69,35 +75,77 @@ public class IntegratedPathwayClustering {
 			
 			List<String> clusters = hc.clusteringByAverageLinkage(0.7d);
 			
-			createClusters(clusters);
+			createGeneSetClusters(filteredPathwayGene, pathwayNames, clusters);
 		}
 	}
+
+	Map<String, Set<String>> allPathwayGenes;
+	Map<String, String> pathwayNames;
 	
-	public void testQuery() {
+	public void queryAllPathwayGenes(String taxonId) {
+		System.out.println("Starting the testQuery... taxonId: " + taxonId);
+		Results results = queryPathwaysToGenes(taxonId);
+		Iterator<?> iterator = results.iterator();
 		
+		HashMap<String, Set<String>> pathwayGeneMap = new HashMap<String, Set<String>>();
+		pathwayNames = new HashMap<String, String>();
+		while (iterator.hasNext()) {
+			ResultsRow<?> result = (ResultsRow<?>) iterator.next();
+			Gene gene = (Gene) result.get(0);
+			Pathway pathway = (Pathway) result.get(1);
+			if (!pathwayGeneMap.containsKey(pathway.getIdentifier())) {
+				pathwayGeneMap.put(pathway.getIdentifier(), new HashSet<String>());
+			}
+			pathwayGeneMap.get(pathway.getIdentifier()).add(gene.getPrimaryIdentifier());
+			
+			if (!pathwayNames.containsKey(pathway.getIdentifier())) {
+				pathwayNames.put(pathway.getIdentifier(), pathway.getName());
+			}
+			
+		}
+		
+		allPathwayGenes = new HashMap<String, Set<String>>();
+		for (String pathway: pathwayGeneMap.keySet()) {
+			Set<String> geneSet = pathwayGeneMap.get(pathway);
+			if (geneSet.size() < 600) {
+				allPathwayGenes.put(pathway, geneSet);
+			}
+		}
+		
+//		for (String p: allPathwayGenes.keySet()){
+//			LOG.info(String.format("[test] %s\t %s", p, StringUtils.join(allPathwayGenes.get(p), ",")));
+//		}
 	}
 
 
-	// TODO to be implemented
-	private Results queryPathwayGenes(String taxonId) {
+	private Results queryPathwaysToGenes(String taxonId) {
 		Query q = new Query();
 		QueryClass qcGene = new QueryClass(Gene.class);
 		QueryClass qcPathway = new QueryClass(Pathway.class);
-		QueryClass qcOrganism = new QueryClass(Organism.class);
-		QueryField qfTaxonId = new QueryField(qcOrganism, "taxonId");
+		QueryClass qcOrganism1 = new QueryClass(Organism.class);
+		QueryClass qcOrganism2 = new QueryClass(Organism.class);
+
+		QueryField qfTaxonId1 = new QueryField(qcOrganism1, "taxonId");
+		QueryField qfTaxonId2 = new QueryField(qcOrganism2, "taxonId");
 
 		q.addFrom(qcGene);
 		q.addFrom(qcPathway);
-		q.addFrom(qcOrganism);
+		q.addFrom(qcOrganism1);
+		q.addFrom(qcOrganism2);
 		q.addToSelect(qcGene);
+		q.addToSelect(qcPathway);
 
 		ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
+		QueryCollectionReference qcr1 = new QueryCollectionReference(qcPathway, "genes");
+		cs.addConstraint(new ContainsConstraint(qcr1, ConstraintOp.CONTAINS, qcGene));
 		QueryObjectReference qor1 = new QueryObjectReference(qcGene, "organism");
-		cs.addConstraint(new ContainsConstraint(qor1, ConstraintOp.CONTAINS, qcOrganism));
-		cs.addConstraint(new SimpleConstraint(qfTaxonId, ConstraintOp.EQUALS, new QueryValue(
+		cs.addConstraint(new ContainsConstraint(qor1, ConstraintOp.CONTAINS, qcOrganism1));
+		cs.addConstraint(new SimpleConstraint(qfTaxonId1, ConstraintOp.EQUALS, new QueryValue(
 				Integer.valueOf(taxonId))));
 		QueryObjectReference qor2 = new QueryObjectReference(qcPathway, "organism");
-		cs.addConstraint(new ContainsConstraint(qor2, ConstraintOp.CONTAINS, qcOrganism));
+		cs.addConstraint(new ContainsConstraint(qor2, ConstraintOp.CONTAINS, qcOrganism2));
+		cs.addConstraint(new SimpleConstraint(qfTaxonId2, ConstraintOp.EQUALS, new QueryValue(
+				Integer.valueOf(taxonId))));
 		q.setConstraint(cs);
 
 		ObjectStore os = osw.getObjectStore();
@@ -138,7 +186,7 @@ public class IntegratedPathwayClustering {
 	}
 
 	// TODO to be finished
-	private void createGeneSetClusters(final Map<String, Set<String>> allPathwayGenes,
+	private void createGeneSetClusters(final Map<String, Set<String>> pathwayGenes,
 			Map<String, String> pathwayNames, List<String> clusters) {
 		Collections.sort(clusters, new Comparator<String>() {
 			
@@ -148,53 +196,62 @@ public class IntegratedPathwayClustering {
 			}
 		});
 		
-		int clusterNo = 1;
-		for (String cluster : clusters) {
-			String[] pathways = cluster.split("=");
-			
-			Set<String> allGeneIds = new HashSet<String>();
-			for (String p : pathways) {
-				allGeneIds.addAll(allPathwayGenes.get(p));
-			}
-			List<String> list = Arrays.asList(pathways);
-			Collections.sort(list, new Comparator<String>() {
-
-				@Override
-				public int compare(String o1, String o2) {
-					return Ints.compare(allPathwayGenes.get(o2).size(),
-							allPathwayGenes.get(o1).size());
+		try {
+			osw.beginTransaction();
+			int clusterNo = 1;
+			for (String cluster : clusters) {
+				String[] pathways = cluster.split("=");
+				
+				Set<String> allGeneIds = new HashSet<String>();
+				for (String p : pathways) {
+					allGeneIds.addAll(pathwayGenes.get(p));
 				}
-
-			});
-			
-			int count = allGeneIds.size();
-
-			Set<String> accumulate = new HashSet<String>();
-			List<String> autoName = new ArrayList<String>();
-			String name = null;
-			int numName = 0;
-			for (Iterator<String> iterator2 = list.iterator(); iterator2.hasNext();) {
-				String pathway = iterator2.next();
-				// calculate accumulated percentage
-				accumulate.addAll(allPathwayGenes.get(pathway));
-				double accPercent = (double) Math.round((double) accumulate.size() / (double) count
-						* 10000) / 100;
-				autoName.add(pathwayNames.get(pathway));
-				if (name == null && accPercent >= 50) {
-					name = StringUtils.join(autoName, "|");
-					numName = autoName.size();
+				List<String> list = Arrays.asList(pathways);
+				Collections.sort(list, new Comparator<String>() {
+					
+					@Override
+					public int compare(String o1, String o2) {
+						return Ints.compare(pathwayGenes.get(o2).size(),
+								pathwayGenes.get(o1).size());
+					}
+					
+				});
+				
+				int count = allGeneIds.size();
+				
+				Set<String> accumulate = new HashSet<String>();
+				List<String> autoName = new ArrayList<String>();
+				String name = null;
+				int numName = 0;
+				for (Iterator<String> iterator2 = list.iterator(); iterator2.hasNext();) {
+					String pathway = iterator2.next();
+					// calculate accumulated percentage
+					accumulate.addAll(pathwayGenes.get(pathway));
+					double accPercent = (double) Math.round((double) accumulate.size() / (double) count
+							* 10000) / 100;
+					autoName.add(pathwayNames.get(pathway));
+					if (name == null && accPercent >= 50) {
+						name = StringUtils.join(autoName, "|");
+						numName = autoName.size();
+					}
 				}
-			}
-			String clusterId = String.format("no%03d", clusterNo);
-//			nameWriter.write(clusterId + "\t" + numName + "\t" + name + "\n");
-			
-			Set<String> allPathways = addSubsets(pathways);
+				String clusterId = String.format("no%03d", clusterNo);
+				
+				Set<String> allPathways = addSubsets(pathways);
+				LOG.info(clusterId + " (" + numName + ") " + name + ": (" + allPathways.size() + ") "
+						+ StringUtils.join(allPathways, ","));
 //			writer.write(clusterId + "\t" + allPathways.size() + "\t"
 //					+ StringUtils.join(allPathways, ",") + "\n");
+				
+				clusterNo++;
+			}
 			
-			clusterNo++;
+			osw.commitTransaction();
+			
+		} catch (ObjectStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		
 	}
 
 	private Map<String, Map<String, Double>> calculateCorrelationMatrix(Map<String, List<Double>> similarityIndex) {

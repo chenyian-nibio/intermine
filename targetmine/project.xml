@@ -264,6 +264,7 @@
 
   <post-processing>
 	<post-process name="do-sources"/>
+	<post-process name="gene-set-clustering"/>
 	<post-process name="network-analysis"/>
 	<post-process name="create-references"/>
 	<post-process name="summarise-objectstore"/>
