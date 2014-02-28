@@ -15,8 +15,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.log4j.Logger;
 import org.intermine.metadata.Model;
+import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.Gene;
-import org.intermine.model.bio.Interaction;
 import org.intermine.model.bio.Organism;
 import org.intermine.model.bio.Pathway;
 import org.intermine.objectstore.ObjectStore;
@@ -34,6 +34,7 @@ import org.intermine.objectstore.query.QueryValue;
 import org.intermine.objectstore.query.Results;
 import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.objectstore.query.SimpleConstraint;
+import org.intermine.util.DynamicUtil;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
@@ -42,81 +43,81 @@ import com.google.common.primitives.Ints;
 /**
  * 
  * @author chenyian
- *
+ * 
  */
 public class IntegratedPathwayClustering {
 	private static final Logger LOG = Logger.getLogger(IntegratedPathwayClustering.class);
 
 	protected ObjectStoreWriter osw;
-	
+
 	private Model model;
 
 	public IntegratedPathwayClustering(ObjectStoreWriter osw) {
 		this.osw = osw;
 		model = Model.getInstanceByName("genomic");
 	}
-	
-	public void doClustering(){
-		List<String> species = Arrays.asList("9606", "10090", "10116");
-		for (String taxonId : species) {
-			queryAllPathwayGenes(taxonId);
+
+	public void doClustering() {
+		List<String> speciesIds = Arrays.asList("9606", "10090", "10116");
+		List<String> speciesCodes = Arrays.asList("H", "M", "R");
+		for (int i = 0; i < speciesIds.size(); i++) {
+			String taxonId = speciesIds.get(i);
 			
+			queryAllPathwayGenes(taxonId);
+
 			System.out.println("All pathways (" + taxonId + "): " + allPathwayGenes.size());
 
 			Map<String, Set<String>> filteredPathwayGene = filterSubsets(allPathwayGenes);
-			
+
 			System.out.println("Filtered (" + taxonId + "): " + filteredPathwayGene.size());
-			
+
 			Map<String, List<Double>> similarityIndex = calculateSimilarityIndex(filteredPathwayGene);
-			
+
 			Map<String, Map<String, Double>> matrix = calculateCorrelationMatrix(similarityIndex);
-			
+
 			HierarchicalClustering hc = new HierarchicalClustering(matrix);
-			
+
 			List<String> clusters = hc.clusteringByAverageLinkage(0.7d);
-			
-			createGeneSetClusters(filteredPathwayGene, pathwayNames, clusters);
+
+			createGeneSetClusters(filteredPathwayGene, clusters, speciesCodes.get(i));
 		}
 	}
 
 	Map<String, Set<String>> allPathwayGenes;
-	Map<String, String> pathwayNames;
-	
+	Map<String, Pathway> pathwayMap;
+
 	public void queryAllPathwayGenes(String taxonId) {
 		System.out.println("Starting the testQuery... taxonId: " + taxonId);
 		Results results = queryPathwaysToGenes(taxonId);
 		Iterator<?> iterator = results.iterator();
-		
+
 		HashMap<String, Set<String>> pathwayGeneMap = new HashMap<String, Set<String>>();
-		pathwayNames = new HashMap<String, String>();
+		pathwayMap = new HashMap<String, Pathway>();
 		while (iterator.hasNext()) {
 			ResultsRow<?> result = (ResultsRow<?>) iterator.next();
 			Gene gene = (Gene) result.get(0);
 			Pathway pathway = (Pathway) result.get(1);
-			if (!pathwayGeneMap.containsKey(pathway.getIdentifier())) {
-				pathwayGeneMap.put(pathway.getIdentifier(), new HashSet<String>());
+			String pathwayIdentifier = pathway.getIdentifier();
+			if (!pathwayGeneMap.containsKey(pathwayIdentifier)) {
+				pathwayGeneMap.put(pathwayIdentifier, new HashSet<String>());
 			}
-			pathwayGeneMap.get(pathway.getIdentifier()).add(gene.getPrimaryIdentifier());
-			
-			if (!pathwayNames.containsKey(pathway.getIdentifier())) {
-				pathwayNames.put(pathway.getIdentifier(), pathway.getName());
+			pathwayGeneMap.get(pathwayIdentifier).add(gene.getPrimaryIdentifier());
+
+			if (!pathwayMap.containsKey(pathwayIdentifier)) {
+				pathwayMap.put(pathwayIdentifier, pathway);
 			}
-			
+
 		}
-		
+
 		allPathwayGenes = new HashMap<String, Set<String>>();
-		for (String pathway: pathwayGeneMap.keySet()) {
+		for (String pathway : pathwayGeneMap.keySet()) {
 			Set<String> geneSet = pathwayGeneMap.get(pathway);
 			if (geneSet.size() < 600) {
 				allPathwayGenes.put(pathway, geneSet);
 			}
 		}
-		
-//		for (String p: allPathwayGenes.keySet()){
-//			LOG.info(String.format("[test] %s\t %s", p, StringUtils.join(allPathwayGenes.get(p), ",")));
-//		}
-	}
 
+	}
 
 	private Results queryPathwaysToGenes(String taxonId) {
 		Query q = new Query();
@@ -165,15 +166,16 @@ public class IntegratedPathwayClustering {
 		return ret;
 	}
 
+	@SuppressWarnings("unused")
 	private void createClusters(List<String> clusters) {
 		Collections.sort(clusters, new Comparator<String>() {
 
 			@Override
 			public int compare(String o1, String o2) {
-				return o1.split("=").length>=o2.split("=").length?-1:1;
+				return o1.split("=").length >= o2.split("=").length ? -1 : 1;
 			}
 		});
-		
+
 		int clusterNo = 1;
 		for (String cluster : clusters) {
 			String[] pIndex = cluster.split("=");
@@ -185,40 +187,39 @@ public class IntegratedPathwayClustering {
 
 	}
 
-	// TODO to be finished
 	private void createGeneSetClusters(final Map<String, Set<String>> pathwayGenes,
-			Map<String, String> pathwayNames, List<String> clusters) {
+			List<String> clusters, String speciesCode) {
 		Collections.sort(clusters, new Comparator<String>() {
-			
+
 			@Override
 			public int compare(String o1, String o2) {
 				return Ints.compare(o2.split("=").length, o1.split("=").length);
 			}
 		});
-		
+
 		try {
 			osw.beginTransaction();
 			int clusterNo = 1;
 			for (String cluster : clusters) {
-				String[] pathways = cluster.split("=");
-				
+				String[] pathwayIds = cluster.split("=");
+
 				Set<String> allGeneIds = new HashSet<String>();
-				for (String p : pathways) {
+				for (String p : pathwayIds) {
 					allGeneIds.addAll(pathwayGenes.get(p));
 				}
-				List<String> list = Arrays.asList(pathways);
+				List<String> list = Arrays.asList(pathwayIds);
 				Collections.sort(list, new Comparator<String>() {
-					
+
 					@Override
 					public int compare(String o1, String o2) {
-						return Ints.compare(pathwayGenes.get(o2).size(),
-								pathwayGenes.get(o1).size());
+						return Ints.compare(pathwayGenes.get(o2).size(), pathwayGenes.get(o1)
+								.size());
 					}
-					
+
 				});
-				
+
 				int count = allGeneIds.size();
-				
+
 				Set<String> accumulate = new HashSet<String>();
 				List<String> autoName = new ArrayList<String>();
 				String name = null;
@@ -227,34 +228,46 @@ public class IntegratedPathwayClustering {
 					String pathway = iterator2.next();
 					// calculate accumulated percentage
 					accumulate.addAll(pathwayGenes.get(pathway));
-					double accPercent = (double) Math.round((double) accumulate.size() / (double) count
-							* 10000) / 100;
-					autoName.add(pathwayNames.get(pathway));
+					double accPercent = (double) Math.round((double) accumulate.size()
+							/ (double) count * 10000) / 100;
+					autoName.add(pathwayMap.get(pathway).getName());
 					if (name == null && accPercent >= 50) {
 						name = StringUtils.join(autoName, "|");
 						numName = autoName.size();
 					}
 				}
-				String clusterId = String.format("no%03d", clusterNo);
+				String clusterId = String.format("%s%03d", speciesCode, clusterNo);
+
+				Set<String> allPathwayIds = addSubsets(pathwayIds);
+				LOG.info(clusterId + " (" + numName + ") " + name + ": (" + allPathwayIds.size()
+						+ ") " + StringUtils.join(allPathwayIds, ","));
 				
-				Set<String> allPathways = addSubsets(pathways);
-				LOG.info(clusterId + " (" + numName + ") " + name + ": (" + allPathways.size() + ") "
-						+ StringUtils.join(allPathways, ","));
-//			writer.write(clusterId + "\t" + allPathways.size() + "\t"
-//					+ StringUtils.join(allPathways, ",") + "\n");
+				InterMineObject item = (InterMineObject) DynamicUtil
+						.simpleCreateObject(model.getClassDescriptorByName(
+								"GeneSetCluster").getType());
+				item.setFieldValue("identifier", clusterId);
+				item.setFieldValue("name", name);
+				Set<Pathway> pathways = new HashSet<Pathway>();
+				for (String pId : allPathwayIds) {
+					pathways.add(pathwayMap.get(pId));
+				}
+				item.setFieldValue("pathways", pathways);
 				
+				osw.store(item);
+
 				clusterNo++;
 			}
-			
+
 			osw.commitTransaction();
-			
+
 		} catch (ObjectStoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	private Map<String, Map<String, Double>> calculateCorrelationMatrix(Map<String, List<Double>> similarityIndex) {
+	private Map<String, Map<String, Double>> calculateCorrelationMatrix(
+			Map<String, List<Double>> similarityIndex) {
 		Map<String, Map<String, Double>> matrix = new HashMap<String, Map<String, Double>>();
 		PearsonsCorrelation pc = new PearsonsCorrelation();
 		List<String> pathways = new ArrayList<String>(similarityIndex.keySet());
@@ -275,8 +288,9 @@ public class IntegratedPathwayClustering {
 		}
 		return matrix;
 	}
-	
-	private Map<String, List<Double>> calculateSimilarityIndex(final Map<String, Set<String>> pathwayGene) {
+
+	private Map<String, List<Double>> calculateSimilarityIndex(
+			final Map<String, Set<String>> pathwayGene) {
 		List<String> pathways = new ArrayList<String>(pathwayGene.keySet());
 		Map<String, List<Double>> ret = new HashMap<String, List<Double>>();
 		for (String p1 : pathways) {
@@ -286,31 +300,31 @@ public class IntegratedPathwayClustering {
 				Set<String> geneSet2 = pathwayGene.get(p2);
 				double intersect = (double) Sets.intersection(geneSet1, geneSet2).size();
 				double min = (double) Math.min(geneSet1.size(), geneSet2.size());
-				ret.get(p1).add(Double.valueOf(intersect/min));
+				ret.get(p1).add(Double.valueOf(intersect / min));
 			}
 		}
 		return ret;
 	}
 
-	Map<String,GeneSet> map = new HashMap<String,GeneSet>();
+	Map<String, GeneSet> map = new HashMap<String, GeneSet>();
 
 	private Map<String, Set<String>> filterSubsets(final Map<String, Set<String>> pathwayGene) {
 		List<String> pathways = new ArrayList<String>(pathwayGene.keySet());
-		Collections.sort(pathways, new Comparator<String>(){
-			
+		Collections.sort(pathways, new Comparator<String>() {
+
 			@Override
 			public int compare(String o1, String o2) {
 				return Ints.compare(pathwayGene.get(o2).size(), pathwayGene.get(o1).size());
 			}
-			
+
 		});
-		
+
 		Set<String> subset = new HashSet<String>();
 		for (int i = 0; i < pathways.size() - 1; i++) {
 			String p1 = pathways.get(i);
 			Set<String> set1 = pathwayGene.get(p1);
 			map.put(p1, getGeneSet(p1));
-			for (int j = i+1; j < pathways.size(); j++) {
+			for (int j = i + 1; j < pathways.size(); j++) {
 				String p2 = pathways.get(j);
 				Set<String> set2 = pathwayGene.get(p2);
 				if (set1.containsAll(set2)) {
@@ -320,16 +334,16 @@ public class IntegratedPathwayClustering {
 			}
 		}
 		Map<String, Set<String>> ret = new HashMap<String, Set<String>>();
-		
+
 		for (String string : pathways) {
 			if (!subset.contains(string)) {
 				ret.put(string, pathwayGene.get(string));
 			}
 		}
-		
+
 		return ret;
 	}
-	
+
 	private GeneSet getGeneSet(String identifier) {
 		if (map.get(identifier) == null) {
 			map.put(identifier, new GeneSet(identifier));
@@ -350,7 +364,7 @@ public class IntegratedPathwayClustering {
 			Set<GeneSet> ret = new HashSet<GeneSet>();
 			if (children.size() > 0) {
 				ret.addAll(children);
-				for (GeneSet gs: children) {
+				for (GeneSet gs : children) {
 					ret.addAll(gs.getAllChildren());
 				}
 			}

@@ -275,6 +275,7 @@ public class NetworkAnalysisTool {
 		
 	}
 
+	@SuppressWarnings("unused")
 	private Set<String> getInteractionPairs(Graph<String, String> lcc) {
 		Set<String> ret = new HashSet<String>();
 		Collection<String> edges = lcc.getEdges();
@@ -392,6 +393,7 @@ public class NetworkAnalysisTool {
 		return os.execute(q);
 	}
 
+	@SuppressWarnings("unused")
 	private Results queryGenesByTaxonId(String taxonId) {
 		Query q = new Query();
 		QueryClass qcGene = new QueryClass(Gene.class);
@@ -713,6 +715,7 @@ public class NetworkAnalysisTool {
 		return ret;
 	}
 
+	@SuppressWarnings("unused")
 	private Map<String, Double> calcBetweennessCentrality(Graph<String, String> graph) {
 		int n = graph.getVertexCount();
 		// number of node pairs excluding n; for normalization
