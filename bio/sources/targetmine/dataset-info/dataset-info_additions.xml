@@ -9,6 +9,7 @@
 	<attribute name="category" type="java.lang.String"/>
 	<attribute name="description" type="java.lang.String"/>
 	<attribute name="url" type="java.lang.String"/>
+	<attribute name="code" type="java.lang.String"/>
 </class>
 
 </classes>
