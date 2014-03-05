@@ -44,11 +44,72 @@
 	<link href="http://cdn.intermine.org/css/google-code-prettify/latest/prettify.css" rel="stylesheet" />
 	<link href="http://cdn.intermine.org/css/font-awesome/css/font-awesome.css" rel="stylesheet" />
 
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
+		<!-- DataTables -->
+		<script src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
+		
+        <script type="text/javascript">
+		
+		$(document).ready(function(){
+			$('#dataset').css("visibility", "hidden");
+			var service_url = "http://10.100.0.36/";
+			$.ajax({
+				url: service_url + "targetmine/service/query/results?query=%3Cquery+name%3D%22%22+model%3D%22genomic%22+view%3D%22DataSet.code+DataSet.name+DataSet.version+DataSet.dateType+DataSet.date+DataSet.url+DataSet.description%22+longDescription%3D%22%22+sortOrder%3D%22DataSet.name+asc%22%3E%3C%2Fquery%3E&format=json",
+				dataType: "json",
+				success: function(result) {
+//					console.log(result);
+					for (var i=0; i<result.results.length; i++) {
+						var code = result.results[i][0];
+						var name = result.results[i][1];
+						var url = result.results[i][5];
+						
+						name = name.replace(/ data set/,"");
+						$("#name_"+code).html('<a href="' + url + '">' + name + '</a>');
+						$("#name_"+code).attr("title",result.results[i][6]);
+						
+						var version = result.results[i][2];
+						if (version != null) {
+							if (code=='GOAN') {
+								version = version.replace(/,/g,"<br/>");
+							} 
+							$("#ver_"+code).html(version);
+						} else {
+							$("#ver_"+code).html("-");
+						}
+						
+						var date = result.results[i][4];
+						if (date != null) {
+						// SCOP contains illegal date
+							if (code=='SCOP') {
+								$("#date_"+code).html("2009/6/-");
+							} else {
+								var d = new Date(date);
+								var date_string = d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate();
+								$("#date_"+code).html(date_string);
+							}
+							$("#date_"+code).attr("title",result.results[i][3])
+						} else {
+							$("#date_"+code).html("-");
+						}
+					}
+					$('#dataset').dataTable();
+					$('#dataset').css("visibility", "visible");
+				},
+				error: function() {
+					$("#dataset").html("Error retrieving data from TargetMine");
+				}
+			})
+		});
+		</script>
+
 	<style type="text/css">
 		.im-query-actions { display: none; }
 		.im-management-tools { display: none; }
 		.im-title-part { color: white; }
 		.im-th-button { color: #08c !important;}
+			td.tick { font-weight: bold; color: red; text-align: center;}
+			td.none { font-weight: none; color: green; text-align: center;}
 	</style>
 
 <!-- /htmlHead.jsp -->
@@ -274,44 +335,62 @@
 <!-- /hints.jsp -->
 <!-- dataCategories -->
 
-        <script type="text/javascript" src="/targetmine/js/etc/imtables.deps.js"></script>
-        <script type="text/javascript" src="/targetmine/js/etc/imtables.js"></script>
-        <script type="text/javascript">
-        $(function() {
-            var pq, service, view;
-            pq = {
-                model: {
-                    name: "genomic"
-                },
-                select: ["DataSet.category", "DataSet.name", "DataSet.version", "DataSet.dateType", "DataSet.date", "DataSet.description"]
+	<div style="width: 90%">
+	<table id="dataset" class="display">
+		<thead>
+			<tr>
+				<th>Data Source</th>
+				<th style="width: 100px;">Version</th>
+				<th style="width: 100px;">Date</th>
+				<th>Protein interaction</th>
+				<th>Transcription factor</th>
+				<th>Biological pathway</th>
+				<th>Compound interaction</th>
+				<th>Disease association</th>
+				<th>Protein structure</th>
+				<th>miRNA interaction</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr><td id="name_AMAD">Amadeus</td><td id="ver_AMAD">-</td><td id="date_AMAD">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_BGRD">BioGRID interaction data set</td><td id="ver_BGRD">-</td><td id="date_BGRD">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_CATH">CATH</td><td id="ver_CATH">-</td><td id="date_CATH">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td></tr>
+			<tr><td id="name_CHBI">ChEBI</td><td id="ver_CHBI">-</td><td id="date_CHBI">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_CMBL">ChEMBL</td><td id="ver_CMBL">-</td><td id="date_CMBL">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_DOAN">DO Annotation</td><td id="ver_DOAN">-</td><td id="date_DOAN">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_DGBK">DrugBank</td><td id="ver_DGBK">-</td><td id="date_DGBK">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_DRGB">DrugEBIlity</td><td id="ver_DRGB">-</td><td id="date_DRGB">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">?</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_GENE">ENZYME</td><td id="ver_GENE">-</td><td id="date_GENE">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_ENZY">Entrez Gene</td><td id="ver_ENZY">-</td><td id="date_ENZY">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_GN3D">Gene3D</td><td id="ver_GN3D">-</td><td id="date_GN3D">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td></tr>
+			<tr><td id="name_GWAS">Genome-Wide Association Studies</td><td id="ver_GWAS">-</td><td id="date_GWAS">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_INTP">InterPro data set</td><td id="ver_INTP">-</td><td id="date_INTP">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_KORT">KEGG orthologues data set</td><td id="ver_KORT">-</td><td id="date_KORT">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_KEGG">KEGG pathways data set</td><td id="ver_KEGG">-</td><td id="date_KEGG">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_LGEX">Ligand Expo</td><td id="ver_LGEX">-</td><td id="date_LGEX">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td></tr>
+			<tr><td id="name_NCIP">NCI Pathway Interaction Database</td><td id="ver_NCIP">-</td><td id="date_NCIP">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_AFFY">NetAffx Annotation Files</td><td id="ver_AFFY">-</td><td id="date_AFFY">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_OREG">ORegAnno</td><td id="ver_OREG">-</td><td id="date_OREG">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_PPIV">PPI view</td><td id="ver_PPIV">-</td><td id="date_PPIV">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_PBCM">PubChem</td><td id="ver_PBCM">-</td><td id="date_PBCM">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_REAC">Reactome data set</td><td id="ver_REAC">-</td><td id="date_REAC">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_SCOP">SCOP</td><td id="ver_SCOP">-</td><td id="date_SCOP">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td></tr>
+			<tr><td id="name_SIFT">SIFTS</td><td id="ver_SIFT">-</td><td id="date_SIFT">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td></tr>
+			<tr><td id="name_STCH">STITCH</td><td id="ver_STCH">-</td><td id="date_STCH">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_SWPR">Swiss-Prot data set</td><td id="ver_SWPR">-</td><td id="date_SWPR">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_TRMB">TrEMBL data set</td><td id="ver_TRMB">-</td><td id="date_TRMB">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_GOAN">UniProt-GOA</td><td id="ver_GOAN">-</td><td id="date_GOAN">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_IREF">iRefIndex interaction data set</td><td id="ver_IREF">-</td><td id="date_IREF">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_MIRB">miRBase</td><td id="ver_MIRB">-</td><td id="date_MIRB">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_MITB">miRTarBase</td><td id="ver_MITB">-</td><td id="date_MITB">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td></tr>
+			<tr><td id="name_WPDB">wwPDB</td><td id="ver_WPDB">-</td><td id="date_WPDB">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td></tr>
+			<!-- to be removed -->
+			<tr><td id="name_OMIM">OMIM</td><td id="ver_OMIM">-</td><td id="date_OMIM">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick">V</td><td class="none">-</td><td class="none">-</td></tr>
+		</tbody>
+	</table>
+	</div>
 
-            };
-            service = new intermine.Service({
-                root: "${WEB_PROPERTIES['project.sitePrefix']}/service/",
-            });
-            view = new intermine.query.results.CompactView(service, pq);
-            view.$el.appendTo('#data-source-table');
-            return view.render();
-        });
-        </script>
-		<div class="body">
- <!-- pass in an image filename that resides in images/icons/ -->
- <div class="plainbox" style="" >
-  <dl>
-    <dt>
-        <h1 id="">
-          Integrated data in TargetMine
-    </h1></dt>
-    <dd><p>This page lists all data sources loaded along with the date the data was released or downloaded.</p></dd>
-  </dl>
- </div>
-	<div id="data-source-table">
-	</div>
-<!--[if IE]>
-	<div style="color: red; font-weight: bold; font-size: 16px;">
-	This page is mot compatible with Internet Explorer. we recommend that using TargetMine with other browsers (Firefox, Chrome, Safari or Opera).
-	</div>
-<![endif]-->
+
 </div>
     <br/>
 	<div class="body" align="center" style="clear:both">
