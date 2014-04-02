@@ -18,7 +18,7 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class MirbaseGenomeConverter extends BioFileConverter {
-//	private static Logger LOG = Logger.getLogger(MirbaseGenomeConverter.class);
+	// private static Logger LOG = Logger.getLogger(MirbaseGenomeConverter.class);
 	//
 	private static final String DATASET_TITLE = "miRBase";
 	private static final String DATA_SOURCE_NAME = "miRBase";
@@ -65,32 +65,38 @@ public class MirbaseGenomeConverter extends BioFileConverter {
 				ids.put(kv[0], kv[1]);
 			}
 			String accession = ids.get("ID");
-			String refId = accessionMap.get(accession);
-			if (refId == null) {
-				Item item;
-				if (type.equals("miRNA")) {
-					item = createItem("MiRNA");
-				} else if (type.equals("miRNA_primary_transcript")) {
-					item = createItem("MiRNAPrimaryTranscript");
-				} else {
-					throw new RuntimeException("Unexpect type: " + type);
-				}
-				item.setAttribute("primaryIdentifier", accession);
-
-				refId = item.getIdentifier();
-				store(item);
-
-				accessionMap.put(accession, refId);
+			if (accession.contains("_") || accessionMap.get(accession) != null) {
+				continue;
 			}
+
+			Item item;
+			if (type.equals("miRNA")) {
+				item = createItem("MiRNA");
+			} else if (type.equals("miRNA_primary_transcript")) {
+				item = createItem("MiRNAPrimaryTranscript");
+			} else {
+				throw new RuntimeException("Unexpect type: " + type);
+			}
+			item.setAttribute("primaryIdentifier", accession);
+
+			String refId = item.getIdentifier();
+
+			accessionMap.put(accession, refId);
+			String chromosomeRefId = getChromosome(chr, getTaxonIdByFilename(getCurrentFile()
+					.getName()));
 
 			Item location = createItem("Location");
 			location.setAttribute("start", start);
 			location.setAttribute("end", end);
 			location.setAttribute("strand", strand);
 			location.setReference("feature", refId);
-			location.setReference("locatedOn",
-					getChromosome(chr, getTaxonIdByFilename(getCurrentFile().getName())));
+			location.setReference("locatedOn", chromosomeRefId);
+
+			item.setReference("chromosome", chromosomeRefId);
+			item.setReference("chromosomeLocation", location);
+
 			store(location);
+			store(item);
 
 		}
 	}
@@ -101,10 +107,11 @@ public class MirbaseGenomeConverter extends BioFileConverter {
 		if (ret == null) {
 			Item item = createItem("Chromosome");
 			String chrId = chr;
-			if (chr.startsWith("chr")) {
+			if (chr.toLowerCase().startsWith("chr")) {
 				chrId = chr.substring(3);
 			}
 			item.setAttribute("primaryIdentifier", chrId);
+			item.setAttribute("symbol", chrId);
 			item.setReference("organism", getOrganism(taxonId));
 			store(item);
 			ret = item.getIdentifier();
