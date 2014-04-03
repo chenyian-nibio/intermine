@@ -46,6 +46,7 @@ public class GeneInfoConverter extends BioFileConverter {
 
 	private Map<String, Set<String>> accessionMap;
 	private Map<String, Set<String>> ucscMap;
+	private Map<String, Set<String>> historyMap;
 
 	private Map<String, Map<String, String>> idMap;
 	private Map<String, String> synonyms = new HashMap<String, String>();
@@ -54,6 +55,7 @@ public class GeneInfoConverter extends BioFileConverter {
 	private File gene2accessionFile;
 	private File knownToLocusLinkFile;
 	private File chromosomeFile;
+	private File genehistoryFile;
 
 	public void setGene2unigeneFile(File gene2unigeneFile) {
 		this.gene2unigeneFile = gene2unigeneFile;
@@ -69,6 +71,10 @@ public class GeneInfoConverter extends BioFileConverter {
 
 	public void setChromosomeFile(File chromosomeFile) {
 		this.chromosomeFile = chromosomeFile;
+	}
+
+	public void setGenehistoryFile(File genehistoryFile) {
+		this.genehistoryFile = genehistoryFile;
 	}
 
 	public void setGeneinfoOrganisms(String taxonIds) {
@@ -157,6 +163,9 @@ public class GeneInfoConverter extends BioFileConverter {
 		}
 		if (chromosomeMap == null) {
 			processChromosomeFile();
+		}
+		if (historyMap == null) {
+			processGeneHistoryFile();
 		}
 
 		Iterator<String[]> iterator = FormattedTextParser
@@ -268,6 +277,14 @@ public class GeneInfoConverter extends BioFileConverter {
 				}
 			}
 
+			// 2014/4/3
+			// Include deprecated gene id as synonyms
+			if (historyMap.get(geneId) != null) {
+				for (String string : historyMap.get(geneId)) {
+					setSynonym(geneRefId, string);
+				}
+			}
+
 			// 2014/4/1
 			// Add Location
 			LocationInfo locationInfo = locationMap.get(geneId);
@@ -287,6 +304,31 @@ public class GeneInfoConverter extends BioFileConverter {
 			store(gene);
 
 		}
+	}
+
+	private void processGeneHistoryFile() {
+		LOG.info("Parsing the file gene_history file......");
+		System.out.println("Parsing the file gene_history file......");
+		historyMap = new HashMap<String, Set<String>>();
+		try {
+			FileReader reader = new FileReader(genehistoryFile);
+			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
+			while (iterator.hasNext()) {
+				String[] cols = iterator.next();
+				if (taxonIds.contains(cols[0])) {
+					if (historyMap.get(cols[1]) == null) {
+						historyMap.put(cols[1], new HashSet<String>());
+					}
+					historyMap.get(cols[1]).add(cols[2]);
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	private void processChromosomeFile() {
@@ -376,10 +418,10 @@ public class GeneInfoConverter extends BioFileConverter {
 						} else if (!assemblies.contains(cols[12])) {
 							continue;
 						}
-//						int strand = 1;
-//						if (cols[11].equals("-")) {
-//							strand = -1;
-//						}
+						// int strand = 1;
+						// if (cols[11].equals("-")) {
+						// strand = -1;
+						// }
 						locationMap.put(
 								geneId,
 								new LocationInfo(Integer.valueOf(cols[9]), Integer
