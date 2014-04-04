@@ -233,6 +233,7 @@
   	<source name="fill-missing-proteins" type="fill-missing-proteins">
       <property name="src.data.file" location="build/proteins.txt"/>
     </source>
+    
     <!--  do nothing but add the necessary data model for the post-processing -->
   	<source name="network-analysis" type="network-analysis">
     </source>
@@ -268,6 +269,9 @@
 	<post-process name="do-sources"/>
 	<post-process name="gene-set-clustering"/>
 	<post-process name="network-analysis"/>
+	<post-process name="ppi-druggability">
+		<property name="drpiasFile" value="/data/bio/db/Targetmine/drpias/drpias_druggability_scores.csv" />
+	</post-process>
 	<post-process name="create-references"/>
 	<post-process name="summarise-objectstore"/>
 	<post-process name="create-attribute-indexes"/>

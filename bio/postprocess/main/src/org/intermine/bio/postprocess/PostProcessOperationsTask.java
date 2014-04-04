@@ -287,6 +287,10 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
             } else if ("gene-set-clustering".equals(operation)) {
             	IntegratedPathwayClustering ipc = new IntegratedPathwayClustering(getObjectStoreWriter());
             	ipc.doClustering();
+            } else if ("ppi-druggability".equals(operation)) {
+            	PpiDruggability ppid = new PpiDruggability(getObjectStoreWriter());
+            	configureDynamicAttributes(ppid);
+            	ppid.annotatePpiDruggabilities();
             } else {
                 throw new BuildException("unknown operation: " + operation);
             }
