@@ -21,16 +21,16 @@
 			$('#container').css("visibility", "hidden");
 			var service_url = "";
 			$.ajax({
-				url: "service/query/results?query=%3Cquery+name%3D%22%22+model%3D%22genomic%22+view%3D%22DataSet.code+DataSet.name+DataSet.version+DataSet.dateType+DataSet.date+DataSet.url+DataSet.description%22+longDescription%3D%22%22+sortOrder%3D%22DataSet.name+asc%22%3E%3C%2Fquery%3E&format=json",
+				url: "service/query/results?query=%3Cquery+name%3D%22%22+model%3D%22genomic%22+view%3D%22DataSet.code+DataSet.name+DataSet.version+DataSet.dateType+DataSet.date+DataSet.id+DataSet.description%22+longDescription%3D%22%22+sortOrder%3D%22DataSet.name+asc%22%3E%3C%2Fquery%3E&format=json",
 				dataType: "json",
 				success: function(result) {
 					for (var i=0; i<result.results.length; i++) {
 						var code = result.results[i][0];
 						var name = result.results[i][1];
-						var url = result.results[i][5];
+						var dataset_id = result.results[i][5];
 						
 						name = name.replace(/ data set/,"");
-						$("#name_"+code).html('<a href="' + url + '" target="_blank">' + name + '</a>');
+						$("#name_"+code).html('<a href="report.do?id=' + dataset_id + '" target="_blank">' + name + '</a>');
 						$("#name_"+code).attr("title",result.results[i][6]);
 						
 						var version = result.results[i][2];
@@ -126,8 +126,8 @@
 			<tr><td id="name_DOAN">DO Annotation</td><td id="ver_DOAN">-</td><td id="date_DOAN">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td></tr>
 			<tr><td id="name_DGBK">DrugBank</td><td id="ver_DGBK">-</td><td id="date_DGBK">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td></tr>
 			<tr><td id="name_DRGB">DrugEBIlity</td><td id="ver_DRGB">-</td><td id="date_DRGB">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
-			<tr><td id="name_GENE">ENZYME</td><td id="ver_GENE">-</td><td id="date_GENE">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
-			<tr><td id="name_ENZY">Entrez Gene</td><td id="ver_ENZY">-</td><td id="date_ENZY">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_ENZY">ENZYME</td><td id="ver_GENE">-</td><td id="date_GENE">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_GENE">Entrez Gene</td><td id="ver_ENZY">-</td><td id="date_ENZY">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
 			<tr><td id="name_GN3D">Gene3D</td><td id="ver_GN3D">-</td><td id="date_GN3D">-</td><td class="none">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
 			<tr><td id="name_GWAS">Genome-Wide Association Studies</td><td id="ver_GWAS">-</td><td id="date_GWAS">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td></tr>
 			<tr><td id="name_INTP">InterPro data set</td><td id="ver_INTP">-</td><td id="date_INTP">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
