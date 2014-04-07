@@ -36,7 +36,9 @@ public class PpiDruggability {
 
 	private File drpiasFile;
 
-	private Map<String, DrpiasData> druggabilityMap = new HashMap<String, DrpiasData>();
+	private Map<String, DrpiasData> dataMap = new HashMap<String, DrpiasData>();
+
+	private Map<String, InterMineObject> ppiDruggabilityMap = new HashMap<String, InterMineObject>();
 
 	public void setDrpiasFile(File drpiasFile) {
 		this.drpiasFile = drpiasFile;
@@ -51,9 +53,9 @@ public class PpiDruggability {
 		readDruggabilityMap();
 
 		Results results = queryInteractions();
-		
+
 		System.out.println(results.size() + " interactions found.");
-		
+
 		Iterator<?> iterator = results.iterator();
 
 		int count = 0;
@@ -61,25 +63,19 @@ public class PpiDruggability {
 			osw.beginTransaction();
 			while (iterator.hasNext()) {
 				ResultsRow<?> result = (ResultsRow<?>) iterator.next();
-				Interaction interaction  = (Interaction) result.get(0);
+				Interaction interaction = (Interaction) result.get(0);
 				Gene gene1 = (Gene) result.get(1);
 				Gene gene2 = (Gene) result.get(2);
-
-				DrpiasData drpiasData = druggabilityMap.get(String.format("%s-%s",
-						gene1.getPrimaryIdentifier(), gene2.getPrimaryIdentifier()));
-				if (drpiasData != null) {
+				
+				InterMineObject ppiDruggability = getPpiDruggability(gene1.getPrimaryIdentifier(), gene2.getPrimaryIdentifier());
+				
+				if (ppiDruggability != null) {
+					interaction.setFieldValue("ppiDruggability", ppiDruggability);
+					osw.store(interaction);
+					
 					count++;
-					
-					InterMineObject item = (InterMineObject) DynamicUtil.simpleCreateObject(model
-							.getClassDescriptorByName("PpiDruggability").getType());
-					item.setFieldValue("structuralScore", drpiasData.getStructuralScore());
-					item.setFieldValue("drugChemicalScore", drpiasData.getDrugChemicalScore());
-					item.setFieldValue("functionalScore", drpiasData.getFunctionalScore());
-					item.setFieldValue("allScore", drpiasData.getAllScore());
-					item.setFieldValue("interaction", interaction);
-					
-					osw.store(item);
 				}
+
 			}
 			osw.commitTransaction();
 
@@ -87,32 +83,56 @@ public class PpiDruggability {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-			
-		System.out.println(String.format("There were %d ppi druggability matched.", count));
 
+		System.out.println(String.format("There were %d interactions annotated with ppi druggability.", count));
+
+	}
+
+	private InterMineObject getPpiDruggability(String gene1, String gene2)
+			throws ObjectStoreException {
+		InterMineObject ret = ppiDruggabilityMap.get(String.format("%s-%s", gene1, gene2));
+		if (ret == null) {
+			DrpiasData drpiasData = dataMap.get(String.format("%s-%s", gene1, gene2));
+			if (drpiasData != null) {
+				InterMineObject item = (InterMineObject) DynamicUtil.simpleCreateObject(model
+						.getClassDescriptorByName("PpiDruggability").getType());
+				item.setFieldValue("structuralScore", drpiasData.getStructuralScore());
+				item.setFieldValue("drugChemicalScore", drpiasData.getDrugChemicalScore());
+				item.setFieldValue("functionalScore", drpiasData.getFunctionalScore());
+				item.setFieldValue("allScore", drpiasData.getAllScore());
+
+				ppiDruggabilityMap.put(String.format("%s-%s", gene1, gene2), item);
+				// for the convenience ...
+				ppiDruggabilityMap.put(String.format("%s-%s", gene2, gene1), item);
+
+				osw.store(item);
+			}
+		}
+		return ret;
 	}
 
 	private void readDruggabilityMap() {
 		try {
 			int count = 0;
-			
+
 			FileReader reader = new FileReader(drpiasFile);
 			Iterator<String[]> iterator = FormattedTextParser.parseCsvDelimitedReader(reader);
 			while (iterator.hasNext()) {
 				String[] cols = iterator.next();
-				druggabilityMap.put(
+				dataMap.put(
 						String.format("%s-%s", cols[0], cols[1]),
 						new DrpiasData(Float.valueOf(cols[2]), Float.valueOf(cols[3]), Float
 								.valueOf(cols[4]), Float.valueOf(cols[5])));
-				druggabilityMap.put(
+				// for the convenience ...
+				dataMap.put(
 						String.format("%s-%s", cols[1], cols[0]),
 						new DrpiasData(Float.valueOf(cols[2]), Float.valueOf(cols[3]), Float
 								.valueOf(cols[4]), Float.valueOf(cols[5])));
 				count++;
 			}
-			
+
 			System.out.println(count + " PPI druggability entries were read.");
-			
+
 			reader.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
