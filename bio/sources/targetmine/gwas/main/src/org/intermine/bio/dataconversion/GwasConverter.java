@@ -2,7 +2,9 @@ package org.intermine.bio.dataconversion;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -166,20 +168,24 @@ public class GwasConverter extends BioFileConverter {
 	}
 
 	private void readDiseaseMap() {
-		try {
-			Iterator<String[]> iterator = FormattedTextParser
-					.parseTabDelimitedReader(new BufferedReader(new FileReader(diseaseMapFile)));
-			while (iterator.hasNext()) {
-				String[] cols = iterator.next();
-				if (StringUtils.isEmpty(cols[1])) {
-					continue;
+			Iterator<String[]> iterator;
+			try {
+				iterator = FormattedTextParser
+						.parseTabDelimitedReader(new BufferedReader(new FileReader(diseaseMapFile)));
+				while (iterator.hasNext()) {
+					String[] cols = iterator.next();
+					if (StringUtils.isEmpty(cols[1])) {
+						continue;
+					}
+					diseaseMap.put(cols[0].trim(), cols[1]);
 				}
-				diseaseMap.put(cols[0].trim(), cols[1]);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Disease mapping file not found.");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 }
