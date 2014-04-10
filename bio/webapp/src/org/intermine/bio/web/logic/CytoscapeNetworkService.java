@@ -93,7 +93,7 @@ public class CytoscapeNetworkService
 
         //=== Query interactions ===
         CytoscapeNetworkDBQueryRunner queryRunner = new CytoscapeNetworkDBQueryRunner();
-        ExportResultsIterator rawIntData = queryRunner.getInteractions(
+        ExportResultsIterator rawIntData = queryRunner.getHcdpInteractions(
                 fullInteractingGeneSet, model, executor);
 
         //=== Validation ===

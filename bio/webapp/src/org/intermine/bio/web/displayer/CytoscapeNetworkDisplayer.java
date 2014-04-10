@@ -137,7 +137,7 @@ public class CytoscapeNetworkDisplayer extends ReportDisplayer
         Set<Integer> fullInteractingGeneSet;
         try {
             fullInteractingGeneSet =
-                    queryRunner.getInteractingGenes(featureType, startingFeatureSet, model, executor);
+                    queryRunner.getHcdpInteractingGenes(featureType, startingFeatureSet, model, executor);
         } catch (ObjectStoreException e) {
             throw new RuntimeException(e);
         }
