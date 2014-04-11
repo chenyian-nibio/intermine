@@ -12,10 +12,11 @@ package org.intermine.bio.web.biojava;
 
 import org.biojava.bio.seq.DNATools;
 import org.biojava.bio.seq.ProteinTools;
+import org.biojava.bio.seq.RNATools;
 import org.biojava.bio.symbol.IllegalSymbolException;
 import org.intermine.model.bio.BioEntity;
-import org.intermine.model.bio.SequenceFeature;
 import org.intermine.model.bio.Protein;
+import org.intermine.model.bio.SequenceFeature;
 
 /**
  * A factory for creating BioSequence objects.
@@ -108,7 +109,12 @@ public abstract class BioSequenceFactory
                 return null;
             } else {
                 String residues = feature.getSequence().getResidues().toString();
-                return new BioSequence(DNATools.createDNA(residues), feature);
+                // chenyian: we do have RNA sequence (miRNA)
+                if (residues.toLowerCase().contains("u")) {
+                	return new BioSequence(RNATools.createRNA(residues), feature);
+                } else {
+                	return new BioSequence(DNATools.createDNA(residues), feature);
+                }
             }
         } else {
             throw new RuntimeException("Sequence type not defined.");
