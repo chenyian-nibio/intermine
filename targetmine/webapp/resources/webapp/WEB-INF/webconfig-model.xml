@@ -580,6 +580,16 @@
                      placement="summary"
                      types="SequenceFeature"/>
 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.PpiDruggabilityDisplayer"
+                     jspName="model/ppiDruggabilityDisplayer.jsp"
+                     replacesFields="ppiDruggability"
+                     types="Interaction"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.InteractDetailInteractionDisplayer"
+                     jspName="model/interactDetailInteractionDisplayer.jsp"
+                     replacesFields="interaction"
+                     types="InteractionDetail"/>
+
   </reportdisplayers>
 
   
