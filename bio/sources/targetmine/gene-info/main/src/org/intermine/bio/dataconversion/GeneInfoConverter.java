@@ -424,8 +424,8 @@ public class GeneInfoConverter extends BioFileConverter {
 						// }
 						locationMap.put(
 								geneId,
-								new LocationInfo(Integer.valueOf(cols[9]), Integer
-										.valueOf(cols[10]), cols[11]));
+								new LocationInfo(Integer.valueOf(cols[9]) + 1, Integer
+										.valueOf(cols[10]) + 1, cols[11]));
 					}
 				}
 			}
