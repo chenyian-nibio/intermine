@@ -55,6 +55,7 @@ public class PpiDruggability {
 		Results results = queryInteractions();
 
 		System.out.println(results.size() + " interactions found.");
+		LOG.info(results.size() + " interactions found.");
 
 		Iterator<?> iterator = results.iterator();
 
@@ -66,14 +67,18 @@ public class PpiDruggability {
 				Interaction interaction = (Interaction) result.get(0);
 				Gene gene1 = (Gene) result.get(1);
 				Gene gene2 = (Gene) result.get(2);
-				
-				InterMineObject ppiDruggability = getPpiDruggability(gene1.getPrimaryIdentifier(), gene2.getPrimaryIdentifier());
-				
+
+				InterMineObject ppiDruggability = getPpiDruggability(gene1.getPrimaryIdentifier(),
+						gene2.getPrimaryIdentifier());
+
 				if (ppiDruggability != null) {
 					interaction.setFieldValue("ppiDruggability", ppiDruggability);
 					osw.store(interaction);
-					
+
 					count++;
+				} else {
+//					LOG.info(String.format("Unfound pair: %s - %s", gene1.getPrimaryIdentifier(),
+//							gene2.getPrimaryIdentifier()));
 				}
 
 			}
@@ -84,7 +89,10 @@ public class PpiDruggability {
 			e.printStackTrace();
 		}
 
-		System.out.println(String.format("There were %d interactions annotated with ppi druggability.", count));
+		System.out.println(String.format(
+				"There were %d interactions annotated with ppi druggability.", count));
+		LOG.info(String
+				.format("There were %d interactions annotated with ppi druggability.", count));
 
 	}
 
@@ -105,6 +113,8 @@ public class PpiDruggability {
 				// for the convenience ...
 				ppiDruggabilityMap.put(String.format("%s-%s", gene2, gene1), item);
 
+				ret = item;
+
 				osw.store(item);
 			}
 		}
@@ -119,15 +129,11 @@ public class PpiDruggability {
 			Iterator<String[]> iterator = FormattedTextParser.parseCsvDelimitedReader(reader);
 			while (iterator.hasNext()) {
 				String[] cols = iterator.next();
-				dataMap.put(
-						String.format("%s-%s", cols[0], cols[1]),
-						new DrpiasData(Float.valueOf(cols[2]), Float.valueOf(cols[3]), Float
-								.valueOf(cols[4]), Float.valueOf(cols[5])));
+				DrpiasData drpiasData = new DrpiasData(Float.valueOf(cols[2]),
+						Float.valueOf(cols[3]), Float.valueOf(cols[4]), Float.valueOf(cols[5]));
+				dataMap.put(String.format("%s-%s", cols[0], cols[1]), drpiasData);
 				// for the convenience ...
-				dataMap.put(
-						String.format("%s-%s", cols[1], cols[0]),
-						new DrpiasData(Float.valueOf(cols[2]), Float.valueOf(cols[3]), Float
-								.valueOf(cols[4]), Float.valueOf(cols[5])));
+				dataMap.put(String.format("%s-%s", cols[1], cols[0]), drpiasData);
 				count++;
 			}
 
