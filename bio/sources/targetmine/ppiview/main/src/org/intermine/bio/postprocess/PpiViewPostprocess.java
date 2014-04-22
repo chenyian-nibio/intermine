@@ -143,6 +143,12 @@ public class PpiViewPostprocess extends PostProcessor {
 				dataSets.add(dataSet);
 				detail.setFieldValue("dataSets", dataSets);
 				detail.setFieldValue("interaction", interaction);
+				
+				Set<InterMineObject> interactors = new HashSet<InterMineObject>();
+				interactors.add(thisGene);
+				interactors.add(partGene);
+				detail.setFieldValue("allInteractors", interactors);
+				
 				osw.store(detail);
 
 				interactions.add(interaction);
