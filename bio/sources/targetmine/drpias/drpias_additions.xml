@@ -9,14 +9,19 @@
     <class name="Interaction" is-interface="true">
         <reference name="gene1" referenced-type="Gene" reverse-reference="interactions" />
         <reference name="gene2" referenced-type="Gene" />
-        <reference name="ppiDruggability" referenced-type="PpiDruggability" />
+        <reference name="ppiDruggability" referenced-type="PpiDruggability" reverse-reference="interactions" />
     </class>
 
     <class name="PpiDruggability" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+        <reference name="gene1" referenced-type="Gene" />
+        <reference name="gene2" referenced-type="Gene" />
         <attribute name="structuralScore" type="java.lang.Float"/>
         <attribute name="drugChemicalScore" type="java.lang.Float"/>
         <attribute name="functionalScore" type="java.lang.Float"/>
         <attribute name="allScore" type="java.lang.Float"/>
+		<reference name="dataSet" referenced-type="DataSet"/>
+        <collection name="interactions" referenced-type="Interaction" reverse-reference="ppiDruggability"/>
     </class>
 
 </classes>

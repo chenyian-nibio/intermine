@@ -221,6 +221,10 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/mirtarbase" />
       <property name="src.data.dir.includes" value="*_MTI.v2.txt" />
     </source>
+  	<source name="drpias" type="drpias">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/drpias" />
+      <property name="src.data.dir.includes" value="drpias_druggability_scores_w_id.tsv" />
+    </source>
     <source name="affy-probe" type="affy-probe-annot">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/affymetrix" />
       <property name="src.data.dir.includes" value="*.annot.csv" />
@@ -236,8 +240,6 @@
     
     <!--  do nothing but add the necessary data model for the post-processing -->
   	<source name="network-analysis" type="network-analysis">
-    </source>
-  	<source name="drpias" type="drpias">
     </source>
     <source name="gene-set" type="gene-set">
     </source>
@@ -267,11 +269,10 @@
 
   <post-processing>
 	<post-process name="do-sources"/>
+	<post-process name="transcribe-ncbiGeneId"/>
 	<post-process name="gene-set-clustering"/>
 	<post-process name="network-analysis"/>
-	<post-process name="ppi-druggability">
-		<property name="drpiasFile" value="/data/bio/db/Targetmine/drpias/drpias_druggability_scores.csv" />
-	</post-process>
+	<post-process name="ppi-druggability"/>
 	<post-process name="create-references"/>
 	<post-process name="summarise-objectstore"/>
 	<post-process name="create-attribute-indexes"/>

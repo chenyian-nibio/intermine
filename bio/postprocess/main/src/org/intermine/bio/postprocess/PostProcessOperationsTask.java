@@ -289,8 +289,11 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
             	ipc.doClustering();
             } else if ("ppi-druggability".equals(operation)) {
             	PpiDruggability ppid = new PpiDruggability(getObjectStoreWriter());
-            	configureDynamicAttributes(ppid);
+//            	configureDynamicAttributes(ppid);
             	ppid.annotatePpiDruggabilities();
+            } else if ("transcribe-ncbiGeneId".equals(operation)) {
+            	TranscribeNcbiGeneId tn = new TranscribeNcbiGeneId(getObjectStoreWriter());
+            	tn.transcribeIdentifeir();
             } else {
                 throw new BuildException("unknown operation: " + operation);
             }

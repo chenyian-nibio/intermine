@@ -535,6 +535,16 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.PpiDruggability">
+    <fields>
+      <fieldconfig fieldExpr="identifier" showInSummary="false"/>
+      <fieldconfig fieldExpr="structuralScore"/>
+      <fieldconfig fieldExpr="drugChemicalScore"/>
+      <fieldconfig fieldExpr="functionalScore"/>
+      <fieldconfig fieldExpr="allScore"/>
+    </fields>
+  </class>
+
 
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
