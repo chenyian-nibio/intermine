@@ -184,6 +184,15 @@
       <property name="inchikeyFile" value="/data/bio/db/Targetmine/stitch/uniq.cid.inchikeys" />
       <property name="osAlias" value="os.production"/>
     </source>
+    <source name="bioassay" type="bioassay">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/bioassay" />
+      <property name="src.data.dir.includes" value="assay_info_3.txt" />
+      <property name="giUniprotaccFile" value="/data/bio/db/Targetmine/bioassay/gi_uniprotacc.txt" />
+      <property name="aidPubmedidFile" value="/data/bio/db/Targetmine/bioassay/aid_pubmedid.txt" />
+      <property name="aidActivecidFile" value="/data/bio/db/Targetmine/bioassay/aid_activecid.txt" />
+      <property name="nameFile" value="/data/bio/db/Targetmine/bioassay/cid-names" />
+      <property name="inchikeyFile" value="/data/bio/db/Targetmine/bioassay/cid-inchikeys" />
+    </source>
     <source name="pubchem" type="pubchem">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pubchem" />
       <property name="src.data.dir.includes" value="cid-inchikeys" />

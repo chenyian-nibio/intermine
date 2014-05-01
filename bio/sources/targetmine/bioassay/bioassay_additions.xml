@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="CompoundProteinInteraction" is-interface="true">
+		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
+		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
+		<collection name="assay" referenced-type="CompoundProteinInteractionAssay" reverse-reference="interactions"/>
+		<reference name="dataSet" referenced-type="DataSet"/>
+    </class>
+	<class name="Protein" is-interface="true">
+		<collection name="compounds" referenced-type="CompoundProteinInteraction" reverse-reference="protein"/>
+    </class>
+	<class name="PubChemCompound" extends="Compound" is-interface="true">
+		<attribute name="pubChemCid" type="java.lang.String"/>
+    </class>
+    <class name="Compound" extends="BioEntity" is-interface="true">
+		<attribute name="inchiKey" type="java.lang.String"/>
+		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
+		<collection name="targetProteins" referenced-type="CompoundProteinInteraction" reverse-reference="compound"/>
+    </class>
+    <class name="CompoundGroup" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
+    </class>
+	<class name="BioAssayInteraction" extends="CompoundProteinInteraction" is-interface="true">
+    </class>
+	<class name="CompoundProteinInteractionAssay" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+		<attribute name="source" type="java.lang.String"/>
+		<collection name="interactions" referenced-type="CompoundProteinInteraction" reverse-reference="assay"/>
+		<collection name="publications" referenced-type="Publication"/>
+    </class>
+
+</classes>

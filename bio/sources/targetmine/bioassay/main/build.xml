@@ -1,0 +1,4 @@
+<project name="bioassay-tasks" default="default" basedir=".">
+  <description>build bioassay tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>
