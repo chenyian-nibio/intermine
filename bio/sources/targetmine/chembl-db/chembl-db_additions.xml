@@ -3,20 +3,24 @@
 	<class name="CompoundProteinInteraction" is-interface="true">
 		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
 		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
-		<collection name="assay" referenced-type="CompoundProteinInteractionAssay" reverse-reference="interaction"/>
+		<collection name="assay" referenced-type="CompoundProteinInteractionAssay" reverse-reference="interactions"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
     </class>
-	<class name="CompoundProteinInteractionAssay" is-interface="true">
+	<class name="Activity" is-interface="true">
 		<attribute name="type" type="java.lang.String"/>
 		<attribute name="conc" type="java.lang.Float"/>
-		<reference name="interaction" referenced-type="CompoundProteinInteraction" reverse-reference="assay"/>
-		<reference name="publication" referenced-type="Publication"/>
+		<reference name="assay" referenced-type="CompoundProteinInteractionAssay" reverse-reference="activities"/>
+    </class>
+	<class name="CompoundProteinInteractionAssay" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+		<attribute name="source" type="java.lang.String"/>
+		<collection name="interactions" referenced-type="CompoundProteinInteraction" reverse-reference="assay"/>
+		<collection name="publications" referenced-type="Publication"/>
+		<collection name="activities" referenced-type="Activity" reverse-reference="assay"/>
     </class>
     
 	<class name="ChemblInteraction" extends="CompoundProteinInteraction" is-interface="true">
-    </class>
-
-	<class name="ChemblAssay" extends="CompoundProteinInteractionAssay" is-interface="true">
     </class>
 
 	<class name="Protein" is-interface="true">

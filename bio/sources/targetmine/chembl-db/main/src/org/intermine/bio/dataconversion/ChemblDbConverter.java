@@ -117,7 +117,7 @@ public class ChemblDbConverter extends BioDBConverter {
 
 		String queryInteraction = " select distinct md.molregno, md.chembl_id, md.molecule_type, "
 				+ " act.standard_type, act.standard_value, cseq.accession, cseq.tax_id, docs.pubmed_id, "
-				+ " cs.standard_inchi_key " + " from activities as act "
+				+ " cs.standard_inchi_key, ass.chembl_id as assay_id, ass.description " + " from activities as act "
 				+ " join molecule_dictionary as md on md.molregno=act.molregno "
 				+ " join assays as ass on ass.assay_id=act.assay_id "
 				+ " join target_dictionary as td on td.tid=ass.tid "
@@ -141,6 +141,9 @@ public class ChemblDbConverter extends BioDBConverter {
 			String inchiKey = String.valueOf(resInteraction.getString("standard_inchi_key"));
 			String standardType = resInteraction.getString("standard_type");
 			float conc = resInteraction.getFloat("standard_value");
+			String assayId = resInteraction.getString("assay_id");
+			String assayDesc = resInteraction.getString("description");
+
 			String intId = uniprotId + "-" + chemblId;
 			String interactionRef = interactionMap.get(intId);
 			if (interactionRef == null) {
@@ -152,8 +155,7 @@ public class ChemblDbConverter extends BioDBConverter {
 				if (compoundRef == null) {
 					Item compound = createItem("ChemblCompound");
 					compound.setAttribute("chemblId", chemblId);
-					compound.setAttribute("primaryIdentifier",
-							String.format("ChEMBL:%s", chemblId));
+					compound.setAttribute("primaryIdentifier", String.format("ChEMBL:%s", chemblId));
 					compound.setAttribute("secondaryIdentifier", chemblId);
 					compound.setAttribute("inchiKey", inchiKey);
 
@@ -212,15 +214,38 @@ public class ChemblDbConverter extends BioDBConverter {
 				interactionMap.put(intId, interactionRef);
 				i++;
 			}
-			Item assay = createItem("ChemblAssay");
-			assay.setAttribute("type", standardType);
-			assay.setAttribute("conc", String.valueOf(conc));
-			assay.setReference("publication", getPublication(pubmedId));
-			assay.setReference("interaction", interactionRef);
-			store(assay);
+			Item assay = getCompoundProteinInteractionAssay(assayId, assayDesc, pubmedId);
+			assay.addToCollection("interactions", interactionRef);
+
+			Item activity = createItem("Activity");
+			activity.setAttribute("type", standardType);
+			activity.setAttribute("conc", String.valueOf(conc));
+			activity.setReference("assay", assay);
+			store(activity);
 		}
 		// System.out.println(i + "ChEMBL interaction were integrated.");
 		LOG.info(i + "ChEMBL interaction were integrated.");
+	}
+
+	Map<String, Item> assayMap = new HashMap<String, Item>();
+
+	private Item getCompoundProteinInteractionAssay(String identifier, String name, String pubmedId)
+			throws ObjectStoreException {
+		Item ret = assayMap.get(identifier);
+		if (ret == null) {
+			ret = createItem("CompoundProteinInteractionAssay");
+			ret.setAttribute("identifier", identifier);
+			ret.setAttribute("name", name);
+			ret.setAttribute("source", "ChEMBL");
+			ret.addToCollection("publications", getPublication(pubmedId));
+			assayMap.put(identifier, ret);
+		}
+		return ret;
+	}
+
+	@Override
+	public void close() throws Exception {
+		store(assayMap.values());
 	}
 
 	private String getProtein(String uniprotId) throws ObjectStoreException {
