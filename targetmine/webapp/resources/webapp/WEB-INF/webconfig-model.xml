@@ -8,7 +8,7 @@
   <class className="org.intermine.model.bio.BioEntity">
     <headerconfig>
       <titles>
-        <title mainTitles="symbol|primaryIdentifier" numberOfMainTitlesToShow="1" subTitles="*organism.shortName*" />
+        <title mainTitles="symbol|primaryIdentifier" numberOfMainTitlesToShow="1" subTitles="*organism.name*" />
       </titles>
     </headerconfig>
     <fields>
@@ -56,7 +56,7 @@
       <fieldconfig fieldExpr="primaryIdentifier"/>
       <fieldconfig fieldExpr="symbol"/>
       <fieldconfig fieldExpr="name"/>
-      <fieldconfig fieldExpr="organism.shortName" />
+      <fieldconfig fieldExpr="organism.name" />
     </fields>
   </class>
 
@@ -231,10 +231,11 @@
   </class>
 
   <class className="org.intermine.model.bio.Compound">
-    <fields>
-      <fieldconfig fieldExpr="primaryIdentifier"/>
-      <fieldconfig fieldExpr="name"/>
-    </fields>
+    <headerconfig>
+        <titles>
+            <title mainTitles="primaryIdentifier|name" />
+        </titles>
+    </headerconfig>
   </class>
 
   <class className="org.intermine.model.bio.ProteinDomain">
@@ -425,8 +426,36 @@
   </class>
 
   <class className="org.intermine.model.bio.DrugCompound">
+    <headerconfig>
+        <titles>
+            <title mainTitles="primaryIdentifier|name" />
+        </titles>
+    </headerconfig>
+    <fields>
+      <fieldconfig fieldExpr="genericName"/>
+      <fieldconfig fieldExpr="drugBankId"/>
+      <fieldconfig fieldExpr="casRegistryNumber"/>
+      <fieldconfig fieldExpr="inchiKey"/>
+      <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" />
+    </fields>
     <inlinelist>
+      <table path="synonyms.value" showLinksToObjects="true" />
       <table path="drugTypes.name" showLinksToObjects="false" />
+    </inlinelist>
+  </class>
+  <class className="org.intermine.model.bio.ChemblCompound">
+    <inlinelist>
+      <table path="synonyms.value" showLinksToObjects="true" />
+    </inlinelist>
+  </class>
+  <class className="org.intermine.model.bio.ChebiCompound">
+    <inlinelist>
+      <table path="synonyms.value" showLinksToObjects="true" />
+    </inlinelist>
+  </class>
+  <class className="org.intermine.model.bio.PubChemCompound">
+    <inlinelist>
+      <table path="synonyms.value" showLinksToObjects="true" />
     </inlinelist>
   </class>
 
