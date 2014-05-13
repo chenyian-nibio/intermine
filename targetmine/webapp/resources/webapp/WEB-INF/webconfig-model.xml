@@ -629,6 +629,11 @@
                      replacesFields="interaction"
                      types="InteractionDetail"/>
 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.CompoundAssayExtLinkDisplayer"
+                     jspName="model/compoundAssayExtLinkDisplayer.jsp"
+                     replacesFields="identifier" 
+                     types="CompoundProteinInteractionAssay"/>
+
   </reportdisplayers>
 
   
