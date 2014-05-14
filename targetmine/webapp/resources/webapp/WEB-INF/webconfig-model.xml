@@ -636,7 +636,7 @@
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.CompoundAssayExtLinkDisplayer"
                      jspName="model/compoundAssayExtLinkDisplayer.jsp"
-                     replacesFields="identifier" 
+                     replacesFields="originalId" 
                      types="CompoundProteinInteractionAssay"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.CompoundGroupDisplayer"

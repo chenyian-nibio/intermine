@@ -234,7 +234,8 @@ public class ChemblDbConverter extends BioDBConverter {
 		Item ret = assayMap.get(identifier);
 		if (ret == null) {
 			ret = createItem("CompoundProteinInteractionAssay");
-			ret.setAttribute("identifier", identifier);
+			ret.setAttribute("identifier", identifier.toLowerCase());
+			ret.setAttribute("originalId", identifier);
 			ret.setAttribute("name", name);
 			ret.setAttribute("source", "ChEMBL");
 			ret.addToCollection("publications", getPublication(pubmedId));

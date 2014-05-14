@@ -15,12 +15,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -85,7 +83,8 @@ public class BioassayConverter extends BioFileConverter {
 			}
 		
 			Item assay = createItem("CompoundProteinInteractionAssay");
-			assay.setAttribute("identifier", aid);
+			assay.setAttribute("identifier", "pcassay" + aid);
+			assay.setAttribute("originalId", aid);
 			assay.setAttribute("name", name);
 			assay.setAttribute("source", source);
 			if (pubmedMapping.get(aid)!=null) {
