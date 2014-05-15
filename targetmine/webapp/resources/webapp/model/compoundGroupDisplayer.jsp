@@ -36,30 +36,41 @@
 		</tbody>
 		</table>
 		
-		<div style="height: 30px;"></div>
-		
+	</c:otherwise>
+</c:choose>
+
+<div style="height: 30px;"></div>
+
+<c:choose>
+	<c:when test="${empty proteins}">
+		<h3>0 Interacting Proteins</h3>
+    	<p style="margin: 10px;">No interacting proteins.</p>
+	</c:when>
+	<c:otherwise>
 		<h3>
-			Interacting Proteins
+			${fn:length(proteins)} Interacting Protein<c:if test="${fn:length(proteins) > 1}">s</c:if>
 		</h3>
 		<table>
 		<thead>
 		<tr>
 			<th>DB identifier</th>
-			<th>Uniprot Accession</th>
+			<th>Primary Accession</th>
 			<th>Name</th>
+			<th>Organism . Name</th>
 		</tr>
 		</thead>
 		<tbody>
-		<c:forEach var="compound" items="${group.compounds}">
-			<c:forEach var="interaction" items="${compound.targetProteins}">
+		<c:forEach var="protein" items="${proteins}">
 		    <tr>
-		    	<td><a href="report.do?id=${interaction.protein.id}">${interaction.protein.primaryIdentifier}</a></td>
-		    	<td><a href="report.do?id=${interaction.protein.id}">${interaction.protein.primaryAccession}</a></td>
-		    	<td>${interaction.protein.name}</td>
+		    	<td><a href="report.do?id=${protein.id}">${protein.primaryIdentifier}</a></td>
+		    	<td><a href="report.do?id=${protein.id}">${protein.primaryAccession}</a></td>
+		    	<td>${protein.name}</td>
+		    	<td>${protein.organism.name}</td>
 		    </tr>
-			</c:forEach>
 		</c:forEach>
 		</tbody>
 		</table>
 	</c:otherwise>
 </c:choose>
+
+</div>
