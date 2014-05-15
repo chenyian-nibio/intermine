@@ -236,6 +236,11 @@
             <title mainTitles="primaryIdentifier|name" />
         </titles>
     </headerconfig>
+    <fields>
+      <fieldconfig fieldExpr="primaryIdentifier"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="inchiKey"/>
+    </fields>
   </class>
 
   <class className="org.intermine.model.bio.ProteinDomain">
@@ -633,6 +638,11 @@
                      jspName="model/compoundAssayExtLinkDisplayer.jsp"
                      replacesFields="identifier" 
                      types="CompoundProteinInteractionAssay"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.CompoundGroupDisplayer"
+                     jspName="model/compoundGroupDisplayer.jsp"
+                     replacesFields="compounds" 
+                     types="CompoundGroup"/>
 
   </reportdisplayers>
 
