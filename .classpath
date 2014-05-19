@@ -71,6 +71,7 @@
 	<classpathentry kind="src" path="intermine/integrate/model/fulldata/build/gen/src"/>
 	<classpathentry kind="src" path="intermine/api/model/userprofile/build/gen/src"/>
 	<classpathentry kind="src" path="intermine/pathquery/main/build/gen/src"/>
+	<classpathentry kind="src" path="intermine/jbrowse-endpoint/main/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/bbop.jar"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/jakarta-regexp-1.4.jar"/>
