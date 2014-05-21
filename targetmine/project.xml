@@ -142,6 +142,10 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/oreganno" />
       <property name="src.data.dir.includes" value="oreg.all.txt" />
     </source>
+    <source name="htridb" type="htridb">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/htridb" />
+      <property name="src.data.dir.includes" value="HTRIdb_data.csv" />
+    </source>
     <source name="enzyme" type="enzyme">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/enzyme" />
       <property name="src.data.dir.includes" value="enzyme.dat" />
