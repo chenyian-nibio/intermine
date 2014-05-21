@@ -3,7 +3,9 @@ package org.intermine.bio.dataconversion;
 import java.io.BufferedReader;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
@@ -51,32 +53,34 @@ public class AmadeusConverter extends BioFileConverter {
 		}
 
 		String[] cols = getCurrentFile().getName().split("_");
-		String sourceGeneId = cols[0];
+		String sourceGeneId = cols[0].trim();
 		String pubmedId = cols[2].replaceAll("\\.geneid\\.txt", "");
 
-		Item intExp = createItem("ProteinDNAExperiment");
-		intExp.setReference("publication", getPublication(pubmedId));
-		intExp.setAttribute("name", cols[1]);
-		intExp.setAttribute("description", expMap.get(cols[1]));
+		String intExp = getExperiment(cols[1], pubmedId);
 
+		Set<String> targetGeneIds = new HashSet<String>();
 		BufferedReader br = new BufferedReader(reader);
 		String ncbiGeneId;
 		while ((ncbiGeneId = br.readLine()) != null) {
-			if (ncbiGeneId.equals(cols[0])) {
+			String targetGeneId = ncbiGeneId.trim();
+			if (targetGeneIds.contains(targetGeneId)) {
+				continue;
+			}
+			if (targetGeneId.equals(cols[0])) {
 				// create Interaction
 				createInteraction(sourceGeneId, sourceGeneId, "source&target", intExp);
 
 			} else {
 				// create Interaction for source
-				createInteraction(sourceGeneId, ncbiGeneId, "source", intExp);
+				createInteraction(sourceGeneId, targetGeneId, "source", intExp);
 
 				// create Interaction for target
-				createInteraction(ncbiGeneId, sourceGeneId, "target", intExp);
+				createInteraction(targetGeneId, sourceGeneId, "target", intExp);
 			}
+			targetGeneIds.add(targetGeneId);
 		}
 		reader.close();
 
-		store(intExp);
 
 	}
 
@@ -91,16 +95,30 @@ public class AmadeusConverter extends BioFileConverter {
 	}
 
 	private void createInteraction(String masterId, String slaveId, String role,
-			Item interactionExperiment) throws ObjectStoreException {
+			String extRefId) throws ObjectStoreException {
 		Item item = createItem("ProteinDNAInteraction");
 		item.setReference("gene", getGene(masterId));
 		item.setReference("interactWith", getGene(slaveId));
 
 		item.setAttribute("interactionType", INTERACTION_TYPE);
-		item.setAttribute("name", String.format("AMADEUS_G%s_G%s", masterId, slaveId));
 		item.setAttribute("role", role);
-		item.setReference("experiment", interactionExperiment);
+		item.addToCollection("experiments", extRefId);
 		store(item);
+	}
+
+	Map<String, String> expItemMap = new HashMap<String, String>();
+	private String getExperiment(String type, String pubmedId) throws ObjectStoreException {
+		String key = type + "-" + pubmedId;
+		String ret = expItemMap.get(key);
+		if (ret == null) {
+			Item item = createItem("ProteinDNAExperiment");
+			item.setReference("publication", getPublication(pubmedId));
+			item.setAttribute("title", expMap.get(type));
+			store(item);
+			ret = item.getIdentifier();
+			expItemMap.put(key, ret);
+		}
+		return ret;
 	}
 
 	private String getGene(String ncbiGeneId) throws ObjectStoreException {
