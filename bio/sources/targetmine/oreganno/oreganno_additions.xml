@@ -6,21 +6,11 @@
 		<reference name="gene" referenced-type="Gene" reverse-reference="proteinDNAInteractions" />
 		<reference name="interactWith" referenced-type="Gene"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
-		<collection name="bindingSites" referenced-type="BindingSiteInfo"/>
+		<collection name="bindingSites" referenced-type="TFBindingSite"/>
     </class>
 
     <class name="Gene" is-interface="true">
         <collection name="proteinDNAInteractions" referenced-type="ProteinDNAInteraction" reverse-reference="gene"/>
-    </class>
-
-    <class name="BindingSiteInfo" is-interface="true">
-		<attribute name="sequence" type="java.lang.String"/>
-		<attribute name="start" type="java.lang.Integer"/>
-		<attribute name="end" type="java.lang.Integer"/>
-		<attribute name="chromosome" type="java.lang.String"/>
-		<attribute name="strand" type="java.lang.String"/>
-		<attribute name="genomeBuild" type="java.lang.String"/>
-		<attribute name="stableId" type="java.lang.String"/>
     </class>
 
 </classes>
