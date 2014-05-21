@@ -11,6 +11,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/cath-name/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/chebi-db/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/chembl-db/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/chembl-protein/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/dataset-info/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/do-annotation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drpias/main/src"/>

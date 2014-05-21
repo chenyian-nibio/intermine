@@ -208,6 +208,9 @@
     <source name="chembl" type="chembl-db">
       <property name="source.db.name" value="chembl-psql"/>
     </source>
+    <source name="chembl-protein" type="chembl-protein">
+      <property name="source.db.name" value="chembl-psql"/>
+    </source>
     <source name="gwas" type="gwas">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gwas/nhgri" />
       <property name="src.data.dir.includes" value="gwascatalog.*.txt" />
