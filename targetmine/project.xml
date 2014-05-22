@@ -253,6 +253,10 @@
   	<source name="fill-missing-proteins" type="fill-missing-proteins">
       <property name="src.data.file" location="build/proteins.txt"/>
     </source>
+
+  	<source name="fill-missing-genes" type="fill-missing-genes">
+      <property name="src.data.file" location="build/genes.txt"/>
+    </source>
     
     <!--  do nothing but add the necessary data model for the post-processing -->
   	<source name="network-analysis" type="network-analysis">
