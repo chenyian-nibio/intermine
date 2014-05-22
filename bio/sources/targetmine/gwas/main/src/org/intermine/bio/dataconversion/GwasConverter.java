@@ -74,21 +74,21 @@ public class GwasConverter extends BioFileConverter {
 				continue;
 			}
 			String snpGeneId = cols[17];
-			// skip those intergenic snp or snp mapping to multiple genes
-			if (verifySnp(snpGeneId)) {
+			// skip those intergenic snp (when snpGeneId column is empty)
+			if (!StringUtils.isEmpty(snpGeneId)) {
 				String gwaRefId = getGenomeWideAssociation(cols[7].trim(), cols[1], cols[27]);
-				String geneRefId = getGene(snpGeneId);
 				Item snp = getSnp(cols[21], cols[24]);
-				snp.setReference("gene", geneRefId);
+				for (String geneId : snpGeneId.split(";")) {
+					snp.addToCollection("genes", getGene(geneId));
+				}
 				snp.addToCollection("genomeWideAssociations", gwaRefId);
 			}
 		}
-
-		store(snpMap.values());
 	}
-
-	private boolean verifySnp(String snpGeneId) {
-		return !(StringUtils.isEmpty(snpGeneId) || snpGeneId.contains(","));
+	
+	@Override
+	public void close() throws Exception {
+		store(snpMap.values());
 	}
 
 	private Item getSnp(String dbSnpId, String context) {
