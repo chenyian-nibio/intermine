@@ -57,6 +57,10 @@ public class MirtarbaseConverter extends BioFileConverter {
 			String experiment = cols[4];
 			String supportType = cols[5];
 			String pubmedId = cols[6];
+			
+			if (ncbiGeneId.equals("0")) {
+				continue;
+			}
 
 			String[] accs = accession.split(",");
 			for (int i = 0; i < accs.length; i++) {
