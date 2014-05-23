@@ -579,6 +579,14 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.GenomeWideAssociation">
+    <fields>
+      <fieldconfig fieldExpr="trait"/>
+      <fieldconfig fieldExpr="pvalue"/>
+      <fieldconfig fieldExpr="publication.pubMedId"/>
+    </fields>
+  </class>
+
 
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
@@ -624,17 +632,17 @@
                      placement="summary"
                      types="SequenceFeature"/>
 
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.PpiDruggabilityDisplayer"
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
                      jspName="model/ppiDruggabilityDisplayer.jsp"
                      replacesFields="ppiDruggability"
                      types="Interaction"/>
 
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.InteractDetailInteractionDisplayer"
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
                      jspName="model/interactDetailInteractionDisplayer.jsp"
                      replacesFields="interaction"
                      types="InteractionDetail"/>
 
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.CompoundAssayExtLinkDisplayer"
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
                      jspName="model/compoundAssayExtLinkDisplayer.jsp"
                      replacesFields="originalId" 
                      types="CompoundProteinInteractionAssay"/>

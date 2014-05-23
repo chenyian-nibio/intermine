@@ -7,9 +7,9 @@ import org.intermine.web.displayer.ReportDisplayer;
 import org.intermine.web.logic.config.ReportDisplayerConfig;
 import org.intermine.web.logic.results.ReportObject;
 
-public class InteractDetailInteractionDisplayer extends ReportDisplayer {
+public class GenericReportDisplayer extends ReportDisplayer {
 
-	public InteractDetailInteractionDisplayer(ReportDisplayerConfig config, InterMineAPI im) {
+	public GenericReportDisplayer(ReportDisplayerConfig config, InterMineAPI im) {
 		super(config, im);
 	}
 
