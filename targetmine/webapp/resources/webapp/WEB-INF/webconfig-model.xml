@@ -647,6 +647,11 @@
                      replacesFields="originalId" 
                      types="CompoundProteinInteractionAssay"/>
 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/proteinDnaIntDisplayer.jsp"
+                     replacesFields="gene,interactWith" 
+                     types="ProteinDNAInteraction"/>
+
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.CompoundGroupDisplayer"
                      jspName="model/compoundGroupDisplayer.jsp"
                      replacesFields="compounds" 
