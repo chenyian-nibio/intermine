@@ -7,6 +7,7 @@ import org.intermine.api.InterMineAPI;
 import org.intermine.api.profile.Profile;
 import org.intermine.api.query.PathQueryExecutor;
 import org.intermine.api.results.ExportResultsIterator;
+import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.pathquery.Constraints;
 import org.intermine.pathquery.PathQuery;
 import org.intermine.web.displayer.ReportDisplayer;
@@ -45,7 +46,14 @@ public class ProteinDomainDisplayer extends ReportDisplayer {
 		q.addViews("Protein.proteinDomainRegions.originalId");
 		q.addConstraint(Constraints.eq("Protein.id", proteinId));
 
-		ExportResultsIterator result = executor.execute(q);
+		ExportResultsIterator result;
+		try {
+			result = executor.execute(q);
+		} catch (ObjectStoreException e) {
+//			e.printStackTrace();
+			LOG.error(e.getMessage());
+			return false;
+		}
 
 		return result.hasNext();
 	}

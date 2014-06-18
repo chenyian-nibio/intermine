@@ -8,7 +8,7 @@
   <class className="org.intermine.model.bio.BioEntity">
     <headerconfig>
       <titles>
-        <title mainTitles="symbol|primaryIdentifier" numberOfMainTitlesToShow="1" subTitles="*organism.shortName*" />
+        <title mainTitles="symbol|primaryIdentifier" numberOfMainTitlesToShow="1" subTitles="*organism.name*" />
       </titles>
     </headerconfig>
     <fields>
@@ -37,7 +37,6 @@
       <fieldconfig fieldExpr="version"/>
       <fieldconfig fieldExpr="dateType"/>
       <fieldconfig fieldExpr="date"/>
-      <!--fieldconfig fieldExpr="url" doNotTruncate="true"/-->
     </fields>
   </class>
 
@@ -50,11 +49,14 @@
   </class>
 
   <class className="org.intermine.model.bio.Gene">
+    <inlinelist>
+      <table path="synonyms.value" showLinksToObjects="true" />
+    </inlinelist>
     <fields>
-      <fieldconfig fieldExpr="ncbiGeneId"/>
-      <fieldconfig fieldExpr="primaryIdentifier" showInSummary="false"/>
+      <fieldconfig fieldExpr="primaryIdentifier"/>
       <fieldconfig fieldExpr="symbol"/>
-      <fieldconfig fieldExpr="organism.shortName" />
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="organism.name" />
     </fields>
   </class>
 
@@ -95,6 +97,7 @@
     <fields>
       <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="namespace"/>
       <fieldconfig fieldExpr="description" doNotTruncate="true" />
     </fields>
   </class>
@@ -178,9 +181,13 @@
   <class className="org.intermine.model.bio.ProteinStructure">
     <fields>
       <fieldconfig fieldExpr="pdbId"/>
+      <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="resolution"/>
       <fieldconfig fieldExpr="experimentType"/>
     </fields>
+    <inlinelist>
+      <table path="chains.chain" showLinksToObjects="true" />
+    </inlinelist>
   </class>
 
   <class className="org.intermine.model.bio.GOAnnotation">
@@ -191,16 +198,6 @@
       <fieldconfig fieldExpr="ontologyTerm.namespace" />
     </fields>
   </class>
-<!--
-  <class className="org.intermine.model.bio.GOSlimAnnotation">
-    <fields>
-      <fieldconfig fieldExpr="subject.primaryIdentifier"/>
-      <fieldconfig fieldExpr="ontologyTerm.identifier" />
-      <fieldconfig fieldExpr="ontologyTerm.name" />
-      <fieldconfig fieldExpr="ontologyTerm.namespace" />
-    </fields>
-  </class>
--->
   <class className="org.intermine.model.bio.GOEvidenceCode">
     <fields>
       <fieldconfig fieldExpr="code"/>
@@ -234,9 +231,15 @@
   </class>
 
   <class className="org.intermine.model.bio.Compound">
+    <headerconfig>
+        <titles>
+            <title mainTitles="primaryIdentifier|name" />
+        </titles>
+    </headerconfig>
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
       <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="inchiKey"/>
     </fields>
   </class>
 
@@ -328,6 +331,7 @@
   <class className="org.intermine.model.bio.CompoundProteinInteraction">
     <fields>
       <fieldconfig fieldExpr="protein.primaryAccession"/>
+      <fieldconfig fieldExpr="protein.name"/>
       <fieldconfig fieldExpr="compound.primaryIdentifier" />
       <fieldconfig fieldExpr="compound.name" />
       <fieldconfig fieldExpr="dataSet.name" />
@@ -394,6 +398,7 @@
       <fieldconfig fieldExpr="end" />
       <fieldconfig fieldExpr="endInsertionCode" />
       <fieldconfig fieldExpr="proteinChain.identifier" />
+      <fieldconfig fieldExpr="structuralDomain.description" />
     </fields>
   </class>
 
@@ -423,6 +428,40 @@
     <fields>
       <fieldconfig fieldExpr="name"/>
     </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.DrugCompound">
+    <headerconfig>
+        <titles>
+            <title mainTitles="primaryIdentifier|name" />
+        </titles>
+    </headerconfig>
+    <fields>
+      <fieldconfig fieldExpr="genericName"/>
+      <fieldconfig fieldExpr="drugBankId"/>
+      <fieldconfig fieldExpr="casRegistryNumber"/>
+      <fieldconfig fieldExpr="inchiKey"/>
+      <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" />
+    </fields>
+    <inlinelist>
+      <table path="synonyms.value" showLinksToObjects="true" />
+      <table path="drugTypes.name" showLinksToObjects="false" />
+    </inlinelist>
+  </class>
+  <class className="org.intermine.model.bio.ChemblCompound">
+    <inlinelist>
+      <table path="synonyms.value" showLinksToObjects="true" />
+    </inlinelist>
+  </class>
+  <class className="org.intermine.model.bio.ChebiCompound">
+    <inlinelist>
+      <table path="synonyms.value" showLinksToObjects="true" />
+    </inlinelist>
+  </class>
+  <class className="org.intermine.model.bio.PubChemCompound">
+    <inlinelist>
+      <table path="synonyms.value" showLinksToObjects="true" />
+    </inlinelist>
   </class>
 
   <class className="org.intermine.model.bio.GeneRIF">
@@ -530,6 +569,24 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.PpiDruggability">
+    <fields>
+      <fieldconfig fieldExpr="identifier" showInSummary="false"/>
+      <fieldconfig fieldExpr="structuralScore"/>
+      <fieldconfig fieldExpr="drugChemicalScore"/>
+      <fieldconfig fieldExpr="functionalScore"/>
+      <fieldconfig fieldExpr="allScore"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.GenomeWideAssociation">
+    <fields>
+      <fieldconfig fieldExpr="trait"/>
+      <fieldconfig fieldExpr="pvalue"/>
+      <fieldconfig fieldExpr="publication.pubMedId"/>
+    </fields>
+  </class>
+
 
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
@@ -568,6 +625,37 @@
                      replacesFields="sequence"
                      placement="summary"
                      types="Protein"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.SequenceFeatureDisplayer"
+                     jspName="model/sequenceFeatureDisplayer.jsp"
+                     replacesFields="chromosome,chromosomeLocation,sequence,length,sequenceOntologyTerm,locations,cytoLocation"
+                     placement="summary"
+                     types="SequenceFeature"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/ppiDruggabilityDisplayer.jsp"
+                     replacesFields="ppiDruggability"
+                     types="Interaction"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/interactDetailInteractionDisplayer.jsp"
+                     replacesFields="interaction"
+                     types="InteractionDetail"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/compoundAssayExtLinkDisplayer.jsp"
+                     replacesFields="originalId" 
+                     types="CompoundProteinInteractionAssay"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/proteinDnaIntDisplayer.jsp"
+                     replacesFields="gene,interactWith" 
+                     types="ProteinDNAInteraction"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.CompoundGroupDisplayer"
+                     jspName="model/compoundGroupDisplayer.jsp"
+                     replacesFields="compounds" 
+                     types="CompoundGroup"/>
 
   </reportdisplayers>
 

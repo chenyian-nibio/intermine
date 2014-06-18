@@ -155,6 +155,12 @@ public class UniprotConverter extends BioDirectoryConverter
                 throw new RuntimeException(e);
             }
         }
+        // chenyian: examine if no gene was created (probably the tags have been changed)
+        // For example, GeneId, GeneID ... etc.
+        if (genes.size() < 1) {
+        	throw new RuntimeException("No gene was created, check if the tags have been changed. e.g. GeneId / GeneID");
+        }
+        
         // reset all variables here, new organism
         sequences = new HashMap<String, Map<String, String>>();
         genes = new HashMap<String, String>();

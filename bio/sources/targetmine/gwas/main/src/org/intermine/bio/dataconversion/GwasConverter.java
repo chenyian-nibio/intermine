@@ -2,7 +2,9 @@ package org.intermine.bio.dataconversion;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -72,21 +74,21 @@ public class GwasConverter extends BioFileConverter {
 				continue;
 			}
 			String snpGeneId = cols[17];
-			// skip those intergenic snp or snp mapping to multiple genes
-			if (verifySnp(snpGeneId)) {
+			// skip those intergenic snp (when snpGeneId column is empty)
+			if (!StringUtils.isEmpty(snpGeneId)) {
 				String gwaRefId = getGenomeWideAssociation(cols[7].trim(), cols[1], cols[27]);
-				String geneRefId = getGene(snpGeneId);
 				Item snp = getSnp(cols[21], cols[24]);
-				snp.setReference("gene", geneRefId);
+				for (String geneId : snpGeneId.split(";")) {
+					snp.addToCollection("genes", getGene(geneId));
+				}
 				snp.addToCollection("genomeWideAssociations", gwaRefId);
 			}
 		}
-
-		store(snpMap.values());
 	}
-
-	private boolean verifySnp(String snpGeneId) {
-		return !(StringUtils.isEmpty(snpGeneId) || snpGeneId.contains(","));
+	
+	@Override
+	public void close() throws Exception {
+		store(snpMap.values());
 	}
 
 	private Item getSnp(String dbSnpId, String context) {
@@ -166,20 +168,24 @@ public class GwasConverter extends BioFileConverter {
 	}
 
 	private void readDiseaseMap() {
-		try {
-			Iterator<String[]> iterator = FormattedTextParser
-					.parseTabDelimitedReader(new BufferedReader(new FileReader(diseaseMapFile)));
-			while (iterator.hasNext()) {
-				String[] cols = iterator.next();
-				if (StringUtils.isEmpty(cols[1])) {
-					continue;
+			Iterator<String[]> iterator;
+			try {
+				iterator = FormattedTextParser
+						.parseTabDelimitedReader(new BufferedReader(new FileReader(diseaseMapFile)));
+				while (iterator.hasNext()) {
+					String[] cols = iterator.next();
+					if (StringUtils.isEmpty(cols[1])) {
+						continue;
+					}
+					diseaseMap.put(cols[0].trim(), cols[1]);
 				}
-				diseaseMap.put(cols[0].trim(), cols[1]);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Disease mapping file not found.");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 }

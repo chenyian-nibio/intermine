@@ -6,16 +6,20 @@
 	<classpathentry kind="src" path="bio/sources/interpro/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/affy-probe-annot/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/amadeus/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/bioassay/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/biopax3/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/cath-name/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/chebi-db/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/chembl-db/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/chembl-protein/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/dataset-info/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/do-annotation/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/drpias/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugbank/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugebility/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/enzyme/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/enzyme-pathway/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/fill-missing-genes/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fill-missing-proteins/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fugue/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/gene-info/main/src"/>
@@ -24,6 +28,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/gene3d/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/go-goslim-annotation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/gwas/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/htridb/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/irefindex/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/ligand_expo/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase/main/src"/>
@@ -59,16 +64,17 @@
 	<classpathentry kind="src" path="imbuild/im-ant-tasks/src"/>
 	<classpathentry kind="src" path="intermine/api/main/src"/>
 	<classpathentry kind="src" path="intermine/integrate/main/src"/>
+	<classpathentry kind="src" path="intermine/jbrowse-endpoint/main/src"/>
 	<classpathentry kind="src" path="intermine/objectstore/main/src"/>
 	<classpathentry kind="src" path="intermine/pathquery/main/src"/>
 	<classpathentry kind="src" path="intermine/web/main/src"/>
 	<classpathentry kind="src" path="intermine/webtasks/main/src"/>
 	<classpathentry kind="src" path="intermine/webservice/client/main/src"/>
-	<classpathentry kind="src" path="targetmine/dbmodel/autogen/src"/>
 	<classpathentry kind="src" path="intermine/objectstore/main/build/gen/src"/>
 	<classpathentry kind="src" path="intermine/integrate/model/fulldata/build/gen/src"/>
 	<classpathentry kind="src" path="intermine/api/model/userprofile/build/gen/src"/>
 	<classpathentry kind="src" path="intermine/pathquery/main/build/gen/src"/>
+	<classpathentry kind="src" path="targetmine/dbmodel/autogen/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/bbop.jar"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/jakarta-regexp-1.4.jar"/>
@@ -82,7 +88,6 @@
 	<classpathentry kind="lib" path="intermine/api/main/lib/stax-api-1.0.jar"/>
 	<classpathentry kind="lib" path="intermine/api/main/lib/stax-ri-1.0.jar"/>
 	<classpathentry kind="lib" path="intermine/api/main/lib/xalan.jar"/>
-	<classpathentry kind="lib" path="intermine/integrate/main/lib/mysql-connector-java-3.0.10-stable-bin.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/ant-1.6.5.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/antlr-2.7.6-caching.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/base64.jar"/>
@@ -149,5 +154,7 @@
 	<classpathentry kind="lib" path="intermine/web/main/lib/commons-math3-3.2.jar"/>
 	<classpathentry kind="lib" path="imbuild/im-ant-tasks/lib/catalina-ant.jar"/>
 	<classpathentry kind="lib" path="bio/sources/update-publications/main/lib/je-3.2.23.jar"/>
+	<classpathentry kind="lib" path="intermine/integrate/main/lib/mysql-connector-java-5.1.26-bin.jar"/>
+	<classpathentry kind="lib" path="bio/postprocess/main/lib/guava-16.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

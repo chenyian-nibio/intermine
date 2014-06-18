@@ -1,7 +1,7 @@
 package org.intermine.bio.postprocess;
 
 /*
- * Copyright (C) 2002-2013 FlyMine
+ * Copyright (C) 2002-2014 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -283,11 +283,24 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
             	NetworkAnalysisTool nat = new NetworkAnalysisTool(getObjectStoreWriter());
             	nat.doAnalysis();
 //            	nat.test();
+            // chenyian:
+            } else if ("gene-set-clustering".equals(operation)) {
+            	IntegratedPathwayClustering ipc = new IntegratedPathwayClustering(getObjectStoreWriter());
+            	ipc.doClustering();
+            } else if ("ppi-druggability".equals(operation)) {
+            	PpiDruggability ppid = new PpiDruggability(getObjectStoreWriter());
+//            	configureDynamicAttributes(ppid);
+            	ppid.annotatePpiDruggabilities();
+            } else if ("transcribe-ncbiGeneId".equals(operation)) {
+            	TranscribeNcbiGeneId tn = new TranscribeNcbiGeneId(getObjectStoreWriter());
+            	tn.transcribeIdentifeir();
+            } else if ("populate-child-features".equals(operation)) {
+            	PopulateChildFeatures jb = new PopulateChildFeatures(getObjectStoreWriter());
+            	jb.populateCollection();
             } else {
                 throw new BuildException("unknown operation: " + operation);
             }
-            LOGGER.info("PP - " + operation + " took "
-                     + (System.currentTimeMillis() - startTime) + " ms.");
+                
         } catch (BuildException e) {
             LOGGER.error("Failed postprocess. Operation was: " + operation, e);
             throw e;

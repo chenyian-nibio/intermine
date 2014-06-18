@@ -90,13 +90,22 @@
           <td>
             <strong>
               <c:set var="loc" value="${feature.chromosomeLocation}"/>
-              <c:out value="${loc.locatedOn.primaryIdentifier}:${loc.start}-${loc.end}"/>
+              <c:choose>
+                <c:when test="${loc.locatedOn.symbol == loc.locatedOn.primaryIdentifier}">
+                  <c:out value="${loc.locatedOn.symbol}:${loc.start}-${loc.end}"/>
+                </c:when>
+                <c:otherwise>
+                  <c:out value="${loc.locatedOn.symbol} (${loc.locatedOn.primaryIdentifier}) :${loc.start}-${loc.end}"/>
+                </c:otherwise>
+              </c:choose>
+              
             </strong>
             <c:if test="${!empty loc.strand}">
               <span class="smallnote">
                 <c:choose>
-                  <c:when test="${loc.strand == 1}">forward strand</c:when>
-                  <c:when test="${loc.strand == -1}">reverse strand</c:when>
+                  <%-- modified by chenyian --%>
+                  <c:when test="${loc.strand == '+'}">forward strand</c:when>
+                  <c:when test="${loc.strand == '-'}">reverse strand</c:when>
                 </c:choose>
               </span>
             </c:if>
@@ -108,12 +117,13 @@
               <table><tbody><tr>
                 <c:forEach items="${locationsCollection}" var="loc" varStatus="statei">
                   <td class="<c:if test="${(statei.count + 1) % 3 == 0}">centered</c:if>">
-                    <strong><c:out value="${loc.locatedOn.primaryIdentifier}:${loc.start}-${loc.end}"/></strong>
+                    <strong><c:out value="${loc.locatedOn.symbol}:${loc.start}-${loc.end}"/></strong>
                     <c:if test="${!empty loc.strand}">
                       <span class="smallnote">
                         <c:choose>
-                          <c:when test="${loc.strand == 1}">forward strand</c:when>
-                          <c:when test="${loc.strand == -1}">reverse strand</c:when>
+                          <%-- modified by chenyian --%>
+                          <c:when test="${loc.strand == '+'}">forward strand</c:when>
+                          <c:when test="${loc.strand == '-'}">reverse strand</c:when>
                         </c:choose>
                       </span>
                     </c:if>

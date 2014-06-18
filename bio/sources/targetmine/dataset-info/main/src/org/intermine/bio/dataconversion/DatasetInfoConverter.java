@@ -69,6 +69,7 @@ public class DatasetInfoConverter extends FileConverter {
 			if (dataSetInfoMap.get("data_set") != null) {
 				Item item = createItem("DataSet");
 				item.setAttribute("name", dataSetInfoMap.get("data_set"));
+				item.setAttribute("code", dataSetInfoMap.get("code"));
 				item.setAttribute("url", dataSetInfoMap.get("url"));
 				item.setAttribute("description", dataSetInfoMap.get("description"));
 				item.setAttribute("category", dataSetInfoMap.get("category"));

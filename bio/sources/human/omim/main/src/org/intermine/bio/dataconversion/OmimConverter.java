@@ -1,7 +1,7 @@
 package org.intermine.bio.dataconversion;
 
 /*
- * Copyright (C) 2002-2013 FlyMine
+ * Copyright (C) 2002-2014 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -161,7 +161,7 @@ public class OmimConverter extends BioDirectoryConverter
                     String title = text.substring(0, terminateAt);
 
                     Item disease = getDisease(mimNumber);
-                    disease.setAttribute("name", title);
+                    disease.setAttribute("name", title.replace("@", ""));
                 }
 
                 sb = new StringBuilder();

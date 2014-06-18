@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.intermine.api.InterMineAPI;
+import org.intermine.api.bag.BagQueryRunner;
 import org.intermine.api.profile.InterMineBag;
 import org.intermine.api.query.MainHelper;
 import org.intermine.model.FastPathObject;
@@ -76,9 +77,10 @@ public class SequenceService extends JSONService {
 
     private Iterator<CharSequence> getSequences(final PathQuery pq) {
         validateQuery(pq);
+        BagQueryRunner bqr = im.getBagQueryRunner();
         final Query q;
         try {
-            q = MainHelper.makeQuery(pq, getListManager().getListMap(), new HashMap(), null, new HashMap());
+            q = MainHelper.makeQuery(pq, getListManager().getListMap(), new HashMap(), bqr, new HashMap());
         } catch (ObjectStoreException e) {
             throw new InternalErrorException(e);
         }
@@ -153,8 +155,7 @@ public class SequenceService extends JSONService {
     private PathQuery getQuery() {
         String xml                     = new QueryRequestParser(im.getQueryStore(), request).getQueryXml();
         String schemaUrl               = AbstractQueryService.getSchemaLocation(request);
-        Map<String, InterMineBag> bags = getListManager().getListMap();
-        PathQueryBuilder builder       = new PathQueryBuilder(xml, schemaUrl, bags);
+        PathQueryBuilder builder       = new PathQueryBuilder(xml, schemaUrl, getListManager());
 
         return builder.getQuery();
     }

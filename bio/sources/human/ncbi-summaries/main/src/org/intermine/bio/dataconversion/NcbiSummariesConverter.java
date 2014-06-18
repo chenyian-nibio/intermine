@@ -1,7 +1,7 @@
 package org.intermine.bio.dataconversion;
 
 /*
- * Copyright (C) 2002-2013 FlyMine
+ * Copyright (C) 2002-2014 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -61,7 +61,6 @@ public class NcbiSummariesConverter extends BioFileConverter
             try {
                 String entrez = line[0];
                 String description = line[1];
-                LOG.error("description " + count++ + " " + description);
                 if (!StringUtils.isBlank(description)) {
                     Item gene = createItem("Gene");
                     if (resolveGene(entrez) == null) {

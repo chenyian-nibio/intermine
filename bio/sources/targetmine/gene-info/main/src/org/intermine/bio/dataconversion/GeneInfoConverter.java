@@ -37,14 +37,16 @@ public class GeneInfoConverter extends BioFileConverter {
 	private static final String DATA_SOURCE_NAME = "NCBI";
 
 	private Set<String> taxonIds;
+	private Set<String> assemblies;
 
-	private Map<String, String> chromosomeMap = new HashMap<String, String>();
+	private Map<String, String> chromosomeMap;
 
 	private Map<String, Set<String>> unigeneMap;
 	private List<String> uniGeneSpecies;
 
 	private Map<String, Set<String>> accessionMap;
 	private Map<String, Set<String>> ucscMap;
+	private Map<String, Set<String>> historyMap;
 
 	private Map<String, Map<String, String>> idMap;
 	private Map<String, String> synonyms = new HashMap<String, String>();
@@ -52,6 +54,8 @@ public class GeneInfoConverter extends BioFileConverter {
 	private File gene2unigeneFile;
 	private File gene2accessionFile;
 	private File knownToLocusLinkFile;
+	private File chromosomeFile;
+	private File genehistoryFile;
 
 	public void setGene2unigeneFile(File gene2unigeneFile) {
 		this.gene2unigeneFile = gene2unigeneFile;
@@ -65,14 +69,31 @@ public class GeneInfoConverter extends BioFileConverter {
 		this.knownToLocusLinkFile = knownToLocusLinkFile;
 	}
 
+	public void setChromosomeFile(File chromosomeFile) {
+		this.chromosomeFile = chromosomeFile;
+	}
+
+	public void setGenehistoryFile(File genehistoryFile) {
+		this.genehistoryFile = genehistoryFile;
+	}
+
 	public void setGeneinfoOrganisms(String taxonIds) {
 		this.taxonIds = new HashSet<String>(Arrays.asList(StringUtil.split(taxonIds, " ")));
 		LOG.info("Setting list of organisms to " + this.taxonIds);
+		System.out.println("Setting list of organisms to " + this.taxonIds);
+	}
+
+	public void setChromosomeAssembly(String assemblies) {
+		this.assemblies = new HashSet<String>(Arrays.asList(StringUtil.split(assemblies, ";")));
+		LOG.info("Setting list of assemblies to " + this.assemblies);
+		System.out.println("Setting list of assemblies to " + this.assemblies);
 	}
 
 	public void setUnigeneOrganisms(String species) {
 		this.uniGeneSpecies = Arrays.asList(StringUtil.split(species, " "));
 		LOG.info("Only extract UniGene mapping for following species: " + this.uniGeneSpecies);
+		System.out.println("Only extract UniGene mapping for following species: "
+				+ this.uniGeneSpecies);
 	}
 
 	/**
@@ -139,6 +160,12 @@ public class GeneInfoConverter extends BioFileConverter {
 		}
 		if (ucscMap == null) {
 			processKnownToLocusLink();
+		}
+		if (chromosomeMap == null) {
+			processChromosomeFile();
+		}
+		if (historyMap == null) {
+			processGeneHistoryFile();
 		}
 
 		Iterator<String[]> iterator = FormattedTextParser
@@ -213,7 +240,10 @@ public class GeneInfoConverter extends BioFileConverter {
 				}
 			}
 
-			gene.setReference("chromosome", getChromosome(taxId, chromosome));
+			String chrRef = chromosomeMap.get(taxId + "-" + chromosome);
+			if (chrRef != null) {
+				gene.setReference("chromosome", chrRef);
+			}
 
 			// 2012/7/17
 			// Add accession identifiers
@@ -247,13 +277,90 @@ public class GeneInfoConverter extends BioFileConverter {
 				}
 			}
 
+			// 2014/4/3
+			// Include deprecated gene id as synonyms
+			if (historyMap.get(geneId) != null) {
+				for (String string : historyMap.get(geneId)) {
+					setSynonym(geneRefId, string);
+				}
+			}
+
+			// 2014/4/1
+			// Add Location
+			LocationInfo locationInfo = locationMap.get(geneId);
+			if (locationInfo != null) {
+				Item location = createItem("Location");
+				location.setAttribute("start", String.valueOf(locationInfo.getStart()));
+				location.setAttribute("end", String.valueOf(locationInfo.getEnd()));
+				location.setAttribute("strand", String.valueOf(locationInfo.getStrand()));
+				if (chrRef != null) {
+					location.setReference("locatedOn", chrRef);
+				}
+				location.setReference("feature", gene);
+				store(location);
+				gene.setReference("chromosomeLocation", location);
+			}
+
 			store(gene);
 
 		}
 	}
 
+	private void processGeneHistoryFile() {
+		LOG.info("Parsing the file gene_history file......");
+		System.out.println("Parsing the file gene_history file......");
+		historyMap = new HashMap<String, Set<String>>();
+		try {
+			FileReader reader = new FileReader(genehistoryFile);
+			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
+			while (iterator.hasNext()) {
+				String[] cols = iterator.next();
+				if (taxonIds.contains(cols[0])) {
+					if (historyMap.get(cols[1]) == null) {
+						historyMap.put(cols[1], new HashSet<String>());
+					}
+					historyMap.get(cols[1]).add(cols[2]);
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private void processChromosomeFile() {
+		LOG.info("Parsing the file chromosome file......");
+		System.out.println("Parsing the file chromosome file......");
+		chromosomeMap = new HashMap<String, String>();
+		try {
+			FileReader reader = new FileReader(chromosomeFile);
+			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
+			while (iterator.hasNext()) {
+				String[] cols = iterator.next();
+				Item chromosome = createItem("Chromosome");
+				chromosome.setReference("organism", getOrganism(cols[0]));
+				chromosome.setAttribute("primaryIdentifier", cols[2]);
+				chromosome.setAttribute("symbol", cols[1]);
+				store(chromosome);
+				chromosomeMap.put(cols[0] + "-" + cols[1], chromosome.getIdentifier());
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ObjectStoreException e) {
+			e.printStackTrace();
+		}
+
+	}
+
 	private void processKnownToLocusLink() {
 		LOG.info("Parsing the file knownToLocusLink......");
+		System.out.println("Parsing the file knownToLocusLink......");
 		ucscMap = new HashMap<String, Set<String>>();
 
 		try {
@@ -277,27 +384,50 @@ public class GeneInfoConverter extends BioFileConverter {
 
 	}
 
+	Map<String, LocationInfo> locationMap = new HashMap<String, LocationInfo>();
+
 	private void processGene2accession() {
 		LOG.info("Parsing the file gene2accession......");
+		System.out.println("Parsing the file gene2accession......");
 		accessionMap = new HashMap<String, Set<String>>();
 
+		// TODO add a check mechanism for assembly filter
+
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(gene2accessionFile));
-			String line = reader.readLine();
-			while (line != null) {
-				String[] cols = line.split("\\t");
+			FileReader reader = new FileReader(gene2accessionFile);
+			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
+			while (iterator.hasNext()) {
+				String[] cols = iterator.next();
 				if (taxonIds.contains(cols[0].trim())) {
-					// only take the 4th column
+					// take the 4th column as the synonyms
+					String geneId = cols[1];
 					if (!cols[3].trim().equals("-")) {
-							Set<String> identifierSet = accessionMap.get(cols[1]);
-							if (identifierSet == null) {
-								identifierSet = new HashSet<String>();
-								accessionMap.put(cols[1], identifierSet);
+						Set<String> identifierSet = accessionMap.get(geneId);
+						if (identifierSet == null) {
+							identifierSet = new HashSet<String>();
+							accessionMap.put(geneId, identifierSet);
+						}
+						identifierSet.add(cols[3]);
+					}
+
+					if (locationMap.get(geneId) == null && cols[7].startsWith("NC_")) {
+						if (assemblies == null) {
+							if (!cols[12].startsWith("Reference")) {
+								continue;
 							}
-							identifierSet.add(cols[3]);
+						} else if (!assemblies.contains(cols[12])) {
+							continue;
+						}
+						// int strand = 1;
+						// if (cols[11].equals("-")) {
+						// strand = -1;
+						// }
+						locationMap.put(
+								geneId,
+								new LocationInfo(Integer.valueOf(cols[9]) + 1, Integer
+										.valueOf(cols[10]) + 1, cols[11]));
 					}
 				}
-				line = reader.readLine();
 			}
 			reader.close();
 
@@ -309,19 +439,6 @@ public class GeneInfoConverter extends BioFileConverter {
 			throw new RuntimeException(e);
 		}
 
-	}
-
-	private String getChromosome(String taxId, String no) throws ObjectStoreException {
-		String ret = chromosomeMap.get(taxId + "-" + no);
-		if (ret == null) {
-			Item chromosome = createItem("Chromosome");
-			chromosome.setReference("organism", getOrganism(taxId));
-			chromosome.setAttribute("primaryIdentifier", no);
-			store(chromosome);
-			ret = chromosome.getIdentifier();
-			chromosomeMap.put(taxId + "-" + no, ret);
-		}
-		return ret;
 	}
 
 	private Map<String, String> processDbXrefs(String allDbRefString) {
@@ -357,12 +474,13 @@ public class GeneInfoConverter extends BioFileConverter {
 	}
 
 	private void processGene2unigene() {
+		System.out.println("Parsing the file gene2unigeneFile......");
 		unigeneMap = new HashMap<String, Set<String>>();
 		// #Format: GeneID UniGene_cluster (tab is used as a separator, pound sign - start of a
 		// comment)
 		try {
 			Iterator<String[]> iterator = FormattedTextParser
-					.parseTabDelimitedReader(new BufferedReader(new FileReader(gene2unigeneFile)));
+					.parseTabDelimitedReader(new FileReader(gene2unigeneFile));
 			// skip header
 			iterator.next();
 			while (iterator.hasNext()) {
@@ -380,6 +498,31 @@ public class GeneInfoConverter extends BioFileConverter {
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
+		}
+	}
+
+	protected class LocationInfo {
+		Integer start;
+		Integer end;
+		String strand;
+
+		public LocationInfo(Integer start, Integer end, String strand) {
+			super();
+			this.start = start;
+			this.end = end;
+			this.strand = strand;
+		}
+
+		public Integer getStart() {
+			return start;
+		}
+
+		public Integer getEnd() {
+			return end;
+		}
+
+		public String getStrand() {
+			return strand;
 		}
 	}
 }

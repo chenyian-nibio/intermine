@@ -56,6 +56,11 @@ import edu.uci.ics.jung.algorithms.scoring.ClosenessCentrality;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
 
+/**
+ * 
+ * @author chenyian
+ *
+ */
 public class NetworkAnalysisTool {
 	private static final Logger LOG = Logger.getLogger(NetworkAnalysisTool.class);
 
@@ -65,7 +70,6 @@ public class NetworkAnalysisTool {
 	private static final String PORT = "5432";
 
 	protected ObjectStoreWriter osw;
-	protected ObjectStore os;
 
 	private Model model;
 
@@ -136,8 +140,8 @@ public class NetworkAnalysisTool {
 					Interaction interaction = (Interaction) rr.get(0);
 					Gene gene1 = (Gene) rr.get(1);
 					Gene gene2 = (Gene) rr.get(2);
-					String gene1Id = gene1.getNcbiGeneId();
-					String gene2Id = gene2.getNcbiGeneId();
+					String gene1Id = gene1.getPrimaryIdentifier();
+					String gene2Id = gene2.getPrimaryIdentifier();
 					if (hcdpPairs.contains(gene1Id + "-" + gene2Id)
 							|| hcdpPairs.contains(gene2Id + "-" + gene1Id)) {
 						interaction.setFieldValue("confidence", "HCDP");
@@ -199,7 +203,7 @@ public class NetworkAnalysisTool {
 				while (geneIter.hasNext()) {
 					ResultsRow<?> rr = (ResultsRow<?>) geneIter.next();
 					Gene gene = (Gene) rr.get(0);
-					String geneId = gene.getNcbiGeneId();
+					String geneId = gene.getPrimaryIdentifier();
 					NetworkData hcdpData = hcdplccNp.get(geneId);
 					if (hcdpData != null) {
 						InterMineObject item = (InterMineObject) DynamicUtil
@@ -271,6 +275,7 @@ public class NetworkAnalysisTool {
 		
 	}
 
+	@SuppressWarnings("unused")
 	private Set<String> getInteractionPairs(Graph<String, String> lcc) {
 		Set<String> ret = new HashSet<String>();
 		Collection<String> edges = lcc.getEdges();
@@ -376,7 +381,7 @@ public class NetworkAnalysisTool {
 	private Results queryGenesByGeneIdList(Set<String> geneIds) {
 		Query q = new Query();
 		QueryClass qcGene = new QueryClass(Gene.class);
-		QueryField qfGeneId = new QueryField(qcGene, "ncbiGeneId");
+		QueryField qfGeneId = new QueryField(qcGene, "primaryIdentifier");
 
 		q.addFrom(qcGene);
 		q.addToSelect(qcGene);
@@ -388,6 +393,7 @@ public class NetworkAnalysisTool {
 		return os.execute(q);
 	}
 
+	@SuppressWarnings("unused")
 	private Results queryGenesByTaxonId(String taxonId) {
 		Query q = new Query();
 		QueryClass qcGene = new QueryClass(Gene.class);
@@ -538,7 +544,7 @@ public class NetworkAnalysisTool {
 
 			Statement statement = connection.createStatement();
 			ResultSet resultSet = statement
-					.executeQuery("select g1.ncbigeneid, g2.ncbigeneid, rtype.identifier, dm.identifier, dm.name, pub.pubmedid "
+					.executeQuery("select g1.primaryidentifier, g2.primaryidentifier, rtype.identifier, dm.identifier, dm.name, pub.pubmedid "
 							+ " from interaction as int  "
 							+ " join gene as g1 on gene1id = g1.id  "
 							+ " join gene as g2 on gene2id = g2.id  "
@@ -709,6 +715,7 @@ public class NetworkAnalysisTool {
 		return ret;
 	}
 
+	@SuppressWarnings("unused")
 	private Map<String, Double> calcBetweennessCentrality(Graph<String, String> graph) {
 		int n = graph.getVertexCount();
 		// number of node pairs excluding n; for normalization

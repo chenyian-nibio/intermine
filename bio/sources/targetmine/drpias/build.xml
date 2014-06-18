@@ -1,0 +1,5 @@
+<project name="drpias" default="default" basedir=".">
+  <description>build, test, package drpias</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

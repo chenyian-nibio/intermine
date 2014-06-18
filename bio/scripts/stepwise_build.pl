@@ -152,11 +152,11 @@ sub sendNoticeMail {
 	my ($subject, $content) = @_;
 	my $smtp = Net::SMTP->new(Host=>'127.0.0.1', Hello=>'localhost', Debug=>1,);
 	
-	$smtp->mail('chenyian@nibio.go.jp');
-	$smtp->to('chenyian@nibio.go.jp');
+	$smtp->mail('targetmine@nibio.go.jp');
+	$smtp->to('chenyian@nibio.go.jp','chenyian.tw@gmail.com');
 	
 	$smtp->data();
-	$smtp->datasend("To: chenyian\@nibio.go.jp\n");
+	$smtp->datasend("To: chenyian\@nibio.go.jp,chenyian.tw\@gmail.com'\n");
 	$smtp->datasend("Subject: $subject\n");
 	$smtp->datasend("\n");
 	$smtp->datasend("$content\n");

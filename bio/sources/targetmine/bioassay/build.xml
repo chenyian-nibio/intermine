@@ -1,0 +1,5 @@
+<project name="bioassay" default="default" basedir=".">
+  <description>build, test, package bioassay</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

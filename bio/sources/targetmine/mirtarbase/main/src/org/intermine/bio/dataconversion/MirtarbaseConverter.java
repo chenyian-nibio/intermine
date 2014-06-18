@@ -2,7 +2,6 @@ package org.intermine.bio.dataconversion;
 
 import java.io.Reader;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -56,17 +55,23 @@ public class MirtarbaseConverter extends BioFileConverter {
 			String accession = cols[2];
 			String ncbiGeneId = cols[3];
 			String experiment = cols[4];
-			String pubmedId = cols[5];
+			String supportType = cols[5];
+			String pubmedId = cols[6];
+			
+			if (ncbiGeneId.equals("0")) {
+				continue;
+			}
 
 			String[] accs = accession.split(",");
 			for (int i = 0; i < accs.length; i++) {
 				Item item = createItem("MiRNAEvidence");
 
-				item.setReference("interaction", getMiRNAInteraction(accs[i], ncbiGeneId, sourceId));
+				item.setReference("interaction",
+						getMiRNAInteraction(accs[i], ncbiGeneId, sourceId, supportType));
 				item.setReference("publication", getPublication(pubmedId));
 
 				Set<String> expSet = new HashSet<String>(Arrays.asList(experiment.split("//|;")));
-				
+
 				for (String exp : expSet) {
 					item.addToCollection("experiments", getMiRNAExperiment(exp));
 				}
@@ -79,8 +84,8 @@ public class MirtarbaseConverter extends BioFileConverter {
 
 	}
 
-	private String getMiRNAInteraction(String miRNAAcc, String geneId, String sourceId)
-			throws ObjectStoreException {
+	private String getMiRNAInteraction(String miRNAAcc, String geneId, String sourceId,
+			String supportType) throws ObjectStoreException {
 		String identifier = miRNAAcc + "-" + geneId;
 
 		String ret = interactionMap.get(identifier);
@@ -90,6 +95,7 @@ public class MirtarbaseConverter extends BioFileConverter {
 
 			item.setAttribute("identifier", identifier);
 			item.setAttribute("sourceId", sourceId);
+			item.setAttribute("supportType", supportType);
 			item.setReference("targetGene", getGene(geneId));
 			item.setReference("miRNA", getMiRNA(miRNAAcc));
 

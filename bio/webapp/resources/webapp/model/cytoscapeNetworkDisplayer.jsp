@@ -49,7 +49,7 @@
 </style>
 
 <div id="cwhead">
-    <h3 class="goog">Interaction Network</h3>
+    <h3 class="goog">High Confidence Direct Physical Interaction Network</h3>
 </div>
 
 <div id="interactions-wrap">
@@ -62,12 +62,9 @@
     <div id="tabs-controls">
       <div>
         <fieldset>
-              <label>Show:</label><br>
-              <input type="radio" name="showInteractions" onclick="vis.filter('edges', function(edge) { return edge.color; });" checked><label>All Interactions</label><br>
-              <input type="radio" name="showInteractions" onclick="vis.filter('edges', function(edge) { return edge.color >= '#FF0000'; });"><label>Physical Interactions</label><br>
-              <input type="radio" name="showInteractions" onclick="vis.filter('edges', function(edge) { return edge.color <= '#FF0000'; });"><label>Genetic Interactions</label>
+              <label>High-confidence direct physical interactions (HCDPs):</label><br/>
+              High-confidence PPIs supported by at least two different experimental methods or two independent publications, which were tagged as direct physical interactions by the iRefindex curators and/or identified as direct physical interactions by at least one supporting experimental procedure (such as Y2H, fluorescence energy resonance transfer, atomic force microscopy) and/or the supporting publications.
         </fieldset>
-
         <fieldset class="alt">
               <label>Export network as:</label>
               <select id="exportoptions">

@@ -1,7 +1,7 @@
 package org.intermine.web.logic.widget;
 
 /*
- * Copyright (C) 2002-2013 FlyMine
+ * Copyright (C) 2002-2014 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -144,7 +144,7 @@ public final class ErrorCorrection
      * @param max maximum value to display
      */
 	private static Map<String, BigDecimal> calculateBenjaminiHochberg(
-			Map<String, BigDecimal> results, int numberOfTests, Double max) {
+		Map<String, BigDecimal> results, int numberOfTests, Double max) {
 
 		Map<String, BigDecimal> adjustedResults = new HashMap<String, BigDecimal>();
 		Map<String, BigDecimal> sortedResults = sortMapDesc(results);
@@ -153,6 +153,10 @@ public final class ErrorCorrection
 		BigDecimal lastAdjustedP = null;
 		int i = 1;
 		BigDecimal index = ONE;
+		
+		// Those pathways which don't associated with any genes should also be considered (p = 1) 
+		int startRank = numberOfTests - results.size();
+		i += startRank;
 
 		for (Entry<String, BigDecimal> entry : sortedResults.entrySet()) {
 
