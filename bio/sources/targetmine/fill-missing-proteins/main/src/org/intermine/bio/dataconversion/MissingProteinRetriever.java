@@ -144,9 +144,10 @@ public class MissingProteinRetriever {
 									p.setAttribute("uniprotAccession", pAcc);
 									p.setReference("organism", getOrganism(ph.taxonId, itemFactory));
 
-									if (ph.ecNumber != null) {
-										p.setAttribute("ecNumber", ph.ecNumber);
-									}
+									// chenyian: if we do want the EC number, we should use Enzyme class instead
+									// if (ph.ecNumber != null) {
+									//	p.setAttribute("ecNumber", ph.ecNumber);
+									// }
 									if (ph.name != null) {
 										p.setAttribute("name", ph.name);
 									}
@@ -177,6 +178,9 @@ public class MissingProteinRetriever {
 						} else if (l.startsWith("OX")) {
 							ph.taxonId = l.substring(l.indexOf("=") + 1, l.indexOf(";"));
 						} else if (l.startsWith("DE")) {
+							// chenyian: there are some more complated case, see the following example:
+							// http://www.ebi.ac.uk/Tools/dbfetch/dbfetch?db=UniProtKB&style=raw&id=P19096
+							// So far just ignore it ...
 							String de = l.substring(5);
 							if (de.startsWith("RecName")) {
 								ph.name = de.substring(de.indexOf("=") + 1, de.indexOf(";"));
