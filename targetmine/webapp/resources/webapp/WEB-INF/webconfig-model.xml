@@ -132,6 +132,7 @@
   <class className="org.intermine.model.bio.Protein">
     <inlinelist>
       <table path="synonyms.value" showLinksToObjects="true" />
+      <table path="keywords.name" showLinksToObjects="true" />
     </inlinelist>
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
