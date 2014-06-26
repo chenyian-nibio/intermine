@@ -83,7 +83,6 @@ public class UniprotConverter extends BioDirectoryConverter
     private String datasourceRefId = null;
     @SuppressWarnings("unused")
     private OrganismRepository or;
-    private static final Map<String, String> GENE_PREFIXES = new HashMap<String, String>();
 
     /**
      * Constructor
@@ -93,10 +92,6 @@ public class UniprotConverter extends BioDirectoryConverter
     public UniprotConverter(ItemWriter writer, Model model) {
         super(writer, model, "UniProt", "Swiss-Prot data set");
         or = OrganismRepository.getOrganismRepository();
-    }
-
-    static {
-        GENE_PREFIXES.put("10116", "RGD:");
     }
 
     /**
@@ -962,10 +957,6 @@ public class UniprotConverter extends BioDirectoryConverter
                 if (StringUtils.isEmpty(identifier)) {
                     continue;
                 }
-                if (GENE_PREFIXES.containsKey(taxId)) {
-                    // Prepend RGD:
-                    identifier = GENE_PREFIXES.get(taxId) + identifier;
-                }
                 gene = getGene(protein, uniprotEntry, identifier, taxId,
                         uniqueIdentifierField);
                 // if we only have one gene, store later, we may have other gene fields to update
@@ -984,10 +975,6 @@ public class UniprotConverter extends BioDirectoryConverter
                     for (String geneIdentifier : geneIdentifiers) {
                         if (StringUtils.isEmpty(geneIdentifier)) {
                             continue;
-                        }
-                        if (GENE_PREFIXES.containsKey(taxId)) {
-                            // Prepend RGD:
-                            geneIdentifier = GENE_PREFIXES.get(taxId) + geneIdentifier;
                         }
 
                         if ("primaryIdentifier".equals(geneField)) {
