@@ -624,6 +624,12 @@
                      placement="Proteins"
                      types="Protein"/>
 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.UniprotFeatureDisplayer"
+                     jspName="model/uniprotFeatureDisplayer.jsp"
+                     replacesFields="features"
+                     placement="Proteins"
+                     types="Protein"/>
+
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinDomainDisplayer"
                      jspName="model/proteinAnalysisResult.jsp"
                      replacesFields="proteinDomainRegions"
