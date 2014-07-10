@@ -268,8 +268,8 @@
       <fieldconfig fieldExpr="end"/>
       <fieldconfig fieldExpr="pdbSeqStart"/>
       <fieldconfig fieldExpr="pdbSeqEnd"/>
-      <fieldconfig fieldExpr="chain.pdbId"/>
-      <fieldconfig fieldExpr="chain.chain"/>
+      <fieldconfig fieldExpr="chain.structure.pdbId" label="PDB ID"/>
+      <fieldconfig fieldExpr="chain.chain" label="Chain"/>
     </fields>
   </class>
 
