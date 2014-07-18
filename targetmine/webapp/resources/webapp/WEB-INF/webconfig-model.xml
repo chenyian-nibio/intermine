@@ -503,10 +503,11 @@
 
   <class className="org.intermine.model.bio.StructuralDomainRegion">
     <fields>
+      <fieldconfig fieldExpr="protein.primaryAccession"/>
       <fieldconfig fieldExpr="start"/>
       <fieldconfig fieldExpr="end"/>
-      <fieldconfig fieldExpr="cathClassification.cathCode"/>
-      <fieldconfig fieldExpr="cathClassification.description"/>
+      <fieldconfig fieldExpr="cathClassification.cathCode" label="CATH code"/>
+      <fieldconfig fieldExpr="cathClassification.description" label="Description"/>
     </fields>
   </class>
   <class className="org.intermine.model.bio.Druggability">
@@ -597,6 +598,12 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.CrossReference">
+    <fields>
+      <fieldconfig fieldExpr="source.name" label="Database"/>
+      <fieldconfig fieldExpr="identifier"/>
+    </fields>
+  </class>
 
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
