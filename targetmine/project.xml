@@ -269,6 +269,8 @@
     </source>
     <source name="gene-set" type="gene-set">
     </source>
+    <source name="protein-ortholog" type="protein-ortholog">
+    </source>
 
   	<source name="organism" type="organism">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/taxonomy"/>
@@ -292,6 +294,7 @@
 	<post-process name="do-sources"/>
 	<post-process name="transcribe-ncbiGeneId"/>
 	<post-process name="gene-set-clustering"/>
+	<post-process name="associate-gene-to-cluster"/>
 	<post-process name="network-analysis"/>
 	<post-process name="ppi-druggability"/>
 	<post-process name="create-references"/>
