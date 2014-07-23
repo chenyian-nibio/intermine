@@ -35,7 +35,7 @@ import org.intermine.web.logic.config.WebConfig;
 
 /**
  * @author "Xavier Watkins"
- *
+ * modified by chenyian
  */
 public class OrthologueConverter extends BagConverter
 {
@@ -54,12 +54,12 @@ public class OrthologueConverter extends BagConverter
         PathQuery q = new PathQuery(model);
 
         if (StringUtils.isNotEmpty(organismName)) {
-            q.addConstraint(Constraints.eq("Gene.homologues.homologue.organism.shortName",
+            q.addConstraint(Constraints.eq("Gene.proteins.orthologProteins.genes.organism.shortName",
                 organismName));
         }
 
         // homologue.type = "orthologue"
-        q.addConstraint(Constraints.neq("Gene.homologues.type", "paralogue"));
+//        q.addConstraint(Constraints.neq("Gene.homologues.type", "paralogue"));
         return q;
     }
 
@@ -77,7 +77,7 @@ public class OrthologueConverter extends BagConverter
             List<Integer> bagList, String organismName) throws ObjectStoreException {
         PathQuery pathQuery = constructPathQuery(organismName);
         pathQuery.addConstraint(Constraints.inIds("Gene", bagList));
-        pathQuery.addView("Gene.homologues.homologue.id");
+        pathQuery.addView("Gene.proteins.orthologProteins.genes.id");
         PathQueryExecutor executor = im.getPathQueryExecutor(profile);
         ExportResultsIterator it = executor.execute(pathQuery);
         List<Integer> ids = new ArrayList<Integer>();
@@ -95,9 +95,9 @@ public class OrthologueConverter extends BagConverter
     public Map<String, String> getCounts(Profile profile, InterMineBag bag) throws ObjectStoreException {
         PathQuery pathQuery = constructPathQuery(null);
         pathQuery.addConstraint(Constraints.inIds("Gene", bag.getContentsAsIds()));
-        pathQuery.addView("Gene.homologues.homologue.organism.shortName");
-        pathQuery.addView("Gene.homologues.homologue.id");
-        pathQuery.addOrderBy("Gene.homologues.homologue.organism.shortName", OrderDirection.ASC);
+        pathQuery.addView("Gene.proteins.orthologProteins.genes.organism.shortName");
+        pathQuery.addView("Gene.proteins.orthologProteins.genes.id");
+        pathQuery.addOrderBy("Gene.proteins.orthologProteins.genes.organism.shortName", OrderDirection.ASC);
         PathQueryExecutor executor = im.getPathQueryExecutor(profile);
         ExportResultsIterator it = executor.execute(pathQuery);
         Map<String, String> results = new LinkedHashMap<String, String>();
@@ -128,20 +128,18 @@ public class OrthologueConverter extends BagConverter
         // add columns to the output
         q.addViewSpaceSeparated("Gene.primaryIdentifier "
                 + "Gene.organism.shortName "
-                + "Gene.homologues.homologue.primaryIdentifier "
-                + "Gene.homologues.homologue.organism.shortName "
-                + "Gene.homologues.type "
-                + "Gene.homologues.dataSets.name");
+                + "Gene.proteins.orthologProteins.genes.primaryIdentifier "
+                + "Gene.proteins.orthologProteins.genes.organism.shortName ");
 
         // homologue.type = "orthologue"
-        q.addConstraint(Constraints.neq("Gene.homologues.type", "paralogue"));
+//        q.addConstraint(Constraints.neq("Gene.homologues.type", "paralogue"));
 
         // organism
         q.addConstraint(Constraints.lookup("Gene.organism", parameter, ""));
 
         // if the XML is too long, the link generates "HTTP Error 414 - Request URI too long"
         if (externalids.length() < 4000) {
-            q.addConstraint(Constraints.lookup("Gene.homologues.homologue", externalids, ""));
+            q.addConstraint(Constraints.lookup("Gene.proteins.orthologProteins.genes", externalids, ""));
         }
 
         String query = q.toXml(PathQuery.USERPROFILE_VERSION);
