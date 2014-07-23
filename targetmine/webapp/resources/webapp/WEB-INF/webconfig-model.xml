@@ -886,7 +886,7 @@
                                  constraints="compounds.dataSet.name=[DataSet], organism.name=[list]"
                                  typeClass="Protein"
                                  views="primaryAccession, name, organism.name, compounds.compound.primaryIdentifier, compounds.compound.name"
-                                 />
+                                 externalLink="/targetmine/portal.do?class=Compound&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_interpro_enrichment"
                                  title="InterPro domain Enrichment"
@@ -929,7 +929,7 @@
                                  constraints="proteins.compounds.dataSet.name=[DataSet], organism.name=[list]"
                                  typeClass="Gene"
                                  views="primaryIdentifier, symbol, organism.name, proteins.compounds.compound.primaryIdentifier, proteins.compounds.compound.name"
-                                 />
+                                 externalLink="/targetmine/portal.do?class=Compound&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="pathway_gene_enrichment"
                                  title="Gene Enrichment"
