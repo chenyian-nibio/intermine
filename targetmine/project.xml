@@ -16,6 +16,10 @@
       <property name="uniprot.organisms" value="9606 10090 10116"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/uniprot/split"/>
     </source>
+    <source name="protein-ortholog" type="protein-ortholog">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-ortholog/" />
+      <property name="src.data.dir.includes" value="*.bb" />
+    </source>
     <source name="go-annotation" type="go-goslim-annotation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/go-annotation"/>
       <property name="src.data.dir.includes" value="gene_association*"/>
@@ -268,8 +272,6 @@
   	<source name="network-analysis" type="network-analysis">
     </source>
     <source name="gene-set" type="gene-set">
-    </source>
-    <source name="protein-ortholog" type="protein-ortholog">
     </source>
 
   	<source name="organism" type="organism">
