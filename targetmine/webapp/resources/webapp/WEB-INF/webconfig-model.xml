@@ -288,7 +288,7 @@
   </class>
 <!-- chenyian
 -->
-  <class className="org.intermine.model.bio.GeneSetCluster">
+  <class className="org.intermine.model.bio.GeneSetCluster" >
     <fields>
       <fieldconfig fieldExpr="identifier" />
     </fields>
@@ -700,6 +700,19 @@
                                  typeClass="Gene"
                                  views="primaryIdentifier, symbol, organism.name, pathways.identifier, pathways.name, pathways.dataSets.name" 
                                  externalLink="/targetmine/portal.do?class=Pathway&amp;externalids="/>
+
+      <enrichmentwidgetdisplayer id="gene_ipc_enrichment"
+                                 title="Integrated Pathway Cluster Enrichment"
+                                 description="Integrated Pathway Clusters(IPCs) enriched for genes in this list"
+                                 label="IPCs"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="geneSetClusters.name"
+                                 enrichIdentifier="geneSetClusters.identifier"
+                                 constraints="organism.taxonId=[list]"
+                                 typeClass="Gene"
+                                 views="primaryIdentifier, symbol, organism.name, geneSetClusters.identifier, geneSetClusters.name" 
+                                 externalLink="/targetmine/portal.do?class=GeneSetCluster&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_go_enrichment"
                                  title="Gene Ontology Enrichment"
