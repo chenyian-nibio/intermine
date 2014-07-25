@@ -109,14 +109,6 @@
 <!-- chenyian: start for external version -->    
 <!-- chenyian: disabled for external version 
 -->
-    <source name="protein-analysis" type="protein-analysis">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis"/>
-      <property name="src.data.dir.includes" value="result.out"/>
-    </source>
-    <source name="fugue" type="fugue">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis/fugue_result"/>
-      <property name="src.data.dir.includes" value="*"/>
-    </source>
     <source name="omim" type="omim-gene">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/omim"/>
       <property name="src.data.dir.includes" value="omim_phenotype_title"/>
