@@ -6,6 +6,7 @@
 	<classpathentry kind="src" path="bio/sources/interpro/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/affy-probe-annot/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/amadeus/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/atc-code/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/bioassay/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/biopax3/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/cath-name/main/src"/>

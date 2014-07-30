@@ -94,6 +94,11 @@
       <property name="kegg.organisms" value="9606 10090 10116"/>
     </source>
 
+    <source name="atc-code" type="atc-code">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/atc_code"/>
+      <property name="src.data.dir.includes" value="atc_lv1to4.cleaned"/>
+    </source>
+
     <source name="drugbank" type="drugbank">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank"/>
       <property name="src.data.dir.includes" value="drugbank.xml"/>

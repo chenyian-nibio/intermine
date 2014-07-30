@@ -15,6 +15,7 @@ import nu.xom.Element;
 import nu.xom.Elements;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -32,7 +33,7 @@ import org.intermine.xml.full.Item;
  */
 public class DrugBankXmlConverter extends BioFileConverter {
 
-	// private static Logger LOG = Logger.getLogger(DrugBankConverter.class);
+	private static Logger LOG = Logger.getLogger(DrugBankXmlConverter.class);
 
 	private static final String DATASET_TITLE = "DrugBank";
 	private static final String DATA_SOURCE_NAME = "DrugBank";
@@ -190,6 +191,18 @@ public class DrugBankXmlConverter extends BioFileConverter {
 				drugItem.addToCollection("drugTypes", getDrugType(group));
 			}
 
+			// TODO get ATC codes
+			Elements atcCodes = drug.getFirstChildElement("atc-codes", NAMESPACE_URI).getChildElements(
+					"atc-code", NAMESPACE_URI);
+			for (int j = 0; j < atcCodes.size(); j++) {
+				String atcCode = atcCodes.get(j).getValue();
+				if (atcCode.length() != 7) {
+					LOG.error(String.format("Invalid atc code, id: %s, code: %s", drugBankId, atcCode));
+					continue;
+				}
+				drugItem.addToCollection("atcCodes", getAtcClassification(atcCode, name));
+			}
+
 			// get uiprot id if the drug is a protein
 			Elements extIds = drug.getFirstChildElement("external-identifiers", NAMESPACE_URI)
 					.getChildElements("external-identifier", NAMESPACE_URI);
@@ -206,6 +219,37 @@ public class DrugBankXmlConverter extends BioFileConverter {
 
 		}
 
+	}
+
+	private Map<String, String> atcMap = new HashMap<String, String>();
+
+	private String getAtcClassification(String atcCode, String name) throws ObjectStoreException {
+		String ret = atcMap.get(atcCode);
+		if (ret == null) {
+			Item item = createItem("AtcClassification");
+			item.setAttribute("atcCode", atcCode);
+			item.setAttribute("name", name);
+			// TODO add parent
+			String parentCode = atcCode.substring(0,5);
+			item.setReference("parent", getParent(parentCode));
+			
+			store(item);
+			ret = item.getIdentifier();
+			atcMap.put(atcCode, ret);
+		}
+		return ret;
+	}
+
+	private String getParent(String parentCode) throws ObjectStoreException {
+		String ret = atcMap.get(parentCode);
+		if (ret == null) {
+			Item item = createItem("AtcClassification");
+			item.setAttribute("atcCode", parentCode);
+			store(item);
+			ret = item.getIdentifier();
+			atcMap.put(parentCode, ret);
+		}
+		return ret;
 	}
 
 	private Map<String, String> actionMap = new HashMap<String, String>();
