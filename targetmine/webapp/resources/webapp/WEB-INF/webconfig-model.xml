@@ -680,6 +680,11 @@
                      replacesFields="compounds" 
                      types="CompoundGroup"/>
 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.AtcClassificationDisplayer"
+                     jspName="model/atcClassificationDisplayer.jsp"
+                     replacesFields="parent" 
+                     types="AtcClassification"/>
+
   </reportdisplayers>
 
   
