@@ -17,6 +17,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/do-annotation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drpias/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugbank/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/drugbank-v4/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugebility/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/enzyme/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/enzyme-pathway/main/src"/>

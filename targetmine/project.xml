@@ -99,8 +99,8 @@
       <property name="src.data.dir.includes" value="atc_lv1to4.cleaned"/>
     </source>
 
-    <source name="drugbank" type="drugbank">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank"/>
+    <source name="drugbank" type="drugbank-v4">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank/v4"/>
       <property name="src.data.dir.includes" value="drugbank.xml"/>
     </source>
   	
