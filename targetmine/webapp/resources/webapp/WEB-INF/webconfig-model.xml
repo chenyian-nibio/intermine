@@ -605,6 +605,13 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.AtcClassification">
+    <fields>
+      <fieldconfig fieldExpr="atcCode"/>
+      <fieldconfig fieldExpr="name"/>
+    </fields>
+  </class>
+
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
   <tableExportConfig id="gff3" className="org.intermine.bio.web.export.GFF3HttpExporter"/>
