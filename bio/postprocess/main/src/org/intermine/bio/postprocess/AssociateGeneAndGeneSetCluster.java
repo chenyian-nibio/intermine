@@ -27,6 +27,11 @@ import org.intermine.objectstore.query.Results;
 import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.sql.DatabaseUtil;
 
+/**
+ * 
+ * @author chenyian
+ *
+ */
 public class AssociateGeneAndGeneSetCluster {
 
 	private static final Logger LOG = Logger.getLogger(AssociateGeneAndGeneSetCluster.class);

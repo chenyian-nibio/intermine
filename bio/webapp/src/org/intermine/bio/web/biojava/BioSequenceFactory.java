@@ -13,7 +13,6 @@ package org.intermine.bio.web.biojava;
 import org.biojava.bio.seq.DNATools;
 import org.biojava.bio.seq.NucleotideTools;
 import org.biojava.bio.seq.ProteinTools;
-import org.biojava.bio.seq.RNATools;
 import org.biojava.bio.symbol.IllegalSymbolException;
 import org.intermine.model.bio.BioEntity;
 import org.intermine.model.bio.Protein;
@@ -110,12 +109,6 @@ public abstract class BioSequenceFactory
                 return null;
             } else {
                 String residues = feature.getSequence().getResidues().toString();
-                // chenyian: we do have RNA sequence (miRNA)
-//                if (residues.toLowerCase().contains("u")) {
-//                	return new BioSequence(RNATools.createRNA(residues), feature);
-//                } else {
-//                	return new BioSequence(DNATools.createDNA(residues), feature);
-//                }
                 return new BioSequence(NucleotideTools.createNucleotide(residues), feature);
             }
         } else {
