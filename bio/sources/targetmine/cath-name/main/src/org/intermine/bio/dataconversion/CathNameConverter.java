@@ -145,14 +145,15 @@ public class CathNameConverter extends BioFileConverter {
 				}
 
 				String cathCode = String.format("%s.%s.%s.%s", cols[1], cols[2], cols[3], cols[4]);
-				String cathId = String.format("%s.%s.%s.%s.%s.%s.%s.%s", cols[1], cols[2], cols[3],
-						cols[4], cols[5], cols[6], cols[7], cols[8]);
+				String cathId = String.format("%s.%s.%s.%s.%s.%s.%s.%s.%s", cols[1], cols[2], cols[3],
+						cols[4], cols[5], cols[6], cols[7], cols[8], cols[9]);
 				String domainLength = cols[10];
 
 				Item item = createItem("CathClassification");
 				item.setAttribute("type", "CATH");
 				item.setAttribute("level", "Domain");
 				item.setAttribute("code", cathId);
+				item.setAttribute("cathCode", cathDomainName);
 				String code = cathCode;
 				item.addToCollection("parents", getCathParents(code));
 				while (code.lastIndexOf(".") != -1) {
@@ -173,6 +174,7 @@ public class CathNameConverter extends BioFileConverter {
 				createStructuralRegion(pdbId, chainId, chainRegion, item.getIdentifier());
 			}
 		}
+		reader.close();
 	}
 
 	private File domainList;
@@ -227,7 +229,7 @@ public class CathNameConverter extends BioFileConverter {
 
 			}
 		}
-
+		reader.close();
 	}
 
 	private void createStructuralRegion(String pdbId, String chainId, String chainRegion,
