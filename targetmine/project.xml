@@ -103,6 +103,11 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank/v4"/>
       <property name="src.data.dir.includes" value="drugbank.xml"/>
     </source>
+
+    <source name="kegg-jtc" type="kegg-jtc">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-jtc"/>
+      <property name="src.data.dir.includes" value="br08301.keg"/>
+    </source>
   	
     <source name="kegg-pathway" type="tm-kegg-pathway">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp"/>

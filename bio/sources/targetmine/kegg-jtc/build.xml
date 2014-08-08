@@ -1,0 +1,5 @@
+<project name="kegg-jtc" default="default" basedir=".">
+  <description>build, test, package kegg-jtc</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>
