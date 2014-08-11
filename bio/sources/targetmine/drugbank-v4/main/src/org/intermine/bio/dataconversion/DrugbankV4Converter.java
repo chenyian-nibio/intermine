@@ -207,7 +207,7 @@ public class DrugbankV4Converter extends BioFileConverter {
 			Elements atcCodes = drug.getFirstChildElement("atc-codes", NAMESPACE_URI)
 					.getChildElements("atc-code", NAMESPACE_URI);
 			for (int j = 0; j < atcCodes.size(); j++) {
-				String atcCode = atcCodes.get(j).getValue();
+				String atcCode = atcCodes.get(j).getAttributeValue("code");
 				if (atcCode.length() != 7) {
 					LOG.error(String.format("Invalid atc code, id: %s, code: %s", drugBankId,
 							atcCode));
