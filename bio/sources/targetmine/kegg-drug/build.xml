@@ -1,0 +1,5 @@
+<project name="kegg-drug" default="default" basedir=".">
+  <description>build, test, package kegg-drug</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

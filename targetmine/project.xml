@@ -108,6 +108,11 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-jtc"/>
       <property name="src.data.dir.includes" value="br08301.keg"/>
     </source>
+    <source name="kegg-drug" type="kegg-drug">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/drug"/>
+      <property name="src.data.dir.includes" value="drug"/>
+      <property name="inchikeyFile" value="/data/bio/db/Targetmine/kegg-ftp/drug/drug.inchikey"/>
+    </source>
   	
     <source name="kegg-pathway" type="tm-kegg-pathway">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp"/>

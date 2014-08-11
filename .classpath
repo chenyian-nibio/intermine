@@ -32,6 +32,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/gwas/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/htridb/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/irefindex/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/kegg-drug/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/kegg-jtc/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/ligand_expo/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase/main/src"/>
