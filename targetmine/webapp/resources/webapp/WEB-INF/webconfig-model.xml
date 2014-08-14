@@ -440,9 +440,10 @@
     <fields>
       <fieldconfig fieldExpr="genericName"/>
       <fieldconfig fieldExpr="drugBankId"/>
-      <fieldconfig fieldExpr="casRegistryNumber"/>
-      <fieldconfig fieldExpr="inchiKey"/>
-      <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" />
+      <fieldconfig fieldExpr="keggDrugId"/>
+      <fieldconfig fieldExpr="casRegistryNumber" showInSummary="false"/>
+      <fieldconfig fieldExpr="inchiKey" showInSummary="false"/>
+      <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" showInSummary="false" />
     </fields>
     <inlinelist>
       <table path="synonyms.value" showLinksToObjects="true" />
@@ -612,6 +613,13 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.JtcClassification">
+    <fields>
+      <fieldconfig fieldExpr="jtcCode"/>
+      <fieldconfig fieldExpr="name"/>
+    </fields>
+  </class>
+
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
   <tableExportConfig id="gff3" className="org.intermine.bio.web.export.GFF3HttpExporter"/>
@@ -691,6 +699,16 @@
                      jspName="model/atcClassificationDisplayer.jsp"
                      replacesFields="parent" 
                      types="AtcClassification"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.AtcClassificationDisplayer"
+                     jspName="model/jtcClassificationDisplayer.jsp"
+                     replacesFields="parent" 
+                     types="JtcClassification"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/atcJtcCodeDisplayer.jsp"
+                     replacesFields="atcCodes,jtcCodes" 
+                     types="DrugCompound"/>
 
   </reportdisplayers>
 
