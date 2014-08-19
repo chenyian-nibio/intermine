@@ -25,7 +25,6 @@
 
 	<!-- For post processing -->	
 	<class name="CompoundProteinInteraction" is-interface="true">
-		<attribute name="ic50" type="java.lang.Float"/>
 		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
 		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
