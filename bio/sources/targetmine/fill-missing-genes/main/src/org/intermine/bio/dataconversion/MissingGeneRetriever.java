@@ -2,7 +2,6 @@ package org.intermine.bio.dataconversion;
 
 import java.io.BufferedReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.BuildException;
 import org.intermine.model.bio.Gene;
@@ -48,14 +46,14 @@ public class MissingGeneRetriever {
 	// number of times to try the same bacth from the server
 	// private static final int MAX_TRIES = 5;
 
-	private Set<String> createdGeneIds = new HashSet<String>();
+//	private Set<String> createdGeneIds = new HashSet<String>();
 
 	private String osAlias = null;
 	private String outputFile = null;
 
 	private Map<String, Item> organismMap = new HashMap<String, Item>();
 
-	private static final int RETRY = 10;
+//	private static final int RETRY = 10;
 
 	/**
 	 * Set the ObjectStore alias.
