@@ -21,30 +21,23 @@
 		<thead>
 		<tr>
 			<th width="100px">Code</th>
-			<th>Name</th>
+			<th>Hierarchy</th>
 		</tr>
 		</thead>
 		<tbody>
 		<c:forEach var="atcCode" items="${drug.atcCodes}">
 		    <tr>
-		      <td><a href="report.do?id=${atcCode.parent.parent.parent.parent.id}">${atcCode.parent.parent.parent.parent.atcCode}</a></td>
-		      <td>${atcCode.parent.parent.parent.parent.name}</td>
-		    </tr>
-		    <tr>
-		      <td><a href="report.do?id=${atcCode.parent.parent.parent.id}">${atcCode.parent.parent.parent.atcCode}</a></td>
-		      <td>${atcCode.parent.parent.parent.name}</td>
-		    </tr>
-		    <tr>
-		      <td><a href="report.do?id=${atcCode.parent.parent.id}">${atcCode.parent.parent.atcCode}</a></td>
-		      <td>${atcCode.parent.parent.name}</td>
-		    </tr>
-		    <tr>
-		      <td><a href="report.do?id=${atcCode.parent.id}">${atcCode.parent.atcCode}</a></td>
-		      <td>${atcCode.parent.name}</td>
-		    </tr>
-		    <tr>
 		      <td><a href="report.do?id=${atcCode.id}">${atcCode.atcCode}</a></td>
-		      <td>${atcCode.name}</td>
+		      <td>
+		      <a href="report.do?id=${atcCode.parent.parent.parent.parent.id}">${atcCode.parent.parent.parent.parent.atcCode}</a> 
+		      ${atcCode.parent.parent.parent.parent.name} &raquo; 
+		      <a href="report.do?id=${atcCode.parent.parent.parent.id}">${atcCode.parent.parent.parent.atcCode}</a> 
+		      ${atcCode.parent.parent.parent.name} &raquo; 
+		      <a href="report.do?id=${atcCode.parent.parent.id}">${atcCode.parent.parent.atcCode}</a> 
+		      ${atcCode.parent.parent.name} &raquo; 
+		      <a href="report.do?id=${atcCode.parent.id}">${atcCode.parent.atcCode}</a> 
+		      ${atcCode.parent.name}
+		      </td>
 		    </tr>
 		</c:forEach>
 		</tbody>
@@ -66,26 +59,23 @@
 		<thead>
 		<tr>
 			<th width="100px">Code</th>
-			<th>Name</th>
+			<th>Hierarchy</th>
 		</tr>
 		</thead>
 		<tbody>
 		<c:forEach var="jtcCode" items="${drug.jtcCodes}">
 		    <tr>
-		      <td><a href="report.do?id=${jtcCode.parent.parent.parent.id}">${jtcCode.parent.parent.parent.jtcCode}</a></td>
-		      <td>${jtcCode.parent.parent.parent.name}</td>
-		    </tr>
-		    <tr>
-		      <td><a href="report.do?id=${jtcCode.parent.parent.id}">${jtcCode.parent.parent.jtcCode}</a></td>
-		      <td>${jtcCode.parent.parent.name}</td>
-		    </tr>
-		    <tr>
-		      <td><a href="report.do?id=${jtcCode.parent.id}">${jtcCode.parent.jtcCode}</a></td>
-		      <td>${jtcCode.parent.name}</td>
-		    </tr>
-		    <tr>
 		      <td><a href="report.do?id=${jtcCode.id}">${jtcCode.jtcCode}</a></td>
-		      <td>${jtcCode.name}</td>
+		      <td>
+		      <a href="report.do?id=${jtcCode.parent.parent.parent.id}">${jtcCode.parent.parent.parent.jtcCode}</a> 
+		      ${jtcCode.parent.parent.parent.name} &raquo; 
+		      <a href="report.do?id=${jtcCode.parent.parent.id}">${jtcCode.parent.parent.jtcCode}</a> 
+		      ${jtcCode.parent.parent.name} &raquo; 
+		      <a href="report.do?id=${jtcCode.parent.id}">${jtcCode.parent.jtcCode}</a> 
+		      ${jtcCode.parent.name} &raquo;
+		      <a href="report.do?id=${jtcCode.id}">${jtcCode.jtcCode}</a> 
+		      ${jtcCode.name}
+		      </td>
 		    </tr>
 		</c:forEach>
 		</tbody>
