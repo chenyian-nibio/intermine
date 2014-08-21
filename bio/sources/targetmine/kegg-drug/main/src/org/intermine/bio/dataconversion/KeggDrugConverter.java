@@ -77,6 +77,8 @@ public class KeggDrugConverter extends BioFileConverter {
 //					LOG.info(String.format("%s; %s; %s; %s", keggDrugId,name,atcCodes,casNumber));
 					Item drugItem = createItem("DrugCompound");
 					drugItem.setAttribute("keggDrugId",keggDrugId);
+					drugItem.setAttribute("name", name);
+					drugItem.setAttribute("genericName", name);
 //					drugItem.setAttribute("drugBankId", drugBankId);
 					drugItem.setAttribute("primaryIdentifier", String.format("KEGG: %s", keggDrugId));
 					
