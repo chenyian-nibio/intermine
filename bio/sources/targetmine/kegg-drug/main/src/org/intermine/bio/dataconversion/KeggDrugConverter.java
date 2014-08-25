@@ -68,7 +68,7 @@ public class KeggDrugConverter extends BioFileConverter {
 					String[] split = line.split("\\s+");
 					keggDrugId = split[1];
 				} else if (line.startsWith("NAME")) {
-					name = line.substring(12).replaceAll(";$", "").replaceAll("\\(.+\\)$","").trim();
+					name = line.substring(12).replaceAll(";$", "").replaceAll("\\s\\(.+?\\)$","").trim();
 				} else if (line.contains("ATC code:")) {
 					atcCodes = line.substring(line.indexOf(":") + 2);
 				} else if (line.contains("CAS:")) {
@@ -184,5 +184,12 @@ public class KeggDrugConverter extends BioFileConverter {
 		}
 		return ret;
 	}
+
+//	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
+//		Item syn = createItem("Synonym");
+//		syn.setAttribute("value", value);
+//		syn.setReference("subject", subject);
+//		store(syn);
+//	}
 
 }

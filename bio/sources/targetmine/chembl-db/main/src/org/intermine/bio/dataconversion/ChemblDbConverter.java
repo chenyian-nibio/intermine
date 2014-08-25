@@ -150,7 +150,7 @@ public class ChemblDbConverter extends BioDBConverter {
 					compound.setAttribute("inchiKey", inchiKey);
 
 					// assign inchikey as synonym
-					setSynonyms(compound, inchiKey);
+//					setSynonyms(compound, inchiKey);
 
 					String name = nameMap.get(molId);
 					if (name == null) {

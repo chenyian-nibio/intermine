@@ -126,7 +126,7 @@ public class DrugbankV4Converter extends BioFileConverter {
 								getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
 
 						// assign inchikey as synonym
-						setSynonyms(drugItem, inchiKey);
+//						setSynonyms(drugItem, inchiKey);
 
 					}
 				}

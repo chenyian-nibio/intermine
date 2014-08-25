@@ -103,9 +103,16 @@ public class ChebiDbConverter extends BioDBConverter {
 			item.setAttribute("chebiId", chebiId);
 			item.setAttribute("inchiKey", inchiKey);
 			
-			setSynonyms(item, inchiKey);
+//			setSynonyms(item, inchiKey);
 			
+			// if the length of the name is greater than 40 characters,
+			// use id instead and save the long name as the synonym
+			if (name.length() > 40) {
+				setSynonyms(item, name);
+				name = String.format("CHEBI %s", chebiId);
+			}
 			item.setAttribute("name", name);
+
 			if (casRegMap.get(chebiId) != null) {
 				item.setAttribute("casRegistryNumber", casRegMap.get(chebiId));
 			}

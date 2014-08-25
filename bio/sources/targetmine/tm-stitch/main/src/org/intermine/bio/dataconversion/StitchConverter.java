@@ -180,7 +180,7 @@ public class StitchConverter extends BioFileConverter {
 			String inchiKey = cidInchikeyMap.get(cid);
 			if (inchiKey != null) {
 				item.setAttribute("inchiKey", inchiKey);
-				setSynonyms(item, inchiKey);
+//				setSynonyms(item, inchiKey);
 				item.setReference("compoundGroup",
 						getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
 			}

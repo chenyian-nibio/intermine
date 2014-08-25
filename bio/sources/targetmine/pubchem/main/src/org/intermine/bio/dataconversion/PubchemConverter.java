@@ -85,7 +85,7 @@ public class PubchemConverter extends BioFileConverter {
 			item.setAttribute("secondaryIdentifier", cid);
 			item.setAttribute("inchiKey", inchiKey);
 			
-			setSynonyms(item, inchiKey);
+//			setSynonyms(item, inchiKey);
 			
 			item.setAttribute("pubChemCid", cid);
 			String name = cidNameMap.get(cid);
