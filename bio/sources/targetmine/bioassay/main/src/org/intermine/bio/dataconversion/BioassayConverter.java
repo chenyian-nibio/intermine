@@ -82,15 +82,17 @@ public class BioassayConverter extends BioFileConverter {
 					assay.addToCollection("publications", getPublication(pubMedId));
 				}
 			}
-			
+			store(assay);
+
 			for (String acc: giMapping.get(gi)) {
 				for (String cid: cidMapping.get(aid)) {
-					assay.addToCollection("interactions", getInteraction(acc, cid));
+					Item activity = createItem("Activity");
+					activity.setReference("assay", assay);
+					activity.setReference("interaction", getInteraction(acc, cid));
+					store(activity);
 				}
 			}
-			
-			store(assay);
-			
+
 		}
 		
 	}

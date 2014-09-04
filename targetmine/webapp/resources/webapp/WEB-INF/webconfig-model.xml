@@ -291,6 +291,7 @@
   <class className="org.intermine.model.bio.GeneSetCluster" >
     <fields>
       <fieldconfig fieldExpr="identifier" />
+      <fieldconfig fieldExpr="name" />
     </fields>
   </class>
   <class className="org.intermine.model.bio.Homologue">
@@ -336,6 +337,25 @@
       <fieldconfig fieldExpr="compound.primaryIdentifier" />
       <fieldconfig fieldExpr="compound.name" />
       <fieldconfig fieldExpr="dataSet.name" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.Activity">
+    <fields>
+      <fieldconfig fieldExpr="interaction.protein.primaryAccession" showInSummary="false"/>
+      <fieldconfig fieldExpr="interaction.compound.primaryIdentifier" showInSummary="false"/>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="conc"/>
+      <fieldconfig fieldExpr="assay.name" showInSummary="false"/>
+      <fieldconfig fieldExpr="assay.source" showInSummary="false"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.CompoundProteinInteractionAssay">
+    <fields>
+      <fieldconfig fieldExpr="identifier" />
+      <fieldconfig fieldExpr="name" />
+      <fieldconfig fieldExpr="source" />
     </fields>
   </class>
 

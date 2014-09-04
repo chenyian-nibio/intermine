@@ -204,39 +204,36 @@ public class ChemblDbConverter extends BioDBConverter {
 				interactionMap.put(intId, interactionRef);
 				i++;
 			}
-			Item assay = getCompoundProteinInteractionAssay(assayId, assayDesc, pubmedId);
-			assay.addToCollection("interactions", interactionRef);
+			String assayRef = getCompoundProteinInteractionAssay(assayId, assayDesc, pubmedId);
 
 			Item activity = createItem("Activity");
 			activity.setAttribute("type", standardType);
 			activity.setAttribute("conc", String.valueOf(conc));
-			activity.setReference("assay", assay);
+			activity.setReference("assay", assayRef);
+			activity.setReference("interaction", interactionRef);
 			store(activity);
 		}
 		// System.out.println(i + "ChEMBL interaction were integrated.");
 		LOG.info(i + "ChEMBL interaction were integrated.");
 	}
 
-	Map<String, Item> assayMap = new HashMap<String, Item>();
+	Map<String, String> assayMap = new HashMap<String, String>();
 
-	private Item getCompoundProteinInteractionAssay(String identifier, String name, String pubmedId)
+	private String getCompoundProteinInteractionAssay(String identifier, String name, String pubmedId)
 			throws ObjectStoreException {
-		Item ret = assayMap.get(identifier);
+		String ret = assayMap.get(identifier);
 		if (ret == null) {
-			ret = createItem("CompoundProteinInteractionAssay");
-			ret.setAttribute("identifier", identifier.toLowerCase());
-			ret.setAttribute("originalId", identifier);
-			ret.setAttribute("name", name);
-			ret.setAttribute("source", "ChEMBL");
-			ret.addToCollection("publications", getPublication(pubmedId));
+			Item item = createItem("CompoundProteinInteractionAssay");
+			item.setAttribute("identifier", identifier.toLowerCase());
+			item.setAttribute("originalId", identifier);
+			item.setAttribute("name", name);
+			item.setAttribute("source", "ChEMBL");
+			item.addToCollection("publications", getPublication(pubmedId));
+			store(item);
+			ret = item.getIdentifier();
 			assayMap.put(identifier, ret);
 		}
 		return ret;
-	}
-
-	@Override
-	public void close() throws Exception {
-		store(assayMap.values());
 	}
 
 	private String getProtein(String uniprotId) throws ObjectStoreException {
