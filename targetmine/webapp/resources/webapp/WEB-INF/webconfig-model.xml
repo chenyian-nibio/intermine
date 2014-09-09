@@ -234,13 +234,23 @@
   <class className="org.intermine.model.bio.Compound">
     <headerconfig>
         <titles>
-            <title mainTitles="primaryIdentifier|name" />
+            <title mainTitles="identifier|name" />
         </titles>
     </headerconfig>
+    <inlinelist>
+      <table path="synonyms.value" showLinksToObjects="true" />
+    </inlinelist>
     <fields>
-      <fieldconfig fieldExpr="primaryIdentifier"/>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="originalId"/>
       <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="inchiKey"/>
+    </fields>
+  </class>
+  
+  <class className="org.intermine.model.bio.CompoundSynonym">
+    <fields>
+      <fieldconfig fieldExpr="value"/>
     </fields>
   </class>
 
@@ -334,7 +344,7 @@
     <fields>
       <fieldconfig fieldExpr="protein.primaryAccession"/>
       <fieldconfig fieldExpr="protein.name"/>
-      <fieldconfig fieldExpr="compound.primaryIdentifier" />
+      <fieldconfig fieldExpr="compound.identifier" />
       <fieldconfig fieldExpr="compound.name" />
       <fieldconfig fieldExpr="dataSet.name" />
     </fields>
@@ -343,7 +353,7 @@
   <class className="org.intermine.model.bio.Activity">
     <fields>
       <fieldconfig fieldExpr="interaction.protein.primaryAccession" showInSummary="false"/>
-      <fieldconfig fieldExpr="interaction.compound.primaryIdentifier" showInSummary="false"/>
+      <fieldconfig fieldExpr="interaction.compound.identifier" showInSummary="false"/>
       <fieldconfig fieldExpr="type"/>
       <fieldconfig fieldExpr="conc"/>
       <fieldconfig fieldExpr="assay.name" showInSummary="false"/>
@@ -454,7 +464,7 @@
   <class className="org.intermine.model.bio.DrugCompound">
     <headerconfig>
         <titles>
-            <title mainTitles="primaryIdentifier|name" />
+            <title mainTitles="identifier|name" />
         </titles>
     </headerconfig>
     <fields>
@@ -468,21 +478,6 @@
     <inlinelist>
       <table path="synonyms.value" showLinksToObjects="true" />
       <table path="drugTypes.name" showLinksToObjects="false" />
-    </inlinelist>
-  </class>
-  <class className="org.intermine.model.bio.ChemblCompound">
-    <inlinelist>
-      <table path="synonyms.value" showLinksToObjects="true" />
-    </inlinelist>
-  </class>
-  <class className="org.intermine.model.bio.ChebiCompound">
-    <inlinelist>
-      <table path="synonyms.value" showLinksToObjects="true" />
-    </inlinelist>
-  </class>
-  <class className="org.intermine.model.bio.PubChemCompound">
-    <inlinelist>
-      <table path="synonyms.value" showLinksToObjects="true" />
     </inlinelist>
   </class>
 
@@ -932,10 +927,10 @@
                                  startClass="Protein"
                                  startClassDisplay="primaryIdentifier"
                                  enrich="compounds.compound.name"
-                                 enrichIdentifier="compounds.compound.primaryIdentifier"
+                                 enrichIdentifier="compounds.compound.identifier"
                                  constraints="compounds.dataSet.name=[DataSet], organism.name=[list]"
                                  typeClass="Protein"
-                                 views="primaryAccession, name, organism.name, compounds.compound.primaryIdentifier, compounds.compound.name"
+                                 views="primaryAccession, name, organism.name, compounds.compound.identifier, compounds.compound.name"
                                  externalLink="/targetmine/portal.do?class=Compound&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_interpro_enrichment"
@@ -975,10 +970,10 @@
                                  startClass="Gene"
                                  startClassDisplay="symbol"
                                  enrich="proteins.compounds.compound.name"
-                                 enrichIdentifier="proteins.compounds.compound.primaryIdentifier"
+                                 enrichIdentifier="proteins.compounds.compound.identifier"
                                  constraints="proteins.compounds.dataSet.name=[DataSet], organism.name=[list]"
                                  typeClass="Gene"
-                                 views="primaryIdentifier, symbol, organism.name, proteins.compounds.compound.primaryIdentifier, proteins.compounds.compound.name"
+                                 views="primaryIdentifier, symbol, organism.name, proteins.compounds.compound.identifier, proteins.compounds.compound.name"
                                  externalLink="/targetmine/portal.do?class=Compound&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="pathway_gene_enrichment"

@@ -25,6 +25,11 @@ import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.postprocess.PostProcessor;
 import org.intermine.util.DynamicUtil;
 
+/**
+ * 
+ * @author chenyian
+ *
+ */
 public class LigandExpoPostProcess extends PostProcessor {
 
 	private static final Logger LOG = Logger.getLogger(LigandExpoPostProcess.class);
@@ -69,7 +74,7 @@ public class LigandExpoPostProcess extends PostProcessor {
 			interaction.setFieldValue("dataSet", dataSet);
 			try {
 				String primaryAcc = (String) protein.getFieldValue("primaryAccession");
-				String pdbCompoundId = (String) pdbCompound.getFieldValue("primaryIdentifier");
+				String pdbCompoundId = (String) pdbCompound.getFieldValue("identifier");
 				interaction.setFieldValue("identifier", String.format("%s_%s", primaryAcc, pdbCompoundId));
 			} catch (IllegalAccessException e) {
 				throw new RuntimeException(e);

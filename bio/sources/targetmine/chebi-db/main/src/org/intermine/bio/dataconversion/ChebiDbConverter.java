@@ -18,7 +18,6 @@ import org.intermine.xml.full.Item;
  * 
  * @author chenyian
  * 
- * 2012/8/13 modified
  */
 public class ChebiDbConverter extends BioDBConverter {
 	private static final Logger LOG = Logger.getLogger(ChebiDbConverter.class);
@@ -98,9 +97,8 @@ public class ChebiDbConverter extends BioDBConverter {
 			}
 
 			Item item = createItem("ChebiCompound");
-			item.setAttribute("primaryIdentifier", String.format("CHEBI:%s", chebiId));
-			item.setAttribute("secondaryIdentifier", chebiId);
-			item.setAttribute("chebiId", chebiId);
+			item.setAttribute("identifier", String.format("CHEBI:%s", chebiId));
+			item.setAttribute("originalId", chebiId);
 			item.setAttribute("inchiKey", inchiKey);
 			
 //			setSynonyms(item, inchiKey);
@@ -159,7 +157,7 @@ public class ChebiDbConverter extends BioDBConverter {
 	}
 	
 	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
-		Item syn = createItem("Synonym");
+		Item syn = createItem("CompoundSynonym");
 		syn.setAttribute("value", value);
 		syn.setReference("subject", subject);
 		store(syn);

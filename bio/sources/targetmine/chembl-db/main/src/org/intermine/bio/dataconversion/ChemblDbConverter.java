@@ -144,9 +144,8 @@ public class ChemblDbConverter extends BioDBConverter {
 				String compoundRef = compoundMap.get(chemblId);
 				if (compoundRef == null) {
 					Item compound = createItem("ChemblCompound");
-					compound.setAttribute("chemblId", chemblId);
-					compound.setAttribute("primaryIdentifier", String.format("ChEMBL:%s", chemblId));
-					compound.setAttribute("secondaryIdentifier", chemblId);
+					compound.setAttribute("originalId", chemblId);
+					compound.setAttribute("identifier", String.format("ChEMBL:%s", chemblId));
 					compound.setAttribute("inchiKey", inchiKey);
 
 					// assign inchikey as synonym
@@ -294,7 +293,7 @@ public class ChemblDbConverter extends BioDBConverter {
 	}
 
 	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
-		Item syn = createItem("Synonym");
+		Item syn = createItem("CompoundSynonym");
 		syn.setAttribute("value", value);
 		syn.setReference("subject", subject);
 		store(syn);

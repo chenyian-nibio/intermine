@@ -145,9 +145,8 @@ public class BioassayConverter extends BioFileConverter {
 		String ret = pubChemCompoundMap.get(cid);
 		if (ret == null) {
 			Item item = createItem("PubChemCompound");
-			item.setAttribute("pubChemCid", cid);
-			item.setAttribute("primaryIdentifier", String.format("PubChem:%s", cid));
-			item.setAttribute("secondaryIdentifier", cid);
+			item.setAttribute("originalId", cid);
+			item.setAttribute("identifier", String.format("PubChem:%s", cid));
 			String name = nameMap.get(cid);
 			if (name == null) {
 				name = String.format("CID %s", cid);
@@ -299,7 +298,7 @@ public class BioassayConverter extends BioFileConverter {
 	}
 
 	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
-		Item syn = createItem("Synonym");
+		Item syn = createItem("CompoundSynonym");
 		syn.setAttribute("value", value);
 		syn.setReference("subject", subject);
 		store(syn);

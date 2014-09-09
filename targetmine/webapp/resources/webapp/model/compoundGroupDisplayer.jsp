@@ -28,7 +28,7 @@
 		<tbody>
 		<c:forEach var="compound" items="${group.compounds}">
 		    <tr>
-		    	<td><a href="report.do?id=${compound.id}">${compound.primaryIdentifier}</a></td>
+		    	<td><a href="report.do?id=${compound.id}">${compound.identifier}</a></td>
 		    	<td>${compound.name}</td>
 		    	<td>${compound.inchiKey}</td>
 		    </tr>

@@ -85,8 +85,8 @@ public class DrugbankV4Converter extends BioFileConverter {
 
 			Item drugItem = createItem("DrugCompound");
 			drugItem.setAttribute("drugBankId", drugBankId);
-			drugItem.setAttribute("primaryIdentifier", String.format("DrugBank: %s", drugBankId));
-			drugItem.setAttribute("secondaryIdentifier", drugBankId);
+			drugItem.setAttribute("identifier", String.format("DrugBank: %s", drugBankId));
+			drugItem.setAttribute("originalId", drugBankId);
 			String name = drug.getFirstChildElement("name", NAMESPACE_URI).getValue();
 			// if the length of the name is greater than 40 characters,
 			// use id instead and save the long name as the synonym
@@ -333,7 +333,7 @@ public class DrugbankV4Converter extends BioFileConverter {
 	}
 
 	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
-		Item syn = createItem("Synonym");
+		Item syn = createItem("CompoundSynonym");
 		syn.setAttribute("value", value);
 		syn.setReference("subject", subject);
 		store(syn);

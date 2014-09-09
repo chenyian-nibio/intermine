@@ -20,6 +20,7 @@ import org.intermine.xml.full.Item;
 /**
  * 
  * @author chenyian
+ * 
  */
 public class KeggDrugConverter extends BioFileConverter {
 	protected static final Logger LOG = Logger.getLogger(KeggDrugConverter.class);
@@ -76,11 +77,12 @@ public class KeggDrugConverter extends BioFileConverter {
 				} else if (line.startsWith("///")) {
 //					LOG.info(String.format("%s; %s; %s; %s", keggDrugId,name,atcCodes,casNumber));
 					Item drugItem = createItem("DrugCompound");
-					drugItem.setAttribute("keggDrugId",keggDrugId);
+					drugItem.setAttribute("keggDrugId", keggDrugId);
 					drugItem.setAttribute("name", name);
 					drugItem.setAttribute("genericName", name);
 //					drugItem.setAttribute("drugBankId", drugBankId);
-					drugItem.setAttribute("primaryIdentifier", String.format("KEGG: %s", keggDrugId));
+					drugItem.setAttribute("identifier", String.format("KEGG: %s", keggDrugId));
+					drugItem.setAttribute("originalId", keggDrugId);
 					
 					if (!atcCodes.equals("")) {
 						for (String atcCode : atcCodes.split(" ")) {
@@ -186,7 +188,7 @@ public class KeggDrugConverter extends BioFileConverter {
 	}
 
 //	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
-//		Item syn = createItem("Synonym");
+//		Item syn = createItem("CompoundSynonym");
 //		syn.setAttribute("value", value);
 //		syn.setReference("subject", subject);
 //		store(syn);

@@ -81,13 +81,10 @@ public class PubchemConverter extends BioFileConverter {
 				continue;
 			}
 			Item item = createItem("PubChemCompound");
-			item.setAttribute("primaryIdentifier", String.format("PubChem:%s", cid));
-			item.setAttribute("secondaryIdentifier", cid);
+			item.setAttribute("identifier", String.format("PubChem:%s", cid));
 			item.setAttribute("inchiKey", inchiKey);
+			item.setAttribute("originalId", cid);
 			
-//			setSynonyms(item, inchiKey);
-			
-			item.setAttribute("pubChemCid", cid);
 			String name = cidNameMap.get(cid);
 			// if name is not available, use identifier instead; should not happen.
 			if (name == null) {
@@ -129,7 +126,7 @@ public class PubchemConverter extends BioFileConverter {
 	}
 	
 	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
-		Item syn = createItem("Synonym");
+		Item syn = createItem("CompoundSynonym");
 		syn.setAttribute("value", value);
 		syn.setReference("subject", subject);
 		store(syn);
