@@ -326,19 +326,6 @@
       <fieldconfig fieldExpr="title"/>
     </fields>
   </class>
-  <class className="org.intermine.model.bio.ProteinComputationalResult">
-    <fields>
-      <fieldconfig fieldExpr="computationalAnalysis.algorithm"/>
-      <fieldconfig fieldExpr="computationalAnalysis.description"/>
-    </fields>
-  </class>
-  <class className="org.intermine.model.bio.ProteinHitRegion">
-    <fields>
-      <fieldconfig fieldExpr="start"/>
-      <fieldconfig fieldExpr="end"/>
-      <fieldconfig fieldExpr="score"/>
-    </fields>
-  </class>
 
   <class className="org.intermine.model.bio.CompoundProteinInteraction">
     <fields>
