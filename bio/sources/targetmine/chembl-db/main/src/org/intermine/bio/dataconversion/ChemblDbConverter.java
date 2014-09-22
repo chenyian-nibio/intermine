@@ -158,8 +158,13 @@ public class ChemblDbConverter extends BioDBConverter {
 					// if the length of the name is greater than 40 characters,
 					// use id instead and save the long name as the synonym
 					if (name.length() > 40) {
-						setSynonyms(compound, name);
+//						setSynonyms(compound, name);
 						name = chemblId;
+						// TODO check if this works properly
+						if (synonymMap.get(molId) == null) {
+							synonymMap.put(molId, new HashSet<String>());
+						}
+						synonymMap.get(molId).add(name);
 					}
 					compound.setAttribute("name", name);
 
