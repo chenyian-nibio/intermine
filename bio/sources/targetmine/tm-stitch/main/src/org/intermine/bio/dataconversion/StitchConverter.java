@@ -105,10 +105,17 @@ public class StitchConverter extends BioFileConverter {
 		Iterator<String[]> iterator = FormattedTextParser
 				.parseTabDelimitedReader(new BufferedReader(reader));
 
-		int count = 0;
+		int countNoProtein = 0;
+		int countThreshold = 0;
+		int countRedundant = 0;
 
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
+			
+			if (!cols[0].startsWith("CID")) {
+				continue;
+			}
+			
 			// example CID010939283 CID110928783
 			// the first digit is not a part of pubchem identifier
 			String cid = cols[0].substring(4).replaceAll("^0*", "");
@@ -120,11 +127,11 @@ public class StitchConverter extends BioFileConverter {
 				// only experiment data will be integrated
 				String evidence = "experimental";
 				if (Integer.valueOf(cols[2]).intValue() < THRESHOLD) {
-					count++;
+					countThreshold++;
 					continue;
 				}
 				if (interactiondSet.contains(ensemblId + "-" + cid)) {
-					count++;
+					countRedundant++;
 					continue;
 				}
 				for (String primaryIdentifier : uniprotIds) {
@@ -139,11 +146,14 @@ public class StitchConverter extends BioFileConverter {
 
 				interactiondSet.add(ensemblId + "-" + cid);
 			} else {
-				count++;
-				// LOG.info(String.format("Uniprot ID for '%s' was not found.", ensemblId));
+				countNoProtein++;
+				 LOG.info(String.format("Uniprot ID for '%s' was not found.", ensemblId));
 			}
 		}
-		LOG.info(String.format("%d interactions were skipped.", count));
+		LOG.info(String.format("%d interactions were skipped.", (countNoProtein + countRedundant + countThreshold)));
+		LOG.info(String.format("%d interactions were not able to map protein ID.", countNoProtein));
+		LOG.info(String.format("%d interactions were redundant.", countRedundant));
+		LOG.info(String.format("%d interactions were lower than the threshold.", countThreshold));
 	}
 
 	private String getProtein(String primaryIdentifier) throws ObjectStoreException {
@@ -165,7 +175,7 @@ public class StitchConverter extends BioFileConverter {
 			item.setAttribute("originalId", cid);
 			item.setAttribute("identifier", String.format("PubChem:%s", cid));
 			String name = cidNameMap.get(cid);
-			if (name == null) {
+			if (name == null || name.equals("")) {
 				name = String.format("CID %s", cid);
 			}
 			// if the length of the name is greater than 40 characters,
@@ -179,7 +189,7 @@ public class StitchConverter extends BioFileConverter {
 			String inchiKey = cidInchikeyMap.get(cid);
 			if (inchiKey != null) {
 				item.setAttribute("inchiKey", inchiKey);
-//				setSynonyms(item, inchiKey);
+				// setSynonyms(item, inchiKey);
 				item.setReference("compoundGroup",
 						getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
 			}
@@ -241,8 +251,8 @@ public class StitchConverter extends BioFileConverter {
 				.parseTabDelimitedReader(new BufferedReader(new FileReader(nameFile)));
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
-			String cid = cols[0].substring(4).replaceAll("^0*", "");
-			cidNameMap.put(cid, cols[1]);
+//			String cid = cols[0].substring(4).replaceAll("^0*", "");
+			cidNameMap.put(cols[0], cols[1]);
 		}
 	}
 
@@ -259,8 +269,8 @@ public class StitchConverter extends BioFileConverter {
 				.parseTabDelimitedReader(new BufferedReader(new FileReader(inchikeyFile)));
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
-			String cid = cols[0].substring(4).replaceAll("^0*", "");
-			cidInchikeyMap.put(cid, cols[1].trim());
+//			String cid = cols[0].substring(4).replaceAll("^0*", "");
+			cidInchikeyMap.put(cols[0], cols[1].trim());
 		}
 	}
 

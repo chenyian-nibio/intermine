@@ -194,7 +194,7 @@
     
     <source name="stitch" type="tm-stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
-      <property name="src.data.dir.includes" value="*.detailed.*.tsv" />
+      <property name="src.data.dir.includes" value="*.protein_chemical.links.detailed.v4.0.tsv" />
       <property name="nameFile" value="/data/bio/db/Targetmine/stitch/uniq.cid.names" />
       <property name="inchikeyFile" value="/data/bio/db/Targetmine/stitch/uniq.cid.inchikeys" />
       <property name="osAlias" value="os.production"/>
@@ -207,11 +207,6 @@
       <property name="aidActivecidFile" value="/data/bio/db/Targetmine/bioassay/aid_activecid.txt" />
       <property name="nameFile" value="/data/bio/db/Targetmine/bioassay/cid-names" />
       <property name="inchikeyFile" value="/data/bio/db/Targetmine/bioassay/cid-inchikeys" />
-    </source>
-    <source name="pubchem" type="pubchem">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/pubchem" />
-      <property name="src.data.dir.includes" value="cid-inchikeys" />
-      <property name="nameFile" value="/data/bio/db/Targetmine/pubchem/cid-names" />
     </source>
     <source name="chebi" type="chebi-db">
       <property name="source.db.name" value="chebi-db"/>
