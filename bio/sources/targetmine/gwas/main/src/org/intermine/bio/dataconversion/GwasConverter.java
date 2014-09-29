@@ -181,7 +181,7 @@ public class GwasConverter extends BioFileConverter {
 						.parseTabDelimitedReader(new BufferedReader(new FileReader(diseaseMapFile)));
 				while (iterator.hasNext()) {
 					String[] cols = iterator.next();
-					if (StringUtils.isEmpty(cols[1])) {
+					if (cols.length < 2 || StringUtils.isEmpty(cols[1])) {
 						continue;
 					}
 					diseaseMap.put(cols[0].trim(), cols[1]);
