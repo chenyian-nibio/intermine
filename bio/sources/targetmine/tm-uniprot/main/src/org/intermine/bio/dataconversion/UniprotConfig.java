@@ -1,7 +1,7 @@
 package org.intermine.bio.dataconversion;
 
 /*
- * Copyright (C) 2002-2011 FlyMine
+ * Copyright (C) 2002-2014 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -100,8 +100,9 @@ public class UniprotConfig
             String taxonId = attributes[0];
 
             if ("feature".equals(taxonId)) {
-                String[] types = value.split("[, ]+");
+                String[] types = value.split(",\\s*");
                 featureTypes.addAll(Arrays.asList(types));
+                LOG.info("featureTypes: " + featureTypes);
                 continue;
             }
 

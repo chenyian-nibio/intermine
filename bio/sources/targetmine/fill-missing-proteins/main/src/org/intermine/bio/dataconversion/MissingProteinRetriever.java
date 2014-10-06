@@ -126,7 +126,7 @@ public class MissingProteinRetriever {
 					String l;
 					boolean isEntry = false;
 					ProteinHolder ph = new ProteinHolder();
-					;
+					
 					while ((l = br.readLine()) != null) {
 						if (l.trim().equals("//")) {
 							// skip header part if there is
@@ -144,9 +144,10 @@ public class MissingProteinRetriever {
 									p.setAttribute("uniprotAccession", pAcc);
 									p.setReference("organism", getOrganism(ph.taxonId, itemFactory));
 
-									if (ph.ecNumber != null) {
-										p.setAttribute("ecNumber", ph.ecNumber);
-									}
+									// chenyian: if we do want the EC number, we should use Enzyme class instead
+									// if (ph.ecNumber != null) {
+									//	p.setAttribute("ecNumber", ph.ecNumber);
+									// }
 									if (ph.name != null) {
 										p.setAttribute("name", ph.name);
 									}
@@ -162,6 +163,11 @@ public class MissingProteinRetriever {
 
 							ph = new ProteinHolder();
 						}
+						
+						// remove the ECO information
+						if (l.contains("{ECO:")) {
+							l = l.replaceAll("\\{ECO:.+\\}", "");
+						}
 
 						if (l.startsWith("ID")) {
 							String[] split = l.split("\\s+");
@@ -175,15 +181,18 @@ public class MissingProteinRetriever {
 								}
 							}
 						} else if (l.startsWith("OX")) {
-							ph.taxonId = l.substring(l.indexOf("=") + 1, l.indexOf(";"));
+							ph.taxonId = l.substring(l.indexOf("=") + 1, l.indexOf(";")).trim();
 						} else if (l.startsWith("DE")) {
+							// chenyian: there are some more complated case, see the following example:
+							// http://www.ebi.ac.uk/Tools/dbfetch/dbfetch?db=UniProtKB&style=raw&id=P19096
+							// So far just ignore it ...
 							String de = l.substring(5);
 							if (de.startsWith("RecName")) {
-								ph.name = de.substring(de.indexOf("=") + 1, de.indexOf(";"));
+								ph.name = de.substring(de.indexOf("=") + 1, de.indexOf(";")).trim();
 							} else if (de.startsWith("SubName") && ph.name == null) {
-								ph.name = de.substring(de.indexOf("=") + 1, de.indexOf(";"));
+								ph.name = de.substring(de.indexOf("=") + 1, de.indexOf(";")).trim();
 							} else if (de.trim().startsWith("EC=")) {
-								ph.ecNumber = de.substring(de.indexOf("=") + 1, de.indexOf(";"));
+								ph.ecNumber = de.substring(de.indexOf("=") + 1, de.indexOf(";")).trim();
 							}
 						} else if (l.startsWith("SQ")) {
 							Matcher matcher = SQ_PATTERN.matcher(l);

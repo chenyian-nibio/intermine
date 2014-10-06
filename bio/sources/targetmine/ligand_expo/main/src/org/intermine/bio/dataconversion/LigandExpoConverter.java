@@ -1,15 +1,5 @@
 package org.intermine.bio.dataconversion;
 
-/*
- * Copyright (C) 2002-2009 FlyMine
- *
- * This code may be freely distributed and modified under the
- * terms of the GNU Lesser General Public Licence.  This should
- * be distributed with the code.  See the LICENSE file for more
- * information or http://www.gnu.org/copyleft/lesser.html.
- *
- */
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -29,8 +19,7 @@ import org.intermine.xml.full.Item;
 /**
  * 
  * @author chenyian
- * @since 2009/6/24
- * 2012/8/15 modified
+ * 
  */
 public class LigandExpoConverter extends BioFileConverter {
 
@@ -69,7 +58,7 @@ public class LigandExpoConverter extends BioFileConverter {
 			String[] cols = iterator.next();
 
 			Item het = createItem("PDBCompound");
-			het.setAttribute("hetId", cols[0]);
+			het.setAttribute("originalId", cols[0]);
 			String name = hetNameMap.get(cols[0]);
 			if (name == null || name.equals("")) {
 				name = String.format("HETID %s", cols[0]);
@@ -86,8 +75,6 @@ public class LigandExpoConverter extends BioFileConverter {
 			if (inchiKey != null) {
 				het.setAttribute("inchiKey", inchiKey);
 				
-				setSynonyms(het, inchiKey);
-
 				String compoundGroupId = inchiKey.substring(0, inchiKey.indexOf("-"));
 				if (compoundGroupId.length() == 14) {
 					het.setReference("compoundGroup", getCompoundGroup(compoundGroupId, name));
@@ -95,8 +82,7 @@ public class LigandExpoConverter extends BioFileConverter {
 					LOG.info(String.format("Bad InChIKey value: %s, %s .", cols[1], cols[0]));
 				}
 			}
-			het.setAttribute("primaryIdentifier", String.format("PDBCompound:%s", cols[0]));
-			het.setAttribute("secondaryIdentifier", cols[0]);
+			het.setAttribute("identifier", String.format("PDBCompound:%s", cols[0]));
 
 			String allPdbId = cols[1];
 			StringUtils.chomp(allPdbId);
@@ -177,7 +163,7 @@ public class LigandExpoConverter extends BioFileConverter {
 	}
 	
 	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
-		Item syn = createItem("Synonym");
+		Item syn = createItem("CompoundSynonym");
 		syn.setAttribute("value", value);
 		syn.setReference("subject", subject);
 		store(syn);

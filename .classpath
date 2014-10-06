@@ -6,6 +6,7 @@
 	<classpathentry kind="src" path="bio/sources/interpro/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/affy-probe-annot/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/amadeus/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/atc-code/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/bioassay/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/biopax3/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/cath-name/main/src"/>
@@ -16,6 +17,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/do-annotation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drpias/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugbank/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/drugbank-v4/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugebility/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/enzyme/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/enzyme-pathway/main/src"/>
@@ -30,6 +32,8 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/gwas/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/htridb/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/irefindex/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/kegg-drug/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/kegg-jtc/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/ligand_expo/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase-genome/main/src"/>
@@ -44,6 +48,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/pdb_ext/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/ppiview/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein-analysis/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/protein-ortholog/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein2ipr/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pubchem/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/retrieve-publication-local/main/src"/>

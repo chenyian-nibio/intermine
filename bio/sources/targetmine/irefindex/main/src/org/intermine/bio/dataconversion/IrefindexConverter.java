@@ -116,6 +116,8 @@ public class IrefindexConverter extends BioFileConverter {
 			String proteinIdB = getProteinId(cols[1]);
 			if (proteinIdA != null && proteinIdB != null) {
 				String piSourceRef = getPiSource(sourceDb, ids[0]);
+				proteinIdA = proteinIdA.split("-")[0];
+				proteinIdB = proteinIdB.split("-")[0];
 				createProteinInteraction(proteinIdA, cols[9], proteinIdB, cols[10], piSourceRef);
 				createProteinInteraction(proteinIdB, cols[10], proteinIdA, cols[9], piSourceRef);
 			}

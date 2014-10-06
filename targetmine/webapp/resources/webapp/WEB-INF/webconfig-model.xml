@@ -132,6 +132,7 @@
   <class className="org.intermine.model.bio.Protein">
     <inlinelist>
       <table path="synonyms.value" showLinksToObjects="true" />
+      <table path="keywords.name" showLinksToObjects="true" />
     </inlinelist>
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
@@ -233,13 +234,23 @@
   <class className="org.intermine.model.bio.Compound">
     <headerconfig>
         <titles>
-            <title mainTitles="primaryIdentifier|name" />
+            <title mainTitles="identifier|name" />
         </titles>
     </headerconfig>
+    <inlinelist>
+      <table path="synonyms.value" showLinksToObjects="true" />
+    </inlinelist>
     <fields>
-      <fieldconfig fieldExpr="primaryIdentifier"/>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="originalId"/>
       <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="inchiKey"/>
+    </fields>
+  </class>
+  
+  <class className="org.intermine.model.bio.CompoundSynonym">
+    <fields>
+      <fieldconfig fieldExpr="value"/>
     </fields>
   </class>
 
@@ -267,8 +278,8 @@
       <fieldconfig fieldExpr="end"/>
       <fieldconfig fieldExpr="pdbSeqStart"/>
       <fieldconfig fieldExpr="pdbSeqEnd"/>
-      <fieldconfig fieldExpr="chain.pdbId"/>
-      <fieldconfig fieldExpr="chain.chain"/>
+      <fieldconfig fieldExpr="chain.structure.pdbId" label="PDB ID"/>
+      <fieldconfig fieldExpr="chain.chain" label="Chain"/>
     </fields>
   </class>
 
@@ -287,9 +298,10 @@
   </class>
 <!-- chenyian
 -->
-  <class className="org.intermine.model.bio.GeneSetCluster">
+  <class className="org.intermine.model.bio.GeneSetCluster" >
     <fields>
       <fieldconfig fieldExpr="identifier" />
+      <fieldconfig fieldExpr="name" />
     </fields>
   </class>
   <class className="org.intermine.model.bio.Homologue">
@@ -314,27 +326,33 @@
       <fieldconfig fieldExpr="title"/>
     </fields>
   </class>
-  <class className="org.intermine.model.bio.ProteinComputationalResult">
-    <fields>
-      <fieldconfig fieldExpr="computationalAnalysis.algorithm"/>
-      <fieldconfig fieldExpr="computationalAnalysis.description"/>
-    </fields>
-  </class>
-  <class className="org.intermine.model.bio.ProteinHitRegion">
-    <fields>
-      <fieldconfig fieldExpr="start"/>
-      <fieldconfig fieldExpr="end"/>
-      <fieldconfig fieldExpr="score"/>
-    </fields>
-  </class>
 
   <class className="org.intermine.model.bio.CompoundProteinInteraction">
     <fields>
       <fieldconfig fieldExpr="protein.primaryAccession"/>
       <fieldconfig fieldExpr="protein.name"/>
-      <fieldconfig fieldExpr="compound.primaryIdentifier" />
+      <fieldconfig fieldExpr="compound.identifier" />
       <fieldconfig fieldExpr="compound.name" />
       <fieldconfig fieldExpr="dataSet.name" />
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.Activity">
+    <fields>
+      <fieldconfig fieldExpr="interaction.protein.primaryAccession" showInSummary="false"/>
+      <fieldconfig fieldExpr="interaction.compound.identifier" showInSummary="false"/>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="conc"/>
+      <fieldconfig fieldExpr="assay.name" showInSummary="false"/>
+      <fieldconfig fieldExpr="assay.source" showInSummary="false"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.CompoundProteinInteractionAssay">
+    <fields>
+      <fieldconfig fieldExpr="identifier" />
+      <fieldconfig fieldExpr="name" />
+      <fieldconfig fieldExpr="source" />
     </fields>
   </class>
 
@@ -433,34 +451,20 @@
   <class className="org.intermine.model.bio.DrugCompound">
     <headerconfig>
         <titles>
-            <title mainTitles="primaryIdentifier|name" />
+            <title mainTitles="identifier|name" />
         </titles>
     </headerconfig>
     <fields>
       <fieldconfig fieldExpr="genericName"/>
       <fieldconfig fieldExpr="drugBankId"/>
-      <fieldconfig fieldExpr="casRegistryNumber"/>
-      <fieldconfig fieldExpr="inchiKey"/>
-      <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" />
+      <fieldconfig fieldExpr="keggDrugId"/>
+      <fieldconfig fieldExpr="casRegistryNumber" showInSummary="false"/>
+      <fieldconfig fieldExpr="inchiKey" showInSummary="false"/>
+      <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" showInSummary="false" />
     </fields>
     <inlinelist>
       <table path="synonyms.value" showLinksToObjects="true" />
       <table path="drugTypes.name" showLinksToObjects="false" />
-    </inlinelist>
-  </class>
-  <class className="org.intermine.model.bio.ChemblCompound">
-    <inlinelist>
-      <table path="synonyms.value" showLinksToObjects="true" />
-    </inlinelist>
-  </class>
-  <class className="org.intermine.model.bio.ChebiCompound">
-    <inlinelist>
-      <table path="synonyms.value" showLinksToObjects="true" />
-    </inlinelist>
-  </class>
-  <class className="org.intermine.model.bio.PubChemCompound">
-    <inlinelist>
-      <table path="synonyms.value" showLinksToObjects="true" />
     </inlinelist>
   </class>
 
@@ -502,10 +506,11 @@
 
   <class className="org.intermine.model.bio.StructuralDomainRegion">
     <fields>
+      <fieldconfig fieldExpr="protein.primaryAccession"/>
       <fieldconfig fieldExpr="start"/>
       <fieldconfig fieldExpr="end"/>
-      <fieldconfig fieldExpr="cathClassification.cathCode"/>
-      <fieldconfig fieldExpr="cathClassification.description"/>
+      <fieldconfig fieldExpr="cathClassification.cathCode" label="CATH code"/>
+      <fieldconfig fieldExpr="cathClassification.description" label="Description"/>
     </fields>
   </class>
   <class className="org.intermine.model.bio.Druggability">
@@ -587,6 +592,35 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.UniProtFeature">
+    <fields>
+      <fieldconfig fieldExpr="begin"/>
+      <fieldconfig fieldExpr="end"/>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="description"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.CrossReference">
+    <fields>
+      <fieldconfig fieldExpr="source.name" label="Database"/>
+      <fieldconfig fieldExpr="identifier"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.AtcClassification">
+    <fields>
+      <fieldconfig fieldExpr="atcCode"/>
+      <fieldconfig fieldExpr="name"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.JtcClassification">
+    <fields>
+      <fieldconfig fieldExpr="jtcCode"/>
+      <fieldconfig fieldExpr="name"/>
+    </fields>
+  </class>
 
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
@@ -611,6 +645,12 @@
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.UniProtCommentsDisplayer"
                      jspName="model/uniProtCommentsDisplayer.jsp"
                      replacesFields="comments"
+                     placement="Proteins"
+                     types="Protein"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.UniprotFeatureDisplayer"
+                     jspName="model/uniprotFeatureDisplayer.jsp"
+                     replacesFields="features"
                      placement="Proteins"
                      types="Protein"/>
 
@@ -657,6 +697,21 @@
                      replacesFields="compounds" 
                      types="CompoundGroup"/>
 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.AtcClassificationDisplayer"
+                     jspName="model/atcClassificationDisplayer.jsp"
+                     replacesFields="parent" 
+                     types="AtcClassification"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.AtcClassificationDisplayer"
+                     jspName="model/jtcClassificationDisplayer.jsp"
+                     replacesFields="parent" 
+                     types="JtcClassification"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/atcJtcCodeDisplayer.jsp"
+                     replacesFields="atcCodes,jtcCodes" 
+                     types="DrugCompound"/>
+
   </reportdisplayers>
 
   
@@ -677,6 +732,19 @@
                                  typeClass="Gene"
                                  views="primaryIdentifier, symbol, organism.name, pathways.identifier, pathways.name, pathways.dataSets.name" 
                                  externalLink="/targetmine/portal.do?class=Pathway&amp;externalids="/>
+
+      <enrichmentwidgetdisplayer id="gene_ipc_enrichment"
+                                 title="Integrated Pathway Cluster Enrichment"
+                                 description="Integrated Pathway Clusters(IPCs) enriched for genes in this list"
+                                 label="IPCs"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="geneSetClusters.name"
+                                 enrichIdentifier="geneSetClusters.identifier"
+                                 constraints="organism.taxonId=[list]"
+                                 typeClass="Gene"
+                                 views="primaryIdentifier, symbol, organism.name, geneSetClusters.identifier, geneSetClusters.name" 
+                                 externalLink="/targetmine/portal.do?class=GeneSetCluster&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_go_enrichment"
                                  title="Gene Ontology Enrichment"
@@ -846,11 +914,11 @@
                                  startClass="Protein"
                                  startClassDisplay="primaryIdentifier"
                                  enrich="compounds.compound.name"
-                                 enrichIdentifier="compounds.compound.primaryIdentifier"
+                                 enrichIdentifier="compounds.compound.identifier"
                                  constraints="compounds.dataSet.name=[DataSet], organism.name=[list]"
                                  typeClass="Protein"
-                                 views="primaryAccession, name, organism.name, compounds.compound.primaryIdentifier, compounds.compound.name"
-                                 />
+                                 views="primaryAccession, name, organism.name, compounds.compound.identifier, compounds.compound.name"
+                                 externalLink="/targetmine/portal.do?class=Compound&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_interpro_enrichment"
                                  title="InterPro domain Enrichment"
@@ -889,11 +957,11 @@
                                  startClass="Gene"
                                  startClassDisplay="symbol"
                                  enrich="proteins.compounds.compound.name"
-                                 enrichIdentifier="proteins.compounds.compound.primaryIdentifier"
+                                 enrichIdentifier="proteins.compounds.compound.identifier"
                                  constraints="proteins.compounds.dataSet.name=[DataSet], organism.name=[list]"
                                  typeClass="Gene"
-                                 views="primaryIdentifier, symbol, organism.name, proteins.compounds.compound.primaryIdentifier, proteins.compounds.compound.name"
-                                 />
+                                 views="primaryIdentifier, symbol, organism.name, proteins.compounds.compound.identifier, proteins.compounds.compound.name"
+                                 externalLink="/targetmine/portal.do?class=Compound&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="pathway_gene_enrichment"
                                  title="Gene Enrichment"

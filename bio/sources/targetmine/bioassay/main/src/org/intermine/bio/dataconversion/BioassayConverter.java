@@ -1,15 +1,5 @@
 package org.intermine.bio.dataconversion;
 
-/*
- * Copyright (C) 2002-2011 FlyMine
- *
- * This code may be freely distributed and modified under the
- * terms of the GNU Lesser General Public Licence.  This should
- * be distributed with the code.  See the LICENSE file for more
- * information or http://www.gnu.org/copyleft/lesser.html.
- *
- */
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -92,15 +82,17 @@ public class BioassayConverter extends BioFileConverter {
 					assay.addToCollection("publications", getPublication(pubMedId));
 				}
 			}
-			
+			store(assay);
+
 			for (String acc: giMapping.get(gi)) {
 				for (String cid: cidMapping.get(aid)) {
-					assay.addToCollection("interactions", getInteraction(acc, cid));
+					Item activity = createItem("Activity");
+					activity.setReference("assay", assay);
+					activity.setReference("interaction", getInteraction(acc, cid));
+					store(activity);
 				}
 			}
-			
-			store(assay);
-			
+
 		}
 		
 	}
@@ -153,9 +145,8 @@ public class BioassayConverter extends BioFileConverter {
 		String ret = pubChemCompoundMap.get(cid);
 		if (ret == null) {
 			Item item = createItem("PubChemCompound");
-			item.setAttribute("pubChemCid", cid);
-			item.setAttribute("primaryIdentifier", String.format("PubChem:%s", cid));
-			item.setAttribute("secondaryIdentifier", cid);
+			item.setAttribute("originalId", cid);
+			item.setAttribute("identifier", String.format("PubChem:%s", cid));
 			String name = nameMap.get(cid);
 			if (name == null) {
 				name = String.format("CID %s", cid);
@@ -307,7 +298,7 @@ public class BioassayConverter extends BioFileConverter {
 	}
 
 	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
-		Item syn = createItem("Synonym");
+		Item syn = createItem("CompoundSynonym");
 		syn.setAttribute("value", value);
 		syn.setReference("subject", subject);
 		store(syn);

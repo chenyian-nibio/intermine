@@ -1,36 +1,44 @@
 <?xml version="1.0"?>
 <classes>
 	<class name="CompoundProteinInteraction" is-interface="true">
-		<attribute name="ic50" type="java.lang.Float"/>
 		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
 		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
-    </class>
+	</class>
 	<class name="StitchInteraction" extends="CompoundProteinInteraction" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="evidence" type="java.lang.String"/>
 		<attribute name="score" type="java.lang.Integer"/>
-    </class>
+	</class>
 
 	<class name="Protein" is-interface="true">
 		<collection name="compounds" referenced-type="CompoundProteinInteraction" reverse-reference="protein"/>
-    </class>
+	</class>
 
 	<class name="PubChemCompound" extends="Compound" is-interface="true">
-		<attribute name="pubChemCid" type="java.lang.String"/>
-    </class>
+	</class>
 
-    <class name="Compound" extends="BioEntity" is-interface="true">
+	<class name="Compound" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="originalId" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
 		<attribute name="inchiKey" type="java.lang.String"/>
 		<attribute name="casRegistryNumber" type="java.lang.String"/>
 		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
 		<collection name="targetProteins" referenced-type="CompoundProteinInteraction" reverse-reference="compound"/>
-    </class>
+		<collection name="synonyms" referenced-type="CompoundSynonym" reverse-reference="subject"/>
+	</class>
+    
+	<class name="CompoundSynonym" is-interface="true">
+		<attribute name="value" type="java.lang.String"/>
+		<reference name="subject" referenced-type="Compound" reverse-reference="synonyms"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
+	</class>
 
-    <class name="CompoundGroup" is-interface="true">
+	<class name="CompoundGroup" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
-    </class>
+	</class>
 
 </classes>

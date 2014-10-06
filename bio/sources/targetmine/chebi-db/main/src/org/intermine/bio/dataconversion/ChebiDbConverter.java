@@ -1,15 +1,5 @@
 package org.intermine.bio.dataconversion;
 
-/*
- * Copyright (C) 2002-2009 FlyMine
- *
- * This code may be freely distributed and modified under the
- * terms of the GNU Lesser General Public Licence.  This should
- * be distributed with the code.  See the LICENSE file for more
- * information or http://www.gnu.org/copyleft/lesser.html.
- *
- */
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -28,7 +18,6 @@ import org.intermine.xml.full.Item;
  * 
  * @author chenyian
  * 
- * 2012/8/13 modified
  */
 public class ChebiDbConverter extends BioDBConverter {
 	private static final Logger LOG = Logger.getLogger(ChebiDbConverter.class);
@@ -108,14 +97,20 @@ public class ChebiDbConverter extends BioDBConverter {
 			}
 
 			Item item = createItem("ChebiCompound");
-			item.setAttribute("primaryIdentifier", String.format("CHEBI:%s", chebiId));
-			item.setAttribute("secondaryIdentifier", chebiId);
-			item.setAttribute("chebiId", chebiId);
+			item.setAttribute("identifier", String.format("CHEBI:%s", chebiId));
+			item.setAttribute("originalId", chebiId);
 			item.setAttribute("inchiKey", inchiKey);
 			
-			setSynonyms(item, inchiKey);
+//			setSynonyms(item, inchiKey);
 			
+			// if the length of the name is greater than 40 characters,
+			// use id instead and save the long name as the synonym
+			if (name.length() > 40) {
+				setSynonyms(item, name);
+				name = String.format("CHEBI %s", chebiId);
+			}
 			item.setAttribute("name", name);
+
 			if (casRegMap.get(chebiId) != null) {
 				item.setAttribute("casRegistryNumber", casRegMap.get(chebiId));
 			}
@@ -162,7 +157,7 @@ public class ChebiDbConverter extends BioDBConverter {
 	}
 	
 	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
-		Item syn = createItem("Synonym");
+		Item syn = createItem("CompoundSynonym");
 		syn.setAttribute("value", value);
 		syn.setReference("subject", subject);
 		store(syn);

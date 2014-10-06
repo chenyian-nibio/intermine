@@ -1,15 +1,5 @@
 package org.intermine.bio.dataconversion;
 
-/*
- * Copyright (C) 2002-2011 FlyMine
- *
- * This code may be freely distributed and modified under the
- * terms of the GNU Lesser General Public Licence.  This should
- * be distributed with the code.  See the LICENSE file for more
- * information or http://www.gnu.org/copyleft/lesser.html.
- *
- */
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -145,14 +135,15 @@ public class CathNameConverter extends BioFileConverter {
 				}
 
 				String cathCode = String.format("%s.%s.%s.%s", cols[1], cols[2], cols[3], cols[4]);
-				String cathId = String.format("%s.%s.%s.%s.%s.%s.%s.%s", cols[1], cols[2], cols[3],
-						cols[4], cols[5], cols[6], cols[7], cols[8]);
+				String cathId = String.format("%s.%s.%s.%s.%s.%s.%s.%s.%s", cols[1], cols[2], cols[3],
+						cols[4], cols[5], cols[6], cols[7], cols[8], cols[9]);
 				String domainLength = cols[10];
 
 				Item item = createItem("CathClassification");
 				item.setAttribute("type", "CATH");
 				item.setAttribute("level", "Domain");
 				item.setAttribute("code", cathId);
+				item.setAttribute("cathCode", cathDomainName);
 				String code = cathCode;
 				item.addToCollection("parents", getCathParents(code));
 				while (code.lastIndexOf(".") != -1) {
@@ -168,11 +159,13 @@ public class CathNameConverter extends BioFileConverter {
 				String pdbId = cathDomainName.substring(0, 4);
 				String chainRegion = domainRegioinMap.get(cathDomainName);
 				if (chainRegion == null) {
+					reader.close();
 					throw new RuntimeException(cathDomainName);
 				}
 				createStructuralRegion(pdbId, chainId, chainRegion, item.getIdentifier());
 			}
 		}
+		reader.close();
 	}
 
 	private File domainList;
@@ -227,7 +220,7 @@ public class CathNameConverter extends BioFileConverter {
 
 			}
 		}
-
+		reader.close();
 	}
 
 	private void createStructuralRegion(String pdbId, String chainId, String chainRegion,

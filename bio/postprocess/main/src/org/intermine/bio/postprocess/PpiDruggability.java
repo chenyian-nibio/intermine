@@ -21,6 +21,11 @@ import org.intermine.objectstore.query.QueryObjectReference;
 import org.intermine.objectstore.query.Results;
 import org.intermine.objectstore.query.ResultsRow;
 
+/**
+ * 
+ * @author chenyian
+ *
+ */
 public class PpiDruggability {
 	private static final Logger LOG = Logger.getLogger(PpiDruggability.class);
 

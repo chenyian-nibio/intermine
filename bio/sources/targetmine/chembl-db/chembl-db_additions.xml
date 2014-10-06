@@ -3,12 +3,13 @@
 	<class name="CompoundProteinInteraction" is-interface="true">
 		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
 		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
-		<collection name="assay" referenced-type="CompoundProteinInteractionAssay" reverse-reference="interactions"/>
+		<collection name="activities" referenced-type="Activity" reverse-reference="interaction"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
     </class>
 	<class name="Activity" is-interface="true">
 		<attribute name="type" type="java.lang.String"/>
 		<attribute name="conc" type="java.lang.Float"/>
+		<reference name="interaction" referenced-type="CompoundProteinInteraction" reverse-reference="activities"/>
 		<reference name="assay" referenced-type="CompoundProteinInteractionAssay" reverse-reference="activities"/>
     </class>
 	<class name="CompoundProteinInteractionAssay" is-interface="true">
@@ -16,9 +17,9 @@
 		<attribute name="originalId" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<attribute name="source" type="java.lang.String"/>
-		<collection name="interactions" referenced-type="CompoundProteinInteraction" reverse-reference="assay"/>
 		<collection name="publications" referenced-type="Publication"/>
 		<collection name="activities" referenced-type="Activity" reverse-reference="assay"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
     </class>
     
 	<class name="ChemblInteraction" extends="CompoundProteinInteraction" is-interface="true">
@@ -33,21 +34,30 @@
     </class>
 
 	<class name="ChemblCompound" extends="Compound" is-interface="true">
-		<attribute name="chemblId" type="java.lang.String"/>
 		<collection name="drugTypes" referenced-type="DrugType"/>
-   </class>
+	</class>
 
-    <class name="Compound" extends="BioEntity" is-interface="true">
+	<class name="Compound" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="originalId" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
 		<attribute name="inchiKey" type="java.lang.String"/>
 		<attribute name="casRegistryNumber" type="java.lang.String"/>
 		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
 		<collection name="targetProteins" referenced-type="CompoundProteinInteraction" reverse-reference="compound"/>
-    </class>
+		<collection name="synonyms" referenced-type="CompoundSynonym" reverse-reference="subject"/>
+	</class>
+    
+	<class name="CompoundSynonym" is-interface="true">
+		<attribute name="value" type="java.lang.String"/>
+		<reference name="subject" referenced-type="Compound" reverse-reference="synonyms"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
+	</class>
 
-    <class name="CompoundGroup" is-interface="true">
+	<class name="CompoundGroup" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
-    </class>
+	</class>
 
 </classes>

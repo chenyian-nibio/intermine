@@ -1,0 +1,5 @@
+<project name="drugbank-v4" default="default" basedir=".">
+  <description>build, test, package drugbank-v4</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

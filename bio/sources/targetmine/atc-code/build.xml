@@ -1,0 +1,5 @@
+<project name="atc-code" default="default" basedir=".">
+  <description>build, test, package atc-code</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

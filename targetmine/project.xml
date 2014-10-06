@@ -16,6 +16,10 @@
       <property name="uniprot.organisms" value="9606 10090 10116"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/uniprot/split"/>
     </source>
+    <source name="protein-ortholog" type="protein-ortholog">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-ortholog/" />
+      <property name="src.data.dir.includes" value="*.bb" />
+    </source>
     <source name="go-annotation" type="go-goslim-annotation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/go-annotation"/>
       <property name="src.data.dir.includes" value="gene_association*"/>
@@ -82,7 +86,7 @@
     </source>
     <source name="gene3d" type="gene3d">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene3d"/>
-      <property name="src.data.dir.includes" value="gene3d.HRM.txt"/>
+      <property name="src.data.dir.includes" value="gene3d.v12.HRM.txt"/>
     </source>
     <source name="kegg-orthology" type="tm-kegg-orthology">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/ko"/>
@@ -90,9 +94,24 @@
       <property name="kegg.organisms" value="9606 10090 10116"/>
     </source>
 
-    <source name="drugbank" type="drugbank">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank"/>
+    <source name="atc-code" type="atc-code">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/atc_code"/>
+      <property name="src.data.dir.includes" value="atc_lv1to4.cleaned"/>
+    </source>
+
+    <source name="drugbank" type="drugbank-v4">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank/v4"/>
       <property name="src.data.dir.includes" value="drugbank.xml"/>
+    </source>
+
+    <source name="kegg-jtc" type="kegg-jtc">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-jtc"/>
+      <property name="src.data.dir.includes" value="br08301.keg"/>
+    </source>
+    <source name="kegg-drug" type="kegg-drug">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/drug"/>
+      <property name="src.data.dir.includes" value="drug"/>
+      <property name="inchikeyFile" value="/data/bio/db/Targetmine/kegg-ftp/drug/drug.inchikey"/>
     </source>
   	
     <source name="kegg-pathway" type="tm-kegg-pathway">
@@ -105,14 +124,6 @@
 <!-- chenyian: start for external version -->    
 <!-- chenyian: disabled for external version 
 -->
-    <source name="protein-analysis" type="protein-analysis">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis"/>
-      <property name="src.data.dir.includes" value="result.out"/>
-    </source>
-    <source name="fugue" type="fugue">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-analysis/fugue_result"/>
-      <property name="src.data.dir.includes" value="*"/>
-    </source>
     <source name="omim" type="omim-gene">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/omim"/>
       <property name="src.data.dir.includes" value="omim_phenotype_title"/>
@@ -183,7 +194,7 @@
     
     <source name="stitch" type="tm-stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
-      <property name="src.data.dir.includes" value="*.detailed.*.tsv" />
+      <property name="src.data.dir.includes" value="*.protein_chemical.links.detailed.v4.0.tsv" />
       <property name="nameFile" value="/data/bio/db/Targetmine/stitch/uniq.cid.names" />
       <property name="inchikeyFile" value="/data/bio/db/Targetmine/stitch/uniq.cid.inchikeys" />
       <property name="osAlias" value="os.production"/>
@@ -197,11 +208,6 @@
       <property name="nameFile" value="/data/bio/db/Targetmine/bioassay/cid-names" />
       <property name="inchikeyFile" value="/data/bio/db/Targetmine/bioassay/cid-inchikeys" />
     </source>
-    <source name="pubchem" type="pubchem">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/pubchem" />
-      <property name="src.data.dir.includes" value="cid-inchikeys" />
-      <property name="nameFile" value="/data/bio/db/Targetmine/pubchem/cid-names" />
-    </source>
     <source name="chebi" type="chebi-db">
       <property name="source.db.name" value="chebi-db"/>
     </source>
@@ -214,7 +220,7 @@
     <source name="gwas" type="gwas">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gwas/nhgri" />
       <property name="src.data.dir.includes" value="gwascatalog.*.txt" />
-      <property name="diseaseMapFile" value="/data/bio/db/Targetmine/gwas/nhgri/diseaseMap.140409.txt" />
+      <property name="diseaseMapFile" value="/data/bio/db/Targetmine/gwas/nhgri/diseaseMap.140808.txt" />
     </source>
 
     <source name="irefindex" type="irefindex">
@@ -235,7 +241,7 @@
     </source>
     <source name="mirtarbase" type="mirtarbase">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/mirtarbase" />
-      <property name="src.data.dir.includes" value="*_MTI.v2.txt" />
+      <property name="src.data.dir.includes" value="*_MTI.v3.txt" />
     </source>
   	<source name="drpias" type="drpias">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/drpias" />
@@ -292,6 +298,7 @@
 	<post-process name="do-sources"/>
 	<post-process name="transcribe-ncbiGeneId"/>
 	<post-process name="gene-set-clustering"/>
+	<post-process name="associate-gene-to-cluster"/>
 	<post-process name="network-analysis"/>
 	<post-process name="ppi-druggability"/>
 	<post-process name="create-references"/>

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<classes>
+
+	<class name="Protein" is-interface="true">
+		<collection name="orthologProteins" referenced-type="Protein" />
+	</class>
+
+</classes>

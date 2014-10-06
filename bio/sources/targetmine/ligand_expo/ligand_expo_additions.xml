@@ -1,41 +1,49 @@
 <?xml version="1.0"?>
 <!-- This file details any extensions needed to the data model to store data from this source, everything else is automatically generated from the model description so this is all we need to do to add to the model. -->
 <classes>
-   <class name="ProteinStructure" is-interface="true">
-        <collection name="pdbCompounds" referenced-type="PDBCompound" reverse-reference="structures"/>
-   </class>
-   <class name="PDBCompound" extends="Compound" is-interface="true">
-     <attribute name="hetId" type="java.lang.String"/>
-     <collection name="structures" referenced-type="ProteinStructure" reverse-reference="pdbCompounds"/>
-     <!-- To be extended -->
-   </class>
+	<class name="ProteinStructure" is-interface="true">
+		<collection name="pdbCompounds" referenced-type="PDBCompound" reverse-reference="structures"/>
+	</class>
 
-    <class name="Compound" extends="BioEntity" is-interface="true">
+	<class name="PDBCompound" extends="Compound" is-interface="true">
+		<collection name="structures" referenced-type="ProteinStructure" reverse-reference="pdbCompounds"/>
+	</class>
+
+	<class name="Compound" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="originalId" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
 		<attribute name="inchiKey" type="java.lang.String"/>
 		<attribute name="casRegistryNumber" type="java.lang.String"/>
 		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
 		<collection name="targetProteins" referenced-type="CompoundProteinInteraction" reverse-reference="compound"/>
-    </class>
+		<collection name="synonyms" referenced-type="CompoundSynonym" reverse-reference="subject"/>
+	</class>
+    
+	<class name="CompoundSynonym" is-interface="true">
+		<attribute name="value" type="java.lang.String"/>
+		<reference name="subject" referenced-type="Compound" reverse-reference="synonyms"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
+	</class>
 
-    <class name="CompoundGroup" is-interface="true">
+	<class name="CompoundGroup" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
-    </class>
+	</class>
 
 	<!-- For post processing -->	
 	<class name="CompoundProteinInteraction" is-interface="true">
-		<attribute name="ic50" type="java.lang.Float"/>
 		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
 		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
-    </class>
+	</class>
 	<class name="PDBInteraction" extends="CompoundProteinInteraction" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
-    </class>
+	</class>
 
 	<class name="Protein" is-interface="true">
 		<collection name="compounds" referenced-type="CompoundProteinInteraction" reverse-reference="protein"/>
-    </class>
+	</class>
 
 </classes>

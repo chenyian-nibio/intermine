@@ -1,0 +1,4 @@
+<project name="atc-code-tasks" default="default" basedir=".">
+  <description>build atc-code tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

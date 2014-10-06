@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<classes>
+
+	<class name="AtcClassification" is-interface="true">
+		<attribute name="atcCode" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+		<reference name="parent" referenced-type="AtcClassification"/>
+    </class>
+
+</classes>

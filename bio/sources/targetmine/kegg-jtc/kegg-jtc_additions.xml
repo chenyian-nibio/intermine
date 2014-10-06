@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<classes>
+	<class name="JtcClassification" is-interface="true">
+		<attribute name="jtcCode" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+		<reference name="parent" referenced-type="JtcClassification"/>
+	</class>
+	<class name="DrugCompound" extends="Compound" is-interface="true">
+		<attribute name="keggDrugId" type="java.lang.String"/>
+		<collection name="jtcCodes" referenced-type="JtcClassification"/>		
+	</class>
+
+</classes>

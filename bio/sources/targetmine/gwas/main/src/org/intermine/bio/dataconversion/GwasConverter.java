@@ -24,6 +24,8 @@ import org.intermine.xml.full.Item;
  */
 public class GwasConverter extends BioFileConverter {
 	private static final Logger LOG = Logger.getLogger(GwasConverter.class);
+
+	private static final Double MIN_PVALUE = Double.valueOf("1E-300");
 	//
 	private static final String DATASET_TITLE = "Genome-Wide Association Studies";
 	private static final String DATA_SOURCE_NAME = "National Human Genome Research Institute";
@@ -136,7 +138,12 @@ public class GwasConverter extends BioFileConverter {
 			Item item = createItem("GenomeWideAssociation");
 			item.setAttribute("trait", trait);
 			if (!pvalue.equals("NS")){
-				item.setAttribute("pvalue", pvalue);
+				if (Double.valueOf(pvalue).compareTo(MIN_PVALUE) < 0 && !pvalue.equals("0")) {
+					item.setAttribute("pvalue", MIN_PVALUE.toString());
+					LOG.info(String.format("p-value CHANGED: %s (%s), original p-value: %s", trait, pubMedId, pvalue));
+				} else {
+					item.setAttribute("pvalue", pvalue);
+				}
 			}
 			item.setReference("publication", getPublication(pubMedId));
 			String doTerms = diseaseMap.get(trait);
@@ -174,7 +181,7 @@ public class GwasConverter extends BioFileConverter {
 						.parseTabDelimitedReader(new BufferedReader(new FileReader(diseaseMapFile)));
 				while (iterator.hasNext()) {
 					String[] cols = iterator.next();
-					if (StringUtils.isEmpty(cols[1])) {
+					if (cols.length < 2 || StringUtils.isEmpty(cols[1])) {
 						continue;
 					}
 					diseaseMap.put(cols[0].trim(), cols[1]);

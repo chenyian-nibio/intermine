@@ -1,5 +1,7 @@
 package org.intermine.bio.postprocess;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -59,10 +61,10 @@ public class IntegratedPathwayClustering {
 
 	public void doClustering() {
 		List<String> speciesIds = Arrays.asList("9606", "10090", "10116");
-		List<String> speciesCodes = Arrays.asList("H", "M", "R");
+		List<String> speciesCodes = Arrays.asList("hsa", "mmu", "rno");
 		for (int i = 0; i < speciesIds.size(); i++) {
 			String taxonId = speciesIds.get(i);
-			
+
 			queryAllPathwayGenes(taxonId);
 
 			System.out.println("All pathways (" + taxonId + "): " + allPathwayGenes.size());
@@ -197,6 +199,9 @@ public class IntegratedPathwayClustering {
 			}
 		});
 
+		StringBuffer sb = new StringBuffer();
+		CytoJSON json = new CytoJSON();
+
 		try {
 			osw.beginTransaction();
 			int clusterNo = 1;
@@ -236,15 +241,22 @@ public class IntegratedPathwayClustering {
 						numName = autoName.size();
 					}
 				}
-				String clusterId = String.format("%s%03d", speciesCode, clusterNo);
+				String clusterId = String.format("%s%03d", speciesCode.substring(0, 1)
+						.toUpperCase(), clusterNo);
+
+				// Start of exporting the intermediate data
+				sb.append(clusterId + "\t" + pathwayIds.length + "\t"
+						+ StringUtils.join(pathwayIds, ",") + "\n");
+
+				json.addCluster(clusterId, pathwayIds, speciesCode);
+				// End of exporting the intermediate data
 
 				Set<String> allPathwayIds = addSubsets(pathwayIds);
 				LOG.info(clusterId + " (" + numName + ") " + name + ": (" + allPathwayIds.size()
 						+ ") " + StringUtils.join(allPathwayIds, ","));
-				
-				InterMineObject item = (InterMineObject) DynamicUtil
-						.simpleCreateObject(model.getClassDescriptorByName(
-								"GeneSetCluster").getType());
+
+				InterMineObject item = (InterMineObject) DynamicUtil.simpleCreateObject(model
+						.getClassDescriptorByName("GeneSetCluster").getType());
 				item.setFieldValue("identifier", clusterId);
 				item.setFieldValue("name", name);
 				Set<Pathway> pathways = new HashSet<Pathway>();
@@ -252,15 +264,27 @@ public class IntegratedPathwayClustering {
 					pathways.add(pathwayMap.get(pId));
 				}
 				item.setFieldValue("pathways", pathways);
-				
+
 				osw.store(item);
 
 				clusterNo++;
 			}
 
 			osw.commitTransaction();
+			// osw.abortTransaction();
 
 		} catch (ObjectStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			// FileWriter writer = new FileWriter("lt600.hie.co70." + speciesCode);
+			// writer.write(sb.toString());
+			// writer.close();
+			FileWriter writer = new FileWriter(speciesCode + ".json.txt");
+			writer.write(json.exportString());
+			writer.close();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -380,4 +404,72 @@ public class IntegratedPathwayClustering {
 		}
 
 	}
+
+	private class CytoJSON {
+
+		private int nodeId = 1;
+		private Map<String, String> nodeIdMap = new HashMap<String, String>();
+		private StringBuffer dataSb = new StringBuffer();
+		private StringBuffer clusterSb = new StringBuffer();
+
+		public CytoJSON() {
+		}
+
+		public void addCluster(String clusterId, String[] pathwayIds, String speciesCode) {
+			dataSb.append("\t\t" + clusterId + ": [ \n");
+			Arrays.sort(pathwayIds);
+			Set<String> allGenes = new HashSet<String>();
+			for (String pid : pathwayIds) {
+				String nid = nodeIdMap.get(pid);
+				if (nid == null) {
+					nid = String.valueOf(nodeId);
+					nodeId++;
+					nodeIdMap.put(pid, nid);
+				}
+				String db = "N";
+				if (pid.startsWith("REACT_")) {
+					db = "R";
+				} else if (pid.startsWith(speciesCode)) {
+					db = "K";
+				}
+				dataSb.append(String
+						.format("\t\t\t{ group: \"nodes\", data: { id: \"%s\", label: \"%s\", desc: \"%s\", db: \"%s\", num: %d } },\n",
+								nid, pid, pathwayMap.get(pid).getName(), db,
+								allPathwayGenes.get(pid).size()));
+				allGenes.addAll(allPathwayGenes.get(pid));
+			}
+
+			for (int i = 0; i < pathwayIds.length - 1; i++) {
+				for (int j = i + 1; j < pathwayIds.length; j++) {
+					int intersect = Sets.intersection(allPathwayGenes.get(pathwayIds[i]),
+							allPathwayGenes.get(pathwayIds[j])).size();
+					if (intersect > 0) {
+						dataSb.append(String
+								.format("\t\t\t{ group: \"edges\", data: { target: \"%s\", source: \"%s\", label: \"%d\", share: %d } },\n",
+										nodeIdMap.get(pathwayIds[i]), nodeIdMap.get(pathwayIds[j]),
+										intersect, intersect));
+					}
+				}
+			}
+
+			dataSb.append("\t\t],\n");
+
+			clusterSb.append(String.format("\t\t%s: { label: \"%s\", num: %d, pnum: %d },\n",
+					clusterId, clusterId, allGenes.size(), pathwayIds.length));
+		}
+
+		public String exportString() {
+			StringBuffer export = new StringBuffer();
+			export.append("{\n");
+			export.append("\tdata: {\n");
+			export.append(dataSb.toString());
+			export.append("\t},\n");
+			export.append("\tclusters: {\n");
+			export.append(clusterSb.toString());
+			export.append("\t}\n");
+			export.append("}\n");
+			return export.toString();
+		}
+	}
+
 }

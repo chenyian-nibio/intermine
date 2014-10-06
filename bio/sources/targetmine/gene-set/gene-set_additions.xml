@@ -4,10 +4,14 @@
 		<attribute name="identifier" type="java.lang.String"/>
 		<collection name="geneSetClusters" referenced-type="GeneSetCluster" reverse-reference="pathways"/>
 	</class>
+	<class name="Gene" is-interface="true" >
+		<collection name="geneSetClusters" referenced-type="GeneSetCluster" reverse-reference="genes"/>
+	</class>
 	<class name="GeneSetCluster" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<collection name="pathways" referenced-type="Pathway" reverse-reference="geneSetClusters"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
+		<collection name="genes" referenced-type="Gene" reverse-reference="geneSetClusters"/>
 	</class>
 </classes>

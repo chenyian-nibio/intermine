@@ -144,13 +144,12 @@ public class ChemblDbConverter extends BioDBConverter {
 				String compoundRef = compoundMap.get(chemblId);
 				if (compoundRef == null) {
 					Item compound = createItem("ChemblCompound");
-					compound.setAttribute("chemblId", chemblId);
-					compound.setAttribute("primaryIdentifier", String.format("ChEMBL:%s", chemblId));
-					compound.setAttribute("secondaryIdentifier", chemblId);
+					compound.setAttribute("originalId", chemblId);
+					compound.setAttribute("identifier", String.format("ChEMBL:%s", chemblId));
 					compound.setAttribute("inchiKey", inchiKey);
 
 					// assign inchikey as synonym
-					setSynonyms(compound, inchiKey);
+//					setSynonyms(compound, inchiKey);
 
 					String name = nameMap.get(molId);
 					if (name == null) {
@@ -159,8 +158,13 @@ public class ChemblDbConverter extends BioDBConverter {
 					// if the length of the name is greater than 40 characters,
 					// use id instead and save the long name as the synonym
 					if (name.length() > 40) {
-						setSynonyms(compound, name);
+//						setSynonyms(compound, name);
 						name = chemblId;
+						// TODO check if this works properly
+						if (synonymMap.get(molId) == null) {
+							synonymMap.put(molId, new HashSet<String>());
+						}
+						synonymMap.get(molId).add(name);
 					}
 					compound.setAttribute("name", name);
 
@@ -204,39 +208,36 @@ public class ChemblDbConverter extends BioDBConverter {
 				interactionMap.put(intId, interactionRef);
 				i++;
 			}
-			Item assay = getCompoundProteinInteractionAssay(assayId, assayDesc, pubmedId);
-			assay.addToCollection("interactions", interactionRef);
+			String assayRef = getCompoundProteinInteractionAssay(assayId, assayDesc, pubmedId);
 
 			Item activity = createItem("Activity");
 			activity.setAttribute("type", standardType);
 			activity.setAttribute("conc", String.valueOf(conc));
-			activity.setReference("assay", assay);
+			activity.setReference("assay", assayRef);
+			activity.setReference("interaction", interactionRef);
 			store(activity);
 		}
 		// System.out.println(i + "ChEMBL interaction were integrated.");
 		LOG.info(i + "ChEMBL interaction were integrated.");
 	}
 
-	Map<String, Item> assayMap = new HashMap<String, Item>();
+	Map<String, String> assayMap = new HashMap<String, String>();
 
-	private Item getCompoundProteinInteractionAssay(String identifier, String name, String pubmedId)
+	private String getCompoundProteinInteractionAssay(String identifier, String name, String pubmedId)
 			throws ObjectStoreException {
-		Item ret = assayMap.get(identifier);
+		String ret = assayMap.get(identifier);
 		if (ret == null) {
-			ret = createItem("CompoundProteinInteractionAssay");
-			ret.setAttribute("identifier", identifier.toLowerCase());
-			ret.setAttribute("originalId", identifier);
-			ret.setAttribute("name", name);
-			ret.setAttribute("source", "ChEMBL");
-			ret.addToCollection("publications", getPublication(pubmedId));
+			Item item = createItem("CompoundProteinInteractionAssay");
+			item.setAttribute("identifier", identifier.toLowerCase());
+			item.setAttribute("originalId", identifier);
+			item.setAttribute("name", name);
+			item.setAttribute("source", "ChEMBL");
+			item.addToCollection("publications", getPublication(pubmedId));
+			store(item);
+			ret = item.getIdentifier();
 			assayMap.put(identifier, ret);
 		}
 		return ret;
-	}
-
-	@Override
-	public void close() throws Exception {
-		store(assayMap.values());
 	}
 
 	private String getProtein(String uniprotId) throws ObjectStoreException {
@@ -297,7 +298,7 @@ public class ChemblDbConverter extends BioDBConverter {
 	}
 
 	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
-		Item syn = createItem("Synonym");
+		Item syn = createItem("CompoundSynonym");
 		syn.setAttribute("value", value);
 		syn.setReference("subject", subject);
 		store(syn);
