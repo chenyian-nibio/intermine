@@ -1,7 +1,7 @@
 InterMine
 ============
 
-A powerful open source data warehouse system.
+A very powerful open source data warehouse system.
 
 [InterMine Documentation](http://intermine.readthedocs.org/en/latest/)
 
