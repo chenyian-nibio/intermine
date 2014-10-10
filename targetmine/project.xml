@@ -256,11 +256,17 @@
       <property name="src.data.dir.includes" value="*/*current_ver.txt" />
     </source>
 
-  	<source name="gene-pubmed" type="gene-pubmed">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/publication"/>
-      <property name="pubmed.organisms" value="9606 10090 10116"/>
-      <property name="src.data.dir.includes" value="gene2pubmed"/>
-    </source>
+	<source name="gene-pubmed" type="gene-pubmed">
+		<property name="src.data.dir" location="/data/bio/db/Targetmine/publication"/>
+		<property name="pubmed.organisms" value="9606 10090 10116"/>
+		<property name="src.data.dir.includes" value="gene2pubmed"/>
+	</source>
+
+	<source name="fill-proteins-xml" type="fill-proteins-xml">
+		<property name="src.data.dir" location="/data/bio/db/uniprot"/>
+		<property name="src.data.dir.includes" value="uniprot_*.xml" />
+		<property name="osAlias" value="os.production"/>
+	</source>
 
   	<source name="fill-missing-proteins" type="fill-missing-proteins">
       <property name="src.data.file" location="build/proteins.txt"/>

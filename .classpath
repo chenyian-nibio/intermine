@@ -23,6 +23,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/enzyme-pathway/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fill-missing-genes/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fill-missing-proteins/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/fill-proteins-xml/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fugue/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/gene-info/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/gene-pubmed/main/src"/>
