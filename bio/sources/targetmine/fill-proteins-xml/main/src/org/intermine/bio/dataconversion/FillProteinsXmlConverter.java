@@ -217,9 +217,6 @@ public class FillProteinsXmlConverter extends BioFileConverter {
 					&& getAttrValue(attrs, "position") != null) {
 				entry.addFeatureLocation("begin", getAttrValue(attrs, "position"));
 				entry.addFeatureLocation("end", getAttrValue(attrs, "position"));
-				// chenyian: retrieve IPI ids
-			} else if ("dbReference".equals(qName) && "IPI".equals(getAttrValue(attrs, "type"))) {
-				entry.addIpiId(getAttrValue(attrs, "id"));
 				// chenyian: retrieve RefSeq ids
 			} else if ("dbReference".equals(qName) && "RefSeq".equals(getAttrValue(attrs, "type"))) {
 				entry.addRefSeqProteinId(getAttrValue(attrs, "id"));
@@ -608,10 +605,6 @@ public class FillProteinsXmlConverter extends BioFileConverter {
 				}
 			}
 
-			// chenyian: IPI identifiers
-			for (String ipiId : entry.getIpiIds()) {
-				createSynonym(proteinRefId, ipiId, true);
-			}
 			// chenyian: RefSeq identifiers
 			for (String refSeqId : entry.getRefSeqProteinIds()) {
 				createSynonym(proteinRefId, refSeqId, true);
@@ -856,7 +849,7 @@ public class FillProteinsXmlConverter extends BioFileConverter {
 
     
 	/**
-	 * Retrieve the organisms to be updated
+	 * Retrieve the proteins to be updated
 	 * 
 	 * @param os
 	 *            the ObjectStore to read from
