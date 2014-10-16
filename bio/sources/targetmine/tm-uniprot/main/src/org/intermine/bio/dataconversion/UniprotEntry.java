@@ -60,14 +60,6 @@ public class UniprotEntry
     private Dbref dbref = null;
     private Comment comment = null; //<comment><text> ... being processed
 
-    // chenyian: for IPI ids
-    private List<String> ipiIds = new ArrayList<String>();
-    public void addIpiId(String ipiId) {
-        ipiIds.add(ipiId);
-    }
-    public List<String> getIpiIds() {
-    	return ipiIds;
-    }
     // chenyian: for Ensembl protein ids
     private List<String> ensemblProteinIds = new ArrayList<String>();
     public void addEnsemblProteinId(String ensemblProteinId) {

@@ -391,16 +391,17 @@ public class UniprotConverter extends BioDirectoryConverter
                     && getAttrValue(attrs, "position") != null) {
                 entry.addFeatureLocation("begin", getAttrValue(attrs, "position"));
                 entry.addFeatureLocation("end", getAttrValue(attrs, "position"));
-				// chenyian: retrieve IPI ids
-			} else if ("dbReference".equals(qName) && "IPI".equals(getAttrValue(attrs, "type"))) {
-				entry.addIpiId(getAttrValue(attrs, "id"));
 				// chenyian: retrieve RefSeq ids
 			} else if ("dbReference".equals(qName) && "RefSeq".equals(getAttrValue(attrs, "type"))) {
 				entry.addRefSeqProteinId(getAttrValue(attrs, "id"));
 				// chenyian: retrieve Ensembl protein ids
+				// TODO not very correct ... should also constraint to Ensembl
 			} else if ("property".equals(qName) && "dbReference".equals(previousQName)
 					&& "protein sequence ID".equals(getAttrValue(attrs, "type"))) {
-				entry.addEnsemblProteinId(getAttrValue(attrs, "value"));
+				String value = getAttrValue(attrs, "value");
+				if (value.startsWith("ENS")) {
+					entry.addEnsemblProteinId(value);
+				}
             } else if (createInterpro && "dbReference".equals(qName)
                     && "InterPro".equals(getAttrValue(attrs, "type"))) {
                 entry.addAttribute(getAttrValue(attrs, "id"));
@@ -865,10 +866,6 @@ public class UniprotConverter extends BioDirectoryConverter
                 }
             }
 
-			// chenyian: IPI identifiers
-			for (String ipiId : entry.getIpiIds()) {
-				createSynonym(proteinRefId, ipiId, true);
-			}
 			// chenyian: RefSeq identifiers
 			for (String refSeqId : entry.getRefSeqProteinIds()) {
 				createSynonym(proteinRefId, refSeqId, true);
