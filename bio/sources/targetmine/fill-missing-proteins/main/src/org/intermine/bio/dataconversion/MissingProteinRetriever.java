@@ -79,8 +79,8 @@ public class MissingProteinRetriever {
 	}
 
 	/**
-	 * For each Protein in the objectstore, retreive it's details from ebi dbfetch using the
-	 * primaryaccession and fill in the details in the protein object.
+	 * Retrieve protein details from EBI dbfetch by the primaryAccessions 
+	 * and fill in the details to the protein objects.
 	 * 
 	 * @throws BuildException
 	 *             if an error occurs
@@ -134,21 +134,26 @@ public class MissingProteinRetriever {
 								isEntry = true;
 								continue;
 							}
-							for (String pAcc : ph.primaryAccession) {
+							for (String pAcc : ph.accessions) {
 								// create protein; skip if we've already created this item
 								if (!createdProteinAccs.contains(pAcc)) {
 									Item p = itemFactory.makeItemForClass("Protein");
-									p.setAttribute("primaryIdentifier", ph.primaryIdentifier);
-									p.setAttribute("uniprotName", ph.primaryIdentifier);
+									// TODO should define primaryIdentifier more carefully
 									p.setAttribute("primaryAccession", pAcc);
-									p.setAttribute("uniprotAccession", pAcc);
+									if (pAcc.equals(ph.primaryAccession)) {
+										p.setAttribute("primaryIdentifier", ph.primaryIdentifier);
+										p.setAttribute("uniprotName", ph.primaryIdentifier);
+										p.setAttribute("uniprotAccession", pAcc);
+										p.setAttribute("isUniprotCanonical", "true");
+									} else {
+										p.setAttribute("primaryIdentifier", pAcc + ph.primaryIdentifier.substring(ph.primaryIdentifier.indexOf("_")));
+										p.setAttribute("uniprotName", "Synonym of " + ph.primaryAccession);
+										p.setAttribute("uniprotAccession", ph.primaryAccession);
+										p.setAttribute("isUniprotCanonical", "false");
+									}
 									p.setReference("organism", getOrganism(ph.taxonId, itemFactory));
 
-									// chenyian: if we do want the EC number, we should use Enzyme class instead
-									// if (ph.ecNumber != null) {
-									//	p.setAttribute("ecNumber", ph.ecNumber);
-									// }
-									if (ph.name != null) {
+									if (!StringUtils.isEmpty(ph.name)) {
 										p.setAttribute("name", ph.name);
 									}
 									p.setAttribute("molecularWeight", ph.molecularWeight);
@@ -157,11 +162,12 @@ public class MissingProteinRetriever {
 									toStore.add(p);
 									createdProteinAccs.add(pAcc);
 								} else {
-									LOG.info("Skip the entry: " + ph);
+									LOG.info("Already created. Skip the entry: " + ph);
 								}
 							}
 
 							ph = new ProteinHolder();
+							continue;
 						}
 						
 						// remove the ECO information
@@ -175,14 +181,16 @@ public class MissingProteinRetriever {
 						} else if (l.startsWith("AC")) {
 							String accs = l.substring(5);
 							String[] split = accs.split(";");
+							ph.primaryAccession = split[0];
 							for (String acc : split) {
+								// ignore those not in our missing list
 								if (accIds.contains(acc.trim())) {
-									ph.primaryAccession.add(acc.trim());
+									ph.accessions.add(acc.trim());
 								}
 							}
 						} else if (l.startsWith("OX")) {
 							ph.taxonId = l.substring(l.indexOf("=") + 1, l.indexOf(";")).trim();
-						} else if (l.startsWith("DE")) {
+						} else if (l.startsWith("DE") && StringUtils.isEmpty(ph.name)) {
 							// chenyian: there are some more complated case, see the following example:
 							// http://www.ebi.ac.uk/Tools/dbfetch/dbfetch?db=UniProtKB&style=raw&id=P19096
 							// So far just ignore it ...
@@ -191,8 +199,6 @@ public class MissingProteinRetriever {
 								ph.name = de.substring(de.indexOf("=") + 1, de.indexOf(";")).trim();
 							} else if (de.startsWith("SubName") && ph.name == null) {
 								ph.name = de.substring(de.indexOf("=") + 1, de.indexOf(";")).trim();
-							} else if (de.trim().startsWith("EC=")) {
-								ph.ecNumber = de.substring(de.indexOf("=") + 1, de.indexOf(";")).trim();
 							}
 						} else if (l.startsWith("SQ")) {
 							Matcher matcher = SQ_PATTERN.matcher(l);
@@ -235,7 +241,7 @@ public class MissingProteinRetriever {
 	}
 
 	/**
-	 * Retrieve the organisms to be updated
+	 * Retrieve the proteins to be updated
 	 * 
 	 * @param os
 	 *            the ObjectStore to read from
@@ -268,10 +274,13 @@ public class MissingProteinRetriever {
 	 *             if an error occurs
 	 */
 	protected Reader getReader(Set<String> primaryAccessions) throws Exception {
-		URL url = new URL(DBFETCH_URL + StringUtil.join(primaryAccessions, ","));
+		String queryString = StringUtil.join(primaryAccessions, ",");
+		URL url = new URL(DBFETCH_URL + queryString);
 		int i = 1;
 		while (true) {
 			try {
+				// TODO for tracing the miss-plant bug
+				LOG.info(queryString);
 				return new BufferedReader(new InputStreamReader(url.openStream()));
 			} catch (IOException e) {
 				i++;
@@ -285,18 +294,19 @@ public class MissingProteinRetriever {
 	}
 
 	private class ProteinHolder {
-		public Set<String> primaryAccession = new HashSet<String>();
-		public String taxonId;
-		public String primaryIdentifier;
-		public String name;
-		public String ecNumber;
-		public String molecularWeight;
-		public String length;
+		Set<String> accessions = new HashSet<String>();
+		String primaryAccession;
+		String taxonId;
+		String primaryIdentifier;
+		String name;
+		String ecNumber;
+		String molecularWeight;
+		String length;
 
 		@Override
 		public String toString() {
 			return String.format("%s, %s(%s), %s, [%s|%s], %s",
-					StringUtils.join(primaryAccession, "/"), primaryIdentifier, taxonId, ecNumber,
+					StringUtils.join(accessions, "/"), primaryIdentifier, taxonId, ecNumber,
 					length, molecularWeight, name);
 		}
 
