@@ -85,7 +85,6 @@ public class NewUniprotXmlConverter extends BioFileConverter {
 	public NewUniprotXmlConverter(ItemWriter writer, Model model) {
 		super(writer, model);
 		dataSource = getDataSource(DATA_SOURCE_NAME);
-		// featureTypes = new HashSet<String>(Arrays.asList(FEATURE_TYPES.split(",\\s*")));
 		try {
 			setOntology("UniProtKeyword");
 		} catch (ObjectStoreException e) {
@@ -110,9 +109,9 @@ public class NewUniprotXmlConverter extends BioFileConverter {
 			long lineNum = 0;
 			while ((line = br.readLine()) != null) {
 				lineNum++;
-				if (lineNum % 10000000 == 0) {
-					System.out.println(String.format("%d lines were processed", lineNum));
-					LOG.info(String.format("%d lines were processed", lineNum));
+				if (lineNum % 20000000 == 0) {
+					System.out.println(String.format("%,d lines were processed", lineNum));
+					LOG.info(String.format("%,d lines were processed", lineNum));
 				}
 				if (line.startsWith("<entry")) {
 					flag = true;
