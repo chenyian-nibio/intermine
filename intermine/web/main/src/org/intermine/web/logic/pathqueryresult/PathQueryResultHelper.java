@@ -77,13 +77,11 @@ public final class PathQueryResultHelper
      * @param model the model
      * @param webConfig we configuration
      * @param startingPath a path to prefix the class, can be null
-     * @param truncatePath if FALSE, use starting path in query. defaults to FALSE. Will be TRUE
-     * only for queries from the converter where we want to query for Protein.primaryAccession
-     * instead of Gene.proteins.primaryAccession.
+     * @param isConversionQuery if TRUE, don't test for references/collections
      * @return the configured view paths for the class
      */
     public static List<String> getDefaultViewForClass(String type, Model model, WebConfig webConfig,
-            String startingPath, boolean truncatePath) {
+            String startingPath, boolean isConversionQuery) {
         String prefix = startingPath;
         List<String> view = new ArrayList<String>();
         ClassDescriptor cld = model.getClassDescriptorByName(type);
@@ -112,10 +110,8 @@ public final class PathQueryResultHelper
                 try {
                     Path path = new Path(model, prefix + "." + relPath);
                     // only add attributes, unless we are running a converter template, in which
-                    // case the prefix will be Gene.proteins.name, all attributes will be
-                    // rejected and so will end up with an empty view - at which time all
-                    // fields will be added
-                    if (path.isOnlyAttribute() || truncatePath) {
+                    // case add all fieldconfigs. See #777
+                    if (path.isOnlyAttribute() || isConversionQuery) {
                         view.add(path.getNoConstraintsString());
                     }
                 } catch (PathException e) {
