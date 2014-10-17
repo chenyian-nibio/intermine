@@ -438,6 +438,7 @@ public class UniprotConverter extends BioDirectoryConverter
             } else if ("name".equals(qName) && "gene".equals(previousQName)) {
                 attName = getAttrValue(attrs, "type");
             } else if ("evidence".equals(qName) && "entry".equals(previousQName)) {
+            	// chenyian: this part has been changed, there is no 'attribute' attribute now.
                 String evidenceCode = getAttrValue(attrs, "key");
                 String pubmedString = getAttrValue(attrs, "attribute");
                 if (StringUtils.isNotEmpty(evidenceCode) && StringUtils.isNotEmpty(pubmedString)) {
