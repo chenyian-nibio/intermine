@@ -83,7 +83,7 @@ public final class BagConversionHelper
         String typeBStr = TypeUtil.unqualifiedName(typeB.getName());
 
         pq.addViews(PathQueryResultHelper.getDefaultViewForClass(typeBStr, model, webConfig,
-                convertFrom));
+                convertFrom, true));
         // bit hacky, remove any remaining ids on the view
         List<String> views = pq.getView();
         for (String viewPath : views) {
