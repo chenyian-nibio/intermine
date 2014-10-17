@@ -225,7 +225,6 @@
     <source name="irefindex" type="irefindex">
 		<property name="src.data.dir" location="/data/bio/db/Targetmine/irefindex"/>
 		<property name="src.data.dir.includes" value="*.mitab.*.txt"/>
-		<property name="osAlias" value="os.production"/>
 	</source>
 
     <source name="mirbase" type="mirbase">
