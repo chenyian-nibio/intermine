@@ -39,9 +39,9 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  * 
  */
-public class NewUniprotXmlConverter extends BioFileConverter {
+public class FillProteinsXomConverter extends BioFileConverter {
 
-	private static final Logger LOG = Logger.getLogger(NewUniprotXmlConverter.class);
+	private static final Logger LOG = Logger.getLogger(FillProteinsXomConverter.class);
 
 	private static final String DATA_SOURCE_NAME = "UniProt";
 	private static final int POSTGRES_INDEX_SIZE = 2712;
@@ -82,7 +82,7 @@ public class NewUniprotXmlConverter extends BioFileConverter {
 		LOG.info(info);
 	}
 
-	public NewUniprotXmlConverter(ItemWriter writer, Model model) {
+	public FillProteinsXomConverter(ItemWriter writer, Model model) {
 		super(writer, model);
 		dataSource = getDataSource(DATA_SOURCE_NAME);
 		try {

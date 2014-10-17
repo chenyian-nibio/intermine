@@ -13,7 +13,6 @@
       <property name="src.data.file" location="/data/bio/db/Targetmine/goslim/goslim_generic.obo"/>
     </source>
     <source name="uniprot" type="tm-uniprot">
-      <property name="uniprot.organisms" value="9606 10090 10116"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/uniprot/split"/>
     </source>
     <source name="protein-ortholog" type="protein-ortholog">
