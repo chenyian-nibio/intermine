@@ -143,6 +143,10 @@ public class UniprotXomConverter extends BioFileConverter {
 						for (String acc: otherAccessions) {
 							// other accessions are synonyms
 							addSynonym(protein.getIdentifier(), acc);
+							Item item = createItem("ProteinAccession");
+							item.setAttribute("accession", acc);
+							store(item);
+							protein.addToCollection("otherAccessions", item);
 						}
 						
 						protein.setAttribute("primaryIdentifier", primaryIdentifier);
