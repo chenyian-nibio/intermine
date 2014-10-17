@@ -28,7 +28,8 @@ import org.intermine.metadata.Model;
 import org.intermine.xml.full.Item;
 
 /**
- * 
+ * used for parsing reactome biopax3 format file
+ *    
  * @author chenyian
  */
 public class Biopax3Converter extends BioFileConverter {
@@ -89,6 +90,7 @@ public class Biopax3Converter extends BioFileConverter {
 
 		traverser = new Traverser(new SimpleEditorMap(BioPAXLevel.L3), new Visitor() {
 
+			@SuppressWarnings("rawtypes")
 			@Override
 			public void visit(BioPAXElement biopaxelement, Object range,
 					org.biopax.paxtools.model.Model model, PropertyEditor propertyeditor) {
@@ -116,6 +118,11 @@ public class Biopax3Converter extends BioFileConverter {
 											identifier = identifier.split("-")[0];
 										}
 										if (StringUtils.isEmpty(identifier)) {
+											continue;
+										}
+										// discard the ensembl proteins 
+										// unless we want to translate to uniport id (maybe not worth)
+										if (identifier.startsWith("ENS")) {
 											continue;
 										}
 										Item item = getProtein(identifier, taxonId);
@@ -226,21 +233,12 @@ public class Biopax3Converter extends BioFileConverter {
 		private String identifier;
 		private PathwayEntry parentPathway;
 
-		public PathwayEntry(String identifier, PathwayEntry parentPathway) {
-			this.identifier = identifier;
-			this.parentPathway = parentPathway;
-		}
-
 		public PathwayEntry(String identifier) {
 			this.identifier = identifier;
 		}
 
 		public String getIdentifier() {
 			return identifier;
-		}
-
-		public void setIdentifier(String identifier) {
-			this.identifier = identifier;
 		}
 
 		public PathwayEntry getParentPathway() {
