@@ -143,10 +143,6 @@ public class UniprotXomConverter extends BioFileConverter {
 						for (String acc: otherAccessions) {
 							// other accessions are synonyms
 							addSynonym(protein.getIdentifier(), acc);
-							Item item = createItem("ProteinAccession");
-							item.setAttribute("accession", acc);
-							store(item);
-							protein.addToCollection("otherAccessions", item);
 						}
 						
 						protein.setAttribute("primaryIdentifier", primaryIdentifier);
@@ -341,6 +337,14 @@ public class UniprotXomConverter extends BioFileConverter {
 						store(protein);
 						// actually, the main accession should not be duplicated
 						doneEntries.add(accession);
+						
+						for (String acc: otherAccessions) {
+							// other accessions are synonyms
+							Item item = createItem("ProteinAccession");
+							item.setAttribute("accession", acc);
+							item.setReference("protein", protein);
+							store(item);
+						}
 						
 						numOfNewEntries++;
 						LOG.info("Entry " + accession + " created.");
