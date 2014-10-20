@@ -12,16 +12,13 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
+import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.Protein;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreFactory;
-import org.intermine.objectstore.query.ConstraintOp;
-import org.intermine.objectstore.query.ContainsConstraint;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
-import org.intermine.objectstore.query.QueryCollectionReference;
-import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.Results;
 import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.util.FormattedTextParser;
@@ -67,9 +64,8 @@ public class Gene3Dv12Converter extends BioFileConverter {
 		if (primaryAccMap == null) {
 			getPrimaryIdMap();
 		}
-
 		Set<String> annotations = new HashSet<String>();
-		
+
 		Iterator<String[]> iterator = FormattedTextParser.parseCsvDelimitedReader(reader);
 		while (iterator.hasNext()) {
 			String[] cols = (String[]) iterator.next();
@@ -84,27 +80,21 @@ public class Gene3Dv12Converter extends BioFileConverter {
 					continue;
 				}
 				Set<String> primaryAccs = primaryAccMap.get(accession);
-				if (primaryAccs == null) {
-					for (int i = 0; i < regions.length; i = i + 2) {
-						String key = String.format("%s_%s_%s_%s", regions[i], regions[i + 1], accession, nodeNumber);
-						if (!annotations.contains(key)) {
-							createStructuralDomainRegion(regions[i], regions[i + 1],
-									getProtein(accession, cols[9]), getCathClassification(nodeNumber));
-							annotations.add(key);
-						}
-					}
-				} else {
+				if (primaryAccs != null) {
 					for (String pAcc : primaryAccs) {
 						for (int i = 0; i < regions.length; i = i + 2) {
-							String key = String.format("%s_%s_%s_%s", regions[i], regions[i + 1], pAcc, nodeNumber);
+							String key = String.format("%s_%s_%s_%s", regions[i], regions[i + 1],
+									pAcc, nodeNumber);
 							if (!annotations.contains(key)) {
 								createStructuralDomainRegion(regions[i], regions[i + 1],
-										getProtein(pAcc, cols[9]), getCathClassification(nodeNumber));
+										getProtein(pAcc, cols[9]),
+										getCathClassification(nodeNumber));
 								annotations.add(key);
 							}
 						}
 					}
-//					LOG.info(accession + " maps to " + primaryAccs.size() + " ids.");
+//				} else {
+//					LOG.info("Not a valid accession: " + accession);
 				}
 			}
 		}
@@ -161,35 +151,30 @@ public class Gene3Dv12Converter extends BioFileConverter {
 
 		Query q = new Query();
 		QueryClass qcProtein = new QueryClass(Protein.class);
-		QueryClass qcProteinAccession = new QueryClass(os.getModel()
-				.getClassDescriptorByName("ProteinAccession").getType());
-		QueryField qfAccession = new QueryField(qcProteinAccession, "accession");
-		QueryField qfPrimaryAcc = new QueryField(qcProtein, "primaryAccession");
+
 		q.addFrom(qcProtein);
-		q.addFrom(qcProteinAccession);
 
-		q.addToSelect(qfPrimaryAcc);
-		q.addToSelect(qfAccession);
-
-		QueryCollectionReference qcr = new QueryCollectionReference(qcProtein, "otherAccessions");
-		ContainsConstraint cc = new ContainsConstraint(qcr, ConstraintOp.CONTAINS,
-				qcProteinAccession);
-
-		q.setConstraint(cc);
+		q.addToSelect(qcProtein);
 
 		Results results = os.execute(q);
 		Iterator<Object> iterator = results.iterator();
 		while (iterator.hasNext()) {
-			ResultsRow<String> rr = (ResultsRow<String>) iterator.next();
-			String primaryAcc = rr.get(0);
-			String accession = rr.get(1);
+			ResultsRow<Protein> rr = (ResultsRow<Protein>) iterator.next();
+			Protein p = rr.get(0);
 
-			// LOG.info(String.format("%s -> %s", primaryAcc, accession));
+			String primaryAccession = p.getPrimaryAccession();
+			primaryAccMap.put(primaryAccession, new HashSet<String>());
+			primaryAccMap.get(primaryAccession).add(primaryAccession);
 
-			if (primaryAccMap.get(accession) == null) {
-				primaryAccMap.put(accession, new HashSet<String>());
+			Set<InterMineObject> fieldValues = (Set<InterMineObject>) p
+					.getFieldValue("otherAccessions");
+			for (InterMineObject imo : fieldValues) {
+				String accession = (String) imo.getFieldValue("accession");
+				if (primaryAccMap.get(accession) == null) {
+					primaryAccMap.put(accession, new HashSet<String>());
+				}
+				primaryAccMap.get(accession).add(primaryAccession);
 			}
-			primaryAccMap.get(accession).add(primaryAcc);
 		}
 	}
 
