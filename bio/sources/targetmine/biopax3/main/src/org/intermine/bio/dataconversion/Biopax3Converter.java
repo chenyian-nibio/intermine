@@ -71,12 +71,11 @@ public class Biopax3Converter extends BioFileConverter {
 	 */
 	public void process(Reader reader) throws Exception {
 		String fn = getCurrentFile().getName();
-		String org = fn.substring(0, fn.indexOf("."));
-		if (org.equals("Homo sapiens")){
+		if (fn.startsWith("Homo")){
 			taxonId = "9606";
-		} else if(org.equals("Mus musculus")){
+		} else if(fn.startsWith("Mus")){
 			taxonId = "10090";
-		} else if (org.equals("Rattus norvegicus")){
+		} else if (fn.startsWith("Rattus")){
 			taxonId = "10116";
 		} else {
 			throw new RuntimeException("Unknown species: " + fn);
