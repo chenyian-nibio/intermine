@@ -47,7 +47,6 @@
       <property name="src.data.dir" value="/data/bio/db/Targetmine/ppiview"/>
       <property name="src.data.dir.includes" value="ppi_hinv_data-080722.txt"/>
       <property name="hip2UniProtFile" value="/data/bio/db/Targetmine/ppiview/hip2uniprot.out"/>
-      <property name="sprotHumanFile" value="/data/bio/db/Targetmine/ppiview/uniprot_sprot_human.dat"/>
     </source>
     <source name="interpro" type="interpro">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/interpro"/>
