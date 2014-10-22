@@ -258,6 +258,8 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
             } else if ("create-bioseg-location-index".equals(operation)) {
                 BiosegIndexTask bit = new BiosegIndexTask(getObjectStoreWriter());
                 bit.createIndex();
+            } else if ("modmine-metadata-cache".equals(operation)) {
+                CreateModMineMetaDataCache.createCache(getObjectStoreWriter().getObjectStore());
             } else if ("populate-child-features".equals(operation)) {
                 PopulateChildFeatures jb = new PopulateChildFeatures(getObjectStoreWriter());
                 jb.populateCollection();
