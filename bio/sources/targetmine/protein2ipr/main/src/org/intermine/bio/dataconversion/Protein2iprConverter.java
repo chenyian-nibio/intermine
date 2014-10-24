@@ -32,6 +32,16 @@ import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
 /**
+ * This parser is use for parsing protein domain assignments and 
+ * protein domain locations in protein2ipr.dat form InterPro. <br/>
+ * The file could be found at: <br/>
+ * ftp://ftp.ebi.ac.uk/pub/databases/interpro/Current/protein2ipr.dat.gz
+ * <p>
+ * Because the file includes proteins in all species, 
+ * the parser will only load the proteins of the specified species which are already loaded into the mine. 
+ * Thus, better to run after the unirpot data source.  
+ * In addition, protein domain information are loaded by the interpro data source. 
+ * (both are kindly shared by InterMine.) </p>
  * 
  * @author chenyian
  */
@@ -45,7 +55,6 @@ public class Protein2iprConverter extends BioFileConverter {
 
 	private Set<String> proteinIds = new HashSet<String>();
 
-	// intermine item map
 	private Map<String, String> proteinMap = new HashMap<String, String>();
 	private Map<String, String> proteinDomainMap = new HashMap<String, String>();
 
