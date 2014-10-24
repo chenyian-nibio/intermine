@@ -2,16 +2,15 @@ package org.intermine.bio.dataconversion;
 
 import java.io.BufferedReader;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
@@ -101,7 +100,7 @@ public class EnzymeConverter extends BioFileConverter {
 			} else if (l.startsWith("CA")) {
 				ee.catalyticActivity += l.substring(5);
 			} else if (l.startsWith("AN")) {
-				ee.synonyms.add(l.substring(5));
+				ee.altName += l.substring(5);
 			}
 		}
 		br.close();
@@ -128,14 +127,17 @@ public class EnzymeConverter extends BioFileConverter {
 		// for BioEntity
 		enzyme.setAttribute("primaryIdentifier", enzymeEntry.ecNumber);
 		enzyme.setAttribute("ecNumber", enzymeEntry.ecNumber);
-		if (!enzymeEntry.description.equals("")) {
-			enzyme.setAttribute("description", enzymeEntry.description);
+		String desc = enzymeEntry.description;
+		if (!desc.equals("")) {
+			enzyme.setAttribute("description", desc.replaceAll("\\.$", ""));
 		}
-		if (!enzymeEntry.catalyticActivity.equals("")) {
-			enzyme.setAttribute("catalyticActivity", enzymeEntry.catalyticActivity);
+		String catalyticActivity = enzymeEntry.catalyticActivity;
+		if (!catalyticActivity.equals("")) {
+			enzyme.setAttribute("catalyticActivity", catalyticActivity.replaceAll("\\.$", ""));
 		}
-		if (!enzymeEntry.cofactor.equals("")) {
-			enzyme.setAttribute("cofactor", enzymeEntry.cofactor);
+		String cofactor = enzymeEntry.cofactor;
+		if (!cofactor.equals("")) {
+			enzyme.setAttribute("cofactor", cofactor.replaceAll("\\.$", ""));
 		}
 
 		for (String proteinName : enzymeEntry.proteins) {
@@ -145,24 +147,21 @@ public class EnzymeConverter extends BioFileConverter {
 			}
 		}
 
-		for (String aliasName : enzymeEntry.synonyms) {
+		for (String aliasName : enzymeEntry.getSynonyms()) {
 			Item item = createItem("Synonym");
 			item.setReference("subject", enzyme.getIdentifier());
-			// type is deprecated from v0.94
-//			item.setAttribute("type", "alias");
 			item.setAttribute("value", aliasName);
 			store(item);
 			enzyme.addToCollection("synonyms", item);
 		}
 
+		// not necessary anymore?
 		// add EC number to synonyms, for quick searching
-		Item item = createItem("Synonym");
-		item.setReference("subject", enzyme.getIdentifier());
-		// type is deprecated from v0.94
-//		item.setAttribute("type", "identifier");
-		item.setAttribute("value", enzymeEntry.ecNumber);
-		store(item);
-		enzyme.addToCollection("synonyms", item);
+//		Item item = createItem("Synonym");
+//		item.setReference("subject", enzyme.getIdentifier());
+//		item.setAttribute("value", enzymeEntry.ecNumber);
+//		store(item);
+//		enzyme.addToCollection("synonyms", item);
 
 		store(enzyme);
 	}
@@ -180,13 +179,23 @@ public class EnzymeConverter extends BioFileConverter {
 	}
 
 	private class EnzymeEntry {
-		public String ecNumber = "";
-		public String description = "";
-		public String catalyticActivity = "";
-		public String cofactor = "";
+		protected String ecNumber = "";
+		protected String description = "";
+		protected String catalyticActivity = "";
+		protected String cofactor = "";
 
-		public List<String> synonyms = new ArrayList<String>();
-		public Set<String> proteins = new HashSet<String>();
+		protected String altName = "";
+		protected Set<String> proteins = new HashSet<String>();
+		
+		protected Set<String> getSynonyms() {
+			Set<String> synonyms = new HashSet<String>();
+			for (String an: altName.split("\\.")) {
+				if (!StringUtils.isEmpty(an.trim())) {
+					synonyms.add(an.trim());
+				}
+			}
+			return synonyms;
+		}
 	}
 
 }
