@@ -21,7 +21,7 @@
     </source>
     <source name="go-annotation" type="go-goslim-annotation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/go-annotation"/>
-      <property name="src.data.dir.includes" value="gene_association*"/>
+      <property name="src.data.dir.includes" value="gene_association.goa_*"/>
       <property name="goslim.map" value="/data/bio/db/Targetmine/goslim/goslim.map"/>
     </source>
     <source name="do" type="do">
@@ -43,11 +43,13 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/do-annotation"/>
       <property name="src.data.dir.includes" value="do_rif.human.txt"/>
     </source>
+<!-- 
     <source name="ppiview" type="ppiview">
       <property name="src.data.dir" value="/data/bio/db/Targetmine/ppiview"/>
       <property name="src.data.dir.includes" value="ppi_hinv_data-080722.txt"/>
       <property name="hip2UniProtFile" value="/data/bio/db/Targetmine/ppiview/hip2uniprot.out"/>
     </source>
+ -->
     <source name="interpro" type="interpro">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/interpro"/>
       <property name="src.data.dir.includes" value="interpro.xml"/>
@@ -190,7 +192,7 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/nci-pathway"/>
       <property name="src.data.dir.includes" value="*.tab"/>
     </source>
-    
+<!-- 
     <source name="stitch" type="tm-stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
       <property name="src.data.dir.includes" value="*.protein_chemical.links.detailed.v4.0.tsv" />
@@ -198,6 +200,7 @@
       <property name="inchikeyFile" value="/data/bio/db/Targetmine/stitch/uniq.cid.inchikeys" />
       <property name="osAlias" value="os.production"/>
     </source>
+ -->    
     <source name="bioassay" type="bioassay">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/bioassay" />
       <property name="src.data.dir.includes" value="assay_info_3.txt" />
