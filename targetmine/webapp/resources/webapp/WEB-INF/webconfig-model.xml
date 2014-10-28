@@ -133,6 +133,7 @@
     <inlinelist>
       <table path="synonyms.value" showLinksToObjects="true" />
       <table path="keywords.name" showLinksToObjects="true" />
+      <table path="otherAccessions.accession" showLinksToObjects="false" />
     </inlinelist>
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
