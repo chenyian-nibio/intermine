@@ -29,9 +29,19 @@
 			            						<td colspan="2">${entry.begin} &harr; ${entry.end}</td>
 				    	        			</c:when>
 					            			<c:otherwise>
-					            				<td>${entry.begin} - ${entry.end}</td>
-			            						<c:set var="len" value="${entry.end - entry.begin + 1}" />
-			            						<td>${len}</td>
+					            				<td>
+					            					<c:out value="${entry.begin == null? '?' : entry.begin }"/> - 
+					            					<c:out value="${entry.end == null? '?' : entry.end }"/>
+					            				</td>
+					            				<c:choose>
+						            				<c:when test="${entry.begin != null && entry.end != null}"> 
+				            							<c:set var="len" value="${entry.end - entry.begin + 1}" />
+			    	        							<td>${len}</td>
+				    		        				</c:when>
+					    	        				<c:otherwise>
+					        	    					<td> - </td>
+					            					</c:otherwise>
+							            		</c:choose>
 					            			</c:otherwise>
 					            		</c:choose>
 			            			</c:otherwise>
