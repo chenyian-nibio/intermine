@@ -53,7 +53,7 @@ public class UniprotXomConverter extends BioFileConverter {
 
 	private Set<Item> synonymsAndXrefs = new HashSet<Item>();
 
-	// for testing
+	// for logging
 	private int numOfNewEntries = 0;
 	
 	public UniprotXomConverter(ItemWriter writer, Model model) {
@@ -219,67 +219,6 @@ public class UniprotXomConverter extends BioFileConverter {
 							protein.addToCollection("keywords", refId);
 						}
 						
-						/* features */
-						Elements features = entry.getChildElements("feature");
-						for (int i = 0; i < features.size(); i++) {
-							Element feature = features.get(i);
-							String type = feature.getAttributeValue("type");
-							if (!featureTypes.contains(type)) {
-								continue;
-							}
-							String description = feature.getAttributeValue("description");
-							String status = feature.getAttributeValue("status");
-							
-							Item item = createItem("UniProtFeature");
-							item.setAttribute("type", type);
-							String keywordRefId = getKeyword(type);
-							item.setReference("feature", keywordRefId);
-							String featureDescription = description;
-							if (status != null) {
-								featureDescription = (description == null ? status : description + " ("
-										+ status + ")");
-							}
-							if (!StringUtils.isEmpty(featureDescription)) {
-								item.setAttribute("description", featureDescription);
-							}
-							Element location = feature.getFirstChildElement("location");
-							Element position = location.getFirstChildElement("position");
-							if (position != null) {
-								item.setAttribute("begin", position.getAttributeValue("position"));
-								item.setAttribute("end", position.getAttributeValue("position"));
-							} else {
-								Element beginElement = location.getFirstChildElement("begin");
-								Element endElement = location.getFirstChildElement("end");
-								if (beginElement != null && endElement != null) {
-									// beware that some entries contain unknown position
-									// e.g. <end status="unknown"/>
-									String begin = beginElement.getAttributeValue("position");
-									if (begin != null) {
-										item.setAttribute("begin", begin);
-									}
-									String end = endElement.getAttributeValue("position");
-									if (end != null) {
-										item.setAttribute("end", end);
-									}
-								}
-							}
-							store(item);
-							protein.addToCollection("features", item);
-						}
-						
-						/* components */
-						Elements components = proteinElement.getChildElements("component");
-						for (int i = 0; i < components.size(); i++) {
-							Element ele = components.get(i).getFirstChildElement("recommendedName");
-							if (ele != null) {
-								Item item = createItem("Component");
-								item.setAttribute("name", ele.getFirstChildElement("fullName")
-										.getValue());
-								store(item);
-								protein.addToCollection("components", item);
-							}
-						}
-						
 						/* dbrefs */
 						Set<String> geneIds = new HashSet<String>();
 						Elements dbReferences = entry.getChildElements("dbReference");
@@ -337,6 +276,69 @@ public class UniprotXomConverter extends BioFileConverter {
 						store(protein);
 						// actually, the main accession should not be duplicated
 						doneEntries.add(accession);
+						
+						/* features */
+						Elements features = entry.getChildElements("feature");
+						for (int i = 0; i < features.size(); i++) {
+							Element feature = features.get(i);
+							String type = feature.getAttributeValue("type");
+							if (!featureTypes.contains(type)) {
+								continue;
+							}
+							String description = feature.getAttributeValue("description");
+							String status = feature.getAttributeValue("status");
+							
+							Item item = createItem("UniProtFeature");
+							item.setAttribute("type", type);
+							String keywordRefId = getKeyword(type);
+							item.setReference("feature", keywordRefId);
+							String featureDescription = description;
+							if (status != null) {
+								featureDescription = (description == null ? status : description + " ("
+										+ status + ")");
+							}
+							if (!StringUtils.isEmpty(featureDescription)) {
+								item.setAttribute("description", featureDescription);
+							}
+							Element location = feature.getFirstChildElement("location");
+							Element position = location.getFirstChildElement("position");
+							if (position != null) {
+								item.setAttribute("begin", position.getAttributeValue("position"));
+								item.setAttribute("end", position.getAttributeValue("position"));
+							} else {
+								Element beginElement = location.getFirstChildElement("begin");
+								Element endElement = location.getFirstChildElement("end");
+								if (beginElement != null && endElement != null) {
+									// beware that some entries contain unknown position
+									// e.g. <end status="unknown"/>
+									String begin = beginElement.getAttributeValue("position");
+									if (begin != null) {
+										item.setAttribute("begin", begin);
+									}
+									String end = endElement.getAttributeValue("position");
+									if (end != null) {
+										item.setAttribute("end", end);
+									}
+								}
+							}
+							item.setReference("protein", protein);
+							store(item);
+//							protein.addToCollection("features", item);
+						}
+						
+						/* components */
+						Elements components = proteinElement.getChildElements("component");
+						for (int i = 0; i < components.size(); i++) {
+							Element ele = components.get(i).getFirstChildElement("recommendedName");
+							if (ele != null) {
+								Item item = createItem("Component");
+								item.setAttribute("name", ele.getFirstChildElement("fullName")
+										.getValue());
+								item.setReference("protein", protein);
+								store(item);
+//								protein.addToCollection("components", item);
+							}
+						}
 						
 						for (String acc: otherAccessions) {
 							// other accessions are synonyms
