@@ -199,19 +199,8 @@ public class GoGoslimConverter extends BioFileConverter {
 				}
 			}
 		}
-		System.out.println(String.format("Counting: %d;   %d", c, d));
 		storeProductCollections();
 		storeEvidence();
-	}
-
-	// TODO for test
-	int c = 0;
-	int d = 0;
-
-	@Override
-	public void close() throws Exception {
-		// TODO Auto-generated method stub
-		System.out.println("productMap.size = " + bioentityMap.size());
 	}
 
 	// chenyian: read go-goslim mapping
@@ -281,16 +270,7 @@ public class GoGoslimConverter extends BioFileConverter {
 	 * Reset maps that don't need to retain their contents between files.
 	 */
 	protected void initialiseMapsForFile() {
-		System.out.println("reset maps......");
-		c = 0;
-		d = 0;
-
 		goTermGeneToEvidence = new LinkedHashMap<GoTermToGene, Set<Evidence>>();
-//		productCollectionsMap = new LinkedHashMap<Integer, List<String>>();
-//		storedProductIds = new HashMap<String, Integer>();
-
-		// System.out.println(String.format("Size: %d, %d, %d", goTermGeneToEvidence.size(),
-		// productCollectionsMap.size(), storedProductIds.size() ));
 	}
 
 	private void storeProductCollections() throws ObjectStoreException {
@@ -365,13 +345,11 @@ public class GoGoslimConverter extends BioFileConverter {
 	}
 
 	private void addProductCollection(String productRefId, String goAnnotationRefId) {
-		d++;
 		Integer storedProductId = storedProductIds.get(productRefId);
 		List<String> annotationIds = productCollectionsMap.get(storedProductId);
 		if (annotationIds == null) {
 			annotationIds = new ArrayList<String>();
 			productCollectionsMap.put(storedProductId, annotationIds);
-			c++;
 		}
 		annotationIds.add(goAnnotationRefId);
 	}
