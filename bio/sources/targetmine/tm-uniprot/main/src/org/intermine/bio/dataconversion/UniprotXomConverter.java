@@ -25,14 +25,14 @@ import org.intermine.util.Util;
 import org.intermine.xml.full.Item;
 
 /**
- * A new UniProt XML parser using XOM library
- * Some settings were hard-coded which may be only suitable for TargetMine 
+ * A new UniProt XML parser using XOM library Some settings were hard-coded which may be only
+ * suitable for TargetMine
  * 
  * @author chenyian
- *
+ * 
  */
 public class UniprotXomConverter extends BioFileConverter {
-	
+
 	private static final Logger LOG = Logger.getLogger(UniprotXomConverter.class);
 
 	private static final String DATA_SOURCE_NAME = "UniProt";
@@ -55,7 +55,7 @@ public class UniprotXomConverter extends BioFileConverter {
 
 	// for logging
 	private int numOfNewEntries = 0;
-	
+
 	public UniprotXomConverter(ItemWriter writer, Model model) {
 		super(writer, model);
 		dataSource = getDataSource(DATA_SOURCE_NAME);
@@ -66,7 +66,6 @@ public class UniprotXomConverter extends BioFileConverter {
 			throw new RuntimeException(e);
 		}
 	}
-
 
 	@Override
 	public void process(Reader reader) throws Exception {
@@ -106,20 +105,24 @@ public class UniprotXomConverter extends BioFileConverter {
 					if (!doneEntries.contains(accession)) {
 						// create Protein items
 						Item protein = createItem("Protein");
-						
-						protein.addToCollection("dataSets",
-								getDataSet(entry.getAttributeValue("dataset"), dataSource));
-						
+
+						protein.addToCollection(
+								"dataSets",
+								getDataSet(entry.getAttributeValue("dataset") + " data set",
+										dataSource));
+
 						/* primaryAccession, primaryIdentifier, name, etc */
 						String primaryIdentifier = entry.getFirstChildElement("name").getValue();
-						
+
 						Element proteinElement = entry.getFirstChildElement("protein");
 						Elements nameElements = proteinElement.getChildElements();
-						String proteinName = nameElements.get(0).getFirstChildElement("fullName").getValue();
+						String proteinName = nameElements.get(0).getFirstChildElement("fullName")
+								.getValue();
 						protein.setAttribute("name", proteinName);
 						for (int i = 0; i < nameElements.size(); i++) {
 							// these are synonyms; there are two types:
-							// recommendedName; submittedName; alternativeName --> fullName, shortName
+							// recommendedName; submittedName; alternativeName --> fullName,
+							// shortName
 							// allergenName; biotechName; cdAntigenName; innName
 							Element e = nameElements.get(i);
 							if (e.getLocalName().endsWith("Name")) {
@@ -137,19 +140,19 @@ public class UniprotXomConverter extends BioFileConverter {
 								}
 							}
 						}
-						
+
 						protein.setAttribute("uniprotAccession", accession);
 						protein.setAttribute("primaryAccession", accession);
-						for (String acc: otherAccessions) {
+						for (String acc : otherAccessions) {
 							// other accessions are synonyms
 							addSynonym(protein.getIdentifier(), acc);
 						}
-						
+
 						protein.setAttribute("primaryIdentifier", primaryIdentifier);
 						protein.setAttribute("uniprotName", primaryIdentifier);
-						
+
 						protein.setAttribute("isUniprotCanonical", "true");
-						
+
 						/* sequence */
 						Element sequence = entry.getFirstChildElement("sequence");
 						protein.setAttribute("isFragment",
@@ -157,15 +160,15 @@ public class UniprotXomConverter extends BioFileConverter {
 						String length = sequence.getAttributeValue("length");
 						protein.setAttribute("length", length);
 						protein.setAttribute("molecularWeight", sequence.getAttributeValue("mass"));
-						
+
 						String md5Checksum = getSequence(sequence.getValue());
 						protein.setReference("sequence", allSequences.get(md5Checksum));
 						protein.setAttribute("md5checksum", md5Checksum);
-						
+
 						String taxonId = entry.getFirstChildElement("organism")
 								.getFirstChildElement("dbReference").getAttributeValue("id");
 						protein.setReference("organism", getOrganism(taxonId));
-						
+
 						/* publications */
 						Elements publications = entry.getChildElements("reference");
 						for (int i = 0; i < publications.size(); i++) {
@@ -174,11 +177,12 @@ public class UniprotXomConverter extends BioFileConverter {
 							for (int d = 0; d < dbRefs.size(); d++) {
 								if ("PubMed".equals(dbRefs.get(d).getAttributeValue("type"))) {
 									String pubMedId = dbRefs.get(d).getAttributeValue("id");
-									protein.addToCollection("publications", getPublication(pubMedId));
+									protein.addToCollection("publications",
+											getPublication(pubMedId));
 								}
 							}
 						}
-						
+
 						/* comments */
 						Elements comments = entry.getChildElements("comment");
 						for (int i = 0; i < comments.size(); i++) {
@@ -202,7 +206,7 @@ public class UniprotXomConverter extends BioFileConverter {
 								protein.addToCollection("comments", item);
 							}
 						}
-						
+
 						/* keywords */
 						Elements keywordElements = entry.getChildElements("keyword");
 						for (int i = 0; i < keywordElements.size(); i++) {
@@ -218,7 +222,7 @@ public class UniprotXomConverter extends BioFileConverter {
 							}
 							protein.addToCollection("keywords", refId);
 						}
-						
+
 						/* dbrefs */
 						Set<String> geneIds = new HashSet<String>();
 						Elements dbReferences = entry.getChildElements("dbReference");
@@ -248,9 +252,9 @@ public class UniprotXomConverter extends BioFileConverter {
 								addSynonym(protein.getIdentifier(), id);
 							}
 						}
-						
+
 						/* genes */
-						
+
 						if (geneIds.isEmpty()) {
 							LOG.error("no valid gene identifiers found for " + accession);
 						} else {
@@ -270,13 +274,13 @@ public class UniprotXomConverter extends BioFileConverter {
 								protein.addToCollection("genes", geneRefId);
 							}
 						}
-						
+
 						// TODO evidence?
-						
+
 						store(protein);
 						// actually, the main accession should not be duplicated
 						doneEntries.add(accession);
-						
+
 						/* features */
 						Elements features = entry.getChildElements("feature");
 						for (int i = 0; i < features.size(); i++) {
@@ -287,15 +291,15 @@ public class UniprotXomConverter extends BioFileConverter {
 							}
 							String description = feature.getAttributeValue("description");
 							String status = feature.getAttributeValue("status");
-							
+
 							Item item = createItem("UniProtFeature");
 							item.setAttribute("type", type);
 							String keywordRefId = getKeyword(type);
 							item.setReference("feature", keywordRefId);
 							String featureDescription = description;
 							if (status != null) {
-								featureDescription = (description == null ? status : description + " ("
-										+ status + ")");
+								featureDescription = (description == null ? status : description
+										+ " (" + status + ")");
 							}
 							if (!StringUtils.isEmpty(featureDescription)) {
 								item.setAttribute("description", featureDescription);
@@ -323,9 +327,9 @@ public class UniprotXomConverter extends BioFileConverter {
 							}
 							item.setReference("protein", protein);
 							store(item);
-//							protein.addToCollection("features", item);
+							// protein.addToCollection("features", item);
 						}
-						
+
 						/* components */
 						Elements components = proteinElement.getChildElements("component");
 						for (int i = 0; i < components.size(); i++) {
@@ -336,21 +340,21 @@ public class UniprotXomConverter extends BioFileConverter {
 										.getValue());
 								item.setReference("protein", protein);
 								store(item);
-//								protein.addToCollection("components", item);
+								// protein.addToCollection("components", item);
 							}
 						}
-						
-						for (String acc: otherAccessions) {
+
+						for (String acc : otherAccessions) {
 							// other accessions are synonyms
 							Item item = createItem("ProteinAccession");
 							item.setAttribute("accession", acc);
 							item.setReference("protein", protein);
 							store(item);
 						}
-						
+
 						numOfNewEntries++;
 						LOG.info("Entry " + accession + " created.");
-						
+
 						// store all synonyms
 						for (Item item : synonymsAndXrefs) {
 							if (item == null) {
@@ -358,11 +362,10 @@ public class UniprotXomConverter extends BioFileConverter {
 							}
 							store(item);
 						}
-						
+
 						// reset
 						synonymsAndXrefs = new HashSet<Item>();
 					}
-
 
 				}
 
@@ -382,7 +385,6 @@ public class UniprotXomConverter extends BioFileConverter {
 
 	}
 
-	
 	private void addSynonym(String refId, String synonym) throws ObjectStoreException {
 		Item item = createSynonym(refId, synonym, false);
 		if (item != null) {
@@ -402,7 +404,8 @@ public class UniprotXomConverter extends BioFileConverter {
 	}
 
 	/**
-	 * Create Sequence item if not existed. 
+	 * Create Sequence item if not existed.
+	 * 
 	 * @param residues
 	 * @return md5Checksum as the key of the Sequence item in the allSequences map.
 	 * @throws ObjectStoreException
