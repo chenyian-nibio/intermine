@@ -215,6 +215,10 @@ public class GeneInfoConverter extends BioFileConverter {
 				String dbId = dbNameIdMap.get(idMap.get(taxId).get("secondaryIdentifier"));
 
 				if (dbId != null) {
+					// e.g. MGI:MGI:88052 or HGNC:HGNC:603
+					if (dbId.indexOf(":") != dbId.lastIndexOf(":")) {
+						dbId = dbId.substring(dbId.indexOf(":") + 1);
+					}
 					gene.setAttribute("secondaryIdentifier", dbId);
 					// also add secondaryIdentifier as synonym
 					setSynonym(geneRefId, dbId);
