@@ -403,7 +403,7 @@ public class FillProteinsXomConverter extends BioFileConverter {
 							}
 							Item protein = createItem("Protein");
 							protein.addToCollection("dataSets",
-									getDataSet(entry.getAttributeValue("dataset"), dataSource));
+									getDataSet(entry.getAttributeValue("dataset") + " data set", dataSource));
 							// arbitrary pick the first available name
 							protein.setAttribute("name",
 									entry.getFirstChildElement("protein").getChildElements().get(0).getFirstChildElement("fullName").getValue());
