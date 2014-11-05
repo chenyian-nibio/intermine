@@ -1,15 +1,5 @@
 package org.intermine.bio.dataconversion;
 
-/*
- * Copyright (C) 2002-2012 FlyMine
- *
- * This code may be freely distributed and modified under the
- * terms of the GNU Lesser General Public Licence.  This should
- * be distributed with the code.  See the LICENSE file for more
- * information or http://www.gnu.org/copyleft/lesser.html.
- *
- */
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,30 +8,25 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
-import org.intermine.model.bio.BioEntity;
 import org.intermine.objectstore.ObjectStoreException;
-import org.intermine.util.PropertiesUtil;
 import org.intermine.util.StringUtil;
-import org.intermine.util.TypeUtil;
 import org.intermine.xml.full.Item;
 import org.intermine.xml.full.ReferenceList;
 
 /**
- * NOTE: modified from InterMine go-annotation source <br/> 
+ * NOTE: modified from InterMine go-annotation source <br/>
  * DataConverter to parse a go annotation file into Items. *
  * 
  * @author Andrew Varley
@@ -51,21 +36,18 @@ import org.intermine.xml.full.ReferenceList;
  * @author chenyian - add GoSlim
  */
 public class GoGoslimConverter extends BioFileConverter {
-	protected static final String PROP_FILE = "go-annotation_config.properties";
+	// protected static final String PROP_FILE = "go-annotation_config.properties";
 
 	// configuration maps
-	private Map<String, Config> configs = new HashMap<String, Config>();
+	// private Map<String, Config> configs = new HashMap<String, Config>();
 	private static final Map<String, String> WITH_TYPES = new LinkedHashMap<String, String>();
 
 	// maps retained across all files
 	protected Map<String, String> goTerms = new LinkedHashMap<String, String>();
 	private Map<String, String> evidenceCodes = new LinkedHashMap<String, String>();
 	private Map<String, String> publications = new LinkedHashMap<String, String>();
-	private Map<String, Item> organisms = new LinkedHashMap<String, Item>();
-	protected Map<String, String> productMap = new LinkedHashMap<String, String>();
-	private Set<String> dbRefs = new HashSet<String>();
-	@SuppressWarnings("unused")
-	private Map<String, String> databaseAbbreviations = new HashMap<String, String>();
+	// private Map<String, Item> organisms = new LinkedHashMap<String, Item>();
+	protected Map<String, String> bioentityMap = new LinkedHashMap<String, String>();
 
 	// maps renewed for each file
 	private Map<GoTermToGene, Set<Evidence>> goTermGeneToEvidence = new LinkedHashMap<GoTermToGene, Set<Evidence>>();
@@ -76,11 +58,8 @@ public class GoGoslimConverter extends BioFileConverter {
 	protected String termClassName = "GOTerm";
 	protected String termCollectionName = "goAnnotation";
 	protected String annotationClassName = "GOAnnotation";
-	private String gaff = "2.0";
-	private static final String DEFAULT_ANNOTATION_TYPE = "gene";
-	private static final String DEFAULT_IDENTIFIER_FIELD = "primaryIdentifier";
-	protected IdResolver rslv;
-	private static Config defaultConfig = null;
+	private static final String ANNOTATION_TYPE = "Protein";
+	private static final String IDENTIFIER_FIELD = "primaryAccession";
 
 	private static final Logger LOG = Logger.getLogger(GoGoslimConverter.class);
 
@@ -105,72 +84,15 @@ public class GoGoslimConverter extends BioFileConverter {
 	 */
 	public GoGoslimConverter(ItemWriter writer, Model model) throws Exception {
 		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
-		defaultConfig = new Config(DEFAULT_IDENTIFIER_FIELD, DEFAULT_IDENTIFIER_FIELD,
-				DEFAULT_ANNOTATION_TYPE);
-		readConfig();
+		productCollectionsMap = new LinkedHashMap<Integer, List<String>>();
+		storedProductIds = new HashMap<String, Integer>();
 	}
 
-	/**
-	 * Sets the file format for the GAF. 2.0 is the default.
-	 * 
-	 * @param gaff
-	 *            GO annotation file format
-	 */
-	public void setGaff(String gaff) {
-		this.gaff = gaff;
-	}
-
-	// TODO chenyian: to be refactored; we don't need 'FB' and it should be 'UniProtKB' not
-	// 'UniProt'
+	// TODO chenyian: testing...
 	static {
-		WITH_TYPES.put("FB", "Gene");
-		WITH_TYPES.put("UniProt", "Protein");
-	}
-
-	// read config file that has specific settings for each organism, key is taxon id
-	private void readConfig() {
-		Properties props = new Properties();
-		try {
-			props.load(getClass().getClassLoader().getResourceAsStream(PROP_FILE));
-		} catch (IOException e) {
-			throw new RuntimeException("Problem loading properties '" + PROP_FILE + "'", e);
-		}
-		Enumeration<?> propNames = props.propertyNames();
-		while (propNames.hasMoreElements()) {
-			String taxonId = (String) propNames.nextElement();
-			taxonId = taxonId.substring(0, taxonId.indexOf("."));
-			Properties taxonProps = PropertiesUtil.stripStart(taxonId,
-					PropertiesUtil.getPropertiesStartingWith(taxonId, props));
-			String identifier = taxonProps.getProperty("identifier");
-			if (identifier == null) {
-				throw new IllegalArgumentException("Unable to find geneAttribute property for "
-						+ "taxon: " + taxonId + " in file: " + PROP_FILE);
-			}
-			if (!("symbol".equals(identifier) || "primaryIdentifier".equals(identifier)
-					|| "secondaryIdentifier".equals(identifier) || "primaryAccession"
-						.equals(identifier))) {
-				throw new IllegalArgumentException("Invalid identifier value for taxon: " + taxonId
-						+ " was: " + identifier);
-			}
-
-			String readColumn = taxonProps.getProperty("readColumn");
-			if (readColumn != null) {
-				readColumn = readColumn.trim();
-				if (!("symbol".equals(readColumn) || "identifier".equals(readColumn))) {
-					throw new IllegalArgumentException("Invalid readColumn value for taxon: "
-							+ taxonId + " was: " + readColumn);
-				}
-			}
-
-			String annotationType = taxonProps.getProperty("typeAnnotated");
-			if (annotationType == null) {
-				LOG.info("Unable to find annotationType property for " + "taxon: " + taxonId
-						+ " in file: " + PROP_FILE + ".  Creating genes by default.");
-			}
-
-			Config config = new Config(identifier, readColumn, annotationType);
-			configs.put(taxonId, config);
-		}
+		WITH_TYPES.put("UniProtKB", "Protein");
+		WITH_TYPES.put("InterPro", "ProteinDomain");
+		WITH_TYPES.put("EC", "Enzyme");
 	}
 
 	/**
@@ -180,11 +102,6 @@ public class GoGoslimConverter extends BioFileConverter {
 	public void process(Reader reader) throws ObjectStoreException, IOException {
 		if (goGoslimMap.isEmpty()) {
 			readGoGoslimMap();
-		}
-
-		// Create resolvers
-		if (rslv == null) {
-			rslv = IdResolverService.getFlyIdResolver();
 		}
 
 		initialiseMapsForFile();
@@ -198,20 +115,19 @@ public class GoGoslimConverter extends BioFileConverter {
 				continue;
 			}
 			String[] array = line.split("\t", -1); // keep trailing empty Strings
+
+			if (!array[0].trim().equals("UniProtKB")) {
+				continue;
+			}
+
 			if (array.length < 13) {
 				throw new IllegalArgumentException("Not enough elements (should be > 13 not "
 						+ array.length + ") in line: " + line);
 			}
 
-			String taxonId = parseTaxonId(array[12]);
-			Config config = configs.get(taxonId);
-			if (config == null) {
-				config = defaultConfig;
-				LOG.warn("No entry for organism with taxonId = '" + taxonId
-						+ "' found in go-annotation config file.  Using default");
-			}
-			int readColumn = config.readColumn();
-			String productId = array[readColumn];
+			// String taxonId = parseTaxonId(array[12]);
+
+			String productId = array[1];
 
 			String goId = array[4];
 			String qualifier = array[3];
@@ -232,20 +148,14 @@ public class GoGoslimConverter extends BioFileConverter {
 						+ "found for goterm " + goId + " and productId " + productId);
 			}
 
-			String type = config.annotationType;
-			if ("1.0".equals(gaff)) {
-				// type of gene product
-				type = array[11];
-			}
+			String type = ANNOTATION_TYPE;
 
 			// create unique key for go annotation
 			GoTermToGene key = new GoTermToGene(productId, goId, qualifier);
 
 			String dataSourceCode = array[14]; // e.g. GDB, where uniprot collect the data from
 			String dataSource = array[0]; // e.g. UniProtKB, where the goa file comes from
-			Item organism = newOrganism(taxonId);
-			String productIdentifier = newProduct(productId, type, organism, dataSource,
-					dataSourceCode, true, null);
+			String productIdentifier = getBioEntity(productId, type, IDENTIFIER_FIELD);
 
 			// null if resolver could not resolve an identifier
 			if (productIdentifier != null) {
@@ -258,15 +168,14 @@ public class GoGoslimConverter extends BioFileConverter {
 
 				// new evidence
 				if (allEvidenceForAnnotation == null || !StringUtils.isEmpty(withText)) {
-					Evidence evidence = new Evidence(strEvidence, pubRefId, withText, organism,
-							dataSource, dataSourceCode);
+					Evidence evidence = new Evidence(strEvidence, pubRefId, withText, dataSource,
+							dataSourceCode);
 					allEvidenceForAnnotation = new LinkedHashSet<Evidence>();
 					allEvidenceForAnnotation.add(evidence);
 					goTermGeneToEvidence.put(key, allEvidenceForAnnotation);
-					// chenyian 
-					Integer storedAnnotationId = createGoAnnotation(productIdentifier, type,
-							goId, organism, qualifier, dataSource, dataSourceCode,
-							annotationExtension);
+					// chenyian
+					Integer storedAnnotationId = createGoAnnotation(productIdentifier, type, goId,
+							qualifier, dataSource, dataSourceCode, annotationExtension);
 					evidence.setStoredAnnotationId(storedAnnotationId);
 				} else {
 					boolean seenEvidenceCode = false;
@@ -282,7 +191,7 @@ public class GoGoslimConverter extends BioFileConverter {
 						}
 					}
 					if (!seenEvidenceCode) {
-						Evidence evidence = new Evidence(strEvidence, pubRefId, withText, organism,
+						Evidence evidence = new Evidence(strEvidence, pubRefId, withText,
 								dataSource, dataSourceCode);
 						evidence.storedAnnotationId = storedAnnotationId;
 						allEvidenceForAnnotation.add(evidence);
@@ -362,11 +271,12 @@ public class GoGoslimConverter extends BioFileConverter {
 	 */
 	protected void initialiseMapsForFile() {
 		goTermGeneToEvidence = new LinkedHashMap<GoTermToGene, Set<Evidence>>();
-		productCollectionsMap = new LinkedHashMap<Integer, List<String>>();
-		storedProductIds = new HashMap<String, Integer>();
 	}
 
 	private void storeProductCollections() throws ObjectStoreException {
+		System.out.println("goTermGeneToEvidence.size = " + goTermGeneToEvidence.size());
+		System.out.println("productCollectionsMap.size = " + productCollectionsMap.size());
+		System.out.println("storedProductIds.size = " + storedProductIds.size());
 		for (Map.Entry<Integer, List<String>> entry : productCollectionsMap.entrySet()) {
 			Integer storedProductId = entry.getKey();
 			List<String> annotationIds = entry.getValue();
@@ -390,8 +300,8 @@ public class GoGoslimConverter extends BioFileConverter {
 				// with objects
 				if (!StringUtils.isEmpty(evidence.withText)) {
 					goevidence.setAttribute("withText", evidence.withText);
-					List<String> with = createWithObjects(evidence.withText, evidence.organism,
-							evidence.dataSource, evidence.dataSourceCode);
+					List<String> with = createWithObjects(evidence.withText, evidence.dataSource,
+							evidence.dataSourceCode);
 					if (!with.isEmpty()) {
 						goevidence.addCollection(new ReferenceList("with", with));
 					}
@@ -408,9 +318,8 @@ public class GoGoslimConverter extends BioFileConverter {
 		}
 	}
 
-	private Integer createGoAnnotation(String productIdentifier, String productType,
-			String goId, Item organism, String qualifier, String dataSource,
-			String dataSourceCode, String annotationExtension)
+	private Integer createGoAnnotation(String productIdentifier, String productType, String goId,
+			String qualifier, String dataSource, String dataSourceCode, String annotationExtension)
 			throws ObjectStoreException {
 		Item goAnnotation = createItem(annotationClassName);
 		goAnnotation.setReference("subject", productIdentifier);
@@ -423,29 +332,26 @@ public class GoGoslimConverter extends BioFileConverter {
 			goAnnotation.setAttribute("annotationExtension", annotationExtension);
 		}
 		Set<String> goslimIds = goGoslimMap.get(goId);
-		if (goslimIds != null){
+		if (goslimIds != null) {
 			for (String goslimId : goslimIds) {
 				goAnnotation.addToCollection("goSlimTerms", getGoSlimTerm(goslimId));
 			}
 		}
 
-		// chenyian: add goAnnotation referene for protein also
-		if ("gene".equals(productType) || "protein".equals(productType)) {
-			addProductCollection(productIdentifier, goAnnotation.getIdentifier());
-		}
+		addProductCollection(productIdentifier, goAnnotation.getIdentifier());
 
 		Integer storedAnnotationId = store(goAnnotation);
 		return storedAnnotationId;
 	}
 
-	private void addProductCollection(String productIdentifier, String goAnnotationIdentifier) {
-		Integer storedProductId = storedProductIds.get(productIdentifier);
+	private void addProductCollection(String productRefId, String goAnnotationRefId) {
+		Integer storedProductId = storedProductIds.get(productRefId);
 		List<String> annotationIds = productCollectionsMap.get(storedProductId);
 		if (annotationIds == null) {
 			annotationIds = new ArrayList<String>();
 			productCollectionsMap.put(storedProductId, annotationIds);
 		}
-		annotationIds.add(goAnnotationIdentifier);
+		annotationIds.add(goAnnotationRefId);
 	}
 
 	/**
@@ -464,7 +370,7 @@ public class GoGoslimConverter extends BioFileConverter {
 	 *             if problem when storing
 	 * @return a list of Items
 	 */
-	protected List<String> createWithObjects(String withText, Item organism, String dataSource,
+	protected List<String> createWithObjects(String withText, String dataSource,
 			String dataSourceCode) throws ObjectStoreException {
 
 		List<String> withProductList = new ArrayList<String>();
@@ -479,23 +385,18 @@ public class GoGoslimConverter extends BioFileConverter {
 
 					if (WITH_TYPES.containsKey(prefix) && StringUtils.isNotEmpty(value)) {
 						String className = WITH_TYPES.get(prefix);
-						String productIdentifier = null;
-
-						// if a UniProt protein it may be from a different organism
-						// also FlyBase may be from a different Drosophila species
-						if ("UniProt".equals(prefix)) {
-							productIdentifier = newProduct(value, className, organism, dataSource,
-									dataSourceCode, false, null);
-						} else if ("FB".equals(prefix)) {
-							// if organism is D. melanogaster then create with gene
-							// TODO could still be wrong as the FBgn could be a different species
-							if ("7227".equals(organism.getAttribute("taxonId").getValue())) {
-								productIdentifier = newProduct(value, className, organism,
-										dataSource, dataSourceCode, true, "primaryIdentifier");
+						String productIdentifier;
+						if ("Protein".equals(className)) {
+							if (value.contains("-")) {
+								value = value.substring(0, value.indexOf("-"));
 							}
+							if (value.contains(":")) {
+								value = value.substring(0, value.indexOf(":"));
+							}
+							productIdentifier = getBioEntity(value, className, "primaryAccession");
 						} else {
-							productIdentifier = newProduct(value, className, organism, dataSource,
-									dataSourceCode, true, null);
+							// Enzyme and ProteinDomain don't associate with organisms
+							productIdentifier = getBioEntity(value, className, "primaryIdentifier");
 						}
 						if (productIdentifier != null) {
 							withProductList.add(productIdentifier);
@@ -512,106 +413,25 @@ public class GoGoslimConverter extends BioFileConverter {
 		return withProductList;
 	}
 
-	private String newProduct(String identifier, String type, Item organism, String dataSource,
-			String dataSourceCode, boolean createOrganism, String field)
+	private String getBioEntity(String identifier, String type, String field)
 			throws ObjectStoreException {
-		String idField = field;
-		String accession = identifier;
-		String clsName = null;
-		// find gene attribute first to see if organism should be part of key
-		if ("gene".equalsIgnoreCase(type)) {
-			clsName = "Gene";
-			String taxonId = organism.getAttribute("taxonId").getValue();
-			if (idField == null) {
-				Config config = configs.get(taxonId);
-				if (config == null) {
-					config = defaultConfig;
-				}
-				idField = config.identifier;
-				if (idField == null) {
-					throw new RuntimeException("Could not find a identifier property for taxon: "
-							+ taxonId + " check properties file: " + PROP_FILE);
-				}
-			}
+		// chenyian: so far there are only 3 types:
+		// Protein, ProteinDomain and Enzyme which have distinct identifier even cross-species
+		String ret = bioentityMap.get(identifier);
 
-			// if a Dmel gene we need to use FlyBaseIdResolver to find a current id
-			if ("7227".equals(taxonId)) {
-				if (rslv != null) {
-					int resCount = rslv.countResolutions(taxonId, accession);
+		if (ret == null) {
+			Item item = createItem(type);
+			item.setAttribute(field, identifier);
 
-					if (resCount != 1) {
-						LOG.info("RESOLVER: failed to resolve gene to one identifier, "
-								+ "ignoring gene: " + accession + " count: " + resCount + " FBgn: "
-								+ rslv.resolveId(taxonId, accession));
-						return null;
-					}
-					accession = rslv.resolveId(taxonId, accession).iterator().next();
-				}
-			}
-		} else if ("protein".equalsIgnoreCase(type)) {
-			// TODO use values in config
-			clsName = "Protein";
-			idField = "primaryAccession";
-		} else {
-			String typeCls = TypeUtil.javaiseClassName(type);
-
-			if (getModel().getClassDescriptorByName(typeCls) != null) {
-				Class<?> cls = getModel().getClassDescriptorByName(typeCls).getType();
-				if (BioEntity.class.isAssignableFrom(cls)) {
-					clsName = typeCls;
-				}
-			}
-			if (clsName == null) {
-				throw new IllegalArgumentException("Unrecognised annotation type '" + type + "'");
-			}
+			Integer storedProductId = store(item);
+			ret = item.getIdentifier();
+			storedProductIds.put(ret, storedProductId);
+			bioentityMap.put(identifier, ret);
 		}
-
-		boolean includeOrganism;
-		if ("primaryIdentifier".equals(idField) || "protein".equals(type)) {
-			includeOrganism = false;
-		} else {
-			includeOrganism = createOrganism;
-		}
-		String key = makeProductKey(accession, type, organism, includeOrganism);
-
-		// Have we already seen this product somewhere before?
-		// if so, return the product rather than creating a new one...
-		if (productMap.containsKey(key)) {
-			return productMap.get(key);
-		}
-
-		// if a Dmel gene we need to use FlyBaseIdResolver to find a current id
-
-		Item product = createItem(clsName);
-		if (organism != null && createOrganism) {
-			product.setReference("organism", organism.getIdentifier());
-		}
-		product.setAttribute(idField, accession);
-
-		// String dataSetIdentifier = getDataset(dataSource, dataSourceCode);
-		// product.addToCollection("dataSets", dataSetIdentifier);
-
-		Integer storedProductId = store(product);
-		storedProductIds.put(product.getIdentifier(), storedProductId);
-		productMap.put(key, product.getIdentifier());
-		return product.getIdentifier();
+		return ret;
 	}
 
-	private String makeProductKey(String identifier, String type, Item organism,
-			boolean createOrganism) {
-		if (type == null) {
-			throw new IllegalArgumentException("No type provided when creating " + organism + ": "
-					+ identifier);
-		} else if (identifier == null) {
-			throw new IllegalArgumentException("No identifier provided when creating " + organism
-					+ ": " + type);
-		}
-
-		return identifier + type.toLowerCase() + ((createOrganism) ? organism.getIdentifier() : "");
-	}
-
-	private String getGoTerm(String identifier)
-			throws ObjectStoreException {
+	private String getGoTerm(String identifier) throws ObjectStoreException {
 		String ret = goTerms.get(identifier);
 		if (ret == null) {
 			Item item = createItem(termClassName);
@@ -634,150 +454,62 @@ public class GoGoslimConverter extends BioFileConverter {
 		}
 	}
 
-	private String getDataSourceCodeName(String sourceCode) {
-		String title = sourceCode;
-
-		// re-write some codes to better data source names
-		if ("UniProtKB".equalsIgnoreCase(sourceCode)) {
-			title = "UniProt";
-		} else if ("FB".equalsIgnoreCase(sourceCode)) {
-			title = "FlyBase";
-		} else if ("WB".equalsIgnoreCase(sourceCode)) {
-			title = "WormBase";
-		} else if ("SP".equalsIgnoreCase(sourceCode)) {
-			title = "UniProt";
-		} else if (sourceCode.startsWith("GeneDB")) {
-			title = "GeneDB";
-		} else if ("SANGER".equalsIgnoreCase(sourceCode)) {
-			title = "GeneDB";
-		} else if ("GOA".equalsIgnoreCase(sourceCode)) {
-			title = "Gene Ontology";
-		} else if ("PINC".equalsIgnoreCase(sourceCode)) {
-			title = "Proteome Inc.";
-		} else if ("Pfam".equalsIgnoreCase(sourceCode)) {
-			title = "PFAM"; // to merge with interpro
-		}
-		return title;
-	}
-
-	// private String getDataset(String dataSource, String code)
-	// throws ObjectStoreException {
-	// String dataSetIdentifier = dataSets.get(code);
-	// if (dataSetIdentifier == null) {
-	// String dataSourceName = getDataSourceCodeName(code);
-	// String title = "GO Annotation from " + dataSourceName;
-	// Item item = createItem("DataSet");
-	// item.setAttribute("name", title);
-	// item.setReference("dataSource", getDataSource(getDataSourceCodeName(dataSource)));
-	// dataSetIdentifier = item.getIdentifier();
-	// dataSets.put(code, dataSetIdentifier);
-	// store(item);
-	// }
-	// return dataSetIdentifier;
-	// }
-
 	private String newPublication(String codes) throws ObjectStoreException {
 		String pubRefId = null;
-		String[] array = codes.split("[|]");
-		Set<String> xrefs = new HashSet<String>();
 		Item item = null;
-		for (int i = 0; i < array.length; i++) {
-			if (array[i].startsWith("PMID:")) {
-				String pubMedId = array[i].substring(5);
-				if (StringUtil.allDigits(pubMedId)) {
-					pubRefId = publications.get(pubMedId);
-					if (pubRefId == null) {
-						item = createItem("Publication");
-						item.setAttribute("pubMedId", pubMedId);
-						pubRefId = item.getIdentifier();
-						publications.put(pubMedId, pubRefId);
-
-					}
+		// possible types: DOI, GO_REF, PMID, Reactome (2014/10/22)
+		if (codes.startsWith("PMID:")) {
+			String pubMedId = codes.substring(5);
+			if (StringUtil.allDigits(pubMedId)) {
+				pubRefId = publications.get(pubMedId);
+				if (pubRefId == null) {
+					item = createItem("Publication");
+					item.setAttribute("pubMedId", pubMedId);
+					store(item);
+					pubRefId = item.getIdentifier();
+					publications.put(pubMedId, pubRefId);
 				}
-			} else {
-				xrefs.add(array[i]);
 			}
-		}
-		ReferenceList refIds = new ReferenceList("crossReferences");
-
-		// PMID may be first or last so we can't process xrefs until we've looked at all IDs
-		if (StringUtils.isNotEmpty(pubRefId)) {
-			for (String xref : xrefs) {
-				refIds.addRefId(createDbReference(xref));
-			}
-		}
-		if (item != null) {
-			item.addCollection(refIds);
-			store(item);
 		}
 		return pubRefId;
 	}
 
-	private String createDbReference(String value) throws ObjectStoreException {
-		if (StringUtils.isEmpty(value)) {
-			return null;
-		}
-		String dataSource = null;
-		if (!dbRefs.contains(value)) {
-			Item item = createItem("DatabaseReference");
-			// FB:FBrf0055969
-			if (value.contains(":")) {
-				String[] bits = value.split(":");
-				if (bits.length == 2) {
-					String db = bits[0];
-					dataSource = getDataSourceCodeName(db);
-					value = bits[1];
-				}
-			}
-			item.setAttribute("identifier", value);
-			if (StringUtils.isNotEmpty(dataSource)) {
-				item.setReference("source", getDataSource(dataSource));
-			}
-			dbRefs.add(value);
-			store(item);
-			return item.getIdentifier();
-		}
-		return null;
-	}
+	// private Item newOrganism(String taxonId) throws ObjectStoreException {
+	// Item item = organisms.get(taxonId);
+	// if (item == null) {
+	// item = createItem("Organism");
+	// item.setAttribute("taxonId", taxonId);
+	// organisms.put(taxonId, item);
+	// store(item);
+	// }
+	// return item;
+	// }
 
-	private Item newOrganism(String taxonId) throws ObjectStoreException {
-		Item item = organisms.get(taxonId);
-		if (item == null) {
-			item = createItem("Organism");
-			item.setAttribute("taxonId", taxonId);
-			organisms.put(taxonId, item);
-			store(item);
-		}
-		return item;
-	}
-
-	private String parseTaxonId(String input) {
-		if ("taxon:".equals(input)) {
-			throw new IllegalArgumentException("Invalid taxon id read: " + input);
-		}
-		String taxonId = input.split(":")[1];
-		if (taxonId.contains("|")) {
-			taxonId = taxonId.split("\\|")[0];
-		}
-		return taxonId;
-	}
+	// private String parseTaxonId(String input) {
+	// if ("taxon:".equals(input)) {
+	// throw new IllegalArgumentException("Invalid taxon id read: " + input);
+	// }
+	// String taxonId = input.split(":")[1];
+	// if (taxonId.contains("|")) {
+	// taxonId = taxonId.split("\\|")[0];
+	// }
+	// return taxonId;
+	// }
 
 	private class Evidence {
 		private List<String> publicationRefIds = new ArrayList<String>();
 		private String evidenceCode = null;
 		private Integer storedAnnotationId = null;
 		private String withText = null;
-		private Item organism = null;
 		private String dataSourceCode = null;
 		private String dataSource = null;
 
 		// dataSource, dataSourceCode
 
 		protected Evidence(String evidenceCode, String publicationRefId, String withText,
-				Item organism, String dataset, String datasource) {
+				String dataset, String datasource) {
 			this.evidenceCode = evidenceCode;
 			this.withText = withText;
-			this.organism = organism;
 			this.dataSourceCode = dataset;
 			this.dataSource = datasource;
 			addPublicationRefId(publicationRefId);
@@ -810,11 +542,6 @@ public class GoGoslimConverter extends BioFileConverter {
 		@SuppressWarnings("unused")
 		protected String getDatasource() {
 			return dataSource;
-		}
-
-		@SuppressWarnings("unused")
-		protected Item getOrganism() {
-			return organism;
 		}
 
 		/**
@@ -896,38 +623,4 @@ public class GoGoslimConverter extends BioFileConverter {
 		}
 	}
 
-	/**
-	 * Class to hold the config info for each taxonId.
-	 */
-	private class Config {
-		protected String annotationType;
-		protected String identifier;
-		protected String readColumn;
-
-		/**
-		 * Constructor.
-		 * 
-		 * @param annotationType
-		 *            type of object being annotated, gene or protein
-		 * @param identifier
-		 *            which identifier to set, primaryIdentifier or symbol
-		 * @param readColumn
-		 *            which identifier column to read, identifier or symbol
-		 */
-		Config(String identifier, String readColumn, String annotationType) {
-			this.annotationType = annotationType;
-			this.identifier = identifier;
-			this.readColumn = readColumn;
-		}
-
-		/**
-		 * @return 1 = use identifier column, 2 = use symbol column
-		 */
-		protected int readColumn() {
-			if (StringUtils.isNotEmpty(readColumn) && "symbol".equals(readColumn)) {
-				return 2;
-			}
-			return 1;
-		}
-	}
 }

@@ -6,33 +6,16 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
-import org.intermine.model.bio.Protein;
-import org.intermine.model.bio.Synonym;
-import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
-import org.intermine.objectstore.ObjectStoreFactory;
-import org.intermine.objectstore.query.ConstraintOp;
-import org.intermine.objectstore.query.ConstraintSet;
-import org.intermine.objectstore.query.ContainsConstraint;
-import org.intermine.objectstore.query.Query;
-import org.intermine.objectstore.query.QueryClass;
-import org.intermine.objectstore.query.QueryCollectionReference;
-import org.intermine.objectstore.query.QueryField;
-import org.intermine.objectstore.query.QueryValue;
-import org.intermine.objectstore.query.Results;
-import org.intermine.objectstore.query.ResultsRow;
-import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
@@ -85,10 +68,6 @@ public class IrefindexConverter extends BioFileConverter {
 			readInteractionType();
 		}
 
-		if (proteinIdMap == null) {
-			getProteinIdMap();
-		}
-
 		Iterator<String[]> iterator = FormattedTextParser
 				.parseTabDelimitedReader(new BufferedReader(reader));
 
@@ -110,17 +89,6 @@ public class IrefindexConverter extends BioFileConverter {
 				continue;
 			}
 			String[] ids = cols[13].split("\\|");
-
-			// Add ProteinInteraction
-			String proteinIdA = getProteinId(cols[0]);
-			String proteinIdB = getProteinId(cols[1]);
-			if (proteinIdA != null && proteinIdB != null) {
-				String piSourceRef = getPiSource(sourceDb, ids[0]);
-				proteinIdA = proteinIdA.split("-")[0];
-				proteinIdB = proteinIdB.split("-")[0];
-				createProteinInteraction(proteinIdA, cols[9], proteinIdB, cols[10], piSourceRef);
-				createProteinInteraction(proteinIdB, cols[10], proteinIdA, cols[9], piSourceRef);
-			}
 
 			String geneA = processAltIdentifier(cols[2]);
 			if (geneA == null) {
@@ -163,17 +131,6 @@ public class IrefindexConverter extends BioFileConverter {
 			interactions.add(intKey);
 		}
 
-	}
-
-	private void createProteinInteraction(String proteinIdA, String taxonIdA, String proteinIdB,
-			String taxonIdB, String piSourceRef) throws ObjectStoreException {
-		String name = String.format("iRef:%s_%s", proteinIdA, proteinIdB);
-		Item pi = createItem("ProteinInteraction");
-		pi.setAttribute("shortName", name);
-		pi.setReference("protein", getProtein(proteinIdA, taxonIdA));
-		pi.setReference("representativePartner", getProtein(proteinIdB, taxonIdB));
-		pi.addToCollection("piSources", piSourceRef);
-		store(pi);
 	}
 
 	private String getMiDesc(String s) {
@@ -333,112 +290,6 @@ public class IrefindexConverter extends BioFileConverter {
 			}
 		}
 		return null;
-	}
-
-	private String getProteinId(String string) {
-		if (string.startsWith("uniprotkb:")) {
-			return string.substring(string.indexOf(":") + 1);
-		} else if (string.startsWith("refseq:")) {
-			Set<String> ids = proteinIdMap.get(string.substring(string.indexOf(":") + 1));
-			if (ids != null) {
-				if (ids.size() == 1) {
-					return ids.iterator().next();
-				}
-				LOG.info("Multiple mapping: " + string + "; " + ids);
-			} else {
-				LOG.info("Unablel to map the ID: " + string);
-			}
-		}
-		return null;
-	}
-
-	private Map<String, Set<String>> proteinIdMap;
-	private String osAlias = null;
-
-	/**
-	 * Set the ObjectStore alias.
-	 * 
-	 * @param osAlias
-	 *            The ObjectStore alias
-	 */
-	public void setOsAlias(String osAlias) {
-		this.osAlias = osAlias;
-	}
-
-	@SuppressWarnings("unchecked")
-	private void getProteinIdMap() throws Exception {
-		proteinIdMap = new HashMap<String, Set<String>>();
-
-		Query q = new Query();
-		QueryClass qcSynonym = new QueryClass(Synonym.class);
-		QueryClass qcProtein = new QueryClass(Protein.class);
-		QueryField qfValue = new QueryField(qcSynonym, "value");
-		QueryField qfPrimaryId = new QueryField(qcProtein, "primaryAccession");
-		q.addFrom(qcSynonym);
-		q.addFrom(qcProtein);
-		q.addToSelect(qfValue);
-		q.addToSelect(qfPrimaryId);
-
-		ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
-
-		QueryCollectionReference synRef = new QueryCollectionReference(qcProtein, "synonyms");
-		cs.addConstraint(new ContainsConstraint(synRef, ConstraintOp.CONTAINS, qcSynonym));
-
-		cs.addConstraint(new SimpleConstraint(qfValue, ConstraintOp.MATCHES, new QueryValue("NP_%")));
-
-		q.setConstraint(cs);
-
-		ObjectStore os = ObjectStoreFactory.getObjectStore(osAlias);
-
-		Results results = os.execute(q);
-		Iterator<Object> iterator = results.iterator();
-		while (iterator.hasNext()) {
-			ResultsRow<String> rr = (ResultsRow<String>) iterator.next();
-			String refseqId = rr.get(0);
-			if (refseqId.contains(".")) {
-				refseqId = refseqId.substring(0, refseqId.indexOf("."));
-			}
-			if (proteinIdMap.get(refseqId) == null) {
-				proteinIdMap.put(refseqId, new HashSet<String>());
-			}
-			proteinIdMap.get(refseqId).add(rr.get(1));
-		}
-	}
-
-	private Map<String, String> proteinMap = new HashMap<String, String>();
-
-	private String getProtein(String uniprotId, String taxonField) throws ObjectStoreException {
-		String ret = proteinMap.get(uniprotId);
-
-		if (ret == null) {
-			Item protein = createItem("Protein");
-			protein.setAttribute("primaryAccession", uniprotId);
-			if (!taxonField.equals("-")) {
-				String taxonId = taxonField.substring(6, taxonField.indexOf("("));
-				protein.setReference("organism", getOrganism(taxonId));
-			}
-			ret = protein.getIdentifier();
-			proteinMap.put(uniprotId, ret);
-			store(protein);
-		}
-		return ret;
-	}
-
-	private Map<String, String> piSourceMap = new HashMap<String, String>();
-
-	private String getPiSource(String sourceDb, String sourceId) throws ObjectStoreException {
-		String ret = piSourceMap.get(sourceDb + "-" + sourceId);
-
-		if (ret == null) {
-			Item piSource = createItem("ProteinInteractionSource");
-			piSource.setAttribute("dbName", sourceDb);
-			piSource.setAttribute("identifier", sourceId);
-
-			ret = piSource.getIdentifier();
-			piSourceMap.put(sourceDb + "-" + sourceId, ret);
-			store(piSource);
-		}
-		return ret;
 	}
 
 }

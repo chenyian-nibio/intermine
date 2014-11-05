@@ -1,0 +1,4 @@
+<project name="fill-proteins-xml-tasks" default="default" basedir=".">
+  <description>build fill-proteins-xml tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

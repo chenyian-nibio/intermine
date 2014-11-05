@@ -13,7 +13,6 @@
       <property name="src.data.file" location="/data/bio/db/Targetmine/goslim/goslim_generic.obo"/>
     </source>
     <source name="uniprot" type="tm-uniprot">
-      <property name="uniprot.organisms" value="9606 10090 10116"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/uniprot/split"/>
     </source>
     <source name="protein-ortholog" type="protein-ortholog">
@@ -22,7 +21,7 @@
     </source>
     <source name="go-annotation" type="go-goslim-annotation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/go-annotation"/>
-      <property name="src.data.dir.includes" value="gene_association*"/>
+      <property name="src.data.dir.includes" value="gene_association.goa_*"/>
       <property name="goslim.map" value="/data/bio/db/Targetmine/goslim/goslim.map"/>
     </source>
     <source name="do" type="do">
@@ -44,12 +43,13 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/do-annotation"/>
       <property name="src.data.dir.includes" value="do_rif.human.txt"/>
     </source>
+<!-- 
     <source name="ppiview" type="ppiview">
       <property name="src.data.dir" value="/data/bio/db/Targetmine/ppiview"/>
       <property name="src.data.dir.includes" value="ppi_hinv_data-080722.txt"/>
       <property name="hip2UniProtFile" value="/data/bio/db/Targetmine/ppiview/hip2uniprot.out"/>
-      <property name="sprotHumanFile" value="/data/bio/db/Targetmine/ppiview/uniprot_sprot_human.dat"/>
     </source>
+ -->
     <source name="interpro" type="interpro">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/interpro"/>
       <property name="src.data.dir.includes" value="interpro.xml"/>
@@ -87,6 +87,7 @@
     <source name="gene3d" type="gene3d">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene3d"/>
       <property name="src.data.dir.includes" value="gene3d.v12.HRM.txt"/>
+		<property name="osAlias" value="os.production"/>
     </source>
     <source name="kegg-orthology" type="tm-kegg-orthology">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/ko"/>
@@ -165,6 +166,7 @@
     <source name="enzyme-pathway" type="enzyme-pathway">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/ec" />
       <property name="src.data.dir.includes" value="ec.list" />
+      <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.list"/>
     </source>
     <source name="drugebility" type="drugebility">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/drugebility" />
@@ -191,7 +193,7 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/nci-pathway"/>
       <property name="src.data.dir.includes" value="*.tab"/>
     </source>
-    
+<!-- 
     <source name="stitch" type="tm-stitch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/stitch" />
       <property name="src.data.dir.includes" value="*.protein_chemical.links.detailed.v4.0.tsv" />
@@ -199,6 +201,7 @@
       <property name="inchikeyFile" value="/data/bio/db/Targetmine/stitch/uniq.cid.inchikeys" />
       <property name="osAlias" value="os.production"/>
     </source>
+ -->    
     <source name="bioassay" type="bioassay">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/bioassay" />
       <property name="src.data.dir.includes" value="assay_info_3.txt" />
@@ -226,7 +229,6 @@
     <source name="irefindex" type="irefindex">
 		<property name="src.data.dir" location="/data/bio/db/Targetmine/irefindex"/>
 		<property name="src.data.dir.includes" value="*.mitab.*.txt"/>
-		<property name="osAlias" value="os.production"/>
 	</source>
 
     <source name="mirbase" type="mirbase">
@@ -256,15 +258,17 @@
       <property name="src.data.dir.includes" value="*/*current_ver.txt" />
     </source>
 
-  	<source name="gene-pubmed" type="gene-pubmed">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/publication"/>
-      <property name="pubmed.organisms" value="9606 10090 10116"/>
-      <property name="src.data.dir.includes" value="gene2pubmed"/>
-    </source>
+	<source name="gene-pubmed" type="gene-pubmed">
+		<property name="src.data.dir" location="/data/bio/db/Targetmine/publication"/>
+		<property name="pubmed.organisms" value="9606 10090 10116"/>
+		<property name="src.data.dir.includes" value="gene2pubmed"/>
+	</source>
 
-  	<source name="fill-missing-proteins" type="fill-missing-proteins">
-      <property name="src.data.file" location="build/proteins.txt"/>
-    </source>
+	<source name="fill-proteins-xml" type="fill-proteins-xml">
+		<property name="src.data.dir" location="/data/bio/db/uniprot"/>
+		<property name="src.data.dir.includes" value="uniprot_*.xml" />
+		<property name="osAlias" value="os.production"/>
+	</source>
 
   	<source name="fill-missing-genes" type="fill-missing-genes">
       <property name="src.data.file" location="build/genes.txt"/>

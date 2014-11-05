@@ -6,61 +6,54 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.Map.Entry;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.xml.full.Item;
-import org.intermine.xml.full.ItemHelper;
 
+/**
+ * 
+ * @author ishikawa
+ * @author chenyian (refactor)
+ * 
+ */
 public class PpiViewConverter extends BioFileConverter {
-	
+
 	public static final String DATASET_TITLE = "PPI view";
 	private static final String DATA_SOURCE_NAME = "H-InvDB";
 
-	private static Logger m_oLogger = Logger.getLogger(PpiViewConverter.class);
-	
-	private ItemWriter m_oWriter;
-	
-	// <PrimaryAcc, Protein>
-	private Map<String, Item> m_oProteinMap = new HashMap<String, Item>();
-	
-	// <Sprot human accession number>
-	private Set<String> m_oSprotHumanSet = new TreeSet<String>();
-	
-	// H-invitation FCDNA file
-	private File m_oHip2UniProtFile;
-	
-	// Swiss-Prot human dat file (uniprot_sprot_human.dat)
-	private File m_oSprotHumanFile;
-	
-	// <HIP_ID, HIX_ID>
-	private Map<Integer, Integer> m_oHipHixMap = new HashMap<Integer, Integer>();
-	
-	// <HIP_ID, TreeSet<Uniprot>>
-	private Map<Integer, TreeSet<String>> m_oHipUniprotMap = new HashMap<Integer, TreeSet<String>>();
-	
-	// <HIP_ID, representative uniprot accession number>
-	// To hold representative uniprot entry for each hip.
-	private Map<Integer, String> m_oHipRepresentMap = new HashMap<Integer, String>();
-	
-	// Key is "dbname_id". ex) MINT_MINT-2837333
+//	private static Logger LOG = Logger.getLogger(PpiViewConverter.class);
+
+	// <PrimaryAcc, ProteinRefId>
+	private Map<String, String> proteinMap = new HashMap<String, String>();
+
+	// hip2uniprot.out file
+	private File hip2UniProtFile;
+
+	public void setHip2UniProtFile(File hip2UniProtFile) {
+		this.hip2UniProtFile = hip2UniProtFile;
+	}
+
+	// <HIP_ID, Set<Accession>>
+	private Map<String, Set<String>> hipAccessionMap = new HashMap<String, Set<String>>();
+
+	// Key is "dbname_id". e.g. MINT_MINT-2837333
 	// Value is Item ProteinInteractionSource
-	private TreeMap<String, Item> m_oPISourceMap = new TreeMap<String, Item>();
-	
+	private TreeMap<String, Item> piSourceMap = new TreeMap<String, Item>();
+
 	public PpiViewConverter(ItemWriter writer, Model model) {
 		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
-		m_oWriter = writer;
 	}
-	
+
 	@Override
 	/**
 	 * Each line of a input file should be in the following format(tab-delimited)
@@ -68,354 +61,194 @@ public class PpiViewConverter extends BioFileConverter {
 	 * And file MUST be sorted by <protein_name>
 	 */
 	public void process(Reader reader) throws Exception {
-		
-		if (null == m_oHip2UniProtFile) {
+
+		if (null == hip2UniProtFile) {
 			throw new NullPointerException("hip2UniProtFile property not set");
 		}
-		
+
 		try {
-			readSprotHuman(new FileReader(m_oSprotHumanFile));
-		} catch (IOException oErr) {
-			throw new RuntimeException("error reading sprotHumanFile", oErr);
+			readHip2UniProt(new FileReader(hip2UniProtFile));
+		} catch (IOException e) {
+			throw new RuntimeException("error reading hip2UniProtFile", e);
 		}
-		
-		try {
-			readHip2UniProt(new FileReader(m_oHip2UniProtFile));
-		} catch (IOException oErr) {
-			throw new RuntimeException("error reading cdnaFile", oErr);
-		}
-		
-		selectRepresentative();
-		
-		m_oLogger.debug("m_oHipHixMap size:" + m_oHipHixMap.size());
-		m_oLogger.debug("m_oHipUniprotMap size:" + m_oHipUniprotMap.size());
-		
-		BufferedReader oBr = new BufferedReader(reader);
-		boolean bIsHeader = true;
-		
-		while(oBr.ready()) {
-			
-			String strLine = oBr.readLine();
-			
-			// Skip a header line.
-			if( bIsHeader ) {
-				bIsHeader = false;
+
+		BufferedReader in = null;
+		in = new BufferedReader(reader);
+		// Skip a header line.
+		in.readLine();
+
+		String line;
+		while ((line = in.readLine()) != null) {
+
+			if (StringUtils.isEmpty(line)) {
 				continue;
 			}
-			
-			if(null == strLine || "".equals(strLine)) {
+
+			String[] fields = line.split("\t", -1);
+			if (fields.length < 9) {
 				continue;
 			}
-			
-			String[] a_strFields = strLine.split("\t", -1);
-			if(a_strFields.length < 9) {
-				continue;
-			}
-			String strIntId = a_strFields[0];
-			
-			Integer iHipA = Integer.parseInt( a_strFields[1].replaceAll("HIP", "") );
-			Integer iHipB = Integer.parseInt( a_strFields[2].replaceAll("HIP", "") );
-			
-			ArrayList<Item> a_oPISourceList = new ArrayList<Item>();
-			a_oPISourceList.addAll( getProteinInteractionSource("BIND", a_strFields[3]) );
-			a_oPISourceList.addAll( getProteinInteractionSource("DIP", a_strFields[4]) );
-			a_oPISourceList.addAll( getProteinInteractionSource("MINT", a_strFields[5]) );
-			a_oPISourceList.addAll( getProteinInteractionSource("HPRD", a_strFields[6]) );
-			a_oPISourceList.addAll( getProteinInteractionSource("IntAct", a_strFields[7]) );
-			a_oPISourceList.addAll( getProteinInteractionSource("GNP_Y2H", a_strFields[8]) );
-			
-			List<Item> oUniProtListA = getProteinList(m_oHipUniprotMap.get( iHipA ));
-			List<Item> oUniProtListB = getProteinList(m_oHipUniprotMap.get( iHipB ));
-			
+			String intId = fields[0];
+
+			List<String> proteinRefIdListA = getProteinRefIdList(hipAccessionMap.get(fields[1]));
+			List<String> proteinRefIdListB = getProteinRefIdList(hipAccessionMap.get(fields[2]));
+
 			// Nothing to do
-			if( oUniProtListA.size() == 0 || oUniProtListB.size() == 0 ) {
+			if (proteinRefIdListA.size() == 0 || proteinRefIdListB.size() == 0) {
 				continue;
 			}
-			
-			Item oRepA = getProtein(m_oHipRepresentMap.get(iHipA));
-			Item oRepB = getProtein(m_oHipRepresentMap.get(iHipB));
-						
-			for( Item oUniProtA : oUniProtListA ) {
-				registerInteraction(strIntId, oUniProtA, oRepB, oUniProtListB, a_oPISourceList);
+
+			List<Item> piSourceList = new ArrayList<Item>();
+			piSourceList.addAll(getProteinInteractionSource("BIND", fields[3]));
+			piSourceList.addAll(getProteinInteractionSource("DIP", fields[4]));
+			piSourceList.addAll(getProteinInteractionSource("MINT", fields[5]));
+			piSourceList.addAll(getProteinInteractionSource("HPRD", fields[6]));
+			piSourceList.addAll(getProteinInteractionSource("IntAct", fields[7]));
+			piSourceList.addAll(getProteinInteractionSource("GNP_Y2H", fields[8]));
+
+			// arbitrary choose one as represented protein
+			// not worth to spend time here
+			String repRefIdA = proteinRefIdListA.get(0);
+			String repRefIdB = proteinRefIdListB.get(0);
+
+			for (String proteinRefId : proteinRefIdListA) {
+				registerInteraction(intId, proteinRefId, repRefIdB, proteinRefIdListB, piSourceList);
 			}
-			
-			for( Item oUniProtB : oUniProtListB ) {
-				registerInteraction(strIntId, oUniProtB, oRepA, oUniProtListA, a_oPISourceList);
+
+			for (String proteinRefId : proteinRefIdListB) {
+				registerInteraction(intId, proteinRefId, repRefIdA, proteinRefIdListA, piSourceList);
 			}
 		}
 	}
-	
+
 	/**
 	 * Register ProteinInteraction
-	 * @param strIntId
-	 * @param oProtein
-	 * @param oRepresentPartner
-	 * @param oPartners
-	 * @param oPISourceList
-	 * @throws ObjectStoreException 
+	 * 
+	 * @param intId
+	 * @param proteinRefId
+	 * @param repProteinRefId
+	 * @param proteinRefIdList
+	 * @param piSourceList
+	 * @throws ObjectStoreException
 	 */
-	private void registerInteraction(
-			String strIntId,
-			Item oProtein,
-			Item oRepresentPartner,
-			List<Item> oPartners,
-			ArrayList<Item> oPISourceList
-		) throws ObjectStoreException {
-		
-		Item oPI = createItem("ProteinInteraction");
-		
-		oPI.setAttribute("intId", strIntId);
-		oPI.setReference("protein", oProtein);
-		oPI.setReference("representativePartner", oRepresentPartner);
-		
-		for (Item oPartner: oPartners) {
-			oPI.addToCollection("allPartners", oPartner);
+	private void registerInteraction(String intId, String proteinRefId, String repProteinRefId,
+			List<String> proteinRefIdList, List<Item> piSourceList) throws ObjectStoreException {
+
+		Item item = createItem("ProteinInteraction");
+
+		item.setAttribute("intId", intId);
+		item.setReference("protein", proteinRefId);
+		item.setReference("representativePartner", repProteinRefId);
+
+		for (String partner : proteinRefIdList) {
+			item.addToCollection("allPartners", partner);
 		}
-		
-		for (Item oPiSource : oPISourceList) {
-			oPI.addToCollection("piSources", oPiSource);
+
+		for (Item piSource : piSourceList) {
+			item.addToCollection("piSources", piSource);
 		}
-		
-		store(oPI);
+
+		store(item);
 	}
-	
+
 	/**
 	 * Get ProteinInteractionSource item
-	 * @param strDbName
-	 * @param strIds
+	 * 
+	 * @param dbName
+	 * @param stringIds
 	 * @return List of ProteinInteractionSources' identifier
 	 */
-	private List<Item> getProteinInteractionSource(String strDbName, String strIds) throws ObjectStoreException {
-		
-		if(null == strDbName || "".equals(strDbName) || null == strIds || "".equals(strIds)) {
+	private List<Item> getProteinInteractionSource(String dbName, String stringIds)
+			throws ObjectStoreException {
+
+		if (null == dbName || "".equals(dbName) || null == stringIds || "".equals(stringIds)) {
 			return new ArrayList<Item>();
 		}
-		
-		ArrayList<Item> a_oPISourceList = new ArrayList<Item>();
-		
-		for(String strId : strIds.split(",")) {
-			
-			String strDbNameId = strDbName + "_" + strIds;
-			if(!m_oPISourceMap.containsKey(strDbNameId)){
-				
-				Item oPISource = createItem("ProteinInteractionSource");
-				oPISource.setAttribute("dbName", strDbName);
-				oPISource.setAttribute("identifier", strId);
-				store(oPISource);
-				m_oPISourceMap.put(strDbNameId, oPISource);
-				
+
+		List<Item> piSourceList = new ArrayList<Item>();
+
+		for (String identifier : stringIds.split(",")) {
+
+			String key = dbName + "_" + identifier;
+			if (!piSourceMap.containsKey(key)) {
+
+				Item item = createItem("ProteinInteractionSource");
+				item.setAttribute("dbName", dbName);
+				item.setAttribute("identifier", identifier);
+				store(item);
+				piSourceMap.put(key, item);
+
 			}
-			a_oPISourceList.add( m_oPISourceMap.get(strDbNameId) );
+			piSourceList.add(piSourceMap.get(key));
 		}
-		
-		return a_oPISourceList;
+
+		return piSourceList;
 	}
-	
-	private void readHip2UniProt(Reader oReader) throws IOException {
-		
-		BufferedReader oBr = new BufferedReader(oReader);
-		
-		while( oBr.ready() ) {
-			
-			String strLine = oBr.readLine();
-			
-			if(null == strLine || "".equals(strLine)) {
+
+	private void readHip2UniProt(Reader reader) throws IOException {
+
+		BufferedReader in = null;
+		in = new BufferedReader(reader);
+		String line;
+		while ((line = in.readLine()) != null) {
+			String[] fields = line.split("\t", -1);
+
+			if (StringUtils.isEmpty(fields[1])) {
 				continue;
 			}
-			
-			String[] strFields = strLine.split("\t");
-			
-			Integer iHip = Integer.parseInt( strFields[0].replaceAll("HIP", "") );
-			
-			if(strFields.length == 1) {
-				continue;
-			}
-			
-			String[] strUniProts = strFields[1].split(",");
-			
-			for(String strUniProt : strUniProts) {
-			
-				putHipUniprot( iHip, strUniProt );
-				
-			}
+
+			String[] accessions = fields[1].split(",");
+
+			hipAccessionMap.put(fields[0], new HashSet<String>(Arrays.asList(accessions)));
 		}
+		in.close();
 	}
-	
-	/**
-	 * Parse H-inv DB's FCDNA file to get relation between HIP-ID and
-	 *  UniProt primary accession number 
-	 * @param oReader Reader for FCDNA file 
-	 */
-	/*
-	private void readCdnas(Reader oReader) throws IOException {
-		
-		BufferedReader oBr = new BufferedReader(oReader);
-		
-		Integer iHixId = null;
-			
-		while( oBr.ready() ) {
-			
-			String strLine = oBr.readLine();
-			if(null == strLine || "".equals(strLine)) {
-				continue;
-			}
-			if("//".equals(strLine)) {
-				
-				iHixId = null;
-				
-			}
-			String[] a_strKeyValue = strLine.split(": ");
-			if(2 != a_strKeyValue.length) {
-				continue;
-			}
-			if( "CDNA_CLUSTER-ID".equals(a_strKeyValue[0]) ) {
-				
-				iHixId = Integer.parseInt( a_strKeyValue[1].replaceAll("HIX", "") );
-				
-			} else if( "CDNA_H-INVITATIONAL-PROTEIN-ID".equals(a_strKeyValue[0]) ) {
-				
-				if(iHixId == null) {
-					continue;
-				}
-				Integer iHipId = Integer.parseInt( a_strKeyValue[1].replaceAll("HIP", "") );
-				m_oHipHixMap.put(iHipId, iHixId);
-				
-			} else if( "CDNA_DB-REFERENCE_UNIPROT-PROTEIN-ID".equals(a_strKeyValue[0]) ) {
-				
-				String strUniProt = a_strKeyValue[1];
-				putHixUniprot( iHixId, strUniProt );
-				
-			}
-		}
-	}*/
-	
-	private void readSprotHuman(Reader oReader) throws IOException {
-		
-		BufferedReader oBr = new BufferedReader(oReader);
-		while( oBr.ready() ) {
-			
-			String strLine = oBr.readLine();
-			if(null == strLine || "".equals(strLine) || !strLine.startsWith("AC   ")) {
-				continue;
-			}
-			strLine = strLine.replaceAll("AC   ", "");
-			strLine = strLine.replaceAll(";$", "");			
-			String[] fields = strLine.split("; ");
-			
-			for(String strAccNo : fields) {
-				m_oSprotHumanSet.add(strAccNo);
-			}
-		}
-	}
-	
-	/**
-	 * Put HipxID - UniprotAccession relation to m_oHipUniprotMap
-	 * @param iHipId
-	 * @param strUniProt
-	 */
-	private void putHipUniprot(Integer iHipId, String strUniProt) {
-		
-		if(m_oHipUniprotMap.containsKey(iHipId)) {
-			
-			if(!m_oHipUniprotMap.get(iHipId).contains(strUniProt)) {
-				
-				m_oHipUniprotMap.get(iHipId).add(strUniProt);
-				
-			}
-			
-		} else {
-			
-			TreeSet<String> oSet = new TreeSet<String>();
-			oSet.add(strUniProt);
-			m_oHipUniprotMap.put(iHipId, oSet);
-			
-		}
-		
-	}
-	
-	/**
-	 * Select one representative protein among each HIP.
-	 * Rule of selection
-	 *  1. If at least one Swiss-Prot entry exists, select first one in a list
-	 *  2. Otherwise, select first TrEMBL entry in a list
-	 */
-	private void selectRepresentative() {
-		
-		for(Entry<Integer, TreeSet<String>> oEntry: m_oHipUniprotMap.entrySet() ) {
-			
-			String strSwissProt = null;
-			String strTrEmbl = null;
-			
-			for(String strUniProt : oEntry.getValue()) {
-				if(m_oSprotHumanSet.contains(strUniProt)) {
-					
-					if(null == strSwissProt) {
-						strSwissProt = strUniProt;
-					}
-					
-				} else {
-					
-					if(null == strTrEmbl) {
-						strTrEmbl = strUniProt;
-					}
-					
-				}
-			}
-			
-			m_oHipRepresentMap.put(oEntry.getKey(), null != strSwissProt ? strSwissProt : strTrEmbl);
-		}
-	}
-	
-	public void setHip2UniProtFile(File oHip2UniProtFile) {
-		this.m_oHip2UniProtFile = oHip2UniProtFile;
-	}
-	
-	public void setSprotHumanFile(File oSprotHumanFile) {
-		this.m_oSprotHumanFile = oSprotHumanFile;
-	}
-	
+
 	/**
 	 * Get protein item
-	 * @param strPrimaryAcc primary accession number for protein
+	 * 
+	 * @param primaryAccession
+	 *            primary accession number for protein
 	 * @return protein item
+	 * @throws ObjectStoreException
 	 */
-	private Item getProtein(String strPrimaryAcc) {
-		
-		if(m_oProteinMap.containsKey(strPrimaryAcc)) {
-			return m_oProteinMap.get(strPrimaryAcc);
-		} else {
-			Item oProtein = createItem("Protein");
-	        oProtein.setAttribute("primaryAccession", strPrimaryAcc);
-	        //oProtein.setAttribute("hipId", strHipId);
-	        //oProtein.setReference("organism", getOrganismHuman());
-	        try {
-	        	m_oWriter.store(ItemHelper.convert(oProtein));
-	        } catch(ObjectStoreException e) {
-	        	e.printStackTrace();
-	        }
-	        m_oProteinMap.put(strPrimaryAcc, oProtein);
-	        return oProtein;
+	private String getProtein(String primaryAccession) throws ObjectStoreException {
+
+		String ret = proteinMap.get(primaryAccession);
+
+		if (ret == null) {
+			Item protein = createItem("Protein");
+			protein.setAttribute("primaryAccession", primaryAccession);
+			protein.setReference("organism", getOrganism("9606"));
+			store(protein);
+			ret = protein.getIdentifier();
+
+			proteinMap.put(primaryAccession, ret);
 		}
-    }
-	
+		return ret;
+	}
+
 	/**
-	 * Get protein item list
+	 * Get reference ID list of protein items
+	 * 
 	 * @return
+	 * @throws ObjectStoreException
 	 */
-	private List<Item> getProteinList(Set<String> oUniProtSet) {
-		
-		ArrayList<Item> oItemList = new ArrayList<Item>();
-		
-		if(null == oUniProtSet) {
-			return oItemList;
+	private List<String> getProteinRefIdList(Set<String> proteinAccessions)
+			throws ObjectStoreException {
+
+		List<String> ret = new ArrayList<String>();
+
+		if (null == proteinAccessions) {
+			return ret;
 		}
-		
-		for(String strAccNo : oUniProtSet) {
-			oItemList.add(getProtein(strAccNo));
+
+		for (String accession : proteinAccessions) {
+			ret.add(getProtein(accession));
 		}
-		
-		return oItemList;
-		
+
+		return ret;
+
 	}
 
 }

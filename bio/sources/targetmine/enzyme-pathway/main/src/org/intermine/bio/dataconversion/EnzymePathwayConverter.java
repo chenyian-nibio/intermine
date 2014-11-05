@@ -1,6 +1,8 @@
 package org.intermine.bio.dataconversion;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,7 +11,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -20,10 +21,13 @@ import org.intermine.xml.full.Item;
  * 
  * @author chenyian
  */
-public class EnzymePathwayConverter extends FileConverter {
+public class EnzymePathwayConverter extends BioFileConverter {
 	protected static final Logger LOG = Logger.getLogger(EnzymePathwayConverter.class);
 
 	//
+	private static final String DATASET_TITLE = "KEGG pathways data set";
+	private static final String DATA_SOURCE_NAME = "KEGG";
+
 	private Map<String, String> pathwayMap = new HashMap<String, String>();
 
 	/**
@@ -35,7 +39,7 @@ public class EnzymePathwayConverter extends FileConverter {
 	 *            the Model
 	 */
 	public EnzymePathwayConverter(ItemWriter writer, Model model) {
-		super(writer, model);
+		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
 	}
 
 	/**
@@ -44,6 +48,8 @@ public class EnzymePathwayConverter extends FileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
+		
+		readPathwayClassification();
 
 		Iterator<String[]> iterator = FormattedTextParser
 				.parseTabDelimitedReader(new BufferedReader(reader));
@@ -69,7 +75,9 @@ public class EnzymePathwayConverter extends FileConverter {
 		// create Enzymes and Pathways
 		for (String ec : ecPathwayMap.keySet()) {
 			Item enzyme = createItem("Enzyme");
-			enzyme.setAttribute("ecNumber", ec.substring(3));
+			String identifier = ec.substring(3);
+			enzyme.setAttribute("primaryIdentifier", identifier);
+			enzyme.setAttribute("ecNumber", identifier);
 			for (String pathwayId : ecPathwayMap.get(ec)) {
 				String refId = getPathway(pathwayId);
 				enzyme.addToCollection("pathways", refId);
@@ -84,10 +92,67 @@ public class EnzymePathwayConverter extends FileConverter {
 		if (ret == null) {
 			Item pathway = createItem("Pathway");
 			pathway.setAttribute("identifier", pathwayId);
+
+			// identifier = ecxxxxx
+			String key = pathwayId.substring(2);
+			pathway.setAttribute("name", pathwayNameMap.get(key));
+			String subClass = subClassMap.get(key);
+			pathway.setAttribute("subClass", subClass);
+			pathway.setAttribute("mainClass", mainClassMap.get(subClass));
+			
 			ret = pathway.getIdentifier();
 			pathwayMap.put(pathwayId, ret);
 			store(pathway);
 		}
 		return ret;
 	}
+	
+	private Map<String, String> mainClassMap = new HashMap<String, String>();
+	private Map<String, String> subClassMap = new HashMap<String, String>();
+	private Map<String, String> pathwayNameMap = new HashMap<String, String>();
+
+	private File pathwayClassFile;
+
+	public void setPathwayClassFile(File pathwayClassFile) {
+		this.pathwayClassFile = pathwayClassFile;
+	}
+
+	private void readPathwayClassification() {
+		if (pathwayClassFile == null) {
+			throw new NullPointerException("pathwayClassFile property not set");
+		}
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(pathwayClassFile));
+			String line;
+			String mainClass = "";
+			String subClass = "";
+			while ((line = reader.readLine()) != null) {
+				if (line.startsWith("##")) {
+					if (mainClass.equals("")) {
+						reader.close();
+						throw new RuntimeException("Missing main class when processing the line: "
+								+ line);
+					}
+					subClass = line.substring(2).trim();
+					mainClassMap.put(subClass, mainClass);
+				} else if (line.startsWith("#")) {
+					mainClass = line.substring(1).trim();
+				} else {
+					if (subClass.equals("")) {
+						reader.close();
+						throw new RuntimeException("Missing sub class when processing the line: "
+								+ line);
+					}
+					String[] cols = line.split("\\t");
+					String pathwayId = cols[0].trim();
+					subClassMap.put(pathwayId, subClass);
+					pathwayNameMap.put(pathwayId, cols[1].trim());
+				}
+			}
+			reader.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 }

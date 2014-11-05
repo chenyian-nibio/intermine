@@ -109,9 +109,21 @@ public class UniprotFeatureDisplayer extends ReportDisplayer {
 					if (order1.equals(order2)) {
 						Integer begin1 = (Integer) o1.getFieldValue("begin");
 						Integer begin2 = (Integer) o2.getFieldValue("begin");
+						if (begin1 == null) {
+							return 1;
+						}
+						if (begin2 == null) {
+							return -1;
+						}
 						if (begin1.equals(begin2)) {
 							Integer end1 = (Integer) o1.getFieldValue("end");
 							Integer end2 = (Integer) o2.getFieldValue("end");
+							if (end1 == null) {
+								return 1;
+							}
+							if (end2 == null) {
+								return -1;
+							}
 							return end1.compareTo(end2);
 						} else {
 							return begin1.compareTo(begin2);
