@@ -417,6 +417,7 @@
       <fieldconfig fieldExpr="end" />
       <fieldconfig fieldExpr="endInsertionCode" />
       <fieldconfig fieldExpr="proteinChain.identifier" />
+      <fieldconfig fieldExpr="structuralDomain.code" />
       <fieldconfig fieldExpr="structuralDomain.description" />
     </fields>
   </class>
