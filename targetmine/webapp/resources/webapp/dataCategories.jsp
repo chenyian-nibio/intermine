@@ -90,7 +90,7 @@
 			<dt>
 	        	<h1 id="">Integrated data in TargetMine</h1>
 	        </dt>
-			<dd><p>This page lists all data sources loaded along with the date the data was released or downloaded.</p></dd>
+			<dd><p>This page lists all data sources loaded along with the date the data was released or downloaded. Check <a href="http://targetmine.nibio.go.jp/documentation/list-of-data-sources" target="_blank">here</a> for more details.</p></dd>
 		</dl>
 	</div>
 
