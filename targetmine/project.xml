@@ -237,6 +237,13 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/affymetrix" />
       <property name="src.data.dir.includes" value="*.annot.csv" />
     </source>
+
+
+    <source name="predicted-dbp" type="predicted-dbp">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/pred_annot/dbp" />
+      <property name="src.data.dir.includes" value="precision-scores.txt" />
+    </source>
+    
     <source name="dataset-info" type="dataset-info">
       <property name="src.data.dir" location="/data/bio/db/Targetmine" />
       <property name="src.data.dir.includes" value="*/*current_ver.txt" />
@@ -248,6 +255,7 @@
       <property name="src.data.dir.includes" value="gene2pubmed"/>
     </source>
 
+	<!--  following parts should be run after other resources-->
     <source name="fill-proteins-xml" type="fill-proteins-xml">
       <property name="src.data.dir" location="/data/bio/db/uniprot"/>
       <property name="src.data.dir.includes" value="uniprot_*.xml" />

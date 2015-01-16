@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<classes>
+	<class name="Protein" is-interface="true">
+		<attribute name="primaryAccession" type="java.lang.String"/>
+		<collection name="predictedAnnotations" referenced-type="PredictedAnnotation" reverse-reference="protein"/>
+	</class>
+	<class name="PredictedAnnotation" is-interface="true">
+		<attribute name="type" type="java.lang.String"/>
+		<attribute name="confidence" type="java.lang.String"/>
+		<attribute name="score" type="java.lang.Float"/>
+		<reference name="protein" referenced-type="Protein" reverse-reference="predictedAnnotations"/>
+	</class>
+</classes>

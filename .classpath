@@ -48,6 +48,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/pdb-chaintype/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pdb_ext/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/ppiview/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/predicted-dbp/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein-analysis/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein-ortholog/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein2ipr/main/src"/>
