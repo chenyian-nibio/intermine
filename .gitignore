@@ -16,6 +16,8 @@ productionLog
 # Add by chenyian
 autogen/
 src/chen/
+targetmine/webapp/resources/webapp/news/
+targetmine/postprocess/*.json.txt
 
 # /intermine/objectstore/main/
 /intermine/objectstore/main/src.png
