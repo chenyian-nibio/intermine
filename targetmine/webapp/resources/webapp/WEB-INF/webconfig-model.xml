@@ -51,6 +51,7 @@
   <class className="org.intermine.model.bio.Gene">
     <inlinelist>
       <table path="synonyms.value" showLinksToObjects="true" />
+      <table path="probeSets.probeSetId" showLinksToObjects="true" />
     </inlinelist>
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
@@ -624,6 +625,15 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.Expression">
+    <fields>
+      <fieldconfig fieldExpr="platform.identifier"/>
+      <fieldconfig fieldExpr="platform.title"/>
+      <fieldconfig fieldExpr="tissue.name"/>
+      <fieldconfig fieldExpr="value"/>
+    </fields>
+  </class>
+
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
   <tableExportConfig id="gff3" className="org.intermine.bio.web.export.GFF3HttpExporter"/>
@@ -713,6 +723,11 @@
                      jspName="model/atcJtcCodeDisplayer.jsp"
                      replacesFields="atcCodes,jtcCodes" 
                      types="DrugCompound"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProbeSetExpressioniDisplayer"
+                     jspName="model/probeSetExpressioniDisplayer.jsp"
+                     replacesFields="expressions" 
+                     types="ProbeSet"/>
 
   </reportdisplayers>
 

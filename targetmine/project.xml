@@ -235,9 +235,12 @@
     </source>
     <source name="affy-probe" type="affy-probe-annot">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/affymetrix" />
-      <property name="src.data.dir.includes" value="*.annot.csv" />
+      <property name="src.data.dir.includes" value="*.na34.annot.csv" />
     </source>
-
+    <source name="barcode" type="barcode30">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/barcode" />
+      <property name="src.data.dir.includes" value="*_v3.csv" />
+    </source>
 
     <source name="predicted-dbp" type="predicted-dbp">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pred_annot/dbp" />
