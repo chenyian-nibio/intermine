@@ -2,12 +2,12 @@
 
 <classes>
 	<class name="Gene" extends="SequenceFeature" is-interface="true">
-		<attribute name="ncbiGeneId" type="java.lang.String"/>
-		<collection name="probeSets" referenced-type="ProbeSet"/>
+		<attribute name="primaryIdentifier" type="java.lang.String"/>
+		<collection name="probeSets" referenced-type="ProbeSet" reverse-reference="genes"/>
 	</class>
 	<class name="ProbeSet" is-interface="true">
 		<attribute name="probeSetId" type="java.lang.String"/>
-		<collection name="genes" referenced-type="Gene"/>
+		<collection name="genes" referenced-type="Gene" reverse-reference="probeSets"/>
 	</class>
 
 </classes>

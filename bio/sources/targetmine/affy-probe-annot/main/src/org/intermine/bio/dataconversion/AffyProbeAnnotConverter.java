@@ -47,7 +47,7 @@ public class AffyProbeAnnotConverter extends BioFileConverter
 			String probeSetId = cols[0];
 			String geneIds = cols[18];
 			
-			if (probeSetId.startsWith("AFFX-")) {
+			if (probeSetId.startsWith("AFFX")) {
 				// skip the internal probe
 				continue;
 			}
@@ -64,15 +64,15 @@ public class AffyProbeAnnotConverter extends BioFileConverter
 
     }
     
-	private String getGene(String ncbiGeneId) throws ObjectStoreException {
-		String ret = geneMap.get(ncbiGeneId);
+	private String getGene(String primaryIdentifier) throws ObjectStoreException {
+		String ret = geneMap.get(primaryIdentifier);
 		if (ret == null) {
 			Item item = createItem("Gene");
-			item.setAttribute("primaryIdentifier", ncbiGeneId);
-			item.setAttribute("ncbiGeneId", ncbiGeneId);
+			item.setAttribute("primaryIdentifier", primaryIdentifier);
+			item.setAttribute("ncbiGeneId", primaryIdentifier);
 			store(item);
 			ret = item.getIdentifier();
-			geneMap.put(ncbiGeneId, ret);
+			geneMap.put(primaryIdentifier, ret);
 		}
 		return ret;
 	}
