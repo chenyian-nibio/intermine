@@ -89,6 +89,15 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.OntologyAnnotation">
+    <fields>
+      <fieldconfig fieldExpr="subject.primaryIdentifier"/>
+      <fieldconfig fieldExpr="ontologyTerm.identifier"/>
+      <fieldconfig fieldExpr="ontologyTerm.name"/>
+      <fieldconfig fieldExpr="ontologyTerm.namespace"/>
+    </fields>
+  </class>
+
   <class className="org.intermine.model.bio.OntologyTerm">
     <headerconfig>
       <titles>

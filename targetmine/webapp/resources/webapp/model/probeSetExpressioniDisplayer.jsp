@@ -13,24 +13,22 @@
 	<c:otherwise>
 		<h3>Expressions</h3>
 		<table>
+		<c:forEach var="platform" items="${platformSet}">
 		<thead>
 			<tr>
-				<th width="500px">Platforms</th>
-				<th>Tissues</th>
+				<th><br/><b>Platform: <a href="report.do?id=${platform.id}">${platform.title} (${platform.identifier})</a></b> - ${fn:length(expressionMap[platform])} tissues & cells</th>
 			</tr>
 		</thead>
 		<tbody>
-		<c:forEach var="platform" items="${platformSet}">
 	    	<tr>
-	    		<td>${platform.title} (${platform.identifier})</td>
-	    		<td>
+	    		<td style="padding-left: 16px; padding-bottom: 12px;">
 	    			<c:forEach var="exp" items="${expressionMap[platform]}">
 	    				<a href="report.do?id=${exp.id}" title="${exp.value}">${exp.tissue.name}</a>, 
 	    			</c:forEach>
 	    		</td>
 	    	</tr>
-		</c:forEach>
 		</tbody>
+		</c:forEach>
 		</table>
 		
 	</c:otherwise>
