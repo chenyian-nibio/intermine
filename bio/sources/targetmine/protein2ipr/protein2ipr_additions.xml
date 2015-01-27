@@ -8,7 +8,7 @@
 	<class name="ProteinDomainRegion" extends="ProteinRegion" is-interface="true">
 		<attribute name="originalDb" type="java.lang.String"/>
 		<attribute name="originalId" type="java.lang.String"/>
-		<reference name="protein" referenced-type="Protein"/>
+		<reference name="protein" referenced-type="Protein" reverse-reference="proteinDomainRegions"/>
 		<reference name="proteinDomain" referenced-type="ProteinDomain"/>
 	</class>
 	
