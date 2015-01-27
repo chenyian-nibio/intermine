@@ -238,8 +238,12 @@
       <property name="src.data.dir.includes" value="*.na34.annot.csv" />
     </source>
     <source name="barcode" type="barcode30">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/barcode" />
-      <property name="src.data.dir.includes" value="*_v3.csv" />
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/barcode/transcriptome" />
+      <property name="src.data.dir.includes" value="*.csv" />
+    </source>
+    <source name="barcode-sample" type="barcode30-sample">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/barcode/annotation" />
+      <property name="src.data.dir.includes" value="*.csv" />
     </source>
 
     <source name="predicted-dbp" type="predicted-dbp">

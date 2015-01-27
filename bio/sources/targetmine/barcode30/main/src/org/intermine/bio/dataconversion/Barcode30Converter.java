@@ -17,8 +17,8 @@ import org.intermine.xml.full.Item;
  */
 public class Barcode30Converter extends BioFileConverter {
 	//
-	private static final String DATASET_TITLE = "Barcode";
-	private static final String DATA_SOURCE_NAME = "Barcode 3.0";
+	private static final String DATASET_TITLE = "Barcode 3.0";
+	private static final String DATA_SOURCE_NAME = "Barcode";
 
 	private Map<String, String> probeSetMap = new HashMap<String, String>();
 	private Map<String, String> platformMap = new HashMap<String, String>();
@@ -125,7 +125,7 @@ public class Barcode30Converter extends BioFileConverter {
 	private String getPlatform(String platformId) throws ObjectStoreException {
 		String ret = platformMap.get(platformId);
 		if (ret == null) {
-			Item item = createItem("Platform");
+			Item item = createItem("MicroarrayPlatform");
 			item.setAttribute("identifier", platformId);
 			String title = platformInfo.get(platformId);
 			if (title == null) {

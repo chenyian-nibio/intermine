@@ -636,12 +636,32 @@
 
   <class className="org.intermine.model.bio.Expression">
     <fields>
-      <fieldconfig fieldExpr="platform.identifier"/>
-      <fieldconfig fieldExpr="platform.title"/>
-      <fieldconfig fieldExpr="tissue.name"/>
       <fieldconfig fieldExpr="value"/>
     </fields>
   </class>
+
+  <class className="org.intermine.model.bio.MicroarrayPlatform">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="title"/>
+    </fields>
+    <inlinelist>
+      <table path="samples.identifier" showLinksToObjects="true" />
+    </inlinelist>
+  </class>
+
+  <class className="org.intermine.model.bio.MicroarraySeries">
+    <inlinelist>
+      <table path="samples.identifier" showLinksToObjects="true" />
+    </inlinelist>
+  </class>
+
+  <class className="org.intermine.model.bio.Tissue">
+    <inlinelist>
+      <table path="samples.identifier" showLinksToObjects="true" />
+    </inlinelist>
+  </class>
+  
 
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
