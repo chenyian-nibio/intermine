@@ -657,9 +657,6 @@
   </class>
 
   <class className="org.intermine.model.bio.Tissue">
-    <inlinelist>
-      <table path="samples.identifier" showLinksToObjects="true" />
-    </inlinelist>
   </class>
   
 
@@ -757,6 +754,11 @@
                      jspName="model/probeSetExpressionDisplayer.jsp"
                      replacesFields="expressions" 
                      types="ProbeSet"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.TissueSampleDisplayer"
+                     jspName="model/tissueSampleDisplayer.jsp"
+                     replacesFields="samples" 
+                     types="Tissue"/>
 
   </reportdisplayers>
 
