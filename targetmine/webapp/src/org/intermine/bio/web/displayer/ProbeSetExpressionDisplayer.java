@@ -14,9 +14,9 @@ import org.intermine.web.displayer.ReportDisplayer;
 import org.intermine.web.logic.config.ReportDisplayerConfig;
 import org.intermine.web.logic.results.ReportObject;
 
-public class ProbeSetExpressioniDisplayer extends ReportDisplayer {
+public class ProbeSetExpressionDisplayer extends ReportDisplayer {
 	
-	public ProbeSetExpressioniDisplayer(ReportDisplayerConfig config, InterMineAPI im) {
+	public ProbeSetExpressionDisplayer(ReportDisplayerConfig config, InterMineAPI im) {
 		super(config, im);
 		// TODO Auto-generated constructor stub
 	}

@@ -753,8 +753,8 @@
                      replacesFields="atcCodes,jtcCodes" 
                      types="DrugCompound"/>
 
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProbeSetExpressioniDisplayer"
-                     jspName="model/probeSetExpressioniDisplayer.jsp"
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProbeSetExpressionDisplayer"
+                     jspName="model/probeSetExpressionDisplayer.jsp"
                      replacesFields="expressions" 
                      types="ProbeSet"/>
 
