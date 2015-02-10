@@ -67,7 +67,7 @@ public class NetworkAnalysisTool {
 	private static final int CUT_OFF_PERCENTAGE = 10; // top 10 percent as bottle and hub
 
 	// the post used by PostgreSQL
-	private static final String PORT = "5432";
+	private static final String DEFAULT_PORT = "5432";
 
 	protected ObjectStoreWriter osw;
 
@@ -315,6 +315,13 @@ public class NetworkAnalysisTool {
 		try {
 			config.load(configStream);
 			host = config.getProperty("db.production.datasource.serverName");
+			if (host.contains(":")) {
+				String[] split = host.split(":");
+				host = split[0];
+				port = split[1];
+			} else {
+				port = DEFAULT_PORT;
+			}
 			dbname = config.getProperty("db.production.datasource.databaseName");
 			username = config.getProperty("db.production.datasource.user");
 			password = config.getProperty("db.production.datasource.password");
@@ -539,7 +546,7 @@ public class NetworkAnalysisTool {
 		Connection connection = null;
 		try {
 			connection = DriverManager.getConnection(
-					String.format("jdbc:postgresql://%s:%s/%s", host, PORT, dbname), username,
+					String.format("jdbc:postgresql://%s:%s/%s", host, port, dbname), username,
 					password);
 
 			Statement statement = connection.createStatement();
@@ -603,6 +610,8 @@ public class NetworkAnalysisTool {
 	private Set<String> directMiTerms = new HashSet<String>();
 
 	private String host;
+	
+	private String port;
 
 	private String dbname;
 
