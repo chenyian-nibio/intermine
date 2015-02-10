@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.BuildException;
 import org.intermine.model.bio.Gene;
@@ -242,7 +243,10 @@ public class MissingGeneRetriever {
 				toStore.add(gene);
 				gene.setAttribute("primaryIdentifier", characters.toString());
 			} else if ("TaxID".equals(name)) {
-				gene.setReference("organism", getOrganism(characters.toString(), itemFactory));
+				if (!StringUtils.isEmpty(characters.toString())) {
+//					LOG.info("TaxId: " + characters.toString());
+					gene.setReference("organism", getOrganism(characters.toString(), itemFactory));
+				}
 			} else if ("Name".equals(name)) {
 				gene.setAttribute("symbol", characters.toString());
 			} else if ("CurrentID".equals(name)) {
