@@ -24,7 +24,7 @@ public class ChemblDbConverter extends BioDBConverter {
 	private static final Logger LOG = Logger.getLogger(ChemblDbConverter.class);
 	//
 	private static final String DATASET_TITLE = "ChEMBL";
-	private static final String DATA_SOURCE_NAME = "EMBL-EBI";
+	private static final String DATA_SOURCE_NAME = "ChEMBL";
 
 	private Map<String, String> nameMap = new HashMap<String, String>();
 	private Map<String, Set<String>> drugMap = new HashMap<String, Set<String>>();

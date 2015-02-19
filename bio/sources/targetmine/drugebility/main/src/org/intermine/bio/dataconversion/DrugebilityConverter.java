@@ -22,7 +22,7 @@ public class DrugebilityConverter extends BioFileConverter {
 //	private static final Logger LOG = Logger.getLogger(DrugebilityConverter.class);
 	//
 	private static final String DATASET_TITLE = "DrugEBIlity";
-	private static final String DATA_SOURCE_NAME = "EMBL-EBI";
+	private static final String DATA_SOURCE_NAME = "ChEMBL";
 
 	private Map<String, String> scopEntryMap = new HashMap<String, String>();
 	private Map<String, String> structureMap = new HashMap<String, String>();

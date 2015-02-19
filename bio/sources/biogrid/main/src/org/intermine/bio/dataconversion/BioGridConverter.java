@@ -92,7 +92,7 @@ public class BioGridConverter extends BioFileConverter
      * @param model the Model
      */
     public BioGridConverter(ItemWriter writer, Model model) {
-        super(writer, model, "BioGRID", "BioGRID interaction data set");
+        super(writer, model, "BioGRID", "BioGRID");
         readConfig();
     }
 

@@ -41,7 +41,7 @@ public class EnzymeConverter extends BioFileConverter {
 
 	//
 	private static final String DATASET_TITLE = "ENZYME";
-	private static final String DATA_SOURCE_NAME = "ENZYME nomenclature database";
+	private static final String DATA_SOURCE_NAME = "ExPASy";
 
 	private Set<String> organismNames;
 

@@ -36,7 +36,7 @@ public class Biopax3Converter extends BioFileConverter {
 
 	private static final Logger LOG = Logger.getLogger(Biopax3Converter.class);
 	//
-	private static final String DATASET_TITLE = "Reactome data set";
+	private static final String DATASET_TITLE = "Reactome";
 	private static final String DATA_SOURCE_NAME = "Reactome";
 
 	private Map<String, PathwayEntry> pathwayEntryMap = new HashMap<String, PathwayEntry>();

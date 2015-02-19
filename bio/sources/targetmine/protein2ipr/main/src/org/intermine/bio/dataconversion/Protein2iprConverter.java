@@ -48,7 +48,7 @@ import org.intermine.xml.full.Item;
 public class Protein2iprConverter extends BioFileConverter {
 	private static final Logger LOG = Logger.getLogger(Protein2iprConverter.class);
 	//
-	private static final String DATASET_TITLE = "InterPro data set";
+	private static final String DATASET_TITLE = "InterPro";
 	private static final String DATA_SOURCE_NAME = "InterPro";
 
 	private Collection<Integer> taxonIds = new ArrayList<Integer>();

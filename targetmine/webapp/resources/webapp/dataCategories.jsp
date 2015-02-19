@@ -90,14 +90,14 @@
 			<dt>
 	        	<h1 id="">Integrated data in TargetMine</h1>
 	        </dt>
-			<dd><p>This page lists all data sources loaded along with the date the data was released or downloaded. Check <a href="http://targetmine.nibio.go.jp/documentation/list-of-data-sources" target="_blank">here</a> for more details.</p></dd>
+			<dd><p>This page lists all data sets loaded along with the date the data was released or downloaded. Check <a href="http://targetmine.nibio.go.jp/documentation/list-of-data-sources" target="_blank">here</a> for other details.</p></dd>
 		</dl>
 	</div>
 
 	<table cellpadding="0" cellspacing="1px" border="0" id="dataset" class="display">
 		<thead>
 			<tr>
-				<th rowspan="2" style="width: 220px;">Data Source</th>
+				<th rowspan="2" style="width: 220px;">Data Set</th>
 				<th rowspan="2" style="width: 100px;">Version</th>
 				<th rowspan="2" style="width: 100px;">Date</th>
 				<th colspan="12" style="width: 1680px;">Biological annotations</th>
@@ -126,8 +126,8 @@
 			<tr><td id="name_DOAN">DO Annotation</td><td id="ver_DOAN">-</td><td id="date_DOAN">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td></tr>
 			<tr><td id="name_DGBK">DrugBank</td><td id="ver_DGBK">-</td><td id="date_DGBK">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td></tr>
 			<tr><td id="name_DRGB">DrugEBIlity</td><td id="ver_DRGB">-</td><td id="date_DRGB">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
-			<tr><td id="name_ENZY">ENZYME</td><td id="ver_GENE">-</td><td id="date_GENE">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
-			<tr><td id="name_GENE">Entrez Gene</td><td id="ver_ENZY">-</td><td id="date_ENZY">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_ENZY">Entrez Gene</td><td id="ver_GENE">-</td><td id="date_GENE">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
+			<tr><td id="name_GENE">ENZYME</td><td id="ver_ENZY">-</td><td id="date_ENZY">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
 			<tr><td id="name_GN3D">Gene3D</td><td id="ver_GN3D">-</td><td id="date_GN3D">-</td><td class="none">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>
 			<tr><td id="name_GWAS">Genome-Wide Association Studies</td><td id="ver_GWAS">-</td><td id="date_GWAS">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td></tr>
 			<tr><td id="name_INTP">InterPro data set</td><td id="ver_INTP">-</td><td id="date_INTP">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="tick"><img src="model/images/accept.png" width="16" height="16" alt="V"></td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td><td class="none">-</td></tr>

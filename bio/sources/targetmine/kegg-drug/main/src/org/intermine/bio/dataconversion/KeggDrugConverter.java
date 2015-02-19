@@ -25,7 +25,7 @@ import org.intermine.xml.full.Item;
 public class KeggDrugConverter extends BioFileConverter {
 	protected static final Logger LOG = Logger.getLogger(KeggDrugConverter.class);
 	//
-	private static final String DATASET_TITLE = "KEGG drug data set";
+	private static final String DATASET_TITLE = "KEGG Drug";
 	private static final String DATA_SOURCE_NAME = "KEGG";
 
 	/**

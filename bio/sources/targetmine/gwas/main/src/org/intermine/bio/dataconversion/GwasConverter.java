@@ -27,8 +27,8 @@ public class GwasConverter extends BioFileConverter {
 
 	private static final Double MIN_PVALUE = Double.valueOf("1E-300");
 	//
-	private static final String DATASET_TITLE = "Genome-Wide Association Studies";
-	private static final String DATA_SOURCE_NAME = "National Human Genome Research Institute";
+	private static final String DATASET_TITLE = "NHGRI GWAS Catalog";
+	private static final String DATA_SOURCE_NAME = "NHGRI GWAS Catalog";
 
 	private Map<String, String> diseaseMap = new HashMap<String, String>();
 
