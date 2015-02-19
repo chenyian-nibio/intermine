@@ -2,16 +2,16 @@
 <classes>
 	<class name="Pathway" is-interface="true" >
 		<attribute name="identifier" type="java.lang.String"/>
-		<collection name="geneSetClusters" referenced-type="GeneSetCluster" reverse-reference="pathways"/>
+		<collection name="integratedPathwayClusters" referenced-type="IntegratedPathwayCluster" reverse-reference="pathways"/>
 	</class>
 	<class name="Gene" is-interface="true" >
-		<collection name="geneSetClusters" referenced-type="GeneSetCluster" reverse-reference="genes"/>
+		<collection name="integratedPathwayClusters" referenced-type="IntegratedPathwayCluster" reverse-reference="genes"/>
 	</class>
-	<class name="GeneSetCluster" is-interface="true">
+	<class name="IntegratedPathwayCluster" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
-		<collection name="pathways" referenced-type="Pathway" reverse-reference="geneSetClusters"/>
+		<collection name="pathways" referenced-type="Pathway" reverse-reference="integratedPathwayClusters"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
-		<collection name="genes" referenced-type="Gene" reverse-reference="geneSetClusters"/>
+		<collection name="genes" referenced-type="Gene" reverse-reference="integratedPathwayClusters"/>
 	</class>
 </classes>

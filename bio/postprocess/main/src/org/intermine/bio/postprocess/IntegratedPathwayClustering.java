@@ -81,7 +81,7 @@ public class IntegratedPathwayClustering {
 
 			List<String> clusters = hc.clusteringByAverageLinkage(0.7d);
 
-			createGeneSetClusters(filteredPathwayGene, clusters, speciesCodes.get(i));
+			createIntegratedPathwayClusters(filteredPathwayGene, clusters, speciesCodes.get(i));
 		}
 	}
 
@@ -189,7 +189,7 @@ public class IntegratedPathwayClustering {
 
 	}
 
-	private void createGeneSetClusters(final Map<String, Set<String>> pathwayGenes,
+	private void createIntegratedPathwayClusters(final Map<String, Set<String>> pathwayGenes,
 			List<String> clusters, String speciesCode) {
 		Collections.sort(clusters, new Comparator<String>() {
 
@@ -256,7 +256,7 @@ public class IntegratedPathwayClustering {
 						+ ") " + StringUtils.join(allPathwayIds, ","));
 
 				InterMineObject item = (InterMineObject) DynamicUtil.simpleCreateObject(model
-						.getClassDescriptorByName("GeneSetCluster").getType());
+						.getClassDescriptorByName("IntegratedPathwayCluster").getType());
 				item.setFieldValue("identifier", clusterId);
 				item.setFieldValue("name", name);
 				Set<Pathway> pathways = new HashSet<Pathway>();

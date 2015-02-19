@@ -15,11 +15,11 @@ import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
 /**
- * Renewed for the new appication (2013/5/29)
- * Could be re-implemented in the post processing in the future. 
+ * Replaced by the post processing. To be removed. 
  * 
  * @author chneyian
  */
+@Deprecated
 public class GeneSetConverter extends FileConverter {
 	//
 	// private static final String DATASET_TITLE = "Gene set clustering";

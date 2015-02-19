@@ -309,7 +309,7 @@
   </class>
 <!-- chenyian
 -->
-  <class className="org.intermine.model.bio.GeneSetCluster" >
+  <class className="org.intermine.model.bio.IntegratedPathwayCluster" >
     <fields>
       <fieldconfig fieldExpr="identifier" />
       <fieldconfig fieldExpr="name" />
@@ -787,12 +787,12 @@
                                  label="IPCs"
                                  startClass="Gene"
                                  startClassDisplay="symbol"
-                                 enrich="geneSetClusters.name"
-                                 enrichIdentifier="geneSetClusters.identifier"
+                                 enrich="integratedPathwayClusters.name"
+                                 enrichIdentifier="integratedPathwayClusters.identifier"
                                  constraints="organism.taxonId=[list]"
                                  typeClass="Gene"
-                                 views="primaryIdentifier, symbol, organism.name, geneSetClusters.identifier, geneSetClusters.name" 
-                                 externalLink="/targetmine/portal.do?class=GeneSetCluster&amp;externalids="/>
+                                 views="primaryIdentifier, symbol, organism.name, integratedPathwayClusters.identifier, integratedPathwayClusters.name" 
+                                 externalLink="/targetmine/portal.do?class=IntegratedPathwayCluster&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_go_enrichment"
                                  title="Gene Ontology Enrichment"

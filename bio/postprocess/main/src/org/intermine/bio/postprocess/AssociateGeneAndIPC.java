@@ -32,15 +32,15 @@ import org.intermine.sql.DatabaseUtil;
  * @author chenyian
  *
  */
-public class AssociateGeneAndGeneSetCluster {
+public class AssociateGeneAndIPC {
 
-	private static final Logger LOG = Logger.getLogger(AssociateGeneAndGeneSetCluster.class);
+	private static final Logger LOG = Logger.getLogger(AssociateGeneAndIPC.class);
 
 	protected ObjectStoreWriter osw;
 
 	private Model model;
 
-	public AssociateGeneAndGeneSetCluster(ObjectStoreWriter osw) {
+	public AssociateGeneAndIPC(ObjectStoreWriter osw) {
 		this.osw = osw;
 		model = Model.getInstanceByName("genomic");
 	}
@@ -48,7 +48,7 @@ public class AssociateGeneAndGeneSetCluster {
 	public void doAssociation() throws ObjectStoreException, IllegalAccessException,
 			SQLException {
 
-		Results results = findGeneGeneSetCluster(osw.getObjectStore());
+		Results results = findGeneIntegratedPathwayCluster(osw.getObjectStore());
 		int count = 0;
 		Gene lastGene = null;
 		Set<InterMineObject> newCollection = new HashSet<InterMineObject>();
@@ -67,7 +67,7 @@ public class AssociateGeneAndGeneSetCluster {
 				if (lastGene != null) {
 					// clone so we don't change the ObjectStore cache
 					Gene tempGene = PostProcessUtil.cloneInterMineObject(lastGene);
-					tempGene.setFieldValue("geneSetClusters", newCollection);
+					tempGene.setFieldValue("integratedPathwayClusters", newCollection);
 					osw.store(tempGene);
 					count++;
 				}
@@ -80,13 +80,12 @@ public class AssociateGeneAndGeneSetCluster {
 		if (lastGene != null) {
 			// clone so we don't change the ObjectStore cache
 			Gene tempGene = PostProcessUtil.cloneInterMineObject(lastGene);
-			tempGene.setFieldValue("geneSetClusters", newCollection);
+			tempGene.setFieldValue("integratedPathwayClusters", newCollection);
 			osw.store(tempGene);
 			count++;
 		}
 		LOG.info(count + " Genes have been processed.");
 		
-//		osw.abortTransaction();
 		osw.commitTransaction();
 
 		// now ANALYSE tables relating to class that has been altered - may be rows added
@@ -99,7 +98,7 @@ public class AssociateGeneAndGeneSetCluster {
 	}
 
 	/**
-	 * Run a query that returns all proteins, genes, and associated pathways.
+	 * Run a query that returns all genes, and associated integrated pathway clusters.
 	 * 
 	 * @param os
 	 *            the objectstore
@@ -107,11 +106,11 @@ public class AssociateGeneAndGeneSetCluster {
 	 * @throws ObjectStoreException
 	 *             if there is an error while reading from the ObjectStore
 	 */
-	protected Results findGeneGeneSetCluster(ObjectStore os) throws ObjectStoreException {
+	protected Results findGeneIntegratedPathwayCluster(ObjectStore os) throws ObjectStoreException {
 		Query q = new Query();
 		QueryClass qcGene = new QueryClass(Gene.class);
 		QueryClass qcPathway = new QueryClass(Pathway.class);
-		QueryClass qcGsc = new QueryClass(model.getClassDescriptorByName("GeneSetCluster")
+		QueryClass qcGsc = new QueryClass(model.getClassDescriptorByName("IntegratedPathwayCluster")
 				.getType());
 
 		q.addFrom(qcGene);
@@ -126,7 +125,7 @@ public class AssociateGeneAndGeneSetCluster {
 		QueryCollectionReference c1 = new QueryCollectionReference(qcGene, "pathways");
 		cs.addConstraint(new ContainsConstraint(c1, ConstraintOp.CONTAINS, qcPathway));
 
-		QueryCollectionReference c2 = new QueryCollectionReference(qcPathway, "geneSetClusters");
+		QueryCollectionReference c2 = new QueryCollectionReference(qcPathway, "integratedPathwayClusters");
 		cs.addConstraint(new ContainsConstraint(c2, ConstraintOp.CONTAINS, qcGsc));
 
 		q.setConstraint(cs);
