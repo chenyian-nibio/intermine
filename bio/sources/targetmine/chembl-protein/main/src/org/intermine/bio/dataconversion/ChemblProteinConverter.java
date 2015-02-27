@@ -56,6 +56,9 @@ public class ChemblProteinConverter extends BioDBConverter {
 			
 			createSynonym(getProtein(accession), chemblId, true);
 		}
+		
+		stmt.close();
+		connection.close();
 	}
 
 	private String getProtein(String accession) throws ObjectStoreException {

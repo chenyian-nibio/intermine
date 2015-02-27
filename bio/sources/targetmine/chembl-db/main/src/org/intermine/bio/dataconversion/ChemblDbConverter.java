@@ -219,6 +219,9 @@ public class ChemblDbConverter extends BioDBConverter {
 		}
 		// System.out.println(i + "ChEMBL interaction were integrated.");
 		LOG.info(i + "ChEMBL interaction were integrated.");
+		
+		stmt.close();
+		connection.close();
 	}
 
 	Map<String, String> assayMap = new HashMap<String, String>();

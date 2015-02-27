@@ -119,6 +119,9 @@ public class ChebiDbConverter extends BioDBConverter {
 			store(item);
 
 		}
+		
+		stmt.close();
+		connection.close();
 	}
 
 	/***
