@@ -7,7 +7,7 @@
   <property name="default.intermine.properties.file" location="../default.intermine.integrate.properties"/>
   <sources>
     <source name="go" type="go">
-      <property name="src.data.file" location="/data/bio/db/Targetmine/go-annotation/obo/gene_ontology.obo"/>
+      <property name="src.data.file" location="/data/bio/db/Targetmine/go/gene_ontology.obo"/>
     </source>
     <source name="goslim" type="goslim">
       <property name="src.data.file" location="/data/bio/db/Targetmine/goslim/goslim_generic.obo"/>
@@ -277,6 +277,8 @@
     <source name="network-analysis" type="network-analysis">
     </source>
     <source name="gene-set" type="gene-set">
+    </source>
+    <source name="calculate-bg" type="calculate-bg">
     </source>
 
     <source name="organism" type="organism">

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="Statistics" is-interface="true" >
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="tag" type="java.lang.String"/>
+		<attribute name="number" type="java.lang.Integer"/>
+		<reference name="organism" referenced-type="Organism"/>
+	</class>
+
+</classes>

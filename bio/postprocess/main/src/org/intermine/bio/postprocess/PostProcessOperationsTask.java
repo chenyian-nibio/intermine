@@ -291,6 +291,10 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
             } else if ("associate-gene-to-cluster".equals(operation)) {
             	AssociateGeneAndIPC agagsc = new AssociateGeneAndIPC(getObjectStoreWriter());
             	agagsc.doAssociation();
+           	// chenyian: 
+            } else if ("calculate-biotheme-background".equals(operation)) {
+            	CalculateBioThemeBackground cbtb = new CalculateBioThemeBackground(getObjectStoreWriter());
+            	cbtb.calculateGOBackground();
             } else if ("ppi-druggability".equals(operation)) {
             	PpiDruggability ppid = new PpiDruggability(getObjectStoreWriter());
 //            	configureDynamicAttributes(ppid);

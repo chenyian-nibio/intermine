@@ -1,0 +1,4 @@
+<project name="calculate-bg-tasks" default="default" basedir=".">
+  <description>build calculate-bg tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>
