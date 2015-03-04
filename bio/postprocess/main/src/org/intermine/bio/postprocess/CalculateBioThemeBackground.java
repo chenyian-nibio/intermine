@@ -24,6 +24,7 @@ import org.intermine.model.bio.GOTerm;
 import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.Organism;
 import org.intermine.objectstore.ObjectStore;
+import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
 import org.intermine.objectstore.intermine.ObjectStoreWriterInterMineImpl;
 import org.intermine.objectstore.query.BagConstraint;
@@ -40,6 +41,7 @@ import org.intermine.objectstore.query.Results;
 import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.sql.Database;
+import org.intermine.util.DynamicUtil;
 
 /**
  * Be sure all biological themes are all integrated, including post-processing
@@ -62,44 +64,312 @@ public class CalculateBioThemeBackground {
 		this.osw = osw;
 		model = Model.getInstanceByName("genomic");
 
+		getOrganism(PROCESS_TAXONIDS);
+	}
+
+	private String getSqlQueryForGOClass(Integer taxonId, String namespace, boolean withIEA) {
+		String sql = " select count(distinct(g.id)) " + " from gene as g "
+				+ " join goannotation as goa on goa.subjectid = g.id "
+				+ " join evidencegoannotation as egoa on egoa.goannotation = goa.id "
+				+ " join goevidence as goe on goe.id = egoa.evidence "
+				+ " join goevidencecode as goec on goec.id = goe.codeid "
+				+ " join goterm as got on got.id=goa.ontologytermid "
+				+ " join organism as org on org.id = g.organismid " + " where org.taxonId = "
+				+ taxonId + " " + " and got.namespace = '" + namespace + "' "
+				+ " and got.identifier not in ('GO:0008150','GO:0003674','GO:0005575') "
+				+ " and goa.qualifier is null " + (withIEA ? "" : " and goec.code <> 'IEA' ");
+
+		return sql;
+	}
+
+	private String getSqlQueryForGOClass(Integer taxonId, boolean withIEA) {
+		String sql = " select count(distinct(g.id)), got.namespace " + " from gene as g "
+				+ " join goannotation as goa on goa.subjectid = g.id "
+				+ " join evidencegoannotation as egoa on egoa.goannotation = goa.id "
+				+ " join goevidence as goe on goe.id = egoa.evidence "
+				+ " join goevidencecode as goec on goec.id = goe.codeid "
+				+ " join goterm as got on got.id=goa.ontologytermid "
+				+ " join organism as org on org.id = g.organismid " + " where org.taxonId = "
+				+ taxonId + " "
+				+ " and got.identifier not in ('GO:0008150','GO:0003674','GO:0005575') "
+				+ (withIEA ? "" : " and goec.code <> 'IEA' ") + " and goa.qualifier is null "
+				+ " group by got.namespace ";
+
+		return sql;
+	}
+
+	private String getSqlQueryForGOTerm(Integer taxonId, String namespace, boolean withIEA) {
+		String sqlQuery = " select pgot.identifier, count(distinct(g.id)) " + " from gene as g "
+				+ " join goannotation as goa on goa.subjectid = g.id "
+				+ " join evidencegoannotation as egoa on egoa.goannotation = goa.id "
+				+ " join goevidence as goe on goe.id = egoa.evidence "
+				+ " join goevidencecode as goec on goec.id = goe.codeid "
+				+ " join goterm as got on got.id = goa.ontologytermid "
+				+ " join ontologytermparents as otp on otp.ontologyterm = got.id"
+				+ " join goterm as pgot on pgot.id = otp.parents "
+				+ " join organism as org on org.id = g.organismid " + " where org.taxonId = "
+				+ taxonId + " " + " and pgot.namespace = '" + namespace + "' "
+				+ " and pgot.identifier not in ('GO:0008150','GO:0003674','GO:0005575') "
+				+ " and goa.qualifier is null " + (withIEA ? "" : " and goec.code <> 'IEA' ")
+				+ " group by pgot.identifier ";
+
+		return sqlQuery;
+	}
+
+	private String getSqlQueryForGOTestNumber(Integer taxonId, String namespace, boolean withIEA) {
+		// String sqlQuery = " select count(distinct(pgot.identifier)) " + " from gene as g "
+		// + " join goannotation as goa on goa.subjectid = g.id "
+		// + " join evidencegoannotation as egoa on egoa.goannotation = goa.id "
+		// + " join goevidence as goe on goe.id = egoa.evidence "
+		// + " join goevidencecode as goec on goec.id = goe.codeid "
+		// + " join goterm as got on got.id = goa.ontologytermid "
+		// + " join ontologytermparents as otp on otp.ontologyterm = got.id"
+		// + " join goterm as pgot on pgot.id = otp.parents "
+		// + " join organism as org on org.id = g.organismid " + " where org.taxonId = "
+		// + taxonId + " " + " and pgot.namespace = '" + namespace + "' "
+		// + " and pgot.identifier not in ('GO:0008150','GO:0003674','GO:0005575') "
+		// + " and goa.qualifier is null " + (withIEA ? "" : " and goec.code <> 'IEA' ");
+
+		// this one is faster!
+		String sqlQuery = " select count(distinct(pgot.id)) " + " from goterm as got "
+				+ " join ontologytermparents as otp on otp.ontologyterm = got.id "
+				+ " join goterm as pgot on pgot.id = otp.parents "
+				+ " where pgot.identifier not in ('GO:0008150','GO:0003674','GO:0005575') "
+				+ " and got.id in ( select got.id " + " from gene as g "
+				+ " join goannotation as goa on goa.subjectid = g.id "
+				+ " join evidencegoannotation as egoa on egoa.goannotation = goa.id "
+				+ " join goevidence as goe on goe.id = egoa.evidence "
+				+ " join goevidencecode as goec on goec.id = goe.codeid "
+				+ " join goterm as got on got.id = goa.ontologytermid "
+				+ " join organism as org on org.id = g.organismid " + " where org.taxonId = "
+				+ taxonId + " " + " and got.namespace = '" + namespace + "' "
+				+ " and goa.qualifier is null " + (withIEA ? "" : " and goec.code <> 'IEA' ")
+				+ " ) ";
+
+		return sqlQuery;
+	}
+
+	private String getSqlQueryForGOTestNumber(Integer taxonId, boolean withIEA) {
+		// String sqlQuery = " select count(distinct(pgot.identifier)), pgot.namespace "
+		// + " from gene as g " + " join goannotation as goa on goa.subjectid = g.id "
+		// + " join evidencegoannotation as egoa on egoa.goannotation = goa.id "
+		// + " join goevidence as goe on goe.id = egoa.evidence "
+		// + " join goevidencecode as goec on goec.id = goe.codeid "
+		// + " join goterm as got on got.id = goa.ontologytermid "
+		// + " join ontologytermparents as otp on otp.ontologyterm = got.id "
+		// + " join goterm as pgot on pgot.id = otp.parents "
+		// + " join organism as org on org.id = g.organismid " + " where org.taxonId = "
+		// + taxonId + " "
+		// + " and pgot.identifier not in ('GO:0008150','GO:0003674','GO:0005575') "
+		// + " and goa.qualifier is null  " + (withIEA ? "" : " and goec.code <> 'IEA' ")
+		// + " group by pgot.namespace ";
+
+		// this one is faster!
+		String sqlQuery = " select count(distinct(pgot.id)), pgot.namespace "
+				+ " from goterm as got "
+				+ " join ontologytermparents as otp on otp.ontologyterm = got.id "
+				+ " join goterm as pgot on pgot.id = otp.parents "
+				+ " where got.id in ( select got.id " + " from gene as g "
+				+ " join goannotation as goa on goa.subjectid = g.id "
+				+ " join evidencegoannotation as egoa on egoa.goannotation = goa.id "
+				+ " join goevidence as goe on goe.id = egoa.evidence "
+				+ " join goevidencecode as goec on goec.id = goe.codeid "
+				+ " join goterm as got on got.id = goa.ontologytermid "
+				+ " join organism as org on org.id = g.organismid " + " where org.taxonId = "
+				+ taxonId + " " + " and goa.qualifier is null  "
+				+ (withIEA ? "" : " and goec.code <> 'IEA' ")
+				+ " ) and pgot.identifier not in ('GO:0008150','GO:0003674','GO:0005575') "
+				+ " group by pgot.namespace ";
+
+		return sqlQuery;
 	}
 
 	public void calculateGOBackground() {
-		getOrganism(PROCESS_TAXONIDS);
 		if (osw instanceof ObjectStoreWriterInterMineImpl) {
 			Database db = ((ObjectStoreWriterInterMineImpl) osw).getDatabase();
 			Connection con;
+
 			try {
 				con = db.getConnection();
-				con.setAutoCommit(false);
+				// con.setAutoCommit(false);
 
-				String sqlQuery = "select pgot.identifier, count(distinct(g.id)) "
-						+ " from gene as g " + " join goannotation as goa on goa.subjectid = g.id "
-						+ " join evidencegoannotation as egoa on egoa.goannotation = goa.id "
-						+ " join goevidence as goe on goe.id = egoa.evidence "
-						+ " join goevidencecode as goec on goec.id = goe.codeid "
-						+ " join goterm as got on got.id = goa.ontologytermid "
-						+ " join ontologytermparents as otp on otp.ontologyterm = got.id"
-						+ " join goterm as pgot on pgot.id = otp.parents "
-						+ " join organism as org on org.id = g.organismid "
-						+ " where org.taxonId = '10090' " + " and goa.qualifier is null "
-						+ " and goec.code <> 'IEA' " + " group by pgot.identifier ";
-
+				// maybe we can reuse the statement?
 				Statement statement = con.createStatement();
-				ResultSet resultSet = statement.executeQuery(sqlQuery);
 
-				int i = 1;
-				while (resultSet.next()) {
-					String id = resultSet.getString("identifier");
-					int count = resultSet.getInt("count");
-//					LOG.info(String.format("(%d) %s --> %d", i, id, count));
-					i++;
+				// these name spaces could be got by a SQL query
+				List<String> nameSpaces = Arrays.asList("biological_process", "molecular_function",
+						"cellular_component");
+
+				osw.beginTransaction();
+
+				for (Integer taxonId : PROCESS_TAXONIDS) {
+					// String sqlQuery = "select pgot.identifier, count(distinct(g.id)) "
+					// + " from gene as g "
+					// + " join goannotation as goa on goa.subjectid = g.id "
+					// + " join evidencegoannotation as egoa on egoa.goannotation = goa.id "
+					// + " join goevidence as goe on goe.id = egoa.evidence "
+					// + " join goevidencecode as goec on goec.id = goe.codeid "
+					// + " join goterm as got on got.id = goa.ontologytermid "
+					// + " join ontologytermparents as otp on otp.ontologyterm = got.id"
+					// + " join goterm as pgot on pgot.id = otp.parents "
+					// + " join organism as org on org.id = g.organismid "
+					// + " where org.taxonId = '" + taxonId + "' "
+					// + " and goa.qualifier is null " + " and goec.code <> 'IEA' "
+					// + " group by pgot.identifier ";
+
+					for (String nameSpace : nameSpaces) {
+
+						String[] chars = nameSpace.split("_");
+						String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+								+ chars[1].substring(0, 1).toUpperCase();
+
+						ResultSet resultSet = statement.executeQuery(getSqlQueryForGOTerm(taxonId,
+								nameSpace, false));
+						// int i = 1;
+						while (resultSet.next()) {
+							String id = resultSet.getString("identifier");
+							int count = resultSet.getInt("count");
+							// LOG.info(String.format("(%d) %s --> %d", i, id, count));
+
+							// InterMineObject item = (InterMineObject) DynamicUtil
+							// .simpleCreateObject(model
+							// .getClassDescriptorByName("Statistics").getType());
+							// item.setFieldValue("identifier", id);
+							// // TODO define a proper tag here
+							// item.setFieldValue("tag", ns + "_wo_IEA");
+							// item.setFieldValue("number", Integer.valueOf(count));
+							// item.setFieldValue("organism", organismMap.get(taxonId));
+
+							osw.store(createStatisticsItem(id, ns + "_wo_IEA", count, taxonId));
+
+							// i++;
+
+						}
+						// calculate N
+						// ResultSet resultN = statement.executeQuery(getSqlQueryForGOClass(taxonId,
+						// nameSpace, false));
+						// resultN.next();
+						// int count = resultN.getInt("count");
+						// osw.store(createStatisticsItem("GOAnnotation N", ns + "_wo_IEA", count,
+						// taxonId));
+						// System.out.println(String.format("(%d) %s - %s: %d", taxonId,
+						// "GOAnnotation class", ns + "_w_IEA", count));
+
+						// calculate Test number
+						// ResultSet resultTn = statement.executeQuery(getSqlQueryForGOTestNumber(
+						// taxonId, nameSpace, false));
+						// resultTn.next();
+						// int testNumber = resultTn.getInt("count");
+						// osw.store(createStatisticsItem("GOAnnotation test number", ns +
+						// "_wo_IEA",
+						// testNumber, taxonId));
+					}
+
+					// do same calculation for IEA
+					for (String nameSpace : nameSpaces) {
+
+						String[] chars = nameSpace.split("_");
+						String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+								+ chars[1].substring(0, 1).toUpperCase();
+
+						ResultSet resultSet = statement.executeQuery(getSqlQueryForGOTerm(taxonId,
+								nameSpace, true));
+						while (resultSet.next()) {
+							String id = resultSet.getString("identifier");
+							int count = resultSet.getInt("count");
+
+							// InterMineObject item = (InterMineObject) DynamicUtil
+							// .simpleCreateObject(model
+							// .getClassDescriptorByName("Statistics").getType());
+							// item.setFieldValue("identifier", id);
+							// item.setFieldValue("tag", ns + "_w_IEA");
+							// item.setFieldValue("number", Integer.valueOf(count));
+							// item.setFieldValue("organism", organismMap.get(taxonId));
+
+							osw.store(createStatisticsItem(id, ns + "_w_IEA", count, taxonId));
+						}
+						// calculate N
+						// ResultSet resultN = statement.executeQuery(getSqlQueryForGOClass(taxonId,
+						// nameSpace, true));
+						// resultN.next();
+						// int count = resultN.getInt("count");
+						// osw.store(createStatisticsItem("GOAnnotation N", ns + "_w_IEA", count,
+						// taxonId));
+						// System.out.println(String.format("(%d) %s - %s: %d", taxonId,
+						// "GOAnnotation class", ns + "_w_IEA", count));
+
+						// calculate Test number
+						// ResultSet resultTn = statement.executeQuery(getSqlQueryForGOTestNumber(
+						// taxonId, nameSpace, true));
+						// resultTn.next();
+						// int testNumber = resultTn.getInt("count");
+						// osw.store(createStatisticsItem("GOAnnotation test number", ns + "_w_IEA",
+						// testNumber, taxonId));
+					}
+
+					// calculate N
+					ResultSet resultN = statement
+							.executeQuery(getSqlQueryForGOClass(taxonId, false));
+					while (resultN.next()) {
+						int testNumber = resultN.getInt("count");
+						String namespace = resultN.getString("namespace");
+						if (StringUtils.isEmpty(namespace)) {
+							continue;
+						}
+						String[] chars = namespace.split("_");
+						String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+								+ chars[1].substring(0, 1).toUpperCase();
+						osw.store(createStatisticsItem("GOAnnotation N", ns + "_wo_IEA",
+								testNumber, taxonId));
+					}
+					resultN = statement.executeQuery(getSqlQueryForGOClass(taxonId, true));
+					while (resultN.next()) {
+						int testNumber = resultN.getInt("count");
+						String namespace = resultN.getString("namespace");
+						if (StringUtils.isEmpty(namespace)) {
+							continue;
+						}
+						String[] chars = namespace.split("_");
+						String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+								+ chars[1].substring(0, 1).toUpperCase();
+						osw.store(createStatisticsItem("GOAnnotation N", ns + "_w_IEA", testNumber,
+								taxonId));
+					}
+
+					// calculate Test number
+					ResultSet resultTn = statement.executeQuery(getSqlQueryForGOTestNumber(taxonId,
+							false));
+					while (resultTn.next()) {
+						int testNumber = resultTn.getInt("count");
+						String[] chars = resultTn.getString("namespace").split("_");
+						String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+								+ chars[1].substring(0, 1).toUpperCase();
+						osw.store(createStatisticsItem("GOAnnotation test number", ns + "_wo_IEA",
+								testNumber, taxonId));
+					}
+					resultTn = statement.executeQuery(getSqlQueryForGOTestNumber(taxonId, true));
+					while (resultTn.next()) {
+						int testNumber = resultTn.getInt("count");
+						String nameSpace = resultTn.getString("namespace");
+						String[] chars = nameSpace.split("_");
+						String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+								+ chars[1].substring(0, 1).toUpperCase();
+						osw.store(createStatisticsItem("GOAnnotation test number", ns + "_w_IEA",
+								testNumber, taxonId));
+					}
+
 				}
 
 				statement.close();
-
 				con.close();
+
+				// osw.abortTransaction();
+				osw.commitTransaction();
+
 			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ObjectStoreException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -108,6 +378,154 @@ public class CalculateBioThemeBackground {
 			throw new RuntimeException("the ObjectStoreWriter is not an "
 					+ "ObjectStoreWriterInterMineImpl");
 		}
+	}
+
+	// private void processGoBackground(Integer taxonId, ResultSet result) throws SQLException,
+	// ObjectStoreException {
+	// while (result.next()) {
+	// int testNumber = result.getInt("count");
+	// String namespace = result.getString("namespace");
+	// if (StringUtils.isEmpty(namespace)) {
+	// continue;
+	// }
+	// String[] chars = namespace.split("_");
+	// String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+	// + chars[1].substring(0, 1).toUpperCase();
+	// osw.store(createStatisticsItem("GOAnnotation N", ns + "_wo_IEA", testNumber,
+	// taxonId));
+	// }
+	// }
+
+	public void calculatePathwayBackground() {
+		if (osw instanceof ObjectStoreWriterInterMineImpl) {
+			Database db = ((ObjectStoreWriterInterMineImpl) osw).getDatabase();
+			Connection con;
+
+			try {
+				con = db.getConnection();
+
+				Statement statement = con.createStatement();
+
+				// these data set names could be got by a SQL query
+				List<String> dataSets = Arrays.asList("KEGG Pathway", "Reactome",
+						"NCI Pathway Interaction Database");
+
+				osw.beginTransaction();
+
+				for (Integer taxonId : PROCESS_TAXONIDS) {
+
+					for (String dataSetName : dataSets) {
+
+						ResultSet resultSet = statement.executeQuery(getSqlQueryForPathwayTerm(
+								taxonId, dataSetName));
+						int i = 1;
+						LOG.info(dataSetName + " (" + taxonId + "):");
+						while (resultSet.next()) {
+							String id = resultSet.getString("identifier");
+							int count = resultSet.getInt("count");
+							// LOG.info(String.format("(%d) %s --> %d", i, id, count));
+							osw.store(createStatisticsItem(id, dataSetName, count, taxonId));
+							i++;
+						}
+
+						// calculate N
+						ResultSet resultN = statement.executeQuery(getSqlQueryForPathwayClass(
+								taxonId, dataSetName));
+						resultN.next();
+						int count = resultN.getInt("count");
+						osw.store(createStatisticsItem("Pathway N", dataSetName, count, taxonId));
+						// System.out.println(String.format("(%d) %s - %s: %d", taxonId,
+						// "Pathway class", dataSetName, count));
+					}
+
+					ResultSet resultN = statement.executeQuery(getSqlQueryForPathwayClass(taxonId,
+							null));
+					resultN.next();
+					int count = resultN.getInt("count");
+					osw.store(createStatisticsItem("Pathway N", "All", count, taxonId));
+					// System.out.println(String.format("(%d) %s - %s: %d", taxonId,
+					// "Pathway class",
+					// "All", count));
+
+					ResultSet result = statement
+							.executeQuery(getSqlQueryForPathwayTestNumber(taxonId));
+					int total = 0;
+					while (result.next()) {
+						int testNumber = result.getInt("count");
+						String dataSetName = result.getString("name");
+						if (StringUtils.isEmpty(dataSetName)) {
+							continue;
+						}
+						osw.store(createStatisticsItem("Pathway test number", dataSetName, testNumber, taxonId));
+						total += testNumber;
+					}
+					osw.store(createStatisticsItem("Pathway test number", "All", total, taxonId));
+				}
+
+				statement.close();
+				con.close();
+
+				// osw.abortTransaction();
+				osw.commitTransaction();
+
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ObjectStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		} else {
+			throw new RuntimeException("the ObjectStoreWriter is not an "
+					+ "ObjectStoreWriterInterMineImpl");
+		}
+	}
+
+	private InterMineObject createStatisticsItem(String identifier, String tag, int count,
+			Integer taxonId) {
+		InterMineObject item = (InterMineObject) DynamicUtil.simpleCreateObject(model
+				.getClassDescriptorByName("Statistics").getType());
+		item.setFieldValue("identifier", identifier);
+		item.setFieldValue("tag", tag);
+		item.setFieldValue("number", Integer.valueOf(count));
+		item.setFieldValue("organism", organismMap.get(taxonId));
+
+		return item;
+	}
+
+	private String getSqlQueryForPathwayTerm(Integer taxonId, String dataSetName) {
+		String sqlQuery = "select p.identifier, count(g.id)" + " from genespathways as gp "
+				+ " join pathway as p on p.id=gp.pathways " + " join gene as g on g.id=genes "
+				+ " join datasetspathway as dsp on dsp.pathway = p.id "
+				+ " join dataset as ds on ds.id = dsp.datasets "
+				+ " join organism as org on org.id = g.organismid " + " where org.taxonId = "
+				+ taxonId + " " + " and ds.name = '" + dataSetName + "'"
+				+ " group by p.identifier ";
+
+		return sqlQuery;
+	}
+
+	private String getSqlQueryForPathwayClass(Integer taxonId, String dataSetName) {
+		String sql = " select count(distinct(g.id)) " + " from genespathways as gp "
+				+ " join pathway as p on p.id=gp.pathways " + " join gene as g on g.id=genes "
+				+ " join datasetspathway as dsp on dsp.pathway = p.id "
+				+ " join dataset as ds on ds.id = dsp.datasets "
+				+ " join organism as org on org.id = g.organismid " + " where org.taxonId = "
+				+ taxonId + " ";
+		if (dataSetName != null) {
+			sql += " and ds.name like '" + dataSetName + "'";
+		}
+		return sql;
+	}
+
+	private String getSqlQueryForPathwayTestNumber(Integer taxonId) {
+		String sql = " select count(p.id), ds.name " + " from pathway as p "
+				+ " join datasetspathway as dsp on dsp.pathway = p.id "
+				+ " join dataset as ds on ds.id = dsp.datasets "
+				+ " join organism as org on org.id = p.organismid " + " where org.taxonId = "
+				+ taxonId + " " + " group by ds.name ";
+		return sql;
 	}
 
 	public void calculateGOBackgroundOld() {
@@ -215,10 +633,6 @@ public class CalculateBioThemeBackground {
 		System.out.println(String.format("Number of GO Terms (%s): %d", taxonId, allGoIds.size()));
 
 		return allGoIds;
-	}
-
-	public void calculatePathwayBackground() {
-
 	}
 
 	private Results queryAllGoTerms() {
@@ -450,7 +864,7 @@ public class CalculateBioThemeBackground {
 		Query q = new Query();
 		QueryClass qcOrganism = new QueryClass(Organism.class);
 		QueryField qfTaxonId = new QueryField(qcOrganism, "taxonId");
-		
+
 		q.addFrom(qcOrganism);
 		q.addToSelect(qcOrganism);
 
@@ -464,8 +878,8 @@ public class CalculateBioThemeBackground {
 			ResultsRow<?> result = (ResultsRow<?>) iterator.next();
 			Organism organism = (Organism) result.get(0);
 			organismMap.put(organism.getTaxonId(), organism);
-			System.out.println(String.format("%s (%d) ID: %d", organism.getShortName(),
-					organism.getTaxonId(), organism.getId()));
+			// System.out.println(String.format("%s (%d) ID: %d", organism.getShortName(),
+			// organism.getTaxonId(), organism.getId()));
 		}
 
 	}

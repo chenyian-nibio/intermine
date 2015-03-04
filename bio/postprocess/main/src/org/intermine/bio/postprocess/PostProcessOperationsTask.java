@@ -295,6 +295,7 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
             } else if ("calculate-biotheme-background".equals(operation)) {
             	CalculateBioThemeBackground cbtb = new CalculateBioThemeBackground(getObjectStoreWriter());
             	cbtb.calculateGOBackground();
+            	cbtb.calculatePathwayBackground();;
             } else if ("ppi-druggability".equals(operation)) {
             	PpiDruggability ppid = new PpiDruggability(getObjectStoreWriter());
 //            	configureDynamicAttributes(ppid);

@@ -306,6 +306,7 @@
       <post-process name="associate-gene-to-cluster"/>
       <post-process name="network-analysis"/>
       <post-process name="ppi-druggability"/>
+      <post-process name="calculate-biotheme-background"/>
       <post-process name="create-references"/>
       <post-process name="summarise-objectstore"/>
       <post-process name="create-attribute-indexes"/>
