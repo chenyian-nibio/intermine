@@ -115,20 +115,13 @@
       <property name="kegg.organisms" value="9606 10090 10116"	/>
     </source>
 
-<!-- chenyian: start for external version -->    
-<!-- chenyian: disabled for external version 
--->
+<!-- chenyian: for internal only | start -->    
     <source name="omim" type="omim-gene">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/omim"/>
       <property name="src.data.dir.includes" value="omim_phenotype_title"/>
       <property name="mim2geneFile" value="/data/bio/db/Targetmine/omim/mim2gene_medgen" />
     </source>
-    <source name="omim-info" type="dataset-info">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/omim" />
-      <property name="src.data.dir.includes" value="version_info.txt" />
-    </source>
-
-<!-- chenyian: end for external version -->
+<!-- chenyian: for internal only | end -->    
 
     <source name="wwpdb" type="wwpdb">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/wwpdb/" />
@@ -229,10 +222,14 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/mirtarbase" />
       <property name="src.data.dir.includes" value="*_MTI.v3.txt" />
     </source>
+
+<!-- chenyian: for internal only | start -->    
   	<source name="drpias" type="drpias">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/drpias" />
       <property name="src.data.dir.includes" value="drpias_druggability_scores_w_id.tsv" />
     </source>
+<!-- chenyian: for internal only | end -->    
+
     <source name="affy-probe" type="affy-probe-annot">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/affymetrix" />
       <property name="src.data.dir.includes" value="*.na34.annot.csv" />
@@ -253,7 +250,7 @@
     
     <source name="dataset-info" type="dataset-info">
       <property name="src.data.dir" location="/data/bio/db/Targetmine" />
-      <property name="src.data.dir.includes" value="*/*current_ver.txt" />
+      <property name="src.data.dir.includes" value="*/*current_ver*.txt" />
     </source>
 
     <source name="gene-pubmed" type="gene-pubmed">
