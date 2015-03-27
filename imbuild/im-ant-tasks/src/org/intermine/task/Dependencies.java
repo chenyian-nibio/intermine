@@ -1,7 +1,7 @@
 package org.intermine.task;
 
 /*
- * Copyright (C) 2002-2014 FlyMine
+ * Copyright (C) 2002-2015 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -169,6 +169,7 @@ public class Dependencies extends Task
 
         projectProperties = loadProjectProperties(getProject().getBaseDir());
 
+        // chenyian: (2015.3.23) some how a strange refactoring found here which will cause compile failed.
         extraProjectDependencies = projectProperties.getProperty(EXTRA_DEPS);
 
         List<String> extraProjectDepsList = new ArrayList<String>();
@@ -376,6 +377,7 @@ public class Dependencies extends Task
         getProject().addReference(artifactPathId + ".fileset", artifactFileSet);
         getProject().addReference(artifactPathId + ".fileset.text", artifactIncludes);
     }
+
 
     /**
      * Return the project name calculated from the path of this project.

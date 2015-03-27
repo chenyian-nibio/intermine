@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2014 FlyMine
+ * Copyright (C) 2002-2015 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -50,8 +50,8 @@ public class PasswordResetAction extends LoginHandler
      */
     public ActionForward execute(ActionMapping mapping,
                                  ActionForm form,
-            HttpServletRequest request,
-            @SuppressWarnings("unused") HttpServletResponse response) throws Exception {
+                                 HttpServletRequest request,
+                                 HttpServletResponse response) throws Exception {
         HttpSession session = request.getSession();
         final InterMineAPI im = SessionMethods.getInterMineAPI(session);
         ProfileManager pm = im.getProfileManager();

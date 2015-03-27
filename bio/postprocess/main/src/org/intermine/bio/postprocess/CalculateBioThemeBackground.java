@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.intermine.metadata.ConstraintOp;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.Organism;
@@ -21,7 +22,6 @@ import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
 import org.intermine.objectstore.intermine.ObjectStoreWriterInterMineImpl;
 import org.intermine.objectstore.query.BagConstraint;
-import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
 import org.intermine.objectstore.query.QueryField;
@@ -43,6 +43,8 @@ public class CalculateBioThemeBackground {
 
 	protected ObjectStoreWriter osw;
 
+	protected Connection connection;
+
 	private Model model;
 
 	private Map<Integer, InterMineObject> organismMap = new HashMap<Integer, InterMineObject>();
@@ -52,152 +54,136 @@ public class CalculateBioThemeBackground {
 		model = Model.getInstanceByName("genomic");
 
 		getOrganism(PROCESS_TAXONIDS);
-	}
 
-	public void calculateGOBackground() {
-		System.out.println("calculating GO Background...");
 		if (osw instanceof ObjectStoreWriterInterMineImpl) {
 			Database db = ((ObjectStoreWriterInterMineImpl) osw).getDatabase();
-			Connection con;
-
 			try {
-				con = db.getConnection();
-				// con.setAutoCommit(false);
-
-				// maybe we can reuse the statement?
-				Statement statement = con.createStatement();
-
-				// these name spaces could be got by a SQL query
-				List<String> nameSpaces = Arrays.asList("biological_process", "molecular_function",
-						"cellular_component");
-
-				osw.beginTransaction();
-
-				for (Integer taxonId : PROCESS_TAXONIDS) {
-
-					for (String nameSpace : nameSpaces) {
-
-						String[] chars = nameSpace.split("_");
-						String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
-								+ chars[1].substring(0, 1).toUpperCase();
-
-						ResultSet resultSet = statement.executeQuery(getSqlQueryForGOTerm(taxonId,
-								nameSpace, false));
-						while (resultSet.next()) {
-							String id = resultSet.getString("identifier");
-							int count = resultSet.getInt("count");
-							// LOG.info(String.format("(%d) %s --> %d", i, id, count));
-
-							osw.store(createStatisticsItem(id, ns + "_wo_IEA", count, taxonId));
-
-						}
-					}
-
-					// do the same calculation for IEA
-					for (String nameSpace : nameSpaces) {
-
-						String[] chars = nameSpace.split("_");
-						String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
-								+ chars[1].substring(0, 1).toUpperCase();
-
-						ResultSet resultSet = statement.executeQuery(getSqlQueryForGOTerm(taxonId,
-								nameSpace, true));
-						while (resultSet.next()) {
-							String id = resultSet.getString("identifier");
-							int count = resultSet.getInt("count");
-
-							osw.store(createStatisticsItem(id, ns + "_w_IEA", count, taxonId));
-						}
-					}
-
-					// calculate N
-					ResultSet resultN = statement
-							.executeQuery(getSqlQueryForGOClass(taxonId, false));
-					while (resultN.next()) {
-						int testNumber = resultN.getInt("count");
-						String namespace = resultN.getString("namespace");
-						if (StringUtils.isEmpty(namespace)) {
-							continue;
-						}
-						String[] chars = namespace.split("_");
-						String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
-								+ chars[1].substring(0, 1).toUpperCase();
-						osw.store(createStatisticsItem("GOAnnotation N", ns + "_wo_IEA",
-								testNumber, taxonId));
-					}
-					resultN = statement.executeQuery(getSqlQueryForGOClass(taxonId, true));
-					while (resultN.next()) {
-						int testNumber = resultN.getInt("count");
-						String namespace = resultN.getString("namespace");
-						if (StringUtils.isEmpty(namespace)) {
-							continue;
-						}
-						String[] chars = namespace.split("_");
-						String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
-								+ chars[1].substring(0, 1).toUpperCase();
-						osw.store(createStatisticsItem("GOAnnotation N", ns + "_w_IEA", testNumber,
-								taxonId));
-					}
-
-					// calculate Test number
-					ResultSet resultTn = statement.executeQuery(getSqlQueryForGOTestNumber(taxonId,
-							false));
-					while (resultTn.next()) {
-						int testNumber = resultTn.getInt("count");
-						String[] chars = resultTn.getString("namespace").split("_");
-						String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
-								+ chars[1].substring(0, 1).toUpperCase();
-						osw.store(createStatisticsItem("GOAnnotation test number", ns + "_wo_IEA",
-								testNumber, taxonId));
-					}
-					resultTn = statement.executeQuery(getSqlQueryForGOTestNumber(taxonId, true));
-					while (resultTn.next()) {
-						int testNumber = resultTn.getInt("count");
-						String nameSpace = resultTn.getString("namespace");
-						String[] chars = nameSpace.split("_");
-						String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
-								+ chars[1].substring(0, 1).toUpperCase();
-						osw.store(createStatisticsItem("GOAnnotation test number", ns + "_w_IEA",
-								testNumber, taxonId));
-					}
-
-				}
-
-				statement.close();
-				con.close();
-
-				// osw.abortTransaction();
-				osw.commitTransaction();
-
+				connection = db.getConnection();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (ObjectStoreException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new RuntimeException("Unable to get a DB connection.");
 			}
-
 		} else {
 			throw new RuntimeException("the ObjectStoreWriter is not an "
 					+ "ObjectStoreWriterInterMineImpl");
 		}
 	}
 
-	// private void processGoBackground(Integer taxonId, ResultSet result) throws SQLException,
-	// ObjectStoreException {
-	// while (result.next()) {
-	// int testNumber = result.getInt("count");
-	// String namespace = result.getString("namespace");
-	// if (StringUtils.isEmpty(namespace)) {
-	// continue;
-	// }
-	// String[] chars = namespace.split("_");
-	// String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
-	// + chars[1].substring(0, 1).toUpperCase();
-	// osw.store(createStatisticsItem("GOAnnotation N", ns + "_wo_IEA", testNumber,
-	// taxonId));
-	// }
-	// }
+	public void calculateGOBackground() {
+		System.out.println("calculating GO Background...");
+		try {
+			// maybe we can reuse the statement?
+			Statement statement = connection.createStatement();
+
+			// these name spaces could be got by a SQL query
+			List<String> nameSpaces = Arrays.asList("biological_process", "molecular_function",
+					"cellular_component");
+
+			osw.beginTransaction();
+
+			for (Integer taxonId : PROCESS_TAXONIDS) {
+
+				for (String nameSpace : nameSpaces) {
+
+					String[] chars = nameSpace.split("_");
+					String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+							+ chars[1].substring(0, 1).toUpperCase();
+
+					ResultSet resultSet = statement.executeQuery(getSqlQueryForGOTerm(taxonId,
+							nameSpace, false));
+					while (resultSet.next()) {
+						String id = resultSet.getString("identifier");
+						int count = resultSet.getInt("count");
+						// LOG.info(String.format("(%d) %s --> %d", i, id, count));
+
+						osw.store(createStatisticsItem(id, ns + "_wo_IEA", count, taxonId));
+
+					}
+				}
+
+				// do the same calculation for IEA
+				for (String nameSpace : nameSpaces) {
+
+					String[] chars = nameSpace.split("_");
+					String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+							+ chars[1].substring(0, 1).toUpperCase();
+
+					ResultSet resultSet = statement.executeQuery(getSqlQueryForGOTerm(taxonId,
+							nameSpace, true));
+					while (resultSet.next()) {
+						String id = resultSet.getString("identifier");
+						int count = resultSet.getInt("count");
+
+						osw.store(createStatisticsItem(id, ns + "_w_IEA", count, taxonId));
+					}
+				}
+
+				// calculate N
+				ResultSet resultN = statement.executeQuery(getSqlQueryForGOClass(taxonId, false));
+				while (resultN.next()) {
+					int testNumber = resultN.getInt("count");
+					String namespace = resultN.getString("namespace");
+					if (StringUtils.isEmpty(namespace)) {
+						continue;
+					}
+					String[] chars = namespace.split("_");
+					String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+							+ chars[1].substring(0, 1).toUpperCase();
+					osw.store(createStatisticsItem("GOAnnotation N", ns + "_wo_IEA", testNumber,
+							taxonId));
+				}
+				resultN = statement.executeQuery(getSqlQueryForGOClass(taxonId, true));
+				while (resultN.next()) {
+					int testNumber = resultN.getInt("count");
+					String namespace = resultN.getString("namespace");
+					if (StringUtils.isEmpty(namespace)) {
+						continue;
+					}
+					String[] chars = namespace.split("_");
+					String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+							+ chars[1].substring(0, 1).toUpperCase();
+					osw.store(createStatisticsItem("GOAnnotation N", ns + "_w_IEA", testNumber,
+							taxonId));
+				}
+
+				// calculate Test number
+				ResultSet resultTn = statement.executeQuery(getSqlQueryForGOTestNumber(taxonId,
+						false));
+				while (resultTn.next()) {
+					int testNumber = resultTn.getInt("count");
+					String[] chars = resultTn.getString("namespace").split("_");
+					String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+							+ chars[1].substring(0, 1).toUpperCase();
+					osw.store(createStatisticsItem("GOAnnotation test number", ns + "_wo_IEA",
+							testNumber, taxonId));
+				}
+				resultTn = statement.executeQuery(getSqlQueryForGOTestNumber(taxonId, true));
+				while (resultTn.next()) {
+					int testNumber = resultTn.getInt("count");
+					String nameSpace = resultTn.getString("namespace");
+					String[] chars = nameSpace.split("_");
+					String ns = "GO" + chars[0].substring(0, 1).toUpperCase()
+							+ chars[1].substring(0, 1).toUpperCase();
+					osw.store(createStatisticsItem("GOAnnotation test number", ns + "_w_IEA",
+							testNumber, taxonId));
+				}
+
+			}
+
+			statement.close();
+
+			// osw.abortTransaction();
+			osw.commitTransaction();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ObjectStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
 
 	private String getSqlQueryForGOClass(Integer taxonId, boolean withIEA) {
 		String sql = " select count(distinct(g.id)), got.namespace " + " from gene as g "
@@ -255,86 +241,75 @@ public class CalculateBioThemeBackground {
 
 	public void calculatePathwayBackground() {
 		System.out.println("calculating Pathway Background...");
-		if (osw instanceof ObjectStoreWriterInterMineImpl) {
-			Database db = ((ObjectStoreWriterInterMineImpl) osw).getDatabase();
-			Connection con;
+		try {
+			Statement statement = connection.createStatement();
 
-			try {
-				con = db.getConnection();
+			// these data set names could be got by a SQL query
+			List<String> dataSets = Arrays.asList("KEGG Pathway", "Reactome",
+					"NCI Pathway Interaction Database");
 
-				Statement statement = con.createStatement();
+			osw.beginTransaction();
 
-				// these data set names could be got by a SQL query
-				List<String> dataSets = Arrays.asList("KEGG Pathway", "Reactome",
-						"NCI Pathway Interaction Database");
+			for (Integer taxonId : PROCESS_TAXONIDS) {
 
-				osw.beginTransaction();
+				for (String dataSetName : dataSets) {
 
-				for (Integer taxonId : PROCESS_TAXONIDS) {
-
-					for (String dataSetName : dataSets) {
-
-						ResultSet resultSet = statement.executeQuery(getSqlQueryForPathwayTerm(
-								taxonId, dataSetName));
-						LOG.info(dataSetName + " (" + taxonId + "):");
-						while (resultSet.next()) {
-							String id = resultSet.getString("identifier");
-							int count = resultSet.getInt("count");
-							osw.store(createStatisticsItem(id, dataSetName, count, taxonId));
-						}
-
-						// calculate N
-						ResultSet resultN = statement.executeQuery(getSqlQueryForPathwayClass(
-								taxonId, dataSetName));
-						resultN.next();
-						int count = resultN.getInt("count");
-						osw.store(createStatisticsItem("Pathway N", dataSetName, count, taxonId));
-						// System.out.println(String.format("(%d) %s - %s: %d", taxonId,
-						// "Pathway class", dataSetName, count));
+					ResultSet resultSet = statement.executeQuery(getSqlQueryForPathwayTerm(taxonId,
+							dataSetName));
+					LOG.info(dataSetName + " (" + taxonId + "):");
+					while (resultSet.next()) {
+						String id = resultSet.getString("identifier");
+						int count = resultSet.getInt("count");
+						osw.store(createStatisticsItem(id, dataSetName, count, taxonId));
 					}
 
+					// calculate N
 					ResultSet resultN = statement.executeQuery(getSqlQueryForPathwayClass(taxonId,
-							null));
+							dataSetName));
 					resultN.next();
 					int count = resultN.getInt("count");
-					osw.store(createStatisticsItem("Pathway N", "All", count, taxonId));
+					osw.store(createStatisticsItem("Pathway N", dataSetName, count, taxonId));
 					// System.out.println(String.format("(%d) %s - %s: %d", taxonId,
-					// "Pathway class",
-					// "All", count));
-
-					ResultSet result = statement
-							.executeQuery(getSqlQueryForPathwayTestNumber(taxonId));
-					int total = 0;
-					while (result.next()) {
-						int testNumber = result.getInt("count");
-						String dataSetName = result.getString("name");
-						if (StringUtils.isEmpty(dataSetName)) {
-							continue;
-						}
-						osw.store(createStatisticsItem("Pathway test number", dataSetName, testNumber, taxonId));
-						total += testNumber;
-					}
-					osw.store(createStatisticsItem("Pathway test number", "All", total, taxonId));
+					// "Pathway class", dataSetName, count));
 				}
 
-				statement.close();
-				con.close();
+				ResultSet resultN = statement
+						.executeQuery(getSqlQueryForPathwayClass(taxonId, null));
+				resultN.next();
+				int count = resultN.getInt("count");
+				osw.store(createStatisticsItem("Pathway N", "All", count, taxonId));
+				// System.out.println(String.format("(%d) %s - %s: %d", taxonId,
+				// "Pathway class",
+				// "All", count));
 
-				// osw.abortTransaction();
-				osw.commitTransaction();
-
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ObjectStoreException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				ResultSet result = statement.executeQuery(getSqlQueryForPathwayTestNumber(taxonId));
+				int total = 0;
+				while (result.next()) {
+					int testNumber = result.getInt("count");
+					String dataSetName = result.getString("name");
+					if (StringUtils.isEmpty(dataSetName)) {
+						continue;
+					}
+					osw.store(createStatisticsItem("Pathway test number", dataSetName, testNumber,
+							taxonId));
+					total += testNumber;
+				}
+				osw.store(createStatisticsItem("Pathway test number", "All", total, taxonId));
 			}
 
-		} else {
-			throw new RuntimeException("the ObjectStoreWriter is not an "
-					+ "ObjectStoreWriterInterMineImpl");
+			statement.close();
+
+			// osw.abortTransaction();
+			osw.commitTransaction();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ObjectStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+
 	}
 
 	private InterMineObject createStatisticsItem(String identifier, String tag, int count,
@@ -382,172 +357,153 @@ public class CalculateBioThemeBackground {
 				+ taxonId + " " + " group by ds.name ";
 		return sql;
 	}
-	
+
 	public void calculateGOSlimBackground() {
 		System.out.println("calculating GOSlim Background...");
-		if (osw instanceof ObjectStoreWriterInterMineImpl) {
-			Database db = ((ObjectStoreWriterInterMineImpl) osw).getDatabase();
-			Connection con;
+		try {
+			// maybe we can reuse the statement?
+			Statement statement = connection.createStatement();
 
-			try {
-				con = db.getConnection();
-				// con.setAutoCommit(false);
+			// these name spaces could be got by a SQL query
+			List<String> nameSpaces = Arrays.asList("biological_process", "molecular_function",
+					"cellular_component");
 
-				// maybe we can reuse the statement?
-				Statement statement = con.createStatement();
+			osw.beginTransaction();
 
-				// these name spaces could be got by a SQL query
-				List<String> nameSpaces = Arrays.asList("biological_process", "molecular_function",
-						"cellular_component");
+			for (Integer taxonId : PROCESS_TAXONIDS) {
 
-				osw.beginTransaction();
+				for (String nameSpace : nameSpaces) {
 
-				for (Integer taxonId : PROCESS_TAXONIDS) {
+					String[] chars = nameSpace.split("_");
+					String ns = "GOS" + chars[0].substring(0, 1).toUpperCase()
+							+ chars[1].substring(0, 1).toUpperCase();
 
-					for (String nameSpace : nameSpaces) {
+					ResultSet resultSet = statement.executeQuery(getSqlQueryForGOSlimTerm(taxonId,
+							nameSpace, false));
+					while (resultSet.next()) {
+						String id = resultSet.getString("identifier");
+						int count = resultSet.getInt("count");
+						// LOG.info(String.format("(%d) %s --> %d", i, id, count));
 
-						String[] chars = nameSpace.split("_");
-						String ns = "GOS" + chars[0].substring(0, 1).toUpperCase()
-								+ chars[1].substring(0, 1).toUpperCase();
+						osw.store(createStatisticsItem(id, ns + "_wo_IEA", count, taxonId));
 
-						ResultSet resultSet = statement.executeQuery(getSqlQueryForGOSlimTerm(taxonId,
-								nameSpace, false));
-						while (resultSet.next()) {
-							String id = resultSet.getString("identifier");
-							int count = resultSet.getInt("count");
-							// LOG.info(String.format("(%d) %s --> %d", i, id, count));
-
-							osw.store(createStatisticsItem(id, ns + "_wo_IEA", count, taxonId));
-
-						}
 					}
-
-					// do the same calculation for IEA
-					for (String nameSpace : nameSpaces) {
-
-						String[] chars = nameSpace.split("_");
-						String ns = "GOS" + chars[0].substring(0, 1).toUpperCase()
-								+ chars[1].substring(0, 1).toUpperCase();
-
-						ResultSet resultSet = statement.executeQuery(getSqlQueryForGOSlimTerm(taxonId,
-								nameSpace, true));
-						while (resultSet.next()) {
-							String id = resultSet.getString("identifier");
-							int count = resultSet.getInt("count");
-
-							osw.store(createStatisticsItem(id, ns + "_w_IEA", count, taxonId));
-						}
-					}
-
-					// calculate N
-					ResultSet resultN = statement
-							.executeQuery(getSqlQueryForGOSlimClass(taxonId, false));
-					while (resultN.next()) {
-						int testNumber = resultN.getInt("count");
-						String namespace = resultN.getString("namespace");
-						if (StringUtils.isEmpty(namespace)) {
-							continue;
-						}
-						String[] chars = namespace.split("_");
-						String ns = "GOS" + chars[0].substring(0, 1).toUpperCase()
-								+ chars[1].substring(0, 1).toUpperCase();
-						osw.store(createStatisticsItem("GOSlim N", ns + "_wo_IEA",
-								testNumber, taxonId));
-					}
-					resultN = statement.executeQuery(getSqlQueryForGOSlimClass(taxonId, true));
-					while (resultN.next()) {
-						int testNumber = resultN.getInt("count");
-						String namespace = resultN.getString("namespace");
-						if (StringUtils.isEmpty(namespace)) {
-							continue;
-						}
-						String[] chars = namespace.split("_");
-						String ns = "GOS" + chars[0].substring(0, 1).toUpperCase()
-								+ chars[1].substring(0, 1).toUpperCase();
-						osw.store(createStatisticsItem("GOSlim N", ns + "_w_IEA", testNumber,
-								taxonId));
-					}
-
-					// calculate Test number
-					ResultSet resultTn = statement.executeQuery(getSqlQueryForGOSlimTestNumber(taxonId,
-							false));
-					while (resultTn.next()) {
-						int testNumber = resultTn.getInt("count");
-						String[] chars = resultTn.getString("namespace").split("_");
-						String ns = "GOS" + chars[0].substring(0, 1).toUpperCase()
-								+ chars[1].substring(0, 1).toUpperCase();
-						osw.store(createStatisticsItem("GOSlim test number", ns + "_wo_IEA",
-								testNumber, taxonId));
-					}
-					resultTn = statement.executeQuery(getSqlQueryForGOSlimTestNumber(taxonId, true));
-					while (resultTn.next()) {
-						int testNumber = resultTn.getInt("count");
-						String nameSpace = resultTn.getString("namespace");
-						String[] chars = nameSpace.split("_");
-						String ns = "GOS" + chars[0].substring(0, 1).toUpperCase()
-								+ chars[1].substring(0, 1).toUpperCase();
-						osw.store(createStatisticsItem("GOSlim test number", ns + "_w_IEA",
-								testNumber, taxonId));
-					}
-
 				}
 
-				statement.close();
-				con.close();
+				// do the same calculation for IEA
+				for (String nameSpace : nameSpaces) {
 
-				// osw.abortTransaction();
-				osw.commitTransaction();
+					String[] chars = nameSpace.split("_");
+					String ns = "GOS" + chars[0].substring(0, 1).toUpperCase()
+							+ chars[1].substring(0, 1).toUpperCase();
 
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ObjectStoreException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+					ResultSet resultSet = statement.executeQuery(getSqlQueryForGOSlimTerm(taxonId,
+							nameSpace, true));
+					while (resultSet.next()) {
+						String id = resultSet.getString("identifier");
+						int count = resultSet.getInt("count");
+
+						osw.store(createStatisticsItem(id, ns + "_w_IEA", count, taxonId));
+					}
+				}
+
+				// calculate N
+				ResultSet resultN = statement
+						.executeQuery(getSqlQueryForGOSlimClass(taxonId, false));
+				while (resultN.next()) {
+					int testNumber = resultN.getInt("count");
+					String namespace = resultN.getString("namespace");
+					if (StringUtils.isEmpty(namespace)) {
+						continue;
+					}
+					String[] chars = namespace.split("_");
+					String ns = "GOS" + chars[0].substring(0, 1).toUpperCase()
+							+ chars[1].substring(0, 1).toUpperCase();
+					osw.store(createStatisticsItem("GOSlim N", ns + "_wo_IEA", testNumber, taxonId));
+				}
+				resultN = statement.executeQuery(getSqlQueryForGOSlimClass(taxonId, true));
+				while (resultN.next()) {
+					int testNumber = resultN.getInt("count");
+					String namespace = resultN.getString("namespace");
+					if (StringUtils.isEmpty(namespace)) {
+						continue;
+					}
+					String[] chars = namespace.split("_");
+					String ns = "GOS" + chars[0].substring(0, 1).toUpperCase()
+							+ chars[1].substring(0, 1).toUpperCase();
+					osw.store(createStatisticsItem("GOSlim N", ns + "_w_IEA", testNumber, taxonId));
+				}
+
+				// calculate Test number
+				ResultSet resultTn = statement.executeQuery(getSqlQueryForGOSlimTestNumber(taxonId,
+						false));
+				while (resultTn.next()) {
+					int testNumber = resultTn.getInt("count");
+					String[] chars = resultTn.getString("namespace").split("_");
+					String ns = "GOS" + chars[0].substring(0, 1).toUpperCase()
+							+ chars[1].substring(0, 1).toUpperCase();
+					osw.store(createStatisticsItem("GOSlim test number", ns + "_wo_IEA",
+							testNumber, taxonId));
+				}
+				resultTn = statement.executeQuery(getSqlQueryForGOSlimTestNumber(taxonId, true));
+				while (resultTn.next()) {
+					int testNumber = resultTn.getInt("count");
+					String nameSpace = resultTn.getString("namespace");
+					String[] chars = nameSpace.split("_");
+					String ns = "GOS" + chars[0].substring(0, 1).toUpperCase()
+							+ chars[1].substring(0, 1).toUpperCase();
+					osw.store(createStatisticsItem("GOSlim test number", ns + "_w_IEA", testNumber,
+							taxonId));
+				}
+
 			}
 
-		} else {
-			throw new RuntimeException("the ObjectStoreWriter is not an "
-					+ "ObjectStoreWriterInterMineImpl");
+			statement.close();
+
+			// osw.abortTransaction();
+			osw.commitTransaction();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ObjectStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+
 	}
 
 	private String getSqlQueryForGOSlimClass(Integer taxonId, boolean withIEA) {
-		String sql = " select count(distinct(g.id)), gost.namespace "
-				+ " from gene as g "
+		String sql = " select count(distinct(g.id)), gost.namespace " + " from gene as g "
 				+ " join goannotation as goa on goa.subjectid = g.id "
-				+ " join evidencegoannotation as egoa on egoa.goannotation = goa.id " 
+				+ " join evidencegoannotation as egoa on egoa.goannotation = goa.id "
 				+ " join goevidence as goe on goe.id = egoa.evidence "
 				+ " join goevidencecode as goec on goec.id = goe.codeid "
 				+ " join goannotationgoslimterms as gogos on gogos.goannotation = goa.id "
 				+ " join goslimterm as gost on gost.id = gogos.goslimterms "
-				+ " join organism as org on org.id = g.organismid "
-				+ " where org.taxonId = " + taxonId + " "
-				+ " and gost.identifier not in ('GO:0008150','GO:0003674','GO:0005575') " 
-				+ (withIEA ? "" : " and goec.code <> 'IEA' ")
-				+ " and goa.qualifier is null " 
+				+ " join organism as org on org.id = g.organismid " + " where org.taxonId = "
+				+ taxonId + " "
+				+ " and gost.identifier not in ('GO:0008150','GO:0003674','GO:0005575') "
+				+ (withIEA ? "" : " and goec.code <> 'IEA' ") + " and goa.qualifier is null "
 				+ " group by gost.namespace ";
 
 		return sql;
 	}
 
 	private String getSqlQueryForGOSlimTerm(Integer taxonId, String namespace, boolean withIEA) {
-		String sqlQuery = " select pgost.identifier, count(distinct(g.id)) " 
-				+ " from gene as g "
+		String sqlQuery = " select pgost.identifier, count(distinct(g.id)) " + " from gene as g "
 				+ " join goannotation as goa on goa.subjectid = g.id "
-				+ " join evidencegoannotation as egoa on egoa.goannotation = goa.id " 
+				+ " join evidencegoannotation as egoa on egoa.goannotation = goa.id "
 				+ " join goevidence as goe on goe.id = egoa.evidence "
 				+ " join goevidencecode as goec on goec.id = goe.codeid "
 				+ " join goannotationgoslimterms as gogos on gogos.goannotation = goa.id "
 				+ " join goslimterm as gost on gost.id = gogos.goslimterms "
 				+ " join ontologytermparents as otp on otp.ontologyterm = gost.id "
 				+ " join goslimterm as pgost on pgost.id = otp.parents "
-				+ " join organism as org on org.id = g.organismid "
-				+ " where org.taxonId = " + taxonId + " "
-				+ " and pgost.namespace = '" + namespace + "' " 
-				+ " and pgost.identifier not in ('GO:0008150','GO:0003674','GO:0005575') " 
-				+ " and goa.qualifier is null "
-				+ (withIEA ? "" : " and goec.code <> 'IEA' ")
+				+ " join organism as org on org.id = g.organismid " + " where org.taxonId = "
+				+ taxonId + " " + " and pgost.namespace = '" + namespace + "' "
+				+ " and pgost.identifier not in ('GO:0008150','GO:0003674','GO:0005575') "
+				+ " and goa.qualifier is null " + (withIEA ? "" : " and goec.code <> 'IEA' ")
 				+ " group by pgost.identifier ";
 
 		return sqlQuery;
@@ -557,28 +513,23 @@ public class CalculateBioThemeBackground {
 		String sqlQuery = " select count(distinct(pgost.id)), pgost.namespace "
 				+ " from goslimterm as gost "
 				+ " join ontologytermparents as otp on otp.ontologyterm = gost.id "
-				+ " join goslimterm as pgost on pgost.id = otp.parents "
-				+ " where gost.id in ( "
-				+ " select gost.id "
-				+ " from gene as g "
+				+ " join goslimterm as pgost on pgost.id = otp.parents " + " where gost.id in ( "
+				+ " select gost.id " + " from gene as g "
 				+ " join goannotation as goa on goa.subjectid = g.id "
-				+ " join evidencegoannotation as egoa on egoa.goannotation = goa.id " 
+				+ " join evidencegoannotation as egoa on egoa.goannotation = goa.id "
 				+ " join goevidence as goe on goe.id = egoa.evidence "
 				+ " join goevidencecode as goec on goec.id = goe.codeid "
 				+ " join goannotationgoslimterms as gogos on gogos.goannotation = goa.id "
 				+ " join goslimterm as gost on gost.id = gogos.goslimterms "
-				+ " join organism as org on org.id = g.organismid "
-				+ " where org.taxonId = " + taxonId + " "
-				+ " and goa.qualifier is null " 
+				+ " join organism as org on org.id = g.organismid " + " where org.taxonId = "
+				+ taxonId + " " + " and goa.qualifier is null "
 				+ (withIEA ? "" : " and goec.code <> 'IEA' ")
-				+ " ) and pgost.identifier not in ('GO:0008150','GO:0003674','GO:0005575') " 
+				+ " ) and pgost.identifier not in ('GO:0008150','GO:0003674','GO:0005575') "
 				+ " group by pgost.namespace ";
 
 		return sqlQuery;
 	}
 
-	
-	
 	/**
 	 * 
 	 * @param taxonIds
@@ -605,6 +556,15 @@ public class CalculateBioThemeBackground {
 			// organism.getTaxonId(), organism.getId()));
 		}
 
+	}
+
+	public void closeDbConnection() {
+		try {
+			connection.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Unable to close the DB connection.");
+		}
 	}
 
 }

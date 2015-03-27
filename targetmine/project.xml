@@ -33,7 +33,7 @@
       <property name="geneinfo.organisms" value="9606 10090 10116"/>
       <property name="unigene.organisms" value="Hs Rn Mm"/>
       <property name="chromosomeFile" value="/data/bio/db/Targetmine/genome/chromosome"/>
-      <property name="chromosomeAssembly" value="Reference GRCh38 Primary Assembly;Reference GRCm38.p2 C57BL/6J;Reference Rnor_5.0 Primary Assembly"/>
+      <property name="chromosomeAssembly" value="Reference GRCh38.p2 Primary Assembly;Reference GRCh38 Primary Assembly;Reference Rnor_5.0 Primary Assembly;Reference Rnor_6.0 Primary Assembly;Reference GRCm38 C57BL/6J;Reference GRCm38.p1 C57BL/6J;Reference GRCm38.p2 C57BL/6J;Reference GRCm38.p3 C57BL/6J"/>
       <property name="gene2unigeneFile" value="/data/bio/db/Targetmine/gene_info/gene2unigene"/>
       <property name="gene2accessionFile" value="/data/bio/db/Targetmine/gene_info/gene2accession"/>
       <property name="genehistoryFile" value="/data/bio/db/Targetmine/gene_info/gene_history"/>
@@ -299,7 +299,7 @@
   <post-processing>
       <post-process name="do-sources"/>
       <post-process name="transcribe-ncbiGeneId"/>
-      <post-process name="gene-set-clustering"/>
+      <post-process name="integrated-pathway-clustering"/>
       <post-process name="associate-gene-to-cluster"/>
       <post-process name="network-analysis"/>
       <post-process name="ppi-druggability"/>

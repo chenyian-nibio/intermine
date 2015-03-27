@@ -1,7 +1,7 @@
 package org.intermine.bio.web.displayer;
 
 /*
- * Copyright (C) 2002-2014 FlyMine
+ * Copyright (C) 2002-2015 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -96,8 +96,6 @@ public class GeneOntologyDisplayer extends ReportDisplayer
         // check whether GO annotation is loaded for this organism
         // if we can't work out organism just proceed with display
         String organismName = getOrganismName(reportObject);
-        
-        String type = reportObject.getType();
 
         if (organismName != null) {
             goLoadedForOrganism = isGoLoadedForOrganism(organismName, profile);
@@ -110,7 +108,7 @@ public class GeneOntologyDisplayer extends ReportDisplayer
             Model model = im.getModel();
             PathQueryExecutor executor = im.getPathQueryExecutor(profile);
 
-            InterMineObject object = (InterMineObject) reportObject.getObject();
+            InterMineObject object = reportObject.getObject();
             String primaryIdentifier = null;
             try {
                 primaryIdentifier = (String) object.getFieldValue("primaryIdentifier");
@@ -121,12 +119,7 @@ public class GeneOntologyDisplayer extends ReportDisplayer
                 return;
             }
 
-            PathQuery query;
-            if (type.equals("Protein")) {
-            	query = buildQueryForProtein(model, new Integer(reportObject.getId()));
-            } else {
-            	query = buildQuery(model, new Integer(reportObject.getId()));
-            }
+            PathQuery query = buildQuery(model, new Integer(reportObject.getId()));
             ExportResultsIterator result;
             try {
                 result = executor.execute(query);
@@ -158,7 +151,8 @@ public class GeneOntologyDisplayer extends ReportDisplayer
         }
     }
 
-    private void addToOntologyMap(Map<String, Map<OntologyTerm, Set<String>>> goTermsByOntology,
+    private static void addToOntologyMap(
+            Map<String, Map<OntologyTerm, Set<String>>> goTermsByOntology,
             String namespace, OntologyTerm term, String evidenceCode) {
         Map<OntologyTerm, Set<String>> termToEvidence = goTermsByOntology.get(namespace);
         if (termToEvidence == null) {
@@ -173,7 +167,7 @@ public class GeneOntologyDisplayer extends ReportDisplayer
         codes.add(evidenceCode);
     }
 
-    private PathQuery buildQuery(Model model, Integer geneId) {
+    private static PathQuery buildQuery(Model model, Integer geneId) {
         PathQuery q = new PathQuery(model);
         q.addViews("Gene.goAnnotation.ontologyTerm.parents.name",
                 "Gene.goAnnotation.ontologyTerm.name",
@@ -194,28 +188,7 @@ public class GeneOntologyDisplayer extends ReportDisplayer
         return q;
     }
 
-    private PathQuery buildQueryForProtein(Model model, Integer proteinId) {
-    	PathQuery q = new PathQuery(model);
-    	q.addViews("Protein.goAnnotation.ontologyTerm.parents.name",
-    			"Protein.goAnnotation.ontologyTerm.name",
-    			"Protein.goAnnotation.evidence.code.code");
-    	q.addOrderBy("Protein.goAnnotation.ontologyTerm.parents.name", OrderDirection.ASC);
-    	q.addOrderBy("Protein.goAnnotation.ontologyTerm.name", OrderDirection.ASC);
-    	
-    	// parents have to be main ontology
-    	q.addConstraint(Constraints.oneOfValues("Protein.goAnnotation.ontologyTerm.parents.name",
-    			ONTOLOGIES));
-    	
-    	// not a NOT relationship
-    	q.addConstraint(Constraints.isNull("Protein.goAnnotation.qualifier"));
-    	
-    	// gene from report page
-    	q.addConstraint(Constraints.eq("Protein.id", "" + proteinId));
-    	
-    	return q;
-    }
-
-    private String getOrganismName(ReportObject reportObject) {
+    private static String getOrganismName(ReportObject reportObject) {
         Organism organism = ((BioEntity) reportObject.getObject()).getOrganism();
         if (organism != null) {
             if (!StringUtils.isBlank(organism.getName())) {

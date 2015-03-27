@@ -11,18 +11,16 @@ import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.log4j.Logger;
 import org.intermine.bio.dataconversion.PpiViewConverter;
 import org.intermine.bio.util.Constants;
+import org.intermine.metadata.ConstraintOp;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.DataSet;
 import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.Protein;
-import org.intermine.model.bio.ProteinInteraction;
-import org.intermine.model.bio.ProteinInteractionSource;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
 import org.intermine.objectstore.intermine.ObjectStoreInterMineImpl;
-import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.ConstraintSet;
 import org.intermine.objectstore.query.ContainsConstraint;
 import org.intermine.objectstore.query.Query;
@@ -76,7 +74,7 @@ public class PpiViewPostprocess extends PostProcessor {
 			return;
 		}
 
-		Iterator<?> resIter = findProteinInteractions();
+		Iterator<?> resIter = findProteinInteractions(osw.getObjectStore());
 
 		System.out.println("Start iteration......");
 
@@ -104,7 +102,7 @@ public class PpiViewPostprocess extends PostProcessor {
 			try {
 				String thisGeneId = thisGene.getFieldValue("primaryIdentifier").toString();
 				String partGeneId = partGene.getFieldValue("primaryIdentifier").toString();
-				
+
 				if (thisGeneId == null || partGeneId == null) {
 					continue;
 				}
@@ -143,12 +141,12 @@ public class PpiViewPostprocess extends PostProcessor {
 				dataSets.add(dataSet);
 				detail.setFieldValue("dataSets", dataSets);
 				detail.setFieldValue("interaction", interaction);
-				
+
 				Set<InterMineObject> interactors = new HashSet<InterMineObject>();
 				interactors.add(thisGene);
 				interactors.add(partGene);
 				detail.setFieldValue("allInteractors", interactors);
-				
+
 				osw.store(detail);
 
 				interactions.add(interaction);
@@ -156,7 +154,6 @@ public class PpiViewPostprocess extends PostProcessor {
 				lastGene = thisGene;
 
 			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			count++;
@@ -176,15 +173,17 @@ public class PpiViewPostprocess extends PostProcessor {
 	 * Protein.
 	 * 
 	 */
-	private Iterator<?> findProteinInteractions() throws ObjectStoreException {
+	private Iterator<?> findProteinInteractions(ObjectStore os) throws ObjectStoreException {
 		Query q = new Query();
 
 		QueryClass qcGene = new QueryClass(Gene.class);
 		QueryClass qcInteractingGene = new QueryClass(Gene.class);
 		QueryClass qcProtein = new QueryClass(Protein.class);
 		QueryClass qcRepresentativePartner = new QueryClass(Protein.class);
-		QueryClass qcProteinInteraction = new QueryClass(ProteinInteraction.class);
-		QueryClass qcProteinInteractionSource = new QueryClass(ProteinInteractionSource.class);
+		QueryClass qcProteinInteraction = new QueryClass(os.getModel()
+				.getClassDescriptorByName("ProteinInteraction").getType());
+		QueryClass qcProteinInteractionSource = new QueryClass(os.getModel()
+				.getClassDescriptorByName("ProteinInteractionSource").getType());
 
 		q.addFrom(qcGene);
 		q.addFrom(qcProtein);
@@ -231,7 +230,6 @@ public class PpiViewPostprocess extends PostProcessor {
 
 		System.out.println("Query compiled.");
 
-		ObjectStore os = osw.getObjectStore();
 		((ObjectStoreInterMineImpl) os).precompute(q, Constants.PRECOMPUTE_CATEGORY);
 		Results results = os.execute(q, 5000, true, true, true);
 
