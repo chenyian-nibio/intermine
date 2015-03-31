@@ -814,7 +814,7 @@
                                  views="primaryIdentifier, symbol, organism.name,
                                        goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name"
                                  constraintsForView="goAnnotation.evidence.code.code != IEA"
-                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+                                 externalLink="/targetmine/portal.do?class=GOTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_goagos_enrichment"
                                  title="GOSlim Enrichment"
@@ -836,7 +836,7 @@
                                  views="primaryIdentifier, symbol, organism.name,
                                        goAnnotation.goSlimTerms.parents.identifier,goAnnotation.goSlimTerms.parents.name"
                                  constraintsForView="goAnnotation.evidence.code.code != IEA"
-                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+                                 externalLink="/targetmine/portal.do?class=GOSlimTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_do_enrichment"
                                  title="Disease Ontology Enrichment"
@@ -850,7 +850,7 @@
                                  typeClass="Gene"
                                  views="primaryIdentifier, symbol, organism.name, 
                                        doAnnotations.ontologyTerm.parents.identifier,doAnnotations.ontologyTerm.parents.name"
-                                 externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/"/>
+                                 externalLink="/targetmine/portal.do?class=DOTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="protein_pathway_enrichment"
                                  title="Pathway Enrichment"
@@ -887,7 +887,7 @@
                                  views="primaryAccession, name, organism.name,
                                        goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name" 
                                  constraintsForView="goAnnotation.evidence.code.code != IEA" 
-                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+                                 externalLink="/targetmine/portal.do?class=GOTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="protein_goagos_enrichment"
                                  title="GOSlim Enrichment"
@@ -909,7 +909,7 @@
                                  views="primaryAccession, name, organism.name,
                                        goAnnotation.goSlimTerms.parents.identifier,goAnnotation.goSlimTerms.parents.name"
                                  constraintsForView="goAnnotation.evidence.code.code != IEA"
-                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+                                 externalLink="/targetmine/portal.do?class=GOSlimTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="protein_do_enrichment"
                                  title="Disease Ontology Enrichment"
@@ -923,7 +923,7 @@
                                  typeClass="Protein"
                                  views="primaryAccession, name, organism.name,
                                        genes.doAnnotations.ontologyTerm.parents.identifier,genes.doAnnotations.ontologyTerm.parents.name"
-                                 externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/"/>
+                                 externalLink="/targetmine/portal.do?class=DOTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="protein_interpro_enrichment"
                                  title="InterPro domain Enrichment"
@@ -1036,6 +1036,20 @@
                                  typeClass="Pathway"
                                  views="identifier, name, dataSets.name, genes.proteins.primaryIdentifier, genes.proteins.name, genes.proteins.organism.name"
                                  externalLink="/targetmine/portal.do?class=Protein&amp;externalids="/>
+<!-- 
+      <enrichmentwidgetdisplayer id="tissue_probeset_enrichment"
+                                 title="Tissue Enrichment"
+                                 description="Tissues enriched for probe sets in this list"
+                                 label="Tissue"
+                                 startClass="ProbeSet"
+                                 startClassDisplay="probeSetId"
+                                 enrich="expressions.tissue.name"
+                                 enrichIdentifier="expressions.tissue.name"
+                                 constraints="expressions.value > 0.5" 
+                                 typeClass="ProbeSet" 
+                                 views="probeSetId, expressions.value, expressions.tissue.name, expressions.platform.identifier, expressions.platform.title" 
+                                 externalLink="/targetmine/portal.do?class=ProbeSet&amp;externalids="/>
+ -->
 
 <!-- To be tested 
       <enrichmentwidgetdisplayer id="compound_protein_enrichment"
