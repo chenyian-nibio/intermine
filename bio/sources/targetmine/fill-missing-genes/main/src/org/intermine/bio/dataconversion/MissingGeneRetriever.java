@@ -40,7 +40,7 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class MissingGeneRetriever {
 	protected static final Logger LOG = Logger.getLogger(MissingGeneRetriever.class);
-	protected static final String ESUMMARY_URL = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=";
+	protected static final String ESUMMARY_URL = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?tool=flymine&version=1.0&db=gene&id=";
 	// number of summaries to retrieve per request
 	protected static final int BATCH_SIZE = 200;
 
@@ -104,6 +104,7 @@ public class MissingGeneRetriever {
 
 			List<Gene> genes = getGenes(os);
 
+			System.out.println("There are " + genes.size() + " gene(s) without proper information.");
 			LOG.info("There are " + genes.size() + " gene(s) without proper information.");
 			System.out.println("There are " + genes.size() + " gene(s) without proper information.");
 
