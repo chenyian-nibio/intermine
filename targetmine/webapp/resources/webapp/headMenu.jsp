@@ -42,7 +42,7 @@
     <!-- chenyian: temporary alert-->
     <c:if test="${pageContext.request.localName == 'targetmine.nibio.go.jp'}">
 	    <div style="border: 1px solid #9ADF8F; background: #D5FFCE url(images/icons/success.png) no-repeat 12px 4px; float: left; padding: 5px; font-weight: bold; width: 100%; margin-bottom: 5px; border-radius: 4px;">
-	    	<span style="color: green;">NOTICE:</span> TargetMine has changed the domain name. Please access by using http://targetmine.mizuguchilab.org .
+	    	<span style="color: green;">NOTICE:</span> TargetMine has changed its URL. Please bookmark <a href="http://targetmine.mizuguchilab.org">http://targetmine.mizuguchilab.org</a> .
 	    </div>
     </c:if>
   </div>
