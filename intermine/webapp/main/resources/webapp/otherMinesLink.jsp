@@ -5,7 +5,7 @@
 <%@ taglib uri="/WEB-INF/functions.tld" prefix="imf" %>
 
 <!-- This section is rendered with Ajax to improve responsiveness -->
-<c:if test="${!empty mines && imf:hasValidPath(object, 'organism.shortName', INTERMINE_API)}">
+<c:if test="${!empty mines && imf:hasValidPath(object, 'organism.shortName', INTERMINE_API) && imf:hasValidPath(object, 'primaryIdentifier', INTERMINE_API)}">
 <script type="text/javascript" charset="utf-8" src="js/other-mines-links.js"></script>
 <h3 class="goog"><fmt:message key="othermines.title"/></h3>
 <div id="friendlyMines">
