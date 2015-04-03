@@ -130,7 +130,7 @@
   <class className="org.intermine.model.bio.Organism">
     <headerconfig>
       <titles>
-        <title mainTitles="name"/>
+        <title mainTitles="name" subTitles="taxonId"/>
       </titles>
     </headerconfig>
     <fields>
@@ -157,7 +157,7 @@
   <class className="org.intermine.model.bio.Publication">
     <headerconfig>
       <titles>
-        <title mainTitles="title" />
+        <title mainTitles="title" subTitles="year"/>
       </titles>
     </headerconfig>
     <inlinelist>
@@ -245,7 +245,7 @@
   <class className="org.intermine.model.bio.Compound">
     <headerconfig>
         <titles>
-            <title mainTitles="identifier|name" />
+            <title mainTitles="name" subTitles="identifier"/>
         </titles>
     </headerconfig>
     <inlinelist>
@@ -297,7 +297,7 @@
   <class className="org.intermine.model.bio.Pathway">
     <headerconfig>
         <titles>
-            <title mainTitles="identifier|name" />
+            <title mainTitles="identifier|name" subTitles="organism.name"/>
         </titles>
     </headerconfig>
     <fields>
@@ -329,7 +329,7 @@
   <class className="org.intermine.model.bio.Disease">
     <headerconfig>
         <titles>
-            <title mainTitles="omimId|title" />
+            <title mainTitles="title" subTitles="omimId" />
         </titles>
     </headerconfig>
     <fields>
@@ -463,7 +463,7 @@
   <class className="org.intermine.model.bio.DrugCompound">
     <headerconfig>
         <titles>
-            <title mainTitles="identifier|name" />
+            <title mainTitles="name" subTitles="identifier" />
         </titles>
     </headerconfig>
     <fields>
