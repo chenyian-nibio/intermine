@@ -27,8 +27,10 @@ import org.intermine.api.results.ResultElement;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.BioEntity;
+import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.OntologyTerm;
 import org.intermine.model.bio.Organism;
+import org.intermine.model.bio.Protein;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.pathquery.Constraints;
 import org.intermine.pathquery.OrderDirection;
@@ -119,7 +121,16 @@ public class GeneOntologyDisplayer extends ReportDisplayer
                 return;
             }
 
-            PathQuery query = buildQuery(model, new Integer(reportObject.getId()));
+            // chenyian: distinguish the object type
+            PathQuery query;
+            if (object instanceof Gene) {
+                query = buildQuery(model, "Gene", new Integer(reportObject.getId()));
+            } else if (object instanceof Protein) {
+            	query = buildQuery(model, "Protein", new Integer(reportObject.getId()));
+            } else {
+            	throw new RuntimeException("Unexpected type: " + object.getClass().getName());
+            }
+
             ExportResultsIterator result;
             try {
                 result = executor.execute(query);
@@ -167,25 +178,47 @@ public class GeneOntologyDisplayer extends ReportDisplayer
         codes.add(evidenceCode);
     }
 
-    private static PathQuery buildQuery(Model model, Integer geneId) {
-        PathQuery q = new PathQuery(model);
-        q.addViews("Gene.goAnnotation.ontologyTerm.parents.name",
-                "Gene.goAnnotation.ontologyTerm.name",
-                "Gene.goAnnotation.evidence.code.code");
-        q.addOrderBy("Gene.goAnnotation.ontologyTerm.parents.name", OrderDirection.ASC);
-        q.addOrderBy("Gene.goAnnotation.ontologyTerm.name", OrderDirection.ASC);
+//    private static PathQuery buildQuery(Model model, Integer geneId) {
+//        PathQuery q = new PathQuery(model);
+//        q.addViews("Gene.goAnnotation.ontologyTerm.parents.name",
+//                "Gene.goAnnotation.ontologyTerm.name",
+//                "Gene.goAnnotation.evidence.code.code");
+//        q.addOrderBy("Gene.goAnnotation.ontologyTerm.parents.name", OrderDirection.ASC);
+//        q.addOrderBy("Gene.goAnnotation.ontologyTerm.name", OrderDirection.ASC);
+//
+//        // parents have to be main ontology
+//        q.addConstraint(Constraints.oneOfValues("Gene.goAnnotation.ontologyTerm.parents.name",
+//                ONTOLOGIES));
+//
+//        // not a NOT relationship
+//        q.addConstraint(Constraints.isNull("Gene.goAnnotation.qualifier"));
+//
+//        // gene from report page
+//        q.addConstraint(Constraints.eq("Gene.id", "" + geneId));
+//
+//        return q;
+//    }
 
-        // parents have to be main ontology
-        q.addConstraint(Constraints.oneOfValues("Gene.goAnnotation.ontologyTerm.parents.name",
-                ONTOLOGIES));
-
-        // not a NOT relationship
-        q.addConstraint(Constraints.isNull("Gene.goAnnotation.qualifier"));
-
-        // gene from report page
-        q.addConstraint(Constraints.eq("Gene.id", "" + geneId));
-
-        return q;
+    // chenyian: extend to protein type also
+    private static PathQuery buildQuery(Model model, String classType, Integer itemId) {
+    	PathQuery q = new PathQuery(model);
+    	q.addViews(classType + ".goAnnotation.ontologyTerm.parents.name",
+    			classType + ".goAnnotation.ontologyTerm.name",
+    			classType + ".goAnnotation.evidence.code.code");
+    	q.addOrderBy(classType + ".goAnnotation.ontologyTerm.parents.name", OrderDirection.ASC);
+    	q.addOrderBy(classType + ".goAnnotation.ontologyTerm.name", OrderDirection.ASC);
+    	
+    	// parents have to be main ontology
+    	q.addConstraint(Constraints.oneOfValues(classType + ".goAnnotation.ontologyTerm.parents.name",
+    			ONTOLOGIES));
+    	
+    	// not a NOT relationship
+    	q.addConstraint(Constraints.isNull(classType + ".goAnnotation.qualifier"));
+    	
+    	// gene from report page
+    	q.addConstraint(Constraints.eq(classType + ".id", "" + itemId));
+    	
+    	return q;
     }
 
     private static String getOrganismName(ReportObject reportObject) {
