@@ -2,7 +2,12 @@
 
 <classes>
     <class name="Interaction" is-interface="true">
-        <attribute name="confidence" type="java.lang.String" />
+        <collection name="confidences" referenced-type="InteractionConfidence" reverse-reference="interaction" />
+    </class>
+    <class name="InteractionConfidence" is-interface="true">
+        <attribute name="type" type="java.lang.String" />
+        <reference name="interaction" referenced-type="Interaction" reverse-reference="confidences" />
+        <reference name="dataSet" referenced-type="DataSet"/>
     </class>
     <class name="NetworkProperty" is-interface="true">
         <attribute name="isBottleneck" type="java.lang.Boolean" />

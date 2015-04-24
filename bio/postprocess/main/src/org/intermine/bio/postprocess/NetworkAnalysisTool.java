@@ -76,6 +76,24 @@ public class NetworkAnalysisTool {
 	}
 
 	public void doAnalysis() {
+		// create datasource & dataset
+		InterMineObject dataSource = (InterMineObject) DynamicUtil.simpleCreateObject(model
+				.getClassDescriptorByName("DataSource").getType());
+		dataSource.setFieldValue("name", "TargetMine");
+		// dataSource.setFieldValue("url","http://targetmine.mizuguchilab.org");
+		InterMineObject dataSet = (InterMineObject) DynamicUtil.simpleCreateObject(model
+				.getClassDescriptorByName("DataSet").getType());
+		dataSet.setFieldValue("name", "TargetMine");
+		dataSet.setFieldValue("dataSource", dataSource);
+		dataSet.setFieldValue("description", "TargetMine interactome analysis");
+		// dataSet.setFieldValue("url","http://targetmine.mizuguchilab.org");
+		try {
+			osw.store(dataSource);
+			osw.store(dataSet);
+		} catch (ObjectStoreException e) {
+			e.printStackTrace();
+		}
+
 		int i = 0;
 		long[] currentTime = new long[100];
 		currentTime[i] = System.currentTimeMillis();
@@ -138,26 +156,30 @@ public class NetworkAnalysisTool {
 					Gene gene2 = (Gene) rr.get(2);
 					String gene1Id = gene1.getPrimaryIdentifier();
 					String gene2Id = gene2.getPrimaryIdentifier();
+					InterMineObject item = (InterMineObject) DynamicUtil.simpleCreateObject(model
+							.getClassDescriptorByName("InteractionConfidence").getType());
 					if (hcdpPairs.contains(gene1Id + "-" + gene2Id)
 							|| hcdpPairs.contains(gene2Id + "-" + gene1Id)) {
-						interaction.setFieldValue("confidence", "HCDP");
+						item.setFieldValue("type", "HCDP");
 						x++;
 					} else if (hcPairs.contains(gene1Id + "-" + gene2Id)
 							|| hcPairs.contains(gene2Id + "-" + gene1Id)) {
-						interaction.setFieldValue("confidence", "HC");
+						item.setFieldValue("type", "HC");
 						y++;
-					} else {
-						interaction.setFieldValue("confidence", "NA");
-						z++;
+						// } else {
+						// item.setFieldValue("type", "NA");
+						// z++;
 					}
-					osw.store(interaction);
+					item.setFieldValue("interaction", interaction);
+					item.setFieldValue("dataSet", dataSet);
+					osw.store(item);
 				}
 				System.out.println("There are " + x + " interactions tag with HCDP. (" + taxonId
 						+ ").");
 				System.out.println("There are " + y + " interactions tag with HC. (" + taxonId
 						+ ").");
-				System.out.println("There are " + z + " interactions tag with NA. (" + taxonId
-						+ ").");
+				// System.out.println("There are " + z + " interactions tag with NA. (" + taxonId
+				// + ").");
 				osw.commitTransaction();
 
 				// For tracing
@@ -249,30 +271,31 @@ public class NetworkAnalysisTool {
 			}
 		}
 		// process untagged interaction (cross species interactions)
-		try {
-			osw.beginTransaction();
-			Results untaggedInteraction = queryUntaggedInteraction();
-			System.out.println("Process " + untaggedInteraction.size() + " untagged interactions.");
-			Iterator<Object> utiIter = untaggedInteraction.iterator();
-			while (utiIter.hasNext()) {
-				ResultsRow<?> rr = (ResultsRow<?>) utiIter.next();
-				Interaction interaction = (Interaction) rr.get(0);
-				interaction.setFieldValue("confidence", "NA");
-				osw.store(interaction);
-			}
-
-			osw.commitTransaction();
-
-			// For tracing
-			currentTime[i] = System.currentTimeMillis();
-			System.out
-					.println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
-			i++;
-
-		} catch (ObjectStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// chenyian: null is fine
+		// try {
+		// osw.beginTransaction();
+		// Results untaggedInteraction = queryUntaggedInteraction();
+		// System.out.println("Process " + untaggedInteraction.size() + " untagged interactions.");
+		// Iterator<Object> utiIter = untaggedInteraction.iterator();
+		// while (utiIter.hasNext()) {
+		// ResultsRow<?> rr = (ResultsRow<?>) utiIter.next();
+		// Interaction interaction = (Interaction) rr.get(0);
+		// interaction.setFieldValue("confidence", "NA");
+		// osw.store(interaction);
+		// }
+		//
+		// osw.commitTransaction();
+		//
+		// // For tracing
+		// currentTime[i] = System.currentTimeMillis();
+		// System.out
+		// .println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
+		// i++;
+		//
+		// } catch (ObjectStoreException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
 
 	}
 

@@ -1,0 +1,4 @@
+<project name="ccsb-tasks" default="default" basedir=".">
+  <description>build ccsb tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

@@ -198,15 +198,28 @@
       <property name="source.db.name" value="chembl-psql"/>
     </source>
 
+<!-- 
+    <source name="efo" type="efo">
+      <property name="src.data.file" location="/data/bio/db/Targetmine/efo/efo.obo"/>
+    </source>  
+-->
     <source name="gwas" type="gwas">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gwas/nhgri" />
       <property name="src.data.dir.includes" value="gwascatalog.*.txt" />
       <property name="diseaseMapFile" value="/data/bio/db/Targetmine/gwas/nhgri/diseaseMap.150206.txt" />
+<!-- 
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/gwas/nhgri-ebi" />
+      <property name="src.data.dir.includes" value="alternative" />
+ -->
     </source>
 
     <source name="irefindex" type="irefindex">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/irefindex"/>
       <property name="src.data.dir.includes" value="*.mitab.*.txt"/>
+    </source>
+    <source name="ccsb" type="ccsb">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/interactome/ccsb"/>
+      <property name="src.data.dir.includes" value="HI-II-14.tsv"/>
     </source>
 
     <source name="mirbase" type="mirbase">

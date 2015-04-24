@@ -1,0 +1,5 @@
+<project name="ccsb" default="default" basedir=".">
+  <description>build, test, package ccsb</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>
