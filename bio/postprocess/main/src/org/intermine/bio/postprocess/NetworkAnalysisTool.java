@@ -166,9 +166,8 @@ public class NetworkAnalysisTool {
 							|| hcPairs.contains(gene2Id + "-" + gene1Id)) {
 						item.setFieldValue("type", "HC");
 						y++;
-						// } else {
-						// item.setFieldValue("type", "NA");
-						// z++;
+					} else {
+						continue;
 					}
 					item.setFieldValue("interaction", interaction);
 					item.setFieldValue("dataSet", dataSet);

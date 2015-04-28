@@ -537,9 +537,14 @@
 
   <class className="org.intermine.model.bio.Interaction">
     <fields>
-      <fieldconfig fieldExpr="confidence"/>
       <fieldconfig fieldExpr="gene1.symbol"/>
       <fieldconfig fieldExpr="gene2.symbol"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.InteractionConfidence">
+    <fields>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="dataSet.name"/>
     </fields>
   </class>
   <class className="org.intermine.model.bio.MiRNAInteraction">
