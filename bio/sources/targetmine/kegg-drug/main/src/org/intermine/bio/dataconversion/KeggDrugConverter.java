@@ -7,13 +7,23 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
+import org.intermine.model.InterMineObject;
+import org.intermine.model.bio.Protein;
+import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
+import org.intermine.objectstore.ObjectStoreFactory;
+import org.intermine.objectstore.query.Query;
+import org.intermine.objectstore.query.QueryClass;
+import org.intermine.objectstore.query.Results;
+import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
@@ -55,6 +65,7 @@ public class KeggDrugConverter extends BioFileConverter {
 	 */
 	public void process(Reader reader) throws Exception {
 		readInchikeyFile();
+		getDrugBankIdMap();
 
 		BufferedReader in = null;
 		try {
@@ -76,33 +87,63 @@ public class KeggDrugConverter extends BioFileConverter {
 					casNumber = line.substring(line.indexOf(":") + 2);
 				} else if (line.startsWith("///")) {
 //					LOG.info(String.format("%s; %s; %s; %s", keggDrugId,name,atcCodes,casNumber));
-					Item drugItem = createItem("DrugCompound");
-					drugItem.setAttribute("keggDrugId", keggDrugId);
-					drugItem.setAttribute("name", name);
-					drugItem.setAttribute("genericName", name);
-//					drugItem.setAttribute("drugBankId", drugBankId);
-					drugItem.setAttribute("identifier", String.format("KEGG: %s", keggDrugId));
-					drugItem.setAttribute("originalId", keggDrugId);
-					
-					if (!atcCodes.equals("")) {
-						for (String atcCode : atcCodes.split(" ")) {
-							drugItem.addToCollection("atcCodes", getAtcClassification(atcCode, name));
+					Set<String> drugBankIds = drugBankIdMap.get(keggDrugId);
+					if (drugBankIds != null) {
+						for (String drugBankId : drugBankIds) {
+							Item drugItem = createItem("DrugCompound");
+							drugItem.setAttribute("name", name);
+							drugItem.setAttribute("genericName", name);
+							drugItem.setAttribute("drugBankId", drugBankId);
+							
+							if (!atcCodes.equals("")) {
+								for (String atcCode : atcCodes.split(" ")) {
+									drugItem.addToCollection("atcCodes", getAtcClassification(atcCode, name));
+								}
+							}
+							
+							if (!casNumber.equals("")) {
+								drugItem.setAttribute("casRegistryNumber", casNumber);
+							}
+							
+							String inchiKey = inchikeyMap.get(keggDrugId);
+							if (inchiKey != null) {
+								drugItem.setAttribute("inchiKey", inchiKey);
+								drugItem.setReference(
+										"compoundGroup",
+										getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
+							}
+							
+							store(drugItem);
 						}
+						
+					} else {
+						Item drugItem = createItem("DrugCompound");
+						drugItem.setAttribute("keggDrugId", keggDrugId);
+						drugItem.setAttribute("name", name);
+						drugItem.setAttribute("genericName", name);
+						drugItem.setAttribute("identifier", String.format("KEGG DRUG: %s", keggDrugId));
+						drugItem.setAttribute("originalId", keggDrugId);
+						
+						if (!atcCodes.equals("")) {
+							for (String atcCode : atcCodes.split(" ")) {
+								drugItem.addToCollection("atcCodes", getAtcClassification(atcCode, name));
+							}
+						}
+						
+						if (!casNumber.equals("")) {
+							drugItem.setAttribute("casRegistryNumber", casNumber);
+						}
+						
+						String inchiKey = inchikeyMap.get(keggDrugId);
+						if (inchiKey != null) {
+							drugItem.setAttribute("inchiKey", inchiKey);
+							drugItem.setReference(
+									"compoundGroup",
+									getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
+						}
+						
+						store(drugItem);
 					}
-					
-					if (!casNumber.equals("")) {
-						drugItem.setAttribute("casRegistryNumber", casNumber);
-					}
-					
-					String inchiKey = inchikeyMap.get(keggDrugId);
-					if (inchiKey != null) {
-						drugItem.setAttribute("inchiKey", inchiKey);
-						drugItem.setReference(
-								"compoundGroup",
-								getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
-					}
-					
-					store(drugItem);
 					
 					// clear current entry
 					keggDrugId = "";
@@ -187,11 +228,46 @@ public class KeggDrugConverter extends BioFileConverter {
 		return ret;
 	}
 
-//	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
-//		Item syn = createItem("CompoundSynonym");
-//		syn.setAttribute("value", value);
-//		syn.setReference("subject", subject);
-//		store(syn);
-//	}
+	private String osAlias = null;
+
+	public void setOsAlias(String osAlias) {
+		this.osAlias = osAlias;
+	}
+
+	private Map<String, Set<String>> drugBankIdMap;
+
+	@SuppressWarnings("unchecked")
+	private void getDrugBankIdMap() throws Exception {
+		drugBankIdMap = new HashMap<String, Set<String>>();
+
+		ObjectStore os = ObjectStoreFactory.getObjectStore(osAlias);
+
+		Query q = new Query();
+		QueryClass qcDrugCompound = new QueryClass(os.getModel()
+				.getClassDescriptorByName("DrugCompound").getType());
+
+
+		q.addFrom(qcDrugCompound);
+
+		q.addToSelect(qcDrugCompound);
+
+		Results results = os.execute(q);
+		Iterator<Object> iterator = results.iterator();
+		while (iterator.hasNext()) {
+			ResultsRow<InterMineObject> rr = (ResultsRow<InterMineObject>) iterator.next();
+			InterMineObject p = rr.get(0);
+
+			String drugBankId = (String) p.getFieldValue("drugBankId");
+			String keggDrugId = (String) p.getFieldValue("keggDrugId");
+			
+			if (drugBankId != null && keggDrugId != null) {
+				if (drugBankIdMap.get(keggDrugId) == null) {
+					drugBankIdMap.put(keggDrugId, new HashSet<String>());
+				}
+				drugBankIdMap.get(keggDrugId).add(drugBankId);
+			}
+
+		}
+	}
 
 }
