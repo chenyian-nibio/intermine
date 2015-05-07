@@ -140,7 +140,7 @@ public class CytoscapeNetworkDBQueryRunner
     	
     	q.addView("Gene.interactions.gene2.id");
     	q.addConstraint(Constraints.inIds("Gene", startingGeneSet), "A");
-    	q.addConstraint(Constraints.eq("Gene.interactions.confidence", "HCDP"), "B");
+    	q.addConstraint(Constraints.eq("Gene.interactions.confidences.type", "HCDP"), "B");
     	q.setConstraintLogic("A and B");
     	
     	ExportResultsIterator results = executor.execute(q);
@@ -226,7 +226,7 @@ public class CytoscapeNetworkDBQueryRunner
     	
     	q.addConstraint(Constraints.inIds("Gene", keys), "B");
     	q.addConstraint(Constraints.inIds("Gene.interactions.gene2", keys), "A");
-    	q.addConstraint(Constraints.eq("Gene.interactions.confidence", "HCDP"), "C");
+    	q.addConstraint(Constraints.eq("Gene.interactions.confidences.type", "HCDP"), "C");
     	q.setConstraintLogic("A and B and C");
     	
     	ExportResultsIterator results = executor.execute(q);
