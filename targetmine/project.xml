@@ -146,16 +146,6 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/htridb" />
       <property name="src.data.dir.includes" value="HTRIdb_data.csv" />
     </source>
-    <source name="enzyme" type="enzyme">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/enzyme" />
-      <property name="src.data.dir.includes" value="enzyme.dat" />
-      <property name="enzyme.organisms" value="HUMAN RAT MOUSE"/>
-    </source>
-    <source name="enzyme-pathway" type="enzyme-pathway">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/ec" />
-      <property name="src.data.dir.includes" value="ec.list" />
-      <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.list"/>
-    </source>
     <source name="drugebility" type="drugebility">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/drugebility" />
       <property name="src.data.dir.includes" value="domain_drugebility.txt" />
@@ -264,6 +254,17 @@
       <property name="src.data.dir.includes" value="precision-scores.txt" />
     </source>
     
+    <source name="enzyme" type="enzyme">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/enzyme" />
+      <property name="src.data.dir.includes" value="enzyme.dat" />
+      <property name="osAlias" value="os.production"/>
+    </source>
+    <source name="enzyme-pathway" type="enzyme-pathway">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/ec" />
+      <property name="src.data.dir.includes" value="ec.list" />
+      <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.list"/>
+    </source>
+
     <source name="dataset-info" type="dataset-info">
       <property name="src.data.dir" location="/data/bio/db/Targetmine" />
       <property name="src.data.dir.includes" value="*/*current_ver*.txt" />
