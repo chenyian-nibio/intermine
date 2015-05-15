@@ -17,6 +17,7 @@ productionLog
 autogen/
 src/chen/
 targetmine/webapp/resources/webapp/news/
+targetmine/webapp/resources/webapp/rss/
 targetmine/postprocess/*.json.txt
 
 # /intermine/objectstore/main/
