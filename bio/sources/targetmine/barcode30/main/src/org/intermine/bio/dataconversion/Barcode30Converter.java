@@ -81,6 +81,7 @@ public class Barcode30Converter extends BioFileConverter {
 					// new Expression
 					Item item = createItem("Expression");
 					item.setAttribute("value", cols[i]);
+					item.setAttribute("isExpressed", (Float.valueOf(cols[i]) >= 0.5 ?"true":"false"));
 					String tissueName = headers[i];
 					// TODO to be confirmed
 					// "centrocytes:centrocytes" should be save as "centrocytes"
@@ -110,14 +111,15 @@ public class Barcode30Converter extends BioFileConverter {
 		return ret;
 	}
 
-	private String getTissue(String tissueName) throws ObjectStoreException {
-		String ret = tissueMap.get(tissueName);
+	private String getTissue(String identifier) throws ObjectStoreException {
+		String ret = tissueMap.get(identifier);
 		if (ret == null) {
 			Item item = createItem("Tissue");
-			item.setAttribute("name", tissueName);
+			item.setAttribute("identifier", identifier);
+			item.setAttribute("name", identifier.replaceAll("_", " "));
 			store(item);
 			ret = item.getIdentifier();
-			tissueMap.put(tissueName, ret);
+			tissueMap.put(identifier, ret);
 		}
 		return ret;
 	}

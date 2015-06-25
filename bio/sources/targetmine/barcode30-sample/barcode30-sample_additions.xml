@@ -2,7 +2,7 @@
 
 <classes>
 	<class name="Tissue" is-interface="true">
-		<attribute name="name" type="java.lang.String"/>
+		<attribute name="identifier" type="java.lang.String"/>
 		<collection name="samples" referenced-type="MicroarraySample" reverse-reference="tissue"/>
 	</class>
 	<class name="MicroarrayPlatform" is-interface="true">

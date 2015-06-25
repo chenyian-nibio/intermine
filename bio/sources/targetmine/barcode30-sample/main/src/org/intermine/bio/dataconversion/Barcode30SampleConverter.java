@@ -94,7 +94,7 @@ public class Barcode30SampleConverter extends BioFileConverter
 		String ret = tissueMap.get(tissueName);
 		if (ret == null) {
 			Item item = createItem("Tissue");
-			item.setAttribute("name", tissueName);
+			item.setAttribute("identifier", tissueName);
 			store(item);
 			ret = item.getIdentifier();
 			tissueMap.put(tissueName, ret);

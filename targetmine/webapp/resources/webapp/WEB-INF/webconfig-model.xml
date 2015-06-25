@@ -303,6 +303,7 @@
     <fields>
       <fieldconfig fieldExpr="identifier" />
       <fieldconfig fieldExpr="name" />
+      <fieldconfig fieldExpr="organism.name" />
       <fieldconfig fieldExpr="mainClass" showInSummary="false"/>
       <fieldconfig fieldExpr="subClass" showInSummary="false"/>
     </fields>
@@ -661,7 +662,19 @@
     </inlinelist>
   </class>
 
+  <class className="org.intermine.model.bio.MicroarraySample">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="platform.identifier"/>
+      <fieldconfig fieldExpr="platform.title"/>
+    </fields>
+  </class>
+
   <class className="org.intermine.model.bio.Tissue">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="name"/>
+    </fields>
   </class>
   
 
@@ -759,11 +772,6 @@
                      jspName="model/probeSetExpressionDisplayer.jsp"
                      replacesFields="expressions" 
                      types="ProbeSet"/>
-
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.TissueSampleDisplayer"
-                     jspName="model/tissueSampleDisplayer.jsp"
-                     replacesFields="samples" 
-                     types="Tissue"/>
 
   </reportdisplayers>
 
@@ -1042,19 +1050,18 @@
                                  views="identifier, name, dataSets.name, genes.proteins.primaryIdentifier, genes.proteins.name, genes.proteins.organism.name"
                                  externalLink="/targetmine/portal.do?class=Protein&amp;externalids="/>
 <!-- 
-      <enrichmentwidgetdisplayer id="tissue_probeset_enrichment"
-                                 title="Tissue Enrichment"
-                                 description="Tissues enriched for probe sets in this list"
-                                 label="Tissue"
-                                 startClass="ProbeSet"
-                                 startClassDisplay="probeSetId"
-                                 enrich="expressions.tissue.name"
-                                 enrichIdentifier="expressions.tissue.name"
-                                 constraints="expressions.value > 0.5" 
-                                 typeClass="ProbeSet" 
-                                 views="probeSetId, expressions.value, expressions.tissue.name, expressions.platform.identifier, expressions.platform.title" 
-                                 externalLink="/targetmine/portal.do?class=ProbeSet&amp;externalids="/>
  -->
+      <enrichmentwidgetdisplayer id="gene_tissue_enrichment"
+                                 title="Tissue Enrichment"
+                                 description="Tissues enriched for genes in this list"
+                                 label="Tissue"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="probeSets.expressions.tissue.name"
+                                 enrichIdentifier="probeSets.expressions.tissue.identifier"
+                                 constraints="organism.name=[list], probeSets.expressions.isExpressed=true" 
+                                 typeClass="Gene" 
+                                 views="primaryIdentifier, symbol, organism.name, probeSets.expressions.tissue.name"/>
 
 <!-- To be tested 
       <enrichmentwidgetdisplayer id="compound_protein_enrichment"
