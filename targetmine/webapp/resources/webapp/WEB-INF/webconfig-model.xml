@@ -880,6 +880,19 @@
                                  views="primaryAccession, name, organism.name, genes.pathways.identifier, genes.pathways.name, genes.pathways.dataSets.name"
                                  externalLink="/targetmine/portal.do?class=Pathway&amp;externalids="/>
 
+      <enrichmentwidgetdisplayer id="protein_ipc_enrichment"
+                                 title="Integrated Pathway Cluster Enrichment"
+                                 description="Integrated Pathway Clusters(IPCs) enriched for proteins in this list"
+                                 label="IPCs"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="genes.integratedPathwayClusters.name"
+                                 enrichIdentifier="genes.integratedPathwayClusters.identifier"
+                                 constraints="organism.taxonId=[list]"
+                                 typeClass="Protein"
+                                 views="primaryAccession, name, organism.name, genes.integratedPathwayClusters.identifier, genes.integratedPathwayClusters.name" 
+                                 externalLink="/targetmine/portal.do?class=IntegratedPathwayCluster&amp;externalids="/>
+
       <enrichmentwidgetdisplayer id="protein_go_enrichment"
                                  title="Gene Ontology Enrichment"
                                  description="GO terms enriched for proteins in this list. (IEA annotations are excluded)"
