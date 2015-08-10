@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<classes>
+	<class name="Gene" is-interface="true">
+		<attribute name="primaryIdentifier" type="java.lang.String"/>
+		<collection name="reactions" referenced-type="Reaction" reverse-reference="gene1"/>
+	</class>
+
+	<class name="Reaction" is-interface="true">
+    	<attribute name="type" type="java.lang.String"/>
+		<reference name="gene1" referenced-type="Gene" reverse-reference="reactions" />
+		<reference name="gene2" referenced-type="Gene" />
+		<!-- reference to the source pathway? -->
+		<collection name="pathways" referenced-type="Pathway" />
+	</class>
+
+</classes>

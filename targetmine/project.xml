@@ -117,6 +117,11 @@
       <property name="kegg.organisms" value="9606 10090 10116"	/>
     </source>
 
+    <source name="kegg-reaction" type="kegg-reaction">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kgml"/>
+      <property name="src.data.dir.includes" value="*/*/*.xml"/>
+    </source>
+
 <!-- chenyian: for internal only | start -->    
     <source name="omim" type="omim-gene">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/omim"/>
