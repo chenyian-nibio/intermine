@@ -427,7 +427,7 @@ public class IntegratedPathwayClustering {
 					nodeIdMap.put(pid, nid);
 				}
 				String db = "N";
-				if (pid.startsWith("REACT_")) {
+				if (pid.startsWith("R-")) {
 					db = "R";
 				} else if (pid.startsWith(speciesCode)) {
 					db = "K";

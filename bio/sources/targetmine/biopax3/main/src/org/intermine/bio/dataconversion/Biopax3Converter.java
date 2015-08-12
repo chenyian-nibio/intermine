@@ -176,7 +176,7 @@ public class Biopax3Converter extends BioFileConverter {
 	private String getReactomeId(Pathway pathway) {
 		String ret = null;
 		for (Xref xref : pathway.getXref()) {
-			if (xref instanceof UnificationXref && xref.getId().startsWith("REACT_")) {
+			if (xref instanceof UnificationXref && xref.getDb().equals("Reactome")) {
 				ret = xref.getId();
 			}
 		}
