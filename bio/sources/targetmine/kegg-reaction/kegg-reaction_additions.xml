@@ -7,10 +7,14 @@
 	</class>
 
 	<class name="Reaction" is-interface="true">
-    	<attribute name="type" type="java.lang.String"/>
+    	<attribute name="name" type="java.lang.String"/>
 		<reference name="gene1" referenced-type="Gene" reverse-reference="reactions" />
 		<reference name="gene2" referenced-type="Gene" />
-		<!-- reference to the source pathway? -->
+    	<collection name="types" referenced-type="ReactionType" reverse-reference="reaction"/>
+	</class>
+	<class name="ReactionType" is-interface="true">
+    	<attribute name="name" type="java.lang.String"/>
+    	<reference name="reaction" referenced-type="Reaction" reverse-reference="types" />
 		<collection name="pathways" referenced-type="Pathway" />
 	</class>
 

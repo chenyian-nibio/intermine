@@ -308,6 +308,16 @@
       <fieldconfig fieldExpr="subClass" showInSummary="false"/>
     </fields>
   </class>
+  <class className="org.intermine.model.bio.Reaction">
+    <inlinelist>
+      <table path="types.name" showLinksToObjects="true" />
+    </inlinelist>
+    <fields>
+      <fieldconfig fieldExpr="name" />
+      <fieldconfig fieldExpr="gene1.symbol" />
+      <fieldconfig fieldExpr="gene2.symbol" />
+    </fields>
+  </class>
 <!-- chenyian
 -->
   <class className="org.intermine.model.bio.IntegratedPathwayCluster" >
@@ -772,6 +782,12 @@
                      jspName="model/probeSetExpressionDisplayer.jsp"
                      replacesFields="expressions" 
                      types="ProbeSet"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/geneReactionDisplayer.jsp"
+                     replacesFields="reactions" 
+                     placement="Interactions"
+                     types="Gene"/>
 
   </reportdisplayers>
 
