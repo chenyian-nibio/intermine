@@ -4,10 +4,8 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -31,8 +29,8 @@ public class KeggReactionConverter extends BioFileConverter {
 	private static final String DATA_SOURCE_NAME = "KEGG";
 
 	// private Set<String> foundReactions = new HashSet<String>();
-	private Map<String, Set<String>> reactionMap = new HashMap<String, Set<String>>();
-	private Map<String, Set<String>> reactionTypeMap = new HashMap<String, Set<String>>();
+	private Map<String, Item> reactionMap = new HashMap<String, Item>();
+	private Map<String, String> reactionTypeMap = new HashMap<String, String>();
 
 	/**
 	 * Constructor
@@ -92,15 +90,6 @@ public class KeggReactionConverter extends BioFileConverter {
 				}
 				names.add(name);
 			}
-			// System.out.println(String.format("%s, %s: %s", entryMap.get(entry1Id),
-			// entryMap.get(entry2Id), StringUtils.join(names, "|")));
-
-			// empty subtype, do nothing ...
-			// Collections.sort(names);
-			// String subtype = StringUtils.join(names, "|");
-			// if (StringUtils.isEmpty(subtype)) {
-			// continue;
-			// }
 			if (names.isEmpty()) {
 				continue;
 			}
@@ -117,25 +106,14 @@ public class KeggReactionConverter extends BioFileConverter {
 					if (!id2[0].equals(currentOrganismCode)) {
 						continue;
 					}
-					// prevent redundant reactions
-					// String key = String.format("%s-%s-%s-%s",id1[1], id2[1], subtype, pathwayId);
-					// if (!foundReactions.contains(key)) {
-					// createReaction(id1[1], id2[1], subtype, pathwayId);
-					// foundReactions.add(key);
-					// }
-					for (String subtype : names) {
-						String key = String.format("%s-%s", id1[1], id2[1]);
-						if (reactionMap.get(key) == null) {
-							reactionMap.put(key, new HashSet<String>());
-						}
-						reactionMap.get(key).add(subtype);
-
-						String keyType = String.format("%s-%s-%s", id1[1], id2[1], subtype);
-						if (reactionTypeMap.get(keyType) == null) {
-							reactionTypeMap.put(keyType, new HashSet<String>());
-						}
-						reactionTypeMap.get(keyType).add(pathwayId);
+					Collections.sort(names);
+					String key = String.format("%s-%s-%s", id1[1], id2[1],
+							StringUtils.join(names, "-"));
+					if (reactionMap.get(key) == null) {
+						reactionMap.put(key,
+								createReaction(id1[1], id2[1], names));
 					}
+					reactionMap.get(key).addToCollection("pathways", getPathway(pathwayId));
 				}
 			}
 		}
@@ -144,10 +122,7 @@ public class KeggReactionConverter extends BioFileConverter {
 
 	@Override
 	public void close() throws Exception {
-		for (String key : reactionMap.keySet()) {
-			String[] reaction = key.split("-");
-			createReaction(reaction[0], reaction[1], reactionMap.get(key));
-		}
+		store(reactionMap.values());
 	}
 
 	private Map<String, String> geneMap = new HashMap<String, String>();
@@ -177,28 +152,29 @@ public class KeggReactionConverter extends BioFileConverter {
 		return ret;
 	}
 
-	private void createReaction(String geneId1, String geneId2, Set<String> reactionTypes)
+	private Item createReaction(String geneId1, String geneId2, List<String> names)
 			throws ObjectStoreException {
 		Item item = createItem("Reaction");
 		item.setReference("gene1", getGene(geneId1));
 		item.setReference("gene2", getGene(geneId2));
 		item.setAttribute("name", String.format("%s->%s", geneId1, geneId2));
-		store(item);
-		for (String reactionType : reactionTypes) {
-			String keyType = String.format("%s-%s-%s", geneId1, geneId2, reactionType);
-			createReactionType(item.getIdentifier(), reactionType, reactionTypeMap.get(keyType));
+		item.setAttribute("text", StringUtils.join(names, ", "));
+		for (String reactionType : names) {
+			item.addToCollection("types", getReactionType(reactionType));
 		}
+		return item;
 	}
 
-	private void createReactionType(String reactionRefId, String reactionType, Set<String> pathwayIds)
-			throws ObjectStoreException {
-		Item item = createItem("ReactionType");
-		item.setAttribute("name", reactionType);
-		for (String pathwayId : pathwayIds) {
-			item.addToCollection("pathways", getPathway(pathwayId));
+	private String getReactionType(String name) throws ObjectStoreException {
+		String ret = reactionTypeMap.get(name);
+		if (ret == null) {
+			Item item = createItem("ReactionType");
+			item.setAttribute("name", name);
+			store(item);
+			ret = item.getIdentifier();
+			reactionTypeMap.put(name, ret);
 		}
-		item.setReference("reaction", reactionRefId);
-		store(item);
+		return ret;
 	}
 
 }
