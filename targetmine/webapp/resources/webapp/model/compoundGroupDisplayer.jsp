@@ -57,6 +57,7 @@
 			<th>Primary Accession</th>
 			<th>Name</th>
 			<th>Organism . Name</th>
+			<th>Data Sets</th>
 		</tr>
 		</thead>
 		<tbody>
@@ -66,6 +67,13 @@
 		    	<td><a href="report.do?id=${protein.id}">${protein.primaryAccession}</a></td>
 		    	<td>${protein.name}</td>
 		    	<td>${protein.organism.name}</td>
+		    	<td>
+		    		<c:forEach var="ds" items="${dataSets[protein.primaryIdentifier]}">
+		    			<span style="padding: 0 2px; color: white; background-color: ${colorMap[ds]}; font-weight: bold;" title="${nameMap[ds]}">
+		    				${ds}
+		    			</span>
+		    		</c:forEach>
+		    	</td>
 		    </tr>
 		</c:forEach>
 		</tbody>
