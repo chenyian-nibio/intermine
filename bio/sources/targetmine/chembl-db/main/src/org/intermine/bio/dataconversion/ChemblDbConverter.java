@@ -26,7 +26,6 @@ public class ChemblDbConverter extends BioDBConverter {
 	private static final String DATASET_TITLE = "ChEMBL";
 	private static final String DATA_SOURCE_NAME = "ChEMBL";
 
-	private Map<String, String> nameMap = new HashMap<String, String>();
 	private Map<String, Set<String>> drugMap = new HashMap<String, Set<String>>();
 	private Map<String, Set<String>> synonymMap = new HashMap<String, Set<String>>();
 
@@ -69,11 +68,6 @@ public class ChemblDbConverter extends BioDBConverter {
 		while (resName.next()) {
 			String molId = String.valueOf(resName.getInt("molregno"));
 			String name = resName.getString("compound_name");
-			String value = nameMap.get(molId);
-			// take the shortest name (no reason; arbitrary)
-			if (value == null || value.length() > name.length()) {
-				nameMap.put(molId, name);
-			}
 			// also save these names as synonyms
 			if (synonymMap.get(molId) == null) {
 				synonymMap.put(molId, new HashSet<String>());
@@ -105,7 +99,7 @@ public class ChemblDbConverter extends BioDBConverter {
 			synonymMap.get(molId).add(synonym);
 		}
 
-		String queryInteraction = " select distinct md.molregno, md.chembl_id, md.molecule_type, "
+		String queryInteraction = " select distinct md.molregno, md.pref_name , md.chembl_id, md.molecule_type, "
 				+ " act.standard_type, act.standard_value, cseq.accession, cseq.tax_id, docs.pubmed_id, "
 				+ " cs.standard_inchi_key, ass.chembl_id as assay_id, ass.description " + " from activities as act "
 				+ " join molecule_dictionary as md on md.molregno=act.molregno "
@@ -134,6 +128,11 @@ public class ChemblDbConverter extends BioDBConverter {
 			String assayId = resInteraction.getString("assay_id");
 			String assayDesc = resInteraction.getString("description");
 
+			String name = String.valueOf(resInteraction.getString("pref_name"));
+			if (name == null || name.equals("null")) {
+				name = chemblId;
+			}
+
 			String intId = uniprotId + "-" + chemblId;
 			String interactionRef = interactionMap.get(intId);
 			if (interactionRef == null) {
@@ -151,10 +150,6 @@ public class ChemblDbConverter extends BioDBConverter {
 					// assign inchikey as synonym
 //					setSynonyms(compound, inchiKey);
 
-					String name = nameMap.get(molId);
-					if (name == null) {
-						name = chemblId;
-					}
 					// if the length of the name is greater than 40 characters,
 					// use id instead and save the long name as the synonym
 					if (name.length() > 40) {
