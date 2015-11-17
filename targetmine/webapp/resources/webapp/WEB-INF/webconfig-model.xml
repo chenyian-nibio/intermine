@@ -492,6 +492,24 @@
     </inlinelist>
   </class>
 
+  <class className="org.intermine.model.bio.DrugMetabolism">
+    <fields>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="gene.primaryIdentifier"/>
+      <fieldconfig fieldExpr="gene.symbol"/>
+      <fieldconfig fieldExpr="gene.organism.name"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.DrugInteraction">
+    <fields>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="gene.primaryIdentifier"/>
+      <fieldconfig fieldExpr="gene.symbol"/>
+      <fieldconfig fieldExpr="gene.organism.name"/>
+    </fields>
+  </class>
+
   <class className="org.intermine.model.bio.GeneRIF">
     <fields>
       <fieldconfig fieldExpr="phrase"/>

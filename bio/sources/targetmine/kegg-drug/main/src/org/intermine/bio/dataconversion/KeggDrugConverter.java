@@ -6,17 +6,18 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
-import org.intermine.model.bio.Protein;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreFactory;
@@ -75,7 +76,24 @@ public class KeggDrugConverter extends BioFileConverter {
 			String name = "";
 			String atcCodes = "";
 			String casNumber = "";
+			Map<String, Set<String>> metabolisms = new HashMap<String, Set<String>>();
+			Map<String, Set<String>> interactions = new HashMap<String, Set<String>>();
+			
+			boolean isMetabolism = false;
+			boolean isInteraction = false;
+			
 			while ((line = in.readLine()) != null) {
+				if (line.startsWith("METABOLISM")) {
+					isMetabolism = true;
+					isInteraction = false;
+				} else if (line.startsWith("INTERACTION")) {
+					isInteraction = true;
+					isMetabolism = false;
+				} else if (!line.startsWith(" ")) {
+					isInteraction = false;
+					isMetabolism = false;
+				}
+				
 				if (line.startsWith("ENTRY")) {
 					String[] split = line.split("\\s+");
 					keggDrugId = split[1];
@@ -85,6 +103,65 @@ public class KeggDrugConverter extends BioFileConverter {
 					atcCodes = line.substring(line.indexOf(":") + 2);
 				} else if (line.contains("CAS:")) {
 					casNumber = line.substring(line.indexOf(":") + 2);
+				} else if (isMetabolism) {
+					String content = line.substring(12).trim();
+					if (!StringUtils.isEmpty(content)) {
+						String[] entries;
+						Set<String> geneIds = new HashSet<String>();
+						String type = "Undefined";
+						if (content.contains(": ")) {
+							String[] split = content.split(":\\s", 2);
+							entries = split[1].split(",\\s");
+							type = split[0];
+						} else {
+							entries = content.split(",\\s");
+						}
+						for (String entry : entries) {
+							// suppose they are all human genes thus formatted like [HSA:xxx xxx]
+							int startPos = entry.indexOf("A:");
+							if (startPos != -1) {
+								String substring = entry.substring(startPos+2, entry.length()-1);
+								if (substring.contains(" ")) {
+									geneIds.addAll(Arrays.asList(substring.split("\\s")));
+								} else {
+									geneIds.add(substring);
+								}
+							}
+						}
+						if (!geneIds.isEmpty()) {
+							metabolisms.put(type, geneIds);
+						}
+					}
+				} else if (isInteraction) {
+					String content = line.substring(12).trim();
+					if (!StringUtils.isEmpty(content)) {
+						String[] entries;
+						Set<String> geneIds = new HashSet<String>();
+						String type = "Undefined";
+						if (content.contains(": ")) {
+							String[] split = content.split(":\\s", 2);
+							entries = split[1].split(",\\s");
+							type = split[0];
+						} else {
+							entries = content.split(",\\s");
+						}
+						for (String entry : entries) {
+							// suppose they are all human genes thus formatted like [HSA:xxx xxx]
+							int startPos = entry.indexOf("A:");
+							if (startPos != -1) {
+								String substring = entry.substring(startPos+2, entry.length()-1);
+								if (substring.contains(" ")) {
+									geneIds.addAll(Arrays.asList(substring.split("\\s")));
+								} else {
+									geneIds.add(substring);
+								}
+							}
+						}
+						if (!geneIds.isEmpty()) {
+							interactions.put(type, geneIds);
+						}
+					}
+					
 				} else if (line.startsWith("///")) {
 //					LOG.info(String.format("%s; %s; %s; %s", keggDrugId,name,atcCodes,casNumber));
 					Set<String> drugBankIds = drugBankIdMap.get(keggDrugId);
@@ -114,6 +191,30 @@ public class KeggDrugConverter extends BioFileConverter {
 							}
 							
 							store(drugItem);
+							
+							// add metabolisms & interactions
+							if (!metabolisms.isEmpty()) {
+								for (String key : metabolisms.keySet()) {
+									for (String geneId : metabolisms.get(key)) {
+										Item item = createItem("DrugMetabolism");
+										item.setAttribute("type", key);
+										item.setReference("gene", getGene(geneId));
+										item.setReference("drug", drugItem);
+										store(item);
+									}
+								}
+							}
+							if (!interactions.isEmpty()) {
+								for (String key : interactions.keySet()) {
+									for (String geneId : interactions.get(key)) {
+										Item item = createItem("DrugInteraction");
+										item.setAttribute("type", key);
+										item.setReference("gene", getGene(geneId));
+										item.setReference("drug", drugItem);
+										store(item);
+									}
+								}
+							}
 						}
 						
 					} else {
@@ -143,6 +244,31 @@ public class KeggDrugConverter extends BioFileConverter {
 						}
 						
 						store(drugItem);
+						
+						// add metabolisms & interactions
+						if (!metabolisms.isEmpty()) {
+							for (String key : metabolisms.keySet()) {
+								for (String geneId : metabolisms.get(key)) {
+									Item item = createItem("DrugMetabolism");
+									item.setAttribute("type", key);
+									item.setReference("gene", getGene(geneId));
+									item.setReference("drug", drugItem);
+									store(item);
+								}
+							}
+						}
+						if (!interactions.isEmpty()) {
+							for (String key : interactions.keySet()) {
+								for (String geneId : interactions.get(key)) {
+									Item item = createItem("DrugInteraction");
+									item.setAttribute("type", key);
+									item.setReference("gene", getGene(geneId));
+									item.setReference("drug", drugItem);
+									store(item);
+								}
+							}
+						}
+
 					}
 					
 					// clear current entry
@@ -150,6 +276,12 @@ public class KeggDrugConverter extends BioFileConverter {
 					name = "";
 					atcCodes = "";
 					casNumber = "";
+					
+					metabolisms = new HashMap<String, Set<String>>();
+					interactions = new HashMap<String, Set<String>>();
+
+					isMetabolism = false;
+					isInteraction = false;
 				}
 			}
 		} catch (FileNotFoundException e) {
@@ -269,5 +401,21 @@ public class KeggDrugConverter extends BioFileConverter {
 
 		}
 	}
+
+	private Map<String, String> geneMap = new HashMap<String, String>();
+	
+	private String getGene(String geneId) throws ObjectStoreException {
+		String ret = geneMap.get(geneId);
+		if (ret == null) {
+			Item item = createItem("Gene");
+			item.setAttribute("primaryIdentifier", geneId);
+			item.setAttribute("ncbiGeneId", geneId);
+			store(item);
+			ret = item.getIdentifier();
+			geneMap.put(geneId, ret);
+		}
+		return ret;
+	}
+
 
 }

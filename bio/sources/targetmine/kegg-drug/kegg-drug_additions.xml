@@ -6,6 +6,8 @@
 		<attribute name="drugBankId" type="java.lang.String"/>
 		<attribute name="keggDrugId" type="java.lang.String"/>
 		<collection name="atcCodes" referenced-type="AtcClassification"/>		
+		<collection name="metabolisms" referenced-type="DrugMetabolism" reverse-reference="drug"/>		
+		<collection name="interactions" referenced-type="DrugInteraction" reverse-reference="drug"/>		
 	</class>
 
 	<class name="Compound" is-interface="true">
@@ -35,6 +37,17 @@
 		<attribute name="atcCode" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<reference name="parent" referenced-type="AtcClassification"/>
+	</class>
+	
+	<class name="DrugMetabolism" is-interface="true">
+		<attribute name="type" type="java.lang.String"/>
+        <reference name="drug" referenced-type="DrugCompound" reverse-reference="metabolisms"/>
+        <reference name="gene" referenced-type="Gene"/>
+	</class>
+	<class name="DrugInteraction" is-interface="true">
+		<attribute name="type" type="java.lang.String"/>
+        <reference name="drug" referenced-type="DrugCompound" reverse-reference="interactions"/>
+        <reference name="gene" referenced-type="Gene"/>
 	</class>
 
 </classes>
