@@ -32,6 +32,7 @@
 
 	<class name="DrugCompound" extends="Compound" is-interface="true">
 		<attribute name="drugBankId" type="java.lang.String"/>
+		<attribute name="keggDrugId" type="java.lang.String"/>
 		<attribute name="genericName" type="java.lang.String"/>
 		<attribute name="description" type="java.lang.String"/>
 		<reference name="protein" referenced-type="Protein" />

@@ -59,6 +59,9 @@ public class KeggDrugConverter extends BioFileConverter {
 	
 	private Map<String, String> inchiKeyMap = new HashMap<String, String>();
 
+	// TODO to prevent duplication, may contain mistakes, but so far have no choice
+	private Set<String> foundDrugBankId = new HashSet<String>();
+
 	/**
 	 * 
 	 * 
@@ -73,6 +76,7 @@ public class KeggDrugConverter extends BioFileConverter {
 			in = new BufferedReader(reader);
 			String line;
 			String keggDrugId = "";
+			String dblDrugBankId = "";
 			String name = "";
 			String atcCodes = "";
 			String casNumber = "";
@@ -101,6 +105,8 @@ public class KeggDrugConverter extends BioFileConverter {
 					name = line.substring(12).replaceAll(";$", "").replaceAll("\\s\\(.+?\\)$","").trim();
 				} else if (line.contains("ATC code:")) {
 					atcCodes = line.substring(line.indexOf(":") + 2);
+				} else if (line.contains("DrugBank:")) {
+					dblDrugBankId = line.substring(line.indexOf(":") + 2);
 				} else if (line.contains("CAS:")) {
 					casNumber = line.substring(line.indexOf(":") + 2);
 				} else if (isMetabolism) {
@@ -167,68 +173,92 @@ public class KeggDrugConverter extends BioFileConverter {
 					
 					Set<String> drugBankIds = new HashSet<String>();;
 					if (drugBankIdMap.get(keggDrugId) != null) {
-						drugBankIds = drugBankIdMap.get(keggDrugId);
-					} else {
-						if (inchiKey != null && drugBankInchiKeyMap.get(inchiKey) != null) {
-							
-							for (String id : drugBankInchiKeyMap.get(inchiKey)) {
-								DrugEntry drugEntry = drugEntryMap.get(id);
-								if (drugEntry.getKeggDrugId() != null) {
-									continue;
-								}
-								int score = 0;
-								if (drugEntry.getName() != null && drugEntry.getName().toLowerCase().equals(name.toLowerCase())) score ++;
-								if (drugEntry.getCasRegistryNumber() != null && drugEntry.getCasRegistryNumber().equals(casNumber)) score ++;
-								// TODO introduce more attributes? e.g. formula, what else?
-								if (score > 0) {
-									drugBankIds.add(id);
-									LOG.info(String.format("WARNNING: %s and %s were merged together because they share the same InChIKey: %s.", keggDrugId, id, inchiKey));
-								}
-							}
-							
-						} else if (drugBankNameMap.get(name) != null) {
-							// TODO may be dangerous ...
-							String id = drugBankNameMap.get(name);
+						for (String id : drugBankIdMap.get(keggDrugId)) {
 							DrugEntry drugEntry = drugEntryMap.get(id);
-							if (drugEntry.getKeggDrugId() != null) {
-								continue;
-							}
 							int score = 0;
-							if (drugEntry.getInchiKey() != null && drugEntry.getInchiKey().equals(inchiKey)) score ++;
+							if (id.equals(dblDrugBankId)) score++;
+							if (drugEntry.getInchiKey() != null) {
+								String key = drugEntry.getInchiKey();
+								if (key.equals(inchiKey)) {
+									score++;
+								} else if (inchiKeyKeggDrugMap.get(key) == null) {
+									score++;
+								}
+							}
+							if (drugEntry.getName() != null && drugEntry.getName().toLowerCase().equals(name.toLowerCase())) score ++;
 							if (drugEntry.getCasRegistryNumber() != null && drugEntry.getCasRegistryNumber().equals(casNumber)) score ++;
 							// TODO introduce more attributes? e.g. formula, what else?
 							if (score > 0) {
 								drugBankIds.add(id);
-								LOG.info(String.format("WARNNING: %s and %s were merged together because they share the same name: %s.", keggDrugId, id, name));
+							} else {
+								LOG.info(String.format("WARNNING: %s and %s doesn't match; there is a miss-maping in DrugBank.", keggDrugId, id));
 							}
-
 						}
+					} else if (inchiKey != null && drugBankInchiKeyMap.get(inchiKey) != null) {
+						
+						for (String id : drugBankInchiKeyMap.get(inchiKey)) {
+							DrugEntry drugEntry = drugEntryMap.get(id);
+							int score = 0;
+							if (id.equals(dblDrugBankId)) score++;
+							if (drugEntry.getKeggDrugId() != null && drugEntry.getKeggDrugId().equals(keggDrugId)) score ++;
+							if (drugEntry.getName() != null && drugEntry.getName().toLowerCase().equals(name.toLowerCase())) score ++;
+							if (drugEntry.getCasRegistryNumber() != null && drugEntry.getCasRegistryNumber().equals(casNumber)) score ++;
+							// TODO introduce more attributes? e.g. formula, what else?
+							if (score > 0) {
+								drugBankIds.add(id);
+								LOG.info(String.format("WARNNING(%d): %s and %s were merged together because they share the same InChIKey: %s.", score, keggDrugId, id, inchiKey));
+							}
+						}
+						
+					} else if (drugBankNameMap.get(name) != null) {
+						// TODO may be dangerous ...
+						String id = drugBankNameMap.get(name);
+						DrugEntry drugEntry = drugEntryMap.get(id);
+						int score = 0;
+						if (drugEntry.getKeggDrugId() != null && drugEntry.getKeggDrugId().equals(keggDrugId)) score ++;
+						if (drugEntry.getInchiKey() != null && drugEntry.getInchiKey().equals(inchiKey)) score ++;
+						if (drugEntry.getCasRegistryNumber() != null && drugEntry.getCasRegistryNumber().equals(casNumber)) score ++;
+						// TODO introduce more attributes? e.g. formula, what else?
+						if (score > 0) {
+							drugBankIds.add(id);
+							LOG.info(String.format("WARNNING(%d): %s and %s were merged together because they share the same name: %s.", score, keggDrugId, id, name));
+						}
+						
 					}
 					if (!drugBankIds.isEmpty()) {
 						for (String drugBankId : drugBankIds) {
-							Item drugItem = createItem("DrugCompound");
-							drugItem.setAttribute("name", name);
-							drugItem.setAttribute("genericName", name);
-							drugItem.setAttribute("drugBankId", drugBankId);
-							
-							if (!atcCodes.equals("")) {
-								for (String atcCode : atcCodes.split(" ")) {
-									drugItem.addToCollection("atcCodes", getAtcClassification(atcCode, name));
+							Item drugItem;
+							if (foundDrugBankId.contains(drugBankId)) {
+								drugItem = createNewDrugCompound(keggDrugId, name, atcCodes,
+										casNumber, inchiKey);
+
+							} else {
+								drugItem = createItem("DrugCompound");
+								drugItem.setAttribute("name", name);
+								drugItem.setAttribute("genericName", name);
+								drugItem.setAttribute("drugBankId", drugBankId);
+								drugItem.setAttribute("keggDrugId", keggDrugId);
+								
+								if (!atcCodes.equals("")) {
+									for (String atcCode : atcCodes.split(" ")) {
+										drugItem.addToCollection("atcCodes", getAtcClassification(atcCode, name));
+									}
 								}
+								
+								if (!casNumber.equals("")) {
+									drugItem.setAttribute("casRegistryNumber", casNumber);
+								}
+								
+								if (inchiKey != null) {
+									drugItem.setAttribute("inchiKey", inchiKey);
+									drugItem.setReference(
+											"compoundGroup",
+											getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
+								}
+								
+								store(drugItem);
+								foundDrugBankId.add(drugBankId);
 							}
-							
-							if (!casNumber.equals("")) {
-								drugItem.setAttribute("casRegistryNumber", casNumber);
-							}
-							
-							if (inchiKey != null) {
-								drugItem.setAttribute("inchiKey", inchiKey);
-								drugItem.setReference(
-										"compoundGroup",
-										getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
-							}
-							
-							store(drugItem);
 							
 							// add metabolisms & interactions
 							if (!metabolisms.isEmpty()) {
@@ -256,31 +286,8 @@ public class KeggDrugConverter extends BioFileConverter {
 						}
 						
 					} else {
-						Item drugItem = createItem("DrugCompound");
-						drugItem.setAttribute("keggDrugId", keggDrugId);
-						drugItem.setAttribute("name", name);
-						drugItem.setAttribute("genericName", name);
-						drugItem.setAttribute("identifier", String.format("KEGG DRUG: %s", keggDrugId));
-						drugItem.setAttribute("originalId", keggDrugId);
-						
-						if (!atcCodes.equals("")) {
-							for (String atcCode : atcCodes.split(" ")) {
-								drugItem.addToCollection("atcCodes", getAtcClassification(atcCode, name));
-							}
-						}
-						
-						if (!casNumber.equals("")) {
-							drugItem.setAttribute("casRegistryNumber", casNumber);
-						}
-						
-						if (inchiKey != null) {
-							drugItem.setAttribute("inchiKey", inchiKey);
-							drugItem.setReference(
-									"compoundGroup",
-									getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
-						}
-						
-						store(drugItem);
+						Item drugItem = createNewDrugCompound(keggDrugId, name, atcCodes,
+								casNumber, inchiKey);
 						
 						// add metabolisms & interactions
 						if (!metabolisms.isEmpty()) {
@@ -331,6 +338,38 @@ public class KeggDrugConverter extends BioFileConverter {
 		}
 
 	}
+
+	private Item createNewDrugCompound(String keggDrugId, String name, String atcCodes,
+			String casNumber, String inchiKey) throws ObjectStoreException {
+		Item drugItem = createItem("DrugCompound");
+		drugItem.setAttribute("keggDrugId", keggDrugId);
+		drugItem.setAttribute("name", name);
+		drugItem.setAttribute("genericName", name);
+		drugItem.setAttribute("identifier", String.format("KEGG DRUG: %s", keggDrugId));
+		drugItem.setAttribute("originalId", keggDrugId);
+		
+		if (!atcCodes.equals("")) {
+			for (String atcCode : atcCodes.split(" ")) {
+				drugItem.addToCollection("atcCodes", getAtcClassification(atcCode, name));
+			}
+		}
+		
+		if (!casNumber.equals("")) {
+			drugItem.setAttribute("casRegistryNumber", casNumber);
+		}
+		
+		if (inchiKey != null) {
+			drugItem.setAttribute("inchiKey", inchiKey);
+			drugItem.setReference(
+					"compoundGroup",
+					getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
+		}
+		
+		store(drugItem);
+		return drugItem;
+	}
+	
+	private Map<String, Set<String>> inchiKeyKeggDrugMap = new HashMap<String, Set<String>>();
 	
 	private void readInchikeyFile() {
 		try {
@@ -339,6 +378,11 @@ public class KeggDrugConverter extends BioFileConverter {
 			while(iterator.hasNext()) {
 				String[] cols = iterator.next();
 				inchiKeyMap.put(cols[0], cols[1]);
+				
+				if (inchiKeyKeggDrugMap.get(cols[1]) == null) {
+					inchiKeyKeggDrugMap.put(cols[1], new HashSet<String>());
+				}
+				inchiKeyKeggDrugMap.get(cols[1]).add(cols[0]);
 			}
 			
 		} catch (FileNotFoundException e) {
