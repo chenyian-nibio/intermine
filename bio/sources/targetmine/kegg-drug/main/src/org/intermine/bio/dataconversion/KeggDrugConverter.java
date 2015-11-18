@@ -57,7 +57,7 @@ public class KeggDrugConverter extends BioFileConverter {
 		this.inchikeyFile = inchikeyFile;
 	}
 	
-	private Map<String, String> inchikeyMap = new HashMap<String, String>();
+	private Map<String, String> inchiKeyMap = new HashMap<String, String>();
 
 	/**
 	 * 
@@ -163,9 +163,48 @@ public class KeggDrugConverter extends BioFileConverter {
 					}
 					
 				} else if (line.startsWith("///")) {
-//					LOG.info(String.format("%s; %s; %s; %s", keggDrugId,name,atcCodes,casNumber));
-					Set<String> drugBankIds = drugBankIdMap.get(keggDrugId);
-					if (drugBankIds != null) {
+					String inchiKey = inchiKeyMap.get(keggDrugId);
+					
+					Set<String> drugBankIds = new HashSet<String>();;
+					if (drugBankIdMap.get(keggDrugId) != null) {
+						drugBankIds = drugBankIdMap.get(keggDrugId);
+					} else {
+						if (inchiKey != null && drugBankInchiKeyMap.get(inchiKey) != null) {
+							
+							for (String id : drugBankInchiKeyMap.get(inchiKey)) {
+								DrugEntry drugEntry = drugEntryMap.get(id);
+								if (drugEntry.getKeggDrugId() != null) {
+									continue;
+								}
+								int score = 0;
+								if (drugEntry.getName() != null && drugEntry.getName().toLowerCase().equals(name.toLowerCase())) score ++;
+								if (drugEntry.getCasRegistryNumber() != null && drugEntry.getCasRegistryNumber().equals(casNumber)) score ++;
+								// TODO introduce more attributes? e.g. formula, what else?
+								if (score > 0) {
+									drugBankIds.add(id);
+									LOG.info(String.format("WARNNING: %s and %s were merged together because they share the same InChIKey: %s.", keggDrugId, id, inchiKey));
+								}
+							}
+							
+						} else if (drugBankNameMap.get(name) != null) {
+							// TODO may be dangerous ...
+							String id = drugBankNameMap.get(name);
+							DrugEntry drugEntry = drugEntryMap.get(id);
+							if (drugEntry.getKeggDrugId() != null) {
+								continue;
+							}
+							int score = 0;
+							if (drugEntry.getInchiKey() != null && drugEntry.getInchiKey().equals(inchiKey)) score ++;
+							if (drugEntry.getCasRegistryNumber() != null && drugEntry.getCasRegistryNumber().equals(casNumber)) score ++;
+							// TODO introduce more attributes? e.g. formula, what else?
+							if (score > 0) {
+								drugBankIds.add(id);
+								LOG.info(String.format("WARNNING: %s and %s were merged together because they share the same name: %s.", keggDrugId, id, name));
+							}
+
+						}
+					}
+					if (!drugBankIds.isEmpty()) {
 						for (String drugBankId : drugBankIds) {
 							Item drugItem = createItem("DrugCompound");
 							drugItem.setAttribute("name", name);
@@ -182,7 +221,6 @@ public class KeggDrugConverter extends BioFileConverter {
 								drugItem.setAttribute("casRegistryNumber", casNumber);
 							}
 							
-							String inchiKey = inchikeyMap.get(keggDrugId);
 							if (inchiKey != null) {
 								drugItem.setAttribute("inchiKey", inchiKey);
 								drugItem.setReference(
@@ -235,7 +273,6 @@ public class KeggDrugConverter extends BioFileConverter {
 							drugItem.setAttribute("casRegistryNumber", casNumber);
 						}
 						
-						String inchiKey = inchikeyMap.get(keggDrugId);
 						if (inchiKey != null) {
 							drugItem.setAttribute("inchiKey", inchiKey);
 							drugItem.setReference(
@@ -301,7 +338,7 @@ public class KeggDrugConverter extends BioFileConverter {
 			
 			while(iterator.hasNext()) {
 				String[] cols = iterator.next();
-				inchikeyMap.put(cols[0], cols[1]);
+				inchiKeyMap.put(cols[0], cols[1]);
 			}
 			
 		} catch (FileNotFoundException e) {
@@ -366,12 +403,13 @@ public class KeggDrugConverter extends BioFileConverter {
 		this.osAlias = osAlias;
 	}
 
-	private Map<String, Set<String>> drugBankIdMap;
+	private Map<String, Set<String>> drugBankIdMap = new HashMap<String, Set<String>>();;
+	private Map<String, Set<String>> drugBankInchiKeyMap = new HashMap<String, Set<String>>();
+	private Map<String, String> drugBankNameMap = new HashMap<String, String>();
+	private Map<String, DrugEntry> drugEntryMap = new HashMap<String, DrugEntry>();
 
 	@SuppressWarnings("unchecked")
 	private void getDrugBankIdMap() throws Exception {
-		drugBankIdMap = new HashMap<String, Set<String>>();
-
 		ObjectStore os = ObjectStoreFactory.getObjectStore(osAlias);
 
 		Query q = new Query();
@@ -391,12 +429,38 @@ public class KeggDrugConverter extends BioFileConverter {
 
 			String drugBankId = (String) p.getFieldValue("drugBankId");
 			String keggDrugId = (String) p.getFieldValue("keggDrugId");
+			String inchiKey = (String) p.getFieldValue("inchiKey");
+			String name = (String) p.getFieldValue("name");
+			String casRegistryNumber = (String) p.getFieldValue("casRegistryNumber");
 			
-			if (drugBankId != null && keggDrugId != null) {
-				if (drugBankIdMap.get(keggDrugId) == null) {
-					drugBankIdMap.put(keggDrugId, new HashSet<String>());
+			DrugEntry drugEntry = new DrugEntry(drugBankId, keggDrugId, name, inchiKey, casRegistryNumber);
+			drugEntryMap.put(drugBankId, drugEntry);
+			
+			if (drugBankId != null) {
+				if (keggDrugId != null) {
+					if (drugBankIdMap.get(keggDrugId) == null) {
+						drugBankIdMap.put(keggDrugId, new HashSet<String>());
+					}
+					drugBankIdMap.get(keggDrugId).add(drugBankId);
 				}
-				drugBankIdMap.get(keggDrugId).add(drugBankId);
+				if (inchiKey != null) {
+					if (drugBankInchiKeyMap.get(inchiKey) == null) {
+						drugBankInchiKeyMap.put(inchiKey, new HashSet<String>());
+					}
+					drugBankInchiKeyMap.get(inchiKey).add(drugBankId);
+//					if (drugBankInchiKeyMap.get(inchiKey) != null) {
+//						LOG.info("Duplicated InChIKey, check the data sources: " + inchiKey + " (" + drugBankId + ")");
+//						throw new RuntimeException("Duplicated InChIKey, check the data sources: " + inchiKey + " (" + drugBankId + ")");
+//					}
+//					drugBankInchiKeyMap.put(inchiKey, drugBankId);
+				}
+				if (name != null) {
+					if (drugBankNameMap.get(name) != null) {
+						LOG.info("Duplicated name, check the data sources: " + name + " (" + drugBankId + ")");
+						throw new RuntimeException("Duplicated name, check the data sources: " + name + " (" + drugBankId + ")");
+					}
+					drugBankNameMap.put(name, drugBankId);
+				}
 			}
 
 		}
@@ -417,5 +481,43 @@ public class KeggDrugConverter extends BioFileConverter {
 		return ret;
 	}
 
+	private static class DrugEntry {
+		private String drugBankId;
+		private String keggDrugId;
+		private String name;
+		private String inchiKey;
+		private String casRegistryNumber;
+
+		public DrugEntry(String drugBankId, String keggDrugId, String name, String inchiKey,
+				String casRegistryNumber) {
+			super();
+			this.drugBankId = drugBankId;
+			this.keggDrugId = keggDrugId;
+			this.name = name;
+			this.inchiKey = inchiKey;
+			this.casRegistryNumber = casRegistryNumber;
+		}
+
+		String getDrugBankId() {
+			return drugBankId;
+		}
+
+		String getKeggDrugId() {
+			return keggDrugId;
+		}
+
+		String getName() {
+			return name;
+		}
+
+		String getInchiKey() {
+			return inchiKey;
+		}
+
+		String getCasRegistryNumber() {
+			return casRegistryNumber;
+		}
+
+	}
 
 }
