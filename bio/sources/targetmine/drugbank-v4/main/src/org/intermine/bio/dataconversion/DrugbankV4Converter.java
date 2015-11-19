@@ -250,6 +250,12 @@ public class DrugbankV4Converter extends BioFileConverter {
 			// TODO add parent
 			String parentCode = atcCode.substring(0, 5);
 			item.setReference("parent", getParent(parentCode));
+			
+			// TODO create parents; to be improved
+			item.addToCollection("allParents", getParent(parentCode));
+			item.addToCollection("allParents", getParent(parentCode.substring(0, 4)));
+			item.addToCollection("allParents", getParent(parentCode.substring(0, 3)));
+			item.addToCollection("allParents", getParent(parentCode.substring(0, 1)));
 
 			store(item);
 			ret = item.getIdentifier();

@@ -784,7 +784,7 @@
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.AtcClassificationDisplayer"
                      jspName="model/atcClassificationDisplayer.jsp"
-                     replacesFields="parent" 
+                     replacesFields="parent, allParents" 
                      types="AtcClassification"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.AtcClassificationDisplayer"
@@ -1118,6 +1118,17 @@
                                  views="identifier, name, targetProteins.protein.primaryAccession, targetProteins.protein.name, targetProteins.protein.organism.name,"
                                  externalLink="/targetmine/portal.do?class=Protein&amp;externalids="/>
  -->
+      <enrichmentwidgetdisplayer id="drug_atc_enrichment"
+                                 title="ATC Classification Enrichment"
+                                 description="ATC Classification enriched for drugs in this list"
+                                 label="ATC Classification"
+                                 startClass="DrugCompound"
+                                 startClassDisplay="identifier"
+                                 enrich="atcCodes.allParents.name"
+                                 enrichIdentifier="atcCodes.allParents.atcCode"
+                                 typeClass="DrugCompound"
+                                 views="identifier, name, atcCodes.allParents.atcCode, atcCodes.allParents.name"
+                                 externalLink="/targetmine/portal.do?class=AtcClassification&amp;externalids="/>
 
 <!-- chenyian: disable for external server 
 -->

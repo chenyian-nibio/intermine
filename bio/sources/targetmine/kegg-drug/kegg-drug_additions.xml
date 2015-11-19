@@ -37,6 +37,7 @@
 		<attribute name="atcCode" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<reference name="parent" referenced-type="AtcClassification"/>
+		<collection name="allParents" referenced-type="AtcClassification"/>
 	</class>
 	
 	<class name="DrugMetabolism" is-interface="true">
