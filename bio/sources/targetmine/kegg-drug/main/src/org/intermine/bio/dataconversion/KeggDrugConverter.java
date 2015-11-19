@@ -183,6 +183,10 @@ public class KeggDrugConverter extends BioFileConverter {
 									score++;
 								} else if (inchiKeyKeggDrugMap.get(key) == null) {
 									score++;
+								} else {
+									// if the inchikey could be found in another kegg drug, that one may be a better candidate.
+									// thus minus one. This is to prevent the multiple mapping in kegg drug.
+									score--;
 								}
 							}
 							if (drugEntry.getName() != null && drugEntry.getName().toLowerCase().equals(name.toLowerCase())) score ++;
