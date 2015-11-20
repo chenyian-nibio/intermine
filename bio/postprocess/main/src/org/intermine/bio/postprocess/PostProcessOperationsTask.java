@@ -300,6 +300,10 @@ public class PostProcessOperationsTask extends DynamicAttributeTask {
 			} else if ("transcribe-ncbiGeneId".equals(operation)) {
 				TranscribeNcbiGeneId tn = new TranscribeNcbiGeneId(getObjectStoreWriter());
 				tn.transcribeIdentifeir();
+			// chenyian: for external server
+			} else if ("remove-casreg".equals(operation)) {
+				RemoveCompoundCasRegistryNumber rccrn = new RemoveCompoundCasRegistryNumber(getObjectStoreWriter());
+				rccrn.removeCasNumber();
 			} else {
 				throw new BuildException("unknown operation: " + operation);
 			}
