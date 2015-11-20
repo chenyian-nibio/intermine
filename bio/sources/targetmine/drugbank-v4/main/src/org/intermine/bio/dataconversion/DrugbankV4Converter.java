@@ -3,6 +3,7 @@ package org.intermine.bio.dataconversion;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -169,6 +170,8 @@ public class DrugbankV4Converter extends BioFileConverter {
 								interaction.addToCollection("actions", getDrugAction(action.trim()
 										.toLowerCase()));
 							}
+							Collections.sort(actionValues);
+							interaction.setAttribute("tag", StringUtils.join(actionValues,", "));
 						} else {
 							interaction.addToCollection("actions", getDrugAction("unknown"));
 						}

@@ -354,6 +354,7 @@
     <fields>
       <fieldconfig fieldExpr="protein.primaryAccession"/>
       <fieldconfig fieldExpr="protein.name"/>
+      <fieldconfig fieldExpr="tag"/>
       <fieldconfig fieldExpr="compound.identifier" />
       <fieldconfig fieldExpr="compound.name" />
       <fieldconfig fieldExpr="dataSet.name" />
@@ -490,6 +491,16 @@
       <table path="synonyms.value" showLinksToObjects="true" />
       <table path="drugTypes.name" showLinksToObjects="false" />
     </inlinelist>
+  </class>
+
+  <class className="org.intermine.model.bio.DrugBankInteraction">
+    <fields>
+      <fieldconfig fieldExpr="protein.primaryAccession"/>
+      <fieldconfig fieldExpr="protein.name"/>
+      <fieldconfig fieldExpr="compound.identifier" />
+      <fieldconfig fieldExpr="compound.name" />
+      <fieldconfig fieldExpr="dataSet.name" />
+    </fields>
   </class>
 
   <class className="org.intermine.model.bio.DrugMetabolism">
@@ -1129,6 +1140,18 @@
                                  typeClass="DrugCompound"
                                  views="identifier, name, atcCodes.allParents.atcCode, atcCodes.allParents.name"
                                  externalLink="/targetmine/portal.do?class=AtcClassification&amp;externalids="/>
+
+      <enrichmentwidgetdisplayer id="drug_protein_enrichment"
+                                 title="Target Protein Enrichment"
+                                 description="Protiens enriched for drugs in this list"
+                                 label="Target Protein"
+                                 startClass="DrugCompound"
+                                 startClassDisplay="identifier"
+                                 enrich="targetProteins.protein.name"
+                                 enrichIdentifier="targetProteins.protein.primaryAccession"
+                                 typeClass="DrugCompound"
+                                 views="identifier, name, targetProteins.protein.primaryAccession, targetProteins.protein.name, targetProteins.protein.organism.name,"
+                                 externalLink="/targetmine/portal.do?class=Protein&amp;externalids="/>
 
 <!-- chenyian: disable for external server 
 -->
