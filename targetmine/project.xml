@@ -118,7 +118,7 @@
     </source>
 
     <source name="kegg-reaction" type="kegg-reaction">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/kgml"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/kgml"/>
       <property name="src.data.dir.includes" value="*/*/*.xml"/>
     </source>
 
@@ -231,7 +231,7 @@
     </source>
     <source name="mirtarbase" type="mirtarbase">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/mirtarbase" />
-      <property name="src.data.dir.includes" value="*_MTI.v3.txt" />
+      <property name="src.data.dir.includes" value="*_MTI.txt" />
     </source>
 
 <!-- chenyian: for internal only | start -->    
