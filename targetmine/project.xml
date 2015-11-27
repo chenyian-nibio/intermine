@@ -79,7 +79,7 @@
     </source>
     <source name="gene3d" type="gene3d">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene3d"/>
-      <property name="src.data.dir.includes" value="gene3d.v12.HRM.txt"/>
+      <property name="src.data.dir.includes" value="arch_schema_cath.tsv"/>
       <property name="osAlias" value="os.production"/>
     </source>
     <source name="kegg-orthology" type="tm-kegg-orthology">
