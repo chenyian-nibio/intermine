@@ -21,7 +21,7 @@ public class DOAnnotationConverter extends BioFileConverter {
 
 //	private static Logger m_oLogger = Logger.getLogger(DOAnnotationConverter.class);
 
-    private static final String DATASET_TITLE = "DO Annotation";
+    private static final String DATASET_TITLE = "Disease Ontology Annotation";
     private static final String DATA_SOURCE_NAME = "DO Annotation";
 
     private Map<String, Item> m_oDOTermMap = new TreeMap<String, Item>();

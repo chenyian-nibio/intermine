@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -112,7 +113,9 @@ public class MirbaseGenomeConverter extends BioFileConverter {
 			}
 			item.setAttribute("primaryIdentifier", chrId);
 			item.setAttribute("symbol", chrId);
-			item.setReference("organism", getOrganism(taxonId));
+			if (!StringUtils.isEmpty(taxonId)) {
+				item.setReference("organism", getOrganism(taxonId));
+			}
 			store(item);
 			ret = item.getIdentifier();
 			chromosomeMap.put(key, ret);

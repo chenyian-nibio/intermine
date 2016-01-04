@@ -35,7 +35,7 @@ public class ChemblProteinConverter extends BioDBConverter {
 	 *            an ItemWriter used to handle Items created
 	 */
 	public ChemblProteinConverter(Database database, Model model, ItemWriter writer) {
-		super(database, model, writer, DATA_SOURCE_NAME, DATASET_TITLE);
+		super(database, model, writer);
 	}
 
 	/**
@@ -56,6 +56,9 @@ public class ChemblProteinConverter extends BioDBConverter {
 			
 			createSynonym(getProtein(accession), chemblId, true);
 		}
+		
+		stmt.close();
+		connection.close();
 	}
 
 	private String getProtein(String accession) throws ObjectStoreException {

@@ -1,0 +1,5 @@
+<project name="barcode30-sample" default="default" basedir=".">
+  <description>build, test, package barcode30-sample</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

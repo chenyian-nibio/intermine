@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
-
 /**
  * Implement using bottom-up method; the efficiency may not be good
  * 
@@ -40,7 +38,7 @@ public class HierarchicalClustering {
 
 			for (int i = 1; i < items.size(); i++) {
 				for (int j = 0; j < i; j++) {
-					String pair = String.format("%s-%s", items.get(i), items.get(j));
+					String pair = String.format("%s--%s", items.get(i), items.get(j));
 					if (previousDistance.containsKey(pair)) {
 						distance.put(pair, previousDistance.get(pair));
 					} else {
@@ -65,7 +63,7 @@ public class HierarchicalClustering {
 
 			distanceList.add(shortestDistance);
 
-			String[] tags = closestItems.split("-");
+			String[] tags = closestItems.split("--");
 			items.remove(tags[0]);
 			items.remove(tags[1]);
 

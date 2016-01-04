@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<classes>
+    <class name="Interaction" is-interface="true">
+        <reference name="gene1" referenced-type="Gene" reverse-reference="interactions" />
+        <reference name="gene2" referenced-type="Gene" />
+        <collection name="confidences" referenced-type="InteractionConfidence" reverse-reference="interaction" />
+    </class>
+    <class name="InteractionConfidence" is-interface="true">
+        <attribute name="type" type="java.lang.String" />
+        <reference name="interaction" referenced-type="Interaction" reverse-reference="confidences" />
+        <reference name="dataSet" referenced-type="DataSet"/>
+    </class>
+</classes>

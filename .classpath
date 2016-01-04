@@ -7,6 +7,8 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/affy-probe-annot/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/amadeus/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/atc-code/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/barcode30/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/barcode30-sample/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/bioassay/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/biopax3/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/cath-name/main/src"/>
@@ -48,6 +50,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/pdb-chaintype/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pdb_ext/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/ppiview/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/predicted-dbp/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein-analysis/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein-ortholog/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein2ipr/main/src"/>
@@ -81,6 +84,9 @@
 	<classpathentry kind="src" path="intermine/api/model/userprofile/build/gen/src"/>
 	<classpathentry kind="src" path="intermine/pathquery/main/build/gen/src"/>
 	<classpathentry kind="src" path="targetmine/dbmodel/autogen/src"/>
+	<classpathentry kind="src" path="intermine/model/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/ccsb/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/kegg-reaction/main/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/bbop.jar"/>
 	<classpathentry kind="lib" path="bio/core/main/lib/jakarta-regexp-1.4.jar"/>
@@ -91,29 +97,19 @@
 	<classpathentry kind="lib" path="intermine/api/main/lib/lucene-highlighter-3.0.2.jar"/>
 	<classpathentry kind="lib" path="intermine/api/main/lib/lucene-queries-3.0.2.jar"/>
 	<classpathentry kind="lib" path="intermine/api/main/lib/lucene-snowball-3.0.2.jar"/>
-	<classpathentry kind="lib" path="intermine/api/main/lib/stax-api-1.0.jar"/>
-	<classpathentry kind="lib" path="intermine/api/main/lib/stax-ri-1.0.jar"/>
 	<classpathentry kind="lib" path="intermine/api/main/lib/xalan.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/ant-1.6.5.jar"/>
-	<classpathentry kind="lib" path="intermine/objectstore/main/lib/antlr-2.7.6-caching.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/base64.jar"/>
-	<classpathentry kind="lib" path="intermine/objectstore/main/lib/cglib-full-2.0.1-patched.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/commons-beanutils-1.6.1.jar"/>
-	<classpathentry kind="lib" path="intermine/objectstore/main/lib/commons-collections-3.2.jar"/>
-	<classpathentry kind="lib" path="intermine/objectstore/main/lib/commons-digester.jar"/>
-	<classpathentry kind="lib" path="intermine/objectstore/main/lib/commons-io-1.2.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/commons-logging-1.0.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/jaxrpc.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/libreadline-java.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/ojdbc14.jar"/>
-	<classpathentry kind="lib" path="intermine/objectstore/main/lib/postgresql-cvs-2010-07-20-patched.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/saaj.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/torque-3.2-dev.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/torque-gen-3.2-dev.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/velocity-1.3.jar"/>
-	<classpathentry kind="lib" path="intermine/objectstore/main/lib/xercesImpl-2.6.1.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/activation.jar"/>
-	<classpathentry kind="lib" path="intermine/web/main/lib/commons-codec-1.3.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/commons-httpclient-3.0.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/dwr.jar"/>
@@ -132,7 +128,6 @@
 	<classpathentry kind="lib" path="imbuild/im-ant-tasks/lib/xml-apis.jar"/>
 	<classpathentry kind="lib" path="imbuild/lib/ant-contrib.jar"/>
 	<classpathentry kind="lib" path="imbuild/lib/bsh-2.0b4.jar"/>
-	<classpathentry kind="lib" path="imbuild/lib/checkstyle-all-5.1.jar"/>
 	<classpathentry kind="lib" path="imbuild/lib/emma_ant.jar"/>
 	<classpathentry kind="lib" path="imbuild/lib/emma.jar"/>
 	<classpathentry kind="lib" path="imbuild/lib/im-ant-tasks.jar"/>
@@ -140,7 +135,11 @@
 	<classpathentry kind="lib" path="bio/webapp/lib/commons-pool-1.1.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/commons-fileupload-1.2.2.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/commons-validator-1.3.1.jar"/>
-	<classpathentry kind="lib" path="intermine/objectstore/main/lib/commons-lang-2.6.jar"/>
+	<classpathentry kind="lib" path="intermine/web/main/lib/commons-codec-1.9.jar"/>
+	<classpathentry kind="lib" path="intermine/model/main/lib/commons-io-1.2.jar"/>
+	<classpathentry kind="lib" path="intermine/model/main/lib/commons-lang-2.6.jar"/>
+	<classpathentry kind="lib" path="intermine/model/main/lib/commons-collections-3.2.jar"/>
+	<classpathentry kind="lib" path="intermine/objectstore/main/lib/commons-digester-2.1.jar"/>
 	<classpathentry kind="lib" path="bio/sources/targetmine/biopax3/main/lib/paxtools-3.0.0.jar"/>
 	<classpathentry kind="lib" path="intermine/api/main/lib/bobo-browse-2.5.1.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/struts-core-1.3.10.jar"/>
@@ -162,5 +161,13 @@
 	<classpathentry kind="lib" path="intermine/integrate/main/lib/mysql-connector-java-5.1.26-bin.jar"/>
 	<classpathentry kind="lib" path="bio/postprocess/main/lib/guava-16.0.1.jar"/>
 	<classpathentry kind="lib" path="intermine/integrate/main/lib/xom-1.2.10.jar"/>
+	<classpathentry kind="lib" path="intermine/model/main/lib/antlr-2.7.6-caching.jar"/>
+	<classpathentry kind="lib" path="imbuild/lib/checkstyle-5.6-all.jar"/>
+	<classpathentry kind="lib" path="intermine/objectstore/main/lib/postgresql-9.3-1101.jdbc4.jar"/>
+	<classpathentry kind="lib" path="intermine/web/main/lib/org.apache.oltu.oauth2.client-1.0.0.jar"/>
+	<classpathentry kind="lib" path="intermine/web/main/lib/org.apache.oltu.oauth2.common-1.0.0.jar"/>
+	<classpathentry kind="lib" path="intermine/model/main/lib/cglib-3.1.jar"/>
+	<classpathentry kind="lib" path="intermine/objectstore/main/lib/HikariCP-1.3.8.jar"/>
+	<classpathentry kind="lib" path="intermine/web/main/lib/bcprov-jdk15on-150.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

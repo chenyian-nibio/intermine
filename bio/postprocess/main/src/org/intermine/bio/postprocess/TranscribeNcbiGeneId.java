@@ -3,14 +3,12 @@ package org.intermine.bio.postprocess;
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
+import org.intermine.metadata.ConstraintOp;
 import org.intermine.metadata.Model;
-import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.Gene;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
-import org.intermine.objectstore.query.ConstraintOp;
-import org.intermine.objectstore.query.ConstraintSet;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
 import org.intermine.objectstore.query.QueryField;
@@ -40,6 +38,7 @@ public class TranscribeNcbiGeneId {
 		Results results = getGenesWithoutNcbiGeneId();
 		
 		System.out.println(String.format("found %d genes with no ncbiGeneId", results.size()));
+		LOG.info(String.format("found %d genes with no ncbiGeneId", results.size()));
 		
 		Iterator<?> iterator = results.iterator();
 		

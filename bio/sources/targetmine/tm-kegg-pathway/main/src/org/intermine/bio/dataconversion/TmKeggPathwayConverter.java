@@ -31,7 +31,7 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 	protected static final Logger LOG = Logger.getLogger(TmKeggPathwayConverter.class);
 	private static final String PROP_FILE = "kegg_config.properties";
 	//
-	private static final String DATASET_TITLE = "KEGG pathways data set";
+	private static final String DATASET_TITLE = "KEGG Pathway";
 	private static final String DATA_SOURCE_NAME = "KEGG";
 
 	private Map<String, String[]> config = new HashMap<String, String[]>();

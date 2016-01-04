@@ -3,6 +3,7 @@ package org.intermine.bio.dataconversion;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -169,6 +170,8 @@ public class DrugbankV4Converter extends BioFileConverter {
 								interaction.addToCollection("actions", getDrugAction(action.trim()
 										.toLowerCase()));
 							}
+							Collections.sort(actionValues);
+							interaction.setAttribute("tag", StringUtils.join(actionValues,", "));
 						} else {
 							interaction.addToCollection("actions", getDrugAction("unknown"));
 						}
@@ -180,7 +183,8 @@ public class DrugbankV4Converter extends BioFileConverter {
 			}
 
 			// get brand names
-			Elements brands = drug.getFirstChildElement("brands", NAMESPACE_URI).getChildElements(
+			// in v4.2 the collection "brands" has been changed to "international-brands" 
+			Elements brands = drug.getFirstChildElement("international-brands", NAMESPACE_URI).getChildElements(
 					"brand", NAMESPACE_URI);
 			for (int j = 0; j < brands.size(); j++) {
 				String brandName = brands.get(j).getValue();
@@ -249,6 +253,12 @@ public class DrugbankV4Converter extends BioFileConverter {
 			// TODO add parent
 			String parentCode = atcCode.substring(0, 5);
 			item.setReference("parent", getParent(parentCode));
+			
+			// TODO create parents; to be improved
+			item.addToCollection("allParents", getParent(parentCode));
+			item.addToCollection("allParents", getParent(parentCode.substring(0, 4)));
+			item.addToCollection("allParents", getParent(parentCode.substring(0, 3)));
+			item.addToCollection("allParents", getParent(parentCode.substring(0, 1)));
 
 			store(item);
 			ret = item.getIdentifier();

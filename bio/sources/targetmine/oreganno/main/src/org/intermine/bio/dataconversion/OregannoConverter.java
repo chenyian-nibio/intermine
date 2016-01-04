@@ -75,7 +75,8 @@ public class OregannoConverter extends BioFileConverter {
 				location.setAttribute("start", cols[3]);
 				location.setAttribute("end", cols[4]);
 				location.setAttribute("strand", cols[6]);
-				location.setReference("feature", getGene(targetId));
+				// TODO this part is not clear, comment out temporary...
+//				location.setReference("feature", getGene(targetId));
 				location.setReference("locatedOn", chromosomeRefId);
 				store(location);
 				

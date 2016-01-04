@@ -20,8 +20,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
+import org.intermine.metadata.StringUtil;
 import org.intermine.objectstore.ObjectStoreException;
-import org.intermine.util.StringUtil;
 import org.intermine.xml.full.Item;
 import org.intermine.xml.full.ReferenceList;
 
@@ -65,7 +65,7 @@ public class GoGoslimConverter extends BioFileConverter {
 
 	// chenyian
 	private static final String DATASET_TITLE = "UniProt-GOA";
-	private static final String DATA_SOURCE_NAME = "EMBL-EBI";
+	private static final String DATA_SOURCE_NAME = "UniProt";
 	private boolean excludeComputational = false;
 
 	private Map<String, Set<String>> goGoslimMap = new HashMap<String, Set<String>>();

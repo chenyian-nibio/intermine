@@ -31,7 +31,7 @@ public class TmKeggOrthologyConverter extends BioFileConverter {
 	protected static final Logger LOG = Logger.getLogger(TmKeggOrthologyConverter.class);
 	private static final String PROP_FILE = "kegg_config.properties";
 	//
-	private static final String DATASET_TITLE = "KEGG orthologues data set";
+	private static final String DATASET_TITLE = "KEGG Orthology";
 	private static final String DATA_SOURCE_NAME = "KEGG";
 
 	private Map<String, String[]> config = new HashMap<String, String[]>();

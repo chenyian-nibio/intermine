@@ -36,7 +36,7 @@ public class Biopax3Converter extends BioFileConverter {
 
 	private static final Logger LOG = Logger.getLogger(Biopax3Converter.class);
 	//
-	private static final String DATASET_TITLE = "Reactome data set";
+	private static final String DATASET_TITLE = "Reactome";
 	private static final String DATA_SOURCE_NAME = "Reactome";
 
 	private Map<String, PathwayEntry> pathwayEntryMap = new HashMap<String, PathwayEntry>();
@@ -176,7 +176,7 @@ public class Biopax3Converter extends BioFileConverter {
 	private String getReactomeId(Pathway pathway) {
 		String ret = null;
 		for (Xref xref : pathway.getXref()) {
-			if (xref instanceof UnificationXref && xref.getId().startsWith("REACT_")) {
+			if (xref instanceof UnificationXref && xref.getDb().equals("Reactome")) {
 				ret = xref.getId();
 			}
 		}

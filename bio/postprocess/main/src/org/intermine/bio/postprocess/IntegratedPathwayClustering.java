@@ -16,6 +16,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.log4j.Logger;
+import org.intermine.metadata.ConstraintOp;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.Gene;
@@ -24,7 +25,6 @@ import org.intermine.model.bio.Pathway;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
-import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.ConstraintSet;
 import org.intermine.objectstore.query.ContainsConstraint;
 import org.intermine.objectstore.query.Query;
@@ -81,7 +81,7 @@ public class IntegratedPathwayClustering {
 
 			List<String> clusters = hc.clusteringByAverageLinkage(0.7d);
 
-			createGeneSetClusters(filteredPathwayGene, clusters, speciesCodes.get(i));
+			createIntegratedPathwayClusters(filteredPathwayGene, clusters, speciesCodes.get(i));
 		}
 	}
 
@@ -189,7 +189,7 @@ public class IntegratedPathwayClustering {
 
 	}
 
-	private void createGeneSetClusters(final Map<String, Set<String>> pathwayGenes,
+	private void createIntegratedPathwayClusters(final Map<String, Set<String>> pathwayGenes,
 			List<String> clusters, String speciesCode) {
 		Collections.sort(clusters, new Comparator<String>() {
 
@@ -256,7 +256,7 @@ public class IntegratedPathwayClustering {
 						+ ") " + StringUtils.join(allPathwayIds, ","));
 
 				InterMineObject item = (InterMineObject) DynamicUtil.simpleCreateObject(model
-						.getClassDescriptorByName("GeneSetCluster").getType());
+						.getClassDescriptorByName("IntegratedPathwayCluster").getType());
 				item.setFieldValue("identifier", clusterId);
 				item.setFieldValue("name", name);
 				Set<Pathway> pathways = new HashSet<Pathway>();
@@ -427,7 +427,7 @@ public class IntegratedPathwayClustering {
 					nodeIdMap.put(pid, nid);
 				}
 				String db = "N";
-				if (pid.startsWith("REACT_")) {
+				if (pid.startsWith("R-")) {
 					db = "R";
 				} else if (pid.startsWith(speciesCode)) {
 					db = "K";

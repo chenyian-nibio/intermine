@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <classes>
 	<class name="CompoundProteinInteraction" is-interface="true">
+		<attribute name="tag" type="java.lang.String"/>
 		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
 		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
@@ -23,6 +24,7 @@
 		<attribute name="atcCode" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<reference name="parent" referenced-type="AtcClassification"/>
+		<collection name="allParents" referenced-type="AtcClassification"/>
 	</class>
 
 	<class name="DrugAction" is-interface="true">

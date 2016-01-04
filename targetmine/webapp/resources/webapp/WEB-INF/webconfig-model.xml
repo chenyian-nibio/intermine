@@ -51,6 +51,7 @@
   <class className="org.intermine.model.bio.Gene">
     <inlinelist>
       <table path="synonyms.value" showLinksToObjects="true" />
+      <table path="probeSets.probeSetId" showLinksToObjects="true" />
     </inlinelist>
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
@@ -88,6 +89,15 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.OntologyAnnotation">
+    <fields>
+      <fieldconfig fieldExpr="subject.primaryIdentifier"/>
+      <fieldconfig fieldExpr="ontologyTerm.identifier"/>
+      <fieldconfig fieldExpr="ontologyTerm.name"/>
+      <fieldconfig fieldExpr="ontologyTerm.namespace"/>
+    </fields>
+  </class>
+
   <class className="org.intermine.model.bio.OntologyTerm">
     <headerconfig>
       <titles>
@@ -120,7 +130,7 @@
   <class className="org.intermine.model.bio.Organism">
     <headerconfig>
       <titles>
-        <title mainTitles="name"/>
+        <title mainTitles="name" subTitles="taxonId"/>
       </titles>
     </headerconfig>
     <fields>
@@ -147,7 +157,7 @@
   <class className="org.intermine.model.bio.Publication">
     <headerconfig>
       <titles>
-        <title mainTitles="title" />
+        <title mainTitles="title" subTitles="year"/>
       </titles>
     </headerconfig>
     <inlinelist>
@@ -235,7 +245,7 @@
   <class className="org.intermine.model.bio.Compound">
     <headerconfig>
         <titles>
-            <title mainTitles="identifier|name" />
+            <title mainTitles="name" subTitles="identifier"/>
         </titles>
     </headerconfig>
     <inlinelist>
@@ -287,19 +297,31 @@
   <class className="org.intermine.model.bio.Pathway">
     <headerconfig>
         <titles>
-            <title mainTitles="identifier|name" />
+            <title mainTitles="identifier|name" subTitles="organism.name"/>
         </titles>
     </headerconfig>
     <fields>
       <fieldconfig fieldExpr="identifier" />
       <fieldconfig fieldExpr="name" />
+      <fieldconfig fieldExpr="organism.name" />
       <fieldconfig fieldExpr="mainClass" showInSummary="false"/>
       <fieldconfig fieldExpr="subClass" showInSummary="false"/>
     </fields>
   </class>
+  <class className="org.intermine.model.bio.Reaction">
+    <inlinelist>
+      <table path="types.name" />
+    </inlinelist>
+    <fields>
+      <fieldconfig fieldExpr="name" />
+      <fieldconfig fieldExpr="text" />
+      <fieldconfig fieldExpr="gene1.symbol" />
+      <fieldconfig fieldExpr="gene2.symbol" />
+    </fields>
+  </class>
 <!-- chenyian
 -->
-  <class className="org.intermine.model.bio.GeneSetCluster" >
+  <class className="org.intermine.model.bio.IntegratedPathwayCluster" >
     <fields>
       <fieldconfig fieldExpr="identifier" />
       <fieldconfig fieldExpr="name" />
@@ -319,7 +341,7 @@
   <class className="org.intermine.model.bio.Disease">
     <headerconfig>
         <titles>
-            <title mainTitles="omimId|title" />
+            <title mainTitles="title" subTitles="omimId" />
         </titles>
     </headerconfig>
     <fields>
@@ -332,6 +354,7 @@
     <fields>
       <fieldconfig fieldExpr="protein.primaryAccession"/>
       <fieldconfig fieldExpr="protein.name"/>
+      <fieldconfig fieldExpr="tag"/>
       <fieldconfig fieldExpr="compound.identifier" />
       <fieldconfig fieldExpr="compound.name" />
       <fieldconfig fieldExpr="dataSet.name" />
@@ -417,6 +440,7 @@
       <fieldconfig fieldExpr="end" />
       <fieldconfig fieldExpr="endInsertionCode" />
       <fieldconfig fieldExpr="proteinChain.identifier" />
+      <fieldconfig fieldExpr="structuralDomain.code" />
       <fieldconfig fieldExpr="structuralDomain.description" />
     </fields>
   </class>
@@ -452,7 +476,7 @@
   <class className="org.intermine.model.bio.DrugCompound">
     <headerconfig>
         <titles>
-            <title mainTitles="identifier|name" />
+            <title mainTitles="name" subTitles="identifier" />
         </titles>
     </headerconfig>
     <fields>
@@ -467,6 +491,24 @@
       <table path="synonyms.value" showLinksToObjects="true" />
       <table path="drugTypes.name" showLinksToObjects="false" />
     </inlinelist>
+  </class>
+
+  <class className="org.intermine.model.bio.DrugMetabolism">
+    <fields>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="gene.primaryIdentifier"/>
+      <fieldconfig fieldExpr="gene.symbol"/>
+      <fieldconfig fieldExpr="gene.organism.name"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.DrugInteraction">
+    <fields>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="gene.primaryIdentifier"/>
+      <fieldconfig fieldExpr="gene.symbol"/>
+      <fieldconfig fieldExpr="gene.organism.name"/>
+    </fields>
   </class>
 
   <class className="org.intermine.model.bio.GeneRIF">
@@ -526,9 +568,14 @@
 
   <class className="org.intermine.model.bio.Interaction">
     <fields>
-      <fieldconfig fieldExpr="confidence"/>
       <fieldconfig fieldExpr="gene1.symbol"/>
       <fieldconfig fieldExpr="gene2.symbol"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.InteractionConfidence">
+    <fields>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="dataSet.name"/>
     </fields>
   </class>
   <class className="org.intermine.model.bio.MiRNAInteraction">
@@ -623,6 +670,44 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.Expression">
+    <fields>
+      <fieldconfig fieldExpr="value"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.MicroarrayPlatform">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="title"/>
+    </fields>
+    <inlinelist>
+      <table path="samples.identifier" showLinksToObjects="true" />
+    </inlinelist>
+  </class>
+
+  <class className="org.intermine.model.bio.MicroarraySeries">
+    <inlinelist>
+      <table path="samples.identifier" showLinksToObjects="true" />
+    </inlinelist>
+  </class>
+
+  <class className="org.intermine.model.bio.MicroarraySample">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="platform.identifier"/>
+      <fieldconfig fieldExpr="platform.title"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.Tissue">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="name"/>
+    </fields>
+  </class>
+  
+
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
   <tableExportConfig id="gff3" className="org.intermine.bio.web.export.GFF3HttpExporter"/>
@@ -700,7 +785,7 @@
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.AtcClassificationDisplayer"
                      jspName="model/atcClassificationDisplayer.jsp"
-                     replacesFields="parent" 
+                     replacesFields="parent, allParents" 
                      types="AtcClassification"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.AtcClassificationDisplayer"
@@ -713,6 +798,11 @@
                      replacesFields="atcCodes,jtcCodes" 
                      types="DrugCompound"/>
 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProbeSetExpressionDisplayer"
+                     jspName="model/probeSetExpressionDisplayer.jsp"
+                     replacesFields="expressions" 
+                     types="ProbeSet"/>
+
   </reportdisplayers>
 
   
@@ -724,7 +814,7 @@
                                  description="Pathways enriched for genes in this list - data from KEGG, Reactome and NCI"
                                  label="Pathways"
                                  filterLabel="DataSet"
-                                 filters="All,KEGG pathways data set,Reactome data set,NCI Pathway Interaction Database"
+                                 filters="All,KEGG Pathway,Reactome,NCI Pathway Interaction Database"
                                  startClass="Gene"
                                  startClassDisplay="symbol"
                                  enrich="pathways.name"
@@ -740,12 +830,12 @@
                                  label="IPCs"
                                  startClass="Gene"
                                  startClassDisplay="symbol"
-                                 enrich="geneSetClusters.name"
-                                 enrichIdentifier="geneSetClusters.identifier"
+                                 enrich="integratedPathwayClusters.name"
+                                 enrichIdentifier="integratedPathwayClusters.identifier"
                                  constraints="organism.taxonId=[list]"
                                  typeClass="Gene"
-                                 views="primaryIdentifier, symbol, organism.name, geneSetClusters.identifier, geneSetClusters.name" 
-                                 externalLink="/targetmine/portal.do?class=GeneSetCluster&amp;externalids="/>
+                                 views="primaryIdentifier, symbol, organism.name, integratedPathwayClusters.identifier, integratedPathwayClusters.name" 
+                                 externalLink="/targetmine/portal.do?class=IntegratedPathwayCluster&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_go_enrichment"
                                  title="Gene Ontology Enrichment"
@@ -767,7 +857,7 @@
                                  views="primaryIdentifier, symbol, organism.name,
                                        goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name"
                                  constraintsForView="goAnnotation.evidence.code.code != IEA"
-                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+                                 externalLink="/targetmine/portal.do?class=GOTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_goagos_enrichment"
                                  title="GOSlim Enrichment"
@@ -789,7 +879,7 @@
                                  views="primaryIdentifier, symbol, organism.name,
                                        goAnnotation.goSlimTerms.parents.identifier,goAnnotation.goSlimTerms.parents.name"
                                  constraintsForView="goAnnotation.evidence.code.code != IEA"
-                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+                                 externalLink="/targetmine/portal.do?class=GOSlimTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_do_enrichment"
                                  title="Disease Ontology Enrichment"
@@ -803,14 +893,14 @@
                                  typeClass="Gene"
                                  views="primaryIdentifier, symbol, organism.name, 
                                        doAnnotations.ontologyTerm.parents.identifier,doAnnotations.ontologyTerm.parents.name"
-                                 externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/"/>
+                                 externalLink="/targetmine/portal.do?class=DOTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="protein_pathway_enrichment"
                                  title="Pathway Enrichment"
                                  description="Pathways enriched for proteins in this list - data from KEGG, Reactome and NCI"
                                  label="Pathways"
                                  filterLabel="DataSet"
-                                 filters="All,KEGG pathways data set,Reactome data set,NCI-Nature data set"
+                                 filters="All,KEGG Pathway,Reactome,NCI Pathway Interaction Database"
                                  startClass="Protein"
                                  startClassDisplay="primaryIdentifier"
                                  enrich="genes.pathways.name"
@@ -819,6 +909,19 @@
                                  typeClass="Protein"
                                  views="primaryAccession, name, organism.name, genes.pathways.identifier, genes.pathways.name, genes.pathways.dataSets.name"
                                  externalLink="/targetmine/portal.do?class=Pathway&amp;externalids="/>
+
+      <enrichmentwidgetdisplayer id="protein_ipc_enrichment"
+                                 title="Integrated Pathway Cluster Enrichment"
+                                 description="Integrated Pathway Clusters(IPCs) enriched for proteins in this list"
+                                 label="IPCs"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="genes.integratedPathwayClusters.name"
+                                 enrichIdentifier="genes.integratedPathwayClusters.identifier"
+                                 constraints="organism.taxonId=[list]"
+                                 typeClass="Protein"
+                                 views="primaryAccession, name, organism.name, genes.integratedPathwayClusters.identifier, genes.integratedPathwayClusters.name" 
+                                 externalLink="/targetmine/portal.do?class=IntegratedPathwayCluster&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="protein_go_enrichment"
                                  title="Gene Ontology Enrichment"
@@ -840,7 +943,7 @@
                                  views="primaryAccession, name, organism.name,
                                        goAnnotation.ontologyTerm.parents.identifier,goAnnotation.ontologyTerm.parents.name" 
                                  constraintsForView="goAnnotation.evidence.code.code != IEA" 
-                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+                                 externalLink="/targetmine/portal.do?class=GOTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="protein_goagos_enrichment"
                                  title="GOSlim Enrichment"
@@ -862,7 +965,7 @@
                                  views="primaryAccession, name, organism.name,
                                        goAnnotation.goSlimTerms.parents.identifier,goAnnotation.goSlimTerms.parents.name"
                                  constraintsForView="goAnnotation.evidence.code.code != IEA"
-                                 externalLink="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term="/>
+                                 externalLink="/targetmine/portal.do?class=GOSlimTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="protein_do_enrichment"
                                  title="Disease Ontology Enrichment"
@@ -876,7 +979,7 @@
                                  typeClass="Protein"
                                  views="primaryAccession, name, organism.name,
                                        genes.doAnnotations.ontologyTerm.parents.identifier,genes.doAnnotations.ontologyTerm.parents.name"
-                                 externalLink="http://django.nubic.northwestern.edu/fundo/databrowse/do_rif/doterm/objects/"/>
+                                 externalLink="/targetmine/portal.do?class=DOTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="protein_interpro_enrichment"
                                  title="InterPro domain Enrichment"
@@ -911,7 +1014,7 @@
                                  description="Compound enriched for proteins in this list."
                                  label="Compounds"
                                  filterLabel="DataSet"
-                                 filters="DrugBank,ChEMBL,STITCH,Ligand Expo,All"
+                                 filters="DrugBank,ChEMBL,BioAssay,Ligand Expo,All"
                                  startClass="Protein"
                                  startClassDisplay="primaryIdentifier"
                                  enrich="compounds.compound.name"
@@ -954,7 +1057,7 @@
                                  description="Compound enriched for genes in this list."
                                  label="Compounds"
                                  filterLabel="DataSet"
-                                 filters="DrugBank,ChEMBL,STITCH,Ligand Expo,All"
+                                 filters="DrugBank,ChEMBL,BioAssay,Ligand Expo,All"
                                  startClass="Gene"
                                  startClassDisplay="symbol"
                                  enrich="proteins.compounds.compound.name"
@@ -989,6 +1092,19 @@
                                  typeClass="Pathway"
                                  views="identifier, name, dataSets.name, genes.proteins.primaryIdentifier, genes.proteins.name, genes.proteins.organism.name"
                                  externalLink="/targetmine/portal.do?class=Protein&amp;externalids="/>
+<!-- 
+ -->
+      <enrichmentwidgetdisplayer id="gene_tissue_enrichment"
+                                 title="Tissue Enrichment"
+                                 description="Tissues enriched for genes in this list"
+                                 label="Tissue"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="probeSets.expressions.tissue.name"
+                                 enrichIdentifier="probeSets.expressions.tissue.identifier"
+                                 constraints="organism.name=[list], probeSets.expressions.isExpressed=true" 
+                                 typeClass="Gene" 
+                                 views="primaryIdentifier, symbol, organism.name, probeSets.expressions.tissue.name"/>
 
 <!-- To be tested 
       <enrichmentwidgetdisplayer id="compound_protein_enrichment"
@@ -1003,6 +1119,29 @@
                                  views="identifier, name, targetProteins.protein.primaryAccession, targetProteins.protein.name, targetProteins.protein.organism.name,"
                                  externalLink="/targetmine/portal.do?class=Protein&amp;externalids="/>
  -->
+      <enrichmentwidgetdisplayer id="drug_atc_enrichment"
+                                 title="ATC Classification Enrichment"
+                                 description="ATC Classification enriched for drugs in this list"
+                                 label="ATC Classification"
+                                 startClass="DrugCompound"
+                                 startClassDisplay="identifier"
+                                 enrich="atcCodes.allParents.name"
+                                 enrichIdentifier="atcCodes.allParents.atcCode"
+                                 typeClass="DrugCompound"
+                                 views="identifier, name, atcCodes.allParents.atcCode, atcCodes.allParents.name"
+                                 externalLink="/targetmine/portal.do?class=AtcClassification&amp;externalids="/>
+
+      <enrichmentwidgetdisplayer id="drug_protein_enrichment"
+                                 title="Target Protein Enrichment"
+                                 description="Protiens enriched for drugs in this list"
+                                 label="Target Protein"
+                                 startClass="DrugCompound"
+                                 startClassDisplay="identifier"
+                                 enrich="targetProteins.protein.name"
+                                 enrichIdentifier="targetProteins.protein.primaryAccession"
+                                 typeClass="DrugCompound"
+                                 views="identifier, name, targetProteins.protein.primaryAccession, targetProteins.protein.name, targetProteins.protein.organism.name,"
+                                 externalLink="/targetmine/portal.do?class=Protein&amp;externalids="/>
 
 <!-- chenyian: disable for external server 
 -->

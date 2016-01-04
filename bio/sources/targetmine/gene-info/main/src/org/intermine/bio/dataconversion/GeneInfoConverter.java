@@ -20,9 +20,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
+import org.intermine.metadata.StringUtil;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.util.FormattedTextParser;
-import org.intermine.util.StringUtil;
 import org.intermine.xml.full.Item;
 
 /**
@@ -34,7 +34,7 @@ public class GeneInfoConverter extends BioFileConverter {
 	private static final String PROP_FILE = "gene-info_config.properties";
 	//
 	private static final String DATASET_TITLE = "Entrez Gene";
-	private static final String DATA_SOURCE_NAME = "NCBI";
+	private static final String DATA_SOURCE_NAME = "Entrez Gene";
 
 	private Set<String> taxonIds;
 	private Set<String> assemblies;

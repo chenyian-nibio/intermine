@@ -18,6 +18,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.intermine.bio.util.Constants;
+import org.intermine.metadata.ConstraintOp;
 import org.intermine.model.bio.GOAnnotation;
 import org.intermine.model.bio.GOEvidence;
 import org.intermine.model.bio.GOEvidenceCode;
@@ -29,7 +30,6 @@ import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
 import org.intermine.objectstore.intermine.ObjectStoreInterMineImpl;
-import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.ConstraintSet;
 import org.intermine.objectstore.query.ContainsConstraint;
 import org.intermine.objectstore.query.Query;

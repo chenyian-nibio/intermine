@@ -24,7 +24,7 @@ public class ChebiDbConverter extends BioDBConverter {
 
 	//
 	private static final String DATASET_TITLE = "ChEBI";
-	private static final String DATA_SOURCE_NAME = "EMBL-EBI";
+	private static final String DATA_SOURCE_NAME = "ChEBI";
 
 	private Map<String, Item> compoundGroupMap = new HashMap<String, Item>();
 
@@ -119,6 +119,9 @@ public class ChebiDbConverter extends BioDBConverter {
 			store(item);
 
 		}
+		
+		stmt.close();
+		connection.close();
 	}
 
 	/***

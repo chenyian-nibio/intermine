@@ -16,6 +16,9 @@ productionLog
 # Add by chenyian
 autogen/
 src/chen/
+targetmine/webapp/resources/webapp/news/
+targetmine/webapp/resources/webapp/rss/
+targetmine/postprocess/*.json.txt
 
 # /intermine/objectstore/main/
 /intermine/objectstore/main/src.png
@@ -202,3 +205,8 @@ malariamine/
 nbproject/
 nb-build.xml
 .idea/
+apache-tomcat*
+prefixed
+failures.list
+*.jks
+biotestmine/project.xml

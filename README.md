@@ -2,7 +2,7 @@
 TargetMine is an integrated data warehouse system for target discovery based on the InterMine framework. See below for more details.
 
 Web site:
-http://targetmine.nibio.go.jp/
+http://targetmine.mizuguchilab.org/
 
 Reference:
 Chen Y-A, Tripathi LP, Mizuguchi K (2011) TargetMine, an Integrated Data Warehouse for Candidate Gene Prioritisation and Target Discovery. PLoS ONE 6(3): e17844.
@@ -12,7 +12,7 @@ doi:10.1371/journal.pone.0017844
 See the INSTALL file for installation instructions.
 
 #TargetMine Source Distribution
-Copyright (C) 2011-2014 by The Mizuguchi Laboratory.
+Copyright (C) 2011-2015 by The Mizuguchi Laboratory.
 
 TargetMine requires the InterMine library. 
 A modified version of InterMine is included in this distribution. (See 'Customized InterMine Library' below for details. The three directories, bio, imbuild and intermine, contain the InterMine library.)
@@ -25,7 +25,7 @@ A powerful open source data warehouse system.
 
 In order to improve the chance of continued funding for the InterMine project it would be appreciated if groups that use InterMine or parts of InterMine would let us know (email [info[at]flymine.org](mailto:info flymine.org)).
 
-Copyright (C) 2002-2014 FlyMine
+Copyright (C) 2002-2015 FlyMine
 
 This product includes software developed by the [Apache Software Foundation](http://www.apache.org/).
 

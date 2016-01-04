@@ -13,18 +13,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.BuildException;
+import org.intermine.metadata.ConstraintOp;
+import org.intermine.metadata.StringUtil;
 import org.intermine.model.bio.Gene;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreFactory;
-import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
 import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.SimpleConstraint;
 import org.intermine.util.SAXParser;
-import org.intermine.util.StringUtil;
 import org.intermine.xml.full.FullRenderer;
 import org.intermine.xml.full.Item;
 import org.intermine.xml.full.ItemFactory;
@@ -39,7 +40,7 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class MissingGeneRetriever {
 	protected static final Logger LOG = Logger.getLogger(MissingGeneRetriever.class);
-	protected static final String ESUMMARY_URL = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=";
+	protected static final String ESUMMARY_URL = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?tool=flymine&version=1.0&db=gene&id=";
 	// number of summaries to retrieve per request
 	protected static final int BATCH_SIZE = 200;
 
@@ -103,6 +104,7 @@ public class MissingGeneRetriever {
 
 			List<Gene> genes = getGenes(os);
 
+			System.out.println("There are " + genes.size() + " gene(s) without proper information.");
 			LOG.info("There are " + genes.size() + " gene(s) without proper information.");
 			System.out.println("There are " + genes.size() + " gene(s) without proper information.");
 
@@ -242,7 +244,10 @@ public class MissingGeneRetriever {
 				toStore.add(gene);
 				gene.setAttribute("primaryIdentifier", characters.toString());
 			} else if ("TaxID".equals(name)) {
-				gene.setReference("organism", getOrganism(characters.toString(), itemFactory));
+				if (!StringUtils.isEmpty(characters.toString())) {
+//					LOG.info("TaxId: " + characters.toString());
+					gene.setReference("organism", getOrganism(characters.toString(), itemFactory));
+				}
 			} else if ("Name".equals(name)) {
 				gene.setAttribute("symbol", characters.toString());
 			} else if ("CurrentID".equals(name)) {

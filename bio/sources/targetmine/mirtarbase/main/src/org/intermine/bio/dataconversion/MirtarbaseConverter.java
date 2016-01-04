@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -19,7 +20,7 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class MirtarbaseConverter extends BioFileConverter {
-	// private static Logger LOG = Logger.getLogger(MirtarbaseConverter.class);
+//	private static Logger LOG = Logger.getLogger(MirtarbaseConverter.class);
 	//
 	private static final String DATASET_TITLE = "miRTarBase";
 	private static final String DATA_SOURCE_NAME = "miRTarBase";
@@ -70,10 +71,14 @@ public class MirtarbaseConverter extends BioFileConverter {
 						getMiRNAInteraction(accs[i], ncbiGeneId, sourceId, supportType));
 				item.setReference("publication", getPublication(pubmedId));
 
-				Set<String> expSet = new HashSet<String>(Arrays.asList(experiment.split("//|;")));
-
-				for (String exp : expSet) {
-					item.addToCollection("experiments", getMiRNAExperiment(exp));
+				if (!StringUtils.isEmpty(experiment) && !experiment.equals("-")) {
+					Set<String> expSet = new HashSet<String>(Arrays.asList(experiment.split("//|;")));
+					
+					for (String exp : expSet) {
+						if (!StringUtils.isEmpty(exp)) {
+							item.addToCollection("experiments", getMiRNAExperiment(exp));
+						}
+					}
 				}
 
 				store(item);

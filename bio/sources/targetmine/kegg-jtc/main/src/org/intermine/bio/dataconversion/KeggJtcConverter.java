@@ -3,12 +3,22 @@ package org.intermine.bio.dataconversion;
 import java.io.BufferedReader;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
+import org.intermine.model.InterMineObject;
+import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
+import org.intermine.objectstore.ObjectStoreFactory;
+import org.intermine.objectstore.query.Query;
+import org.intermine.objectstore.query.QueryClass;
+import org.intermine.objectstore.query.Results;
+import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.xml.full.Item;
 
 
@@ -35,6 +45,8 @@ public class KeggJtcConverter extends FileConverter
      * {@inheritDoc}
      */
     public void process(Reader reader) throws Exception {
+    	getDrugBankIdMap();
+    	
 		BufferedReader in = new BufferedReader(reader);
 		String line;
 		String currentClassId = "";
@@ -52,8 +64,17 @@ public class KeggJtcConverter extends FileConverter
 			} else if (line.startsWith("E")) {
 				String keggDrugId = line.substring(9, 15);
 				if (currentClassId.length() == 4) {
-					Item drugCompound = getDrugCompound(keggDrugId);
-					drugCompound.addToCollection("jtcCodes", jtcMap.get(currentClassId));
+					Set<String> drugBankIds = drugBankIdMap.get(keggDrugId);
+					if (drugBankIds != null) {
+						for (String drugBankId : drugBankIds) {
+							Item drugCompound = getDrugBankCompound(drugBankId);
+							drugCompound.addToCollection("jtcCodes", jtcMap.get(currentClassId));
+						}
+					} else {
+						Item drugCompound = getKeggDrugCompound(keggDrugId);
+						drugCompound.addToCollection("jtcCodes", jtcMap.get(currentClassId));
+					}
+
 				} else {
 					throw new RuntimeException("illeagle format at line: " + line);
 				}
@@ -69,12 +90,21 @@ public class KeggJtcConverter extends FileConverter
     
     private Map<String, Item> drugCompoundMap = new HashMap<String, Item>();
     
-    private Item getDrugCompound(String keggDrugId) throws ObjectStoreException {
+    private Item getKeggDrugCompound(String keggDrugId) throws ObjectStoreException {
     	Item ret = drugCompoundMap.get(keggDrugId);
     	if (ret == null) {
     		ret = createItem("DrugCompound");
     		ret.setAttribute("keggDrugId", keggDrugId);
     		drugCompoundMap.put(keggDrugId, ret);
+    	}
+    	return ret;
+    }
+    private Item getDrugBankCompound(String drugBankId) throws ObjectStoreException {
+    	Item ret = drugCompoundMap.get(drugBankId);
+    	if (ret == null) {
+    		ret = createItem("DrugCompound");
+    		ret.setAttribute("drugBankId", drugBankId);
+    		drugCompoundMap.put(drugBankId, ret);
     	}
     	return ret;
     }
@@ -96,4 +126,46 @@ public class KeggJtcConverter extends FileConverter
     	}
     	return ret;
     }
+
+	private String osAlias = null;
+
+	public void setOsAlias(String osAlias) {
+		this.osAlias = osAlias;
+	}
+
+	private Map<String, Set<String>> drugBankIdMap;
+
+	@SuppressWarnings("unchecked")
+	private void getDrugBankIdMap() throws Exception {
+		drugBankIdMap = new HashMap<String, Set<String>>();
+
+		ObjectStore os = ObjectStoreFactory.getObjectStore(osAlias);
+
+		Query q = new Query();
+		QueryClass qcDrugCompound = new QueryClass(os.getModel()
+				.getClassDescriptorByName("DrugCompound").getType());
+
+
+		q.addFrom(qcDrugCompound);
+
+		q.addToSelect(qcDrugCompound);
+
+		Results results = os.execute(q);
+		Iterator<Object> iterator = results.iterator();
+		while (iterator.hasNext()) {
+			ResultsRow<InterMineObject> rr = (ResultsRow<InterMineObject>) iterator.next();
+			InterMineObject p = rr.get(0);
+
+			String drugBankId = (String) p.getFieldValue("drugBankId");
+			String keggDrugId = (String) p.getFieldValue("keggDrugId");
+			
+			if (drugBankId != null && keggDrugId != null) {
+				if (drugBankIdMap.get(keggDrugId) == null) {
+					drugBankIdMap.put(keggDrugId, new HashSet<String>());
+				}
+				drugBankIdMap.get(keggDrugId).add(drugBankId);
+			}
+
+		}
+	}
 }

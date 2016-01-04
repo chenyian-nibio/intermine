@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<classes>
+	<class name="Tissue" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<collection name="samples" referenced-type="MicroarraySample" reverse-reference="tissue"/>
+	</class>
+	<class name="MicroarrayPlatform" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<collection name="samples" referenced-type="MicroarraySample" reverse-reference="platform"/>
+	</class>
+	<class name="MicroarraySample" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<reference name="tissue" referenced-type="Tissue" reverse-reference="samples"/>
+		<reference name="platform" referenced-type="MicroarrayPlatform" reverse-reference="samples"/>
+		<reference name="series" referenced-type="MicroarraySeries" reverse-reference="samples"/>
+	</class>
+	<class name="MicroarraySeries" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<collection name="samples" referenced-type="MicroarraySample" reverse-reference="series"/>
+	</class>
+
+</classes>

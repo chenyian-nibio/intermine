@@ -12,6 +12,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
+import org.intermine.metadata.ConstraintOp;
 import org.intermine.metadata.Model;
 import org.intermine.model.bio.Organism;
 import org.intermine.model.bio.Protein;
@@ -19,7 +20,6 @@ import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreFactory;
 import org.intermine.objectstore.query.BagConstraint;
-import org.intermine.objectstore.query.ConstraintOp;
 import org.intermine.objectstore.query.ConstraintSet;
 import org.intermine.objectstore.query.ContainsConstraint;
 import org.intermine.objectstore.query.Query;
@@ -48,7 +48,7 @@ import org.intermine.xml.full.Item;
 public class Protein2iprConverter extends BioFileConverter {
 	private static final Logger LOG = Logger.getLogger(Protein2iprConverter.class);
 	//
-	private static final String DATASET_TITLE = "InterPro data set";
+	private static final String DATASET_TITLE = "InterPro";
 	private static final String DATA_SOURCE_NAME = "InterPro";
 
 	private Collection<Integer> taxonIds = new ArrayList<Integer>();

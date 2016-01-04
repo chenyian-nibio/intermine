@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<classes>
+	<class name="ProbeSet" is-interface="true">
+		<attribute name="probeSetId" type="java.lang.String"/>
+		<collection name="expressions" referenced-type="Expression" reverse-reference="probeSet"/>
+	</class>
+	<class name="Expression" is-interface="true">
+		<attribute name="value" type="java.lang.Float"/>
+		<attribute name="isExpressed" type="java.lang.Boolean"/>
+		<reference name="probeSet" referenced-type="ProbeSet" reverse-reference="expressions"/>
+		<reference name="platform" referenced-type="MicroarrayPlatform"/>
+		<reference name="tissue" referenced-type="Tissue"/>
+		<!-- reference to a DataSet? -->
+	</class>
+	<class name="Tissue" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+	</class>
+	<class name="MicroarrayPlatform" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="title" type="java.lang.String"/>
+		<reference name="dataSet" referenced-type="DataSet"/>
+		<reference name="organism" referenced-type="Organism"/>
+	</class>
+
+</classes>

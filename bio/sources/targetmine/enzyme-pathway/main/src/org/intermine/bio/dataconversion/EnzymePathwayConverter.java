@@ -25,7 +25,7 @@ public class EnzymePathwayConverter extends BioFileConverter {
 	protected static final Logger LOG = Logger.getLogger(EnzymePathwayConverter.class);
 
 	//
-	private static final String DATASET_TITLE = "KEGG pathways data set";
+	private static final String DATASET_TITLE = "KEGG Pathway";
 	private static final String DATA_SOURCE_NAME = "KEGG";
 
 	private Map<String, String> pathwayMap = new HashMap<String, String>();

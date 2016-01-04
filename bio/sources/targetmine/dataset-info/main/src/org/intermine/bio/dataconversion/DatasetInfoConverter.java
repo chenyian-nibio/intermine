@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
+import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.xml.full.Item;
 
 /**
@@ -72,6 +73,9 @@ public class DatasetInfoConverter extends FileConverter {
 				if (dataSetInfoMap.get("version") != null) {
 					item.setAttribute("version", dataSetInfoMap.get("version"));
 				}
+				if (dataSetInfoMap.get("data_source") != null) {
+					item.setReference("dataSource", getDataSource(dataSetInfoMap.get("data_source")));
+				}
 				store(item);
 			} else {
 				LOG.error("Failed to read data set name from: " + getCurrentFile().getAbsolutePath());
@@ -86,5 +90,19 @@ public class DatasetInfoConverter extends FileConverter {
 				in.close();
 		}
 
+	}
+	
+	private Map<String,String> dataSourceMap = new HashMap<String, String>();
+	
+	private String getDataSource(String name) throws ObjectStoreException {
+		String ret = dataSourceMap.get(name);
+		if (ret == null) {
+			Item item = createItem("DataSource");
+			item.setAttribute("name", name);
+			store(item);
+			ret = item.getIdentifier();
+			dataSourceMap.put(name, ret);
+		}
+		return ret;
 	}
 }

@@ -1,7 +1,7 @@
 package org.intermine.bio.web.logic;
 
 /*
- * Copyright (C) 2002-2014 FlyMine
+ * Copyright (C) 2002-2015 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -43,7 +43,7 @@ public class CytoscapeNetworkDBQueryRunner
      * @param model the Model
      * @param executor the PathQueryExecutor
      * @return a set of genes
-     * @throws ObjectStoreException
+     * @throws ObjectStoreException can't access the db
      */
     public Set<Integer> getInteractingGenes(String featureType, Set<Integer> startingFeatureSet,
             Model model, PathQueryExecutor executor) throws ObjectStoreException {
@@ -140,7 +140,7 @@ public class CytoscapeNetworkDBQueryRunner
     	
     	q.addView("Gene.interactions.gene2.id");
     	q.addConstraint(Constraints.inIds("Gene", startingGeneSet), "A");
-    	q.addConstraint(Constraints.eq("Gene.interactions.confidence", "HCDP"), "B");
+    	q.addConstraint(Constraints.eq("Gene.interactions.confidences.type", "HCDP"), "B");
     	q.setConstraintLogic("A and B");
     	
     	ExportResultsIterator results = executor.execute(q);
@@ -167,7 +167,7 @@ public class CytoscapeNetworkDBQueryRunner
      * @param model the Model
      * @param executor the PathQueryExecutor
      * @return raw query results
-     * @throws ObjectStoreException 
+     * @throws ObjectStoreException can't access the db
      */
     public ExportResultsIterator getInteractions(Set<Integer> keys, Model model,
             PathQueryExecutor executor) throws ObjectStoreException {
@@ -226,7 +226,7 @@ public class CytoscapeNetworkDBQueryRunner
     	
     	q.addConstraint(Constraints.inIds("Gene", keys), "B");
     	q.addConstraint(Constraints.inIds("Gene.interactions.gene2", keys), "A");
-    	q.addConstraint(Constraints.eq("Gene.interactions.confidence", "HCDP"), "C");
+    	q.addConstraint(Constraints.eq("Gene.interactions.confidences.type", "HCDP"), "C");
     	q.setConstraintLogic("A and B and C");
     	
     	ExportResultsIterator results = executor.execute(q);
@@ -245,7 +245,8 @@ public class CytoscapeNetworkDBQueryRunner
      * @throws ObjectStoreException If the underlying queries cannot be run.
      */
     public ExportResultsIterator extendNetwork(String geneId,
-            Set<Integer> keys, Model model, PathQueryExecutor executor) throws ObjectStoreException {
+            Set<Integer> keys, Model model, PathQueryExecutor executor)
+        throws ObjectStoreException {
 
         Set<Integer> startingGeneSet = new HashSet<Integer>();
         startingGeneSet.add(Integer.valueOf(geneId));
