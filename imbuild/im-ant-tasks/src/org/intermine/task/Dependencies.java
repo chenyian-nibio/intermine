@@ -80,6 +80,7 @@ public class Dependencies extends Task
        supposed to be model/mine independent.
     */
     private String extraProjectDependencies = "";
+    private List<String> extraProjectDepsList = new ArrayList<String>();
 
     private static final String EXTRA_DEPS = "extra.project.dependencies";
 
@@ -169,32 +170,7 @@ public class Dependencies extends Task
 
         projectProperties = loadProjectProperties(getProject().getBaseDir());
 
-        // chenyian: (2015.3.23) some how a strange refactoring found here which will cause compile failed.
-        extraProjectDependencies = projectProperties.getProperty(EXTRA_DEPS);
-
-        List<String> extraProjectDepsList = new ArrayList<String>();
-
-        if (getProject().getProperty(EXTRA_DEPS) != null) {
-            // add the extra project dependencies from the project that is calling/executing this
-            // project
-            if (extraProjectDependencies == null) {
-                extraProjectDependencies = getProject().getProperty(EXTRA_DEPS);
-            } else {
-                extraProjectDependencies += ", " + getProject().getProperty(EXTRA_DEPS);
-            }
-        }
-
-        if (extraProjectDependencies != null) {
-            Vector bits = StringUtils.split(extraProjectDependencies, ',');
-
-            for (Object bit: bits) {
-                String dep = ((String) bit).trim();
-
-                if (!extraProjectDepsList.contains(dep)) {
-                    extraProjectDepsList.add(dep);
-                }
-            }
-        }
+        setExtraDeps();
 
         compilePath = new Path(getProject());
         dependPath = new Path(getProject());
@@ -376,6 +352,34 @@ public class Dependencies extends Task
 
         getProject().addReference(artifactPathId + ".fileset", artifactFileSet);
         getProject().addReference(artifactPathId + ".fileset.text", artifactIncludes);
+    }
+
+    private void setExtraDeps() {
+        extraProjectDependencies = projectProperties.getProperty(EXTRA_DEPS);
+
+        extraProjectDepsList = new ArrayList<String>();
+
+        if (getProject().getProperty(EXTRA_DEPS) != null) {
+            // add the extra project dependencies from the project that is calling/executing this
+            // project
+            if (extraProjectDependencies == null) {
+                extraProjectDependencies = getProject().getProperty(EXTRA_DEPS);
+            } else {
+                extraProjectDependencies += ", " + getProject().getProperty(EXTRA_DEPS);
+            }
+        }
+
+        if (extraProjectDependencies != null) {
+            Vector bits = StringUtils.split(extraProjectDependencies, ',');
+
+            for (Object bit: bits) {
+                String dep = ((String) bit).trim();
+
+                if (!extraProjectDepsList.contains(dep)) {
+                    extraProjectDepsList.add(dep);
+                }
+            }
+        }
     }
 
 

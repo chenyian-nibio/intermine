@@ -1,60 +1,79 @@
-#TargetMine
-TargetMine is an integrated data warehouse system for target discovery based on the InterMine framework. See below for more details.
+InterMine
+============
 
-Web site:
-http://targetmine.mizuguchilab.org/
+Master: [![Build Status: master][travis-badge-master]][ci]
+Dev: [![Build Status: dev][travis-badge-dev]][ci]
 
-Reference:
-Chen Y-A, Tripathi LP, Mizuguchi K (2011) TargetMine, an Integrated Data Warehouse for Candidate Gene Prioritisation and Target Discovery. PLoS ONE 6(3): e17844.
-doi:10.1371/journal.pone.0017844
+A powerful open source data warehouse system. InterMine allows users
+to integrate diverse data sources with a minimum of effort, providing
+powerful web-services and an elegant web-application with minimal
+configuration. InterMine powers some of the largest data-warehouses in
+the life sciences, including:
+  * [FlyMine](http://www.flymine.org)
+  * [MouseMine](http://www.mousemine.org)
+  * [YeastMine](http://yeastmine.yeastgenome.org)
+  * [ZebrafishMine](http://zebrafishmine.org)
+  * [RatMine](http://ratmine.mcw.edu/ratmine/begin.do)
+  * [TargetMine](http://targetmine.nibio.go.jp/)
+  * [ThaleMine](https://apps.araport.org/thalemine)
+  * [PhytoMine](http://phytozome.jgi.doe.gov/phytomine)
 
-#Installation
-See the INSTALL file for installation instructions.
+InterMine is free, open-source software.
 
-#TargetMine Source Distribution
-Copyright (C) 2011-2015 by The Mizuguchi Laboratory.
+For extensive documentation please visit: [InterMine Documentation][readthedocs]
 
-TargetMine requires the InterMine library. 
-A modified version of InterMine is included in this distribution. (See 'Customized InterMine Library' below for details. The three directories, bio, imbuild and intermine, contain the InterMine library.)
+If you run an InterMine, or use one in your research,
+in order to improve the chance of continued funding for the
+InterMine project it would be appreciated if groups that use
+InterMine or parts of InterMine would let us know (email
+[info[at]flymine.org](mailto:info flymine.org)).
 
-#InterMine
+Getting Started With InterMine
+-------------------------------
 
-A powerful open source data warehouse system.
+For a guide on getting started with InterMine, please visit:
+[quick start tutorial][tutorial]
 
-[InterMine Documentation](http://intermine.readthedocs.org/en/latest/)
+3min bootstrap
+--------------------------------------
 
-In order to improve the chance of continued funding for the InterMine project it would be appreciated if groups that use InterMine or parts of InterMine would let us know (email [info[at]flymine.org](mailto:info flymine.org)).
+As long as you have the prerequisites installed ([Java][java],
+[PostgreSQL][psql]), you can get a working 
+data-warehouse and associated web-application by running an
+automated bootstrap script:
+
+```bash
+  # Set up tomcat
+  sh config/download_and_configure_tomcat.sh
+  # For a genomic application, with test data from Malaria
+  sh bio/setup.sh
+  # For the testmodel
+  sh testmodel/setup.sh
+```
+
+This requires that you have all the software dependencies
+installed and running with the appropriate user permissions
+(postgres, Tomcat, Java SDK). You will need to have set up usernames
+and passwords for Tomcat and postgres first, and these can be
+provided to the setup scripts as `PSQL_USER`, `PSQL_PWD`,
+`TOMCAT_USER`, and `TOMCAT_PWD`.
+
+Copyright and Licence
+------------------------
 
 Copyright (C) 2002-2015 FlyMine
 
-This product includes software developed by the [Apache Software Foundation](http://www.apache.org/).
+See [LICENSE](LICENSE) file for licensing information.
 
-#Licenses
-TargetMine is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+This product includes software developed by the
+[Apache Software Foundation][apache]
 
-See LICENSE for licensing information.
-
-InterMine is an open source project distributed under the GNU Lesser General Public Licence.
-
-See LICENSE.intermine and LICENSE.intermine.LIBS for licensing information.
-
-#Customized InterMine Library
-The following files were modified.
-
-* bio/webapp/resources/webapp/WEB-INF/classDescriptions.properties
-* bio/postprocess/main/src/org/intermine/bio/postprocess/PostProcessOperationsTask.java
-* bio/webapp/src/org/intermine/bio/web/logic/CytoscapeNetworkDBQueryRunner.java
-* bio/webapp/src/org/intermine/bio/web/logic/CytoscapeNetworkService.java
-* bio/webapp/src/org/intermine/bio/web/logic/OrthologueConverter.java
-* intermine/web/main/src/org/intermine/web/struts/BuildBagAction.java
-* intermine/web/main/src/org/intermine/web/struts/BuildBagForm.java
-
-The following files were added.
-
-* bio/postprocess/main/src/org/intermine/bio/postprocess/AssociateGeneAndGeneSetCluster.java
-* bio/postprocess/main/src/org/intermine/bio/postprocess/HierarchicalClustering.java
-* bio/postprocess/main/src/org/intermine/bio/postprocess/IntegratedPathwayClustering.java
-* bio/postprocess/main/src/org/intermine/bio/postprocess/NetworkAnalysisTool.java
-* bio/postprocess/main/src/org/intermine/bio/postprocess/PpiDruggability.java
-* bio/postprocess/main/src/org/intermine/bio/postprocess/TranscribeNcbiGeneId.java
-* bio/webapp/src/org/intermine/bio/web/logic/ProteinOrthologConverter.java
+[travis-badge-master]: https://travis-ci.org/intermine/intermine.svg?branch=master
+[travis-badge-dev]: https://travis-ci.org/intermine/intermine.svg?branch=dev
+[ci]: https://travis-ci.org/intermine/intermine
+[readthedocs]: http://intermine.readthedocs.org/en/latest
+[tutorial]: http://intermine.readthedocs.org/en/latest/get-started/tutorial
+[psql]: http://www.postgresql.org
+[java]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
+[apache]: http://www.apache.org
+[tomcat]: http://tomcat.apache.org/download-70.cgi

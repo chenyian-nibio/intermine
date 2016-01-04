@@ -83,6 +83,7 @@ import org.intermine.objectstore.query.ResultsInfo;
 import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.objectstore.query.SingletonResults;
 import org.intermine.sql.Database;
+import org.intermine.sql.DatabaseConnectionException;
 import org.intermine.sql.DatabaseFactory;
 import org.intermine.sql.DatabaseUtil;
 import org.intermine.sql.precompute.BestQuery;
@@ -374,6 +375,9 @@ public class ObjectStoreInterMineImpl extends ObjectStoreAbstractImpl implements
                 try {
                     versionString = MetadataManager.retrieve(database,
                             MetadataManager.OS_FORMAT_VERSION);
+                } catch (DatabaseConnectionException e) {
+                    throw new ObjectStoreException("Failed to get connection to database while "
+                            + "instantiating ObjectStore", e);
                 } catch (SQLException e) {
                     LOG.warn("Error retrieving database format version number", e);
                     throw new ObjectStoreException(
@@ -463,6 +467,9 @@ public class ObjectStoreInterMineImpl extends ObjectStoreAbstractImpl implements
                     Statement s = c.createStatement();
                     s.execute("SELECT bioseg_create(1, 2)");
                     hasBioSeg = true;
+                } catch (DatabaseConnectionException e) {
+                    throw new ObjectStoreException("Failed to get database connection when checking"
+                            + " for bioseg during ObjectStore creation", e);
                 } catch (SQLException e) {
                     // We don't have bioseg
                     if (!useRangeTypes) {
@@ -1727,6 +1734,9 @@ public class ObjectStoreInterMineImpl extends ObjectStoreAbstractImpl implements
             try {
                 PrecomputedTableManager ptm = PrecomputedTableManager.getInstance(db);
                 ptm.dropAffected(tableNames);
+            } catch (DatabaseConnectionException e) {
+                throw new Error("Failed to get database connection when initiating "
+                        + "PrecomputedTableManager", e);
             } catch (SQLException e) {
                 throw new Error("Problem with precomputed tables", e);
             }

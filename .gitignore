@@ -13,12 +13,15 @@ executeLog*
 productionLog
 *~
 
-# Add by chenyian
+# Add by chenyian (Start)
 autogen/
 src/chen/
 targetmine/webapp/resources/webapp/news/
 targetmine/webapp/resources/webapp/rss/
 targetmine/postprocess/*.json.txt
+# Add by chenyian (End)
+
+!/intermine/webservice/client/download/dist/
 
 # /intermine/objectstore/main/
 /intermine/objectstore/main/src.png
