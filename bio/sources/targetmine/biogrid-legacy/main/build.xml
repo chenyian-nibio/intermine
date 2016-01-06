@@ -1,0 +1,4 @@
+<project name="biogrid-legacy-tasks" default="default" basedir=".">
+  <description>build biogrid-legacy tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

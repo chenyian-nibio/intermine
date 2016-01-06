@@ -159,7 +159,7 @@
     <source name="psi-mi" type="psi-mi-ontology">
       <property name="src.data.file" location="/data/bio/db/Targetmine/psi-mi/psi-mi25.obo"/>
     </source>
-    <source name="biogrid" type="biogrid">
+    <source name="biogrid" type="biogrid-legacy">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/biogrid"/>
       <property name="src.data.dir.includes" value="*psi25.xml"/>
       <property name="biogrid.organisms" value="9606 10090 10116"/>
