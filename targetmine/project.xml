@@ -47,7 +47,7 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/interpro"/>
       <property name="src.data.dir.includes" value="interpro.xml"/>
     </source>
-    <source name="protein2ipr" type="protein2ipr">
+    <source name="protein2ipr" type="tm-protein2ipr">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/interpro"/>
       <property name="src.data.dir.includes" value="protein2ipr.dat"/>
       <property name="organisms" value="9606 10090 10116"/>

@@ -1,0 +1,4 @@
+<project name="tm-protein2ipr-tasks" default="default" basedir=".">
+  <description>build tm-protein2ipr tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>
