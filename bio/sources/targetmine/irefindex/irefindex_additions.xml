@@ -28,13 +28,10 @@
         <reference name="interaction" referenced-type="Interaction" reverse-reference="details"/>
         <collection name="dataSets" referenced-type="DataSet"/>
         <collection name="allInteractors" referenced-type="Gene"/>
-        <!--extra attributes -->
-        <attribute name="biologicalRole" type="java.lang.String"/>
-        <attribute name="interactorType" type="java.lang.String"/>      
     </class>
 
     <class name="Gene" is-interface="true">
-        <attribute name="ncbiGeneId" type="java.lang.String"/>
+        <attribute name="primaryIdentifier" type="java.lang.String"/>
         <collection name="interactions" referenced-type="Interaction" reverse-reference="gene1"/>
     </class>
     <class name="InteractionTerm" extends="OntologyTerm" is-interface="true"/>

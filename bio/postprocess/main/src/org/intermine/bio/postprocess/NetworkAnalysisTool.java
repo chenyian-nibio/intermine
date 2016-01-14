@@ -29,7 +29,6 @@ import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.Interaction;
 import org.intermine.model.bio.Organism;
-import org.intermine.model.bio.Publication;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
@@ -39,7 +38,6 @@ import org.intermine.objectstore.query.ConstraintSet;
 import org.intermine.objectstore.query.ContainsConstraint;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
-import org.intermine.objectstore.query.QueryCollectionReference;
 import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.QueryObjectReference;
 import org.intermine.objectstore.query.QueryValue;
@@ -107,7 +105,6 @@ public class NetworkAnalysisTool {
 		System.out.println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
 		i++;
 
-		// String taxonId = "9606";
 		List<String> species = Arrays.asList("9606", "10090", "10116");
 		for (String taxonId : species) {
 
@@ -116,7 +113,7 @@ public class NetworkAnalysisTool {
 			Iterator<InteractionData> iterator = interactions.iterator();
 			Set<InteractionData> hcdp = new HashSet<InteractionData>();
 			Set<InteractionData> hc = new HashSet<InteractionData>();
-			// TODO distinguish HC, HCDP
+			// distinguish HC, HCDP
 			while (iterator.hasNext()) {
 				InteractionData intData = iterator.next();
 				if (intData.isHighConfident()) {
@@ -148,7 +145,6 @@ public class NetworkAnalysisTool {
 				osw.beginTransaction();
 				int x = 0;
 				int y = 0;
-				int z = 0;
 				while (resIter.hasNext()) {
 					ResultsRow<?> rr = (ResultsRow<?>) resIter.next();
 					Interaction interaction = (Interaction) rr.get(0);
@@ -177,8 +173,6 @@ public class NetworkAnalysisTool {
 						+ ").");
 				System.out.println("There are " + y + " interactions tag with HC. (" + taxonId
 						+ ").");
-				// System.out.println("There are " + z + " interactions tag with NA. (" + taxonId
-				// + ").");
 				osw.commitTransaction();
 
 				// For tracing
@@ -197,19 +191,6 @@ public class NetworkAnalysisTool {
 						+ " seconds");
 				i++;
 
-				// System.out.println("calculateNetworkProperties(hclcc)...");
-				//
-				// Map<String, NetworkData> hclccNp = calculateNetworkProperties(hclcc);
-				//
-				// // For tracing
-				// currentTime[i] = System.currentTimeMillis();
-				// System.out.println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 +
-				// " seconds");
-				// i++;
-
-				// Set<String> geneIds = new HashSet<String>();
-				// geneIds.addAll(hcdplccNp.keySet());
-				// geneIds.addAll(hclccNp.keySet());
 				Set<String> geneIds = hcdplccNp.keySet();
 
 				System.out
@@ -239,22 +220,6 @@ public class NetworkAnalysisTool {
 
 						osw.store(item);
 					}
-					// NetworkData hcData = hclccNp.get(geneId);
-					// if (hcData != null) {
-					// InterMineObject item = (InterMineObject) DynamicUtil
-					// .simpleCreateObject(model.getClassDescriptorByName(
-					// "NetworkProperty").getType());
-					// item.setFieldValue("networkType", "HCLCC");
-					// item.setFieldValue("isBottleneck", hcData.isBottleneck());
-					// item.setFieldValue("isHub", hcData.isHub());
-					// item.setFieldValue("betweenness", hcData.getBetweenness());
-					// item.setFieldValue("closeness", hcData.getCloseness());
-					// item.setFieldValue("degree", hcData.getDegree());
-					// item.setFieldValue("gene", gene);
-					//
-					// osw.store(item);
-					// }
-
 				}
 				osw.commitTransaction();
 
@@ -265,37 +230,9 @@ public class NetworkAnalysisTool {
 				i++;
 
 			} catch (ObjectStoreException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		// process untagged interaction (cross species interactions)
-		// chenyian: null is fine
-		// try {
-		// osw.beginTransaction();
-		// Results untaggedInteraction = queryUntaggedInteraction();
-		// System.out.println("Process " + untaggedInteraction.size() + " untagged interactions.");
-		// Iterator<Object> utiIter = untaggedInteraction.iterator();
-		// while (utiIter.hasNext()) {
-		// ResultsRow<?> rr = (ResultsRow<?>) utiIter.next();
-		// Interaction interaction = (Interaction) rr.get(0);
-		// interaction.setFieldValue("confidence", "NA");
-		// osw.store(interaction);
-		// }
-		//
-		// osw.commitTransaction();
-		//
-		// // For tracing
-		// currentTime[i] = System.currentTimeMillis();
-		// System.out
-		// .println("Spent " + (currentTime[i] - currentTime[i - 1]) / 1000 + " seconds");
-		// i++;
-		//
-		// } catch (ObjectStoreException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
-
 	}
 
 	@SuppressWarnings("unused")
@@ -364,21 +301,6 @@ public class NetworkAnalysisTool {
 		return os.execute(q);
 	}
 
-	private Results queryUntaggedInteraction() {
-		Query q = new Query();
-		QueryClass qcInteraction = new QueryClass(Interaction.class);
-
-		QueryField qfNetworkTypeId2 = new QueryField(qcInteraction, "confidence");
-
-		q.addFrom(qcInteraction);
-		q.addToSelect(qcInteraction);
-		q.setConstraint(new SimpleConstraint(qfNetworkTypeId2, ConstraintOp.IS_NULL));
-
-		ObjectStore os = osw.getObjectStore();
-
-		return os.execute(q);
-	}
-
 	private Results queryGenesByGeneIdList(Set<String> geneIds) {
 		Query q = new Query();
 		QueryClass qcGene = new QueryClass(Gene.class);
@@ -394,142 +316,6 @@ public class NetworkAnalysisTool {
 		return os.execute(q);
 	}
 
-	@SuppressWarnings("unused")
-	private Results queryGenesByTaxonId(String taxonId) {
-		Query q = new Query();
-		QueryClass qcGene = new QueryClass(Gene.class);
-		QueryClass qcOrganism = new QueryClass(Organism.class);
-		QueryField qfTaxonId = new QueryField(qcOrganism, "taxonId");
-
-		q.addFrom(qcGene);
-		q.addFrom(qcOrganism);
-		q.addToSelect(qcGene);
-
-		ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
-		QueryObjectReference qor1 = new QueryObjectReference(qcGene, "organism");
-		cs.addConstraint(new ContainsConstraint(qor1, ConstraintOp.CONTAINS, qcOrganism));
-		cs.addConstraint(new SimpleConstraint(qfTaxonId, ConstraintOp.EQUALS, new QueryValue(
-				Integer.valueOf(taxonId))));
-		q.setConstraint(cs);
-
-		ObjectStore os = osw.getObjectStore();
-
-		return os.execute(q);
-	}
-
-	/**
-	 * Outer join is difficult to implement, which is important for filtering HCPPI. (Some
-	 * interactions derived from iRefIndex are not annotated with a interaction type MI term). <br/>
-	 * Either make multiple queries or add an mock MI term when integrating iRefIndex, then this
-	 * method could be re-implemented (even now itself was not finished)
-	 * 
-	 * @param taxonId
-	 * @return
-	 * @throws Exception
-	 */
-	@SuppressWarnings("unused")
-	@Deprecated
-	private List<String> getOsPhysicalInteractions(String taxonId) throws Exception {
-		Query q = new Query();
-		QueryClass qcGene1 = new QueryClass(Gene.class);
-		QueryClass qcGene2 = new QueryClass(Gene.class);
-		QueryClass qcInteraction = new QueryClass(
-				Class.forName("org.intermine.model.bio.Interaction"));
-		QueryClass qcInteractionDetail = new QueryClass(
-				Class.forName("org.intermine.model.bio.InteractionDetail"));
-		QueryClass qcRelationshipType = new QueryClass(
-				Class.forName("org.intermine.model.bio.InteractionTerm"));
-		QueryClass qcInteractionDetectionMethods = new QueryClass(
-				Class.forName("org.intermine.model.bio.InteractionTerm"));
-		QueryClass qcInteractionExperiment = new QueryClass(
-				Class.forName("org.intermine.model.bio.InteractionExperiment"));
-		QueryClass qcOrganism1 = new QueryClass(Organism.class);
-		QueryClass qcOrganism2 = new QueryClass(Organism.class);
-		QueryClass qcPublication = new QueryClass(Publication.class);
-
-		q.addFrom(qcGene1);
-		q.addFrom(qcInteraction);
-		q.addFrom(qcGene2);
-		q.addFrom(qcOrganism1);
-		q.addFrom(qcOrganism2);
-		q.addFrom(qcInteractionDetail);
-		q.addFrom(qcRelationshipType);
-		q.addFrom(qcInteractionDetectionMethods);
-		q.addFrom(qcInteractionExperiment);
-		q.addFrom(qcPublication);
-
-		q.addToSelect(qcGene1);
-
-		QueryField qfGeneId1 = new QueryField(qcGene1, "ncbiGeneId");
-		QueryField qfGeneId2 = new QueryField(qcGene2, "ncbiGeneId");
-		QueryField qfTaxonId1 = new QueryField(qcOrganism1, "taxonId");
-		QueryField qfTaxonId2 = new QueryField(qcOrganism2, "taxonId");
-		// QueryField qfInteractType = new QueryField(qcInteractionDetail, "type");
-		QueryField qfRelTypeId = new QueryField(qcRelationshipType, "identifier");
-		QueryField qfPubmedId = new QueryField(qcPublication, "pubMedId");
-		QueryField qfMethodId = new QueryField(qcInteractionDetectionMethods, "identifier");
-		QueryField qfDesc = new QueryField(qcInteractionDetectionMethods, "name");
-
-		q.addToSelect(qfGeneId1);
-		q.addToSelect(qfGeneId2);
-		q.addToSelect(qfRelTypeId);
-		q.addToSelect(qfMethodId);
-		q.addToSelect(qfDesc);
-		q.addToSelect(qfPubmedId);
-		// q.setDistinct(true);
-
-		ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
-
-		QueryObjectReference qor1 = new QueryObjectReference(qcGene1, "organism");
-		cs.addConstraint(new ContainsConstraint(qor1, ConstraintOp.CONTAINS, qcOrganism1));
-		QueryObjectReference qor2 = new QueryObjectReference(qcGene2, "organism");
-		cs.addConstraint(new ContainsConstraint(qor2, ConstraintOp.CONTAINS, qcOrganism2));
-		QueryObjectReference qor3 = new QueryObjectReference(qcInteraction, "gene1");
-		cs.addConstraint(new ContainsConstraint(qor3, ConstraintOp.CONTAINS, qcGene1));
-		QueryObjectReference qor4 = new QueryObjectReference(qcInteraction, "gene2");
-		cs.addConstraint(new ContainsConstraint(qor4, ConstraintOp.CONTAINS, qcGene2));
-
-		QueryCollectionReference qcr1 = new QueryCollectionReference(qcInteraction, "details");
-		cs.addConstraint(new ContainsConstraint(qcr1, ConstraintOp.CONTAINS, qcInteractionDetail));
-
-		ConstraintSet csType = new ConstraintSet(ConstraintOp.OR);
-		QueryObjectReference qor5 = new QueryObjectReference(qcInteractionDetail,
-				"relationshipType");
-		cs.addConstraint(new ContainsConstraint(qor5, ConstraintOp.CONTAINS, qcRelationshipType));
-
-		QueryObjectReference qor6 = new QueryObjectReference(qcInteractionDetail, "experiment");
-		cs.addConstraint(new ContainsConstraint(qor6, ConstraintOp.CONTAINS,
-				qcInteractionExperiment));
-
-		QueryObjectReference qor7 = new QueryObjectReference(qcInteractionExperiment, "publication");
-		cs.addConstraint(new ContainsConstraint(qor7, ConstraintOp.CONTAINS, qcPublication));
-		QueryCollectionReference qcr2 = new QueryCollectionReference(qcInteractionExperiment,
-				"interactionDetectionMethods");
-		cs.addConstraint(new ContainsConstraint(qcr2, ConstraintOp.CONTAINS,
-				qcInteractionDetectionMethods));
-
-		cs.addConstraint(new SimpleConstraint(qfTaxonId1, ConstraintOp.EQUALS, new QueryValue(
-				Integer.valueOf(taxonId))));
-		cs.addConstraint(new SimpleConstraint(qfTaxonId2, ConstraintOp.EQUALS, new QueryValue(
-				Integer.valueOf(taxonId))));
-		q.setConstraint(cs);
-
-		ObjectStore os = osw.getObjectStore();
-
-		List<String> ret = new ArrayList<String>();
-		// ((ObjectStoreInterMineImpl) os).precompute(q, Constants.PRECOMPUTE_CATEGORY);
-		// Results results = os.execute(q, 5000, true, true, true);
-		Results results = os.execute(q);
-
-		LOG.info("There are " + results.size() + " rows.");
-		System.out.println("There are " + results.size() + " rows.");
-		// Iterator iterator = results.iterator();
-		// while (iterator.hasNext()) {
-		// ResultsRow<Integer> rr = (ResultsRow<Integer>) iterator.next();
-		// ret.add(rr.get(0).toString());
-		// }
-		return ret;
-	}
 
 	public Collection<InteractionData> getPhysicalInteractions(String taxonId) {
 		if (directMiTerms == null || directMiTerms.isEmpty()) {
@@ -544,6 +330,7 @@ public class NetworkAnalysisTool {
 				connection = db.getConnection();
 
 				Statement statement = connection.createStatement();
+				// TODO check if CCSB data is excluded; theoretically details without experiment and publication will be excluded...  
 				ResultSet resultSet = statement
 						.executeQuery("select g1.primaryidentifier, g2.primaryidentifier, rtype.identifier, dm.identifier, dm.name, pub.pubmedid "
 								+ " from interaction as int  "
@@ -561,7 +348,7 @@ public class NetworkAnalysisTool {
 								+ taxonId
 								+ " and o2.taxonid = "
 								+ taxonId
-								+ " and ( intd.type = 'physical' or intd.type is null)");
+								+ " and ( intd.type = 'physical' or intd.type = 'unspecified')");
 				// int count = 0;
 				while (resultSet.next()) {
 					// System.out.println(resultSet.getString("symbol"));
@@ -596,7 +383,6 @@ public class NetworkAnalysisTool {
 				connection.close();
 
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -712,25 +498,6 @@ public class NetworkAnalysisTool {
 				ret.get(key).setAsHub();
 			}
 		}
-		return ret;
-	}
-
-	@SuppressWarnings("unused")
-	private Map<String, Double> calcBetweennessCentrality(Graph<String, String> graph) {
-		int n = graph.getVertexCount();
-		// number of node pairs excluding n; for normalization
-		double nor = (n - 1d) * (n - 2d);
-
-		BetweennessCentrality<String, String> bc = new BetweennessCentrality<String, String>(graph);
-
-		Collection<String> vertices = graph.getVertices();
-
-		Map<String, Double> ret = new HashMap<String, Double>();
-		for (String string : vertices) {
-			// System.err.println(string + ": " + bc.getVertexScore(string));
-			ret.put(string, bc.getVertexScore(string) / nor);
-		}
-
 		return ret;
 	}
 

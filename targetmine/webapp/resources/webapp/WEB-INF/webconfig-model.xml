@@ -520,7 +520,9 @@
 
   <class className="org.intermine.model.bio.InteractionExperiment">
     <fields>
-      <fieldconfig fieldExpr="description"/>
+      <fieldconfig fieldExpr="publication.pubMedId"/>
+      <fieldconfig fieldExpr="sourceDb"/>
+      <fieldconfig fieldExpr="sourceId"/>
     </fields>
   </class>
 
@@ -758,14 +760,19 @@
                      placement="summary"
                      types="SequenceFeature"/>
 
+<!-- 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
                      jspName="model/ppiDruggabilityDisplayer.jsp"
                      replacesFields="ppiDruggability"
                      types="Interaction"/>
-
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
                      jspName="model/interactDetailInteractionDisplayer.jsp"
                      replacesFields="interaction"
+                     types="InteractionDetail"/>
+ -->
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/interactionExperimentDisplayer.jsp"
+                     replacesFields="experiment"
                      types="InteractionDetail"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"

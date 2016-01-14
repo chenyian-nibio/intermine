@@ -27,6 +27,7 @@ import org.intermine.xml.full.Item;
  * 
  * <p><u>2012.11.29</u> : Refactoring to fit the new Interaction model (InterMine 1.1)</p>
  * <p><u>2014.04.15</u> : Refactoring to reduce the redundant interactions</p>
+ * <p><u>2016.01.08</u> : Refactoring to fill the empty type in InteractionDetail</p>
  * 
  * @author chenyian
  */
@@ -132,32 +133,42 @@ public class IrefindexConverter extends BioFileConverter {
 				if (role2 != null) {
 					detail.setAttribute("role2", role2);
 				}
+				String relationshipType = null;
+				String intType = null;
 				if (!cols[11].equals("-")) {
 					String miType = cols[11].substring(0, 7);
-					detail.setReference("relationshipType", getInteractionTerm(miType));
+					relationshipType = getInteractionTerm(miType);
+					detail.setReference("relationshipType", relationshipType);
 					// physical or genetic
-					String intType = interactionTypeMap.get(miType);
-					if (intType != null) {
-						detail.setAttribute("type", intType);
+					String interactionType = interactionTypeMap.get(miType);
+					if (interactionType != null) {
+						intType = interactionType;
 					} else {
 						LOG.error(String.format("Cannot resolve interaction type: %s", miType));
 					}
 				}
+				if (intType == null) {
+					intType = "unspecified";
+				}
+				detail.setAttribute("type", intType);
+				
 				detail.setReference("experiment", expRefId);
-				detail.setAttribute("name", String.format("iRef:%s_%s", geneA, geneB));
+				detail.setAttribute("name", String.format("iRef:%s-%s", geneA, geneB));
 				
 				detail.addToCollection("allInteractors", geneARef);
 				detail.addToCollection("allInteractors", geneBRef);
 				
 				// 2 extra attributes
-				detail.setAttribute("biologicalRole", String.format("1:%s-2:%s", getMiDesc(cols[16]), getMiDesc(cols[17])));
-				detail.setAttribute("interactorType", String.format("1:%s-2:%s", getMiDesc(cols[20]), getMiDesc(cols[21])));
+				// 2016.1.8 chenyian: not very useful, deprecate
+//				detail.setAttribute("biologicalRole", String.format("1:%s-2:%s", getMiDesc(cols[16]), getMiDesc(cols[17])));
+//				detail.setAttribute("interactorType", String.format("1:%s-2:%s", getMiDesc(cols[20]), getMiDesc(cols[21])));
 				
 				detail.setReference("interaction", interaction);
 				
 				store(detail);
 				
 				if (!geneA.equals(geneB)) {
+					Item interaction2 = getInteraction(geneBRef, geneARef);
 					Item detail2 = createItem("InteractionDetail");
 					
 					if (role1 != null) {
@@ -166,28 +177,23 @@ public class IrefindexConverter extends BioFileConverter {
 					if (role2 != null) {
 						detail2.setAttribute("role1", role2);
 					}
-					if (!cols[11].equals("-")) {
-						String miType = cols[11].substring(0, 7);
-						detail2.setReference("relationshipType", getInteractionTerm(miType));
-						// physical or genetic
-						String intType = interactionTypeMap.get(miType);
-						if (intType != null) {
-							detail2.setAttribute("type", intType);
-						} else {
-							LOG.error(String.format("Cannot resolve interaction type: %s", miType));
-						}
+					
+					if (relationshipType != null) {
+						detail2.setReference("relationshipType",relationshipType);
 					}
+					detail2.setAttribute("type", intType);
 					detail2.setReference("experiment", expRefId);
-					detail2.setAttribute("name", String.format("iRef:%s_%s", geneB, geneA));
+					detail2.setAttribute("name", String.format("iRef:%s-%s", geneB, geneA));
 					
 					detail2.addToCollection("allInteractors", geneARef);
 					detail2.addToCollection("allInteractors", geneBRef);
 					
 					// 2 extra attributes
-					detail2.setAttribute("biologicalRole", String.format("1:%s-2:%s", getMiDesc(cols[17]), getMiDesc(cols[16])));
-					detail2.setAttribute("interactorType", String.format("1:%s-2:%s", getMiDesc(cols[21]), getMiDesc(cols[20])));
+					// 2016.1.8 chenyian: not very useful, deprecate
+//					detail2.setAttribute("biologicalRole", String.format("1:%s-2:%s", getMiDesc(cols[17]), getMiDesc(cols[16])));
+//					detail2.setAttribute("interactorType", String.format("1:%s-2:%s", getMiDesc(cols[21]), getMiDesc(cols[20])));
 					
-					detail2.setReference("interaction", interaction);
+					detail2.setReference("interaction", interaction2);
 					
 					store(detail2);
 				}
@@ -214,50 +220,6 @@ public class IrefindexConverter extends BioFileConverter {
         }
         return interaction;
     }
-
-    @Deprecated
-	private void createInteraction(String role1, String gene1Ref, String role2, String gene2Ref,
-			String miType, List<String> expRefIds, String bioRole, String interactor, String name)
-			throws ObjectStoreException {
-		Item interaction = createItem("Interaction");
-		interaction.setReference("gene1", gene1Ref);
-		interaction.setReference("gene2", gene2Ref);
-		store(interaction);
-		
-		for (String expRefId : expRefIds) {
-			// create Detail item
-			Item detail = createItem("InteractionDetail");
-			
-			detail.setAttribute("role1", role1);
-			detail.setAttribute("role2", role2);
-			
-			if (!miType.equals("-")) {
-				miType = miType.substring(0, 7);
-				detail.setReference("relationshipType", getInteractionTerm(miType));
-				String intType = interactionTypeMap.get(miType);
-				// physical or genetic
-				if (intType != null) {
-					detail.setAttribute("type", intType);
-				} else {
-					LOG.error(String.format("Cannot resolve interaction type: %s", miType));
-				}
-			}
-			detail.setReference("experiment", expRefId);
-			detail.setAttribute("name", name);
-			detail.setReference("interaction", interaction);
-			
-			detail.addToCollection("allInteractors", gene1Ref);
-			detail.addToCollection("allInteractors", gene2Ref);
-			
-			// 2 extra attributes
-			detail.setAttribute("biologicalRole", bioRole);
-			detail.setAttribute("interactorType", interactor);
-			
-			store(detail);
-			
-		}
-
-	}
 
 	private void readInteractionType() throws IOException {
 		interactionTypeMap = new HashMap<String, String>();
@@ -301,7 +263,6 @@ public class IrefindexConverter extends BioFileConverter {
 		if (itemId == null) {
 			Item gene = createItem("Gene");
 			gene.setAttribute("primaryIdentifier", geneId);
-			gene.setAttribute("ncbiGeneId", geneId);
 			if (!taxonField.equals("-")) {
 				taxonId = taxonField.substring(6, taxonField.indexOf("("));
 				gene.setReference("organism", getOrganism(taxonId));
@@ -327,7 +288,7 @@ public class IrefindexConverter extends BioFileConverter {
 
 	private String getExperiment(String pubMedId, String author, String detectioniMethod,
 			String host, String sourceDb, String sourceId) throws ObjectStoreException {
-		// chenyian: seems that one experiment only associates with on detection method so far (2015.4.15) 
+		// chenyian: seems that one experiment only associates with one detection method so far (2015.4.15) 
 		MultiKey key = new MultiKey(pubMedId, detectioniMethod);
 		String ret = expMap.get(key);
 		if (ret == null) {

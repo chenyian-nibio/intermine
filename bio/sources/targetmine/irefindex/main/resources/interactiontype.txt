@@ -53,6 +53,9 @@ MI:0985
 MI:0986
 MI:0987
 MI:1027
+MI:1126
+MI:1237
+MI:1250
 // MI:0403 colocalization
 MI:0403
 // obsolete term 

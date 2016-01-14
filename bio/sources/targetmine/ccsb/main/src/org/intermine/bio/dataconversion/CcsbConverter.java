@@ -1,15 +1,5 @@
 package org.intermine.bio.dataconversion;
 
-/*
- * Copyright (C) 2002-2015 FlyMine
- *
- * This code may be freely distributed and modified under the
- * terms of the GNU Lesser General Public Licence.  This should
- * be distributed with the code.  See the LICENSE file for more
- * information or http://www.gnu.org/copyleft/lesser.html.
- *
- */
-
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -59,13 +49,23 @@ public class CcsbConverter extends BioFileConverter
 			String[] cols = iterator.next();
 			
 			Item interaction = createItem("Interaction");
-			interaction.setReference("gene1", getGene(cols[0], TAXON_ID));
-			interaction.setReference("gene2", getGene(cols[2], TAXON_ID));
+			String geneARef = getGene(cols[0], TAXON_ID);
+			interaction.setReference("gene1", geneARef);
+			String geneBRef = getGene(cols[2], TAXON_ID);
+			interaction.setReference("gene2", geneBRef);
 			store(interaction);
 			Item confidence = createItem("InteractionConfidence");
 			confidence.setAttribute("type", "HCDP");
 			confidence.setReference("interaction", interaction);
 			store(confidence);
+			
+			Item detail = createItem("InteractionDetail");
+			detail.setAttribute("type", "physical");
+			detail.setAttribute("name", String.format("CCSB:%s-%s", cols[0], cols[2]));
+			detail.addToCollection("allInteractors", geneARef);
+			detail.addToCollection("allInteractors", geneBRef);
+			detail.setReference("interaction", interaction);
+			store(detail);
 			
 			if (!cols[0].equals(cols[2])) {
 				Item interaction2 = createItem("Interaction");
@@ -76,6 +76,14 @@ public class CcsbConverter extends BioFileConverter
 				confidence2.setAttribute("type", "HCDP");
 				confidence2.setReference("interaction", interaction2);
 				store(confidence2);
+				
+				Item detail2 = createItem("InteractionDetail");
+				detail2.setAttribute("type", "physical");
+				detail2.setAttribute("name", String.format("CCSB:%s-%s", cols[2], cols[0]));
+				detail2.addToCollection("allInteractors", geneARef);
+				detail2.addToCollection("allInteractors", geneBRef);
+				detail2.setReference("interaction", interaction2);
+				store(detail2);
 			}
 		}
     }
