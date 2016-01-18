@@ -7,9 +7,11 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.commons.lang.StringUtils;
@@ -94,12 +96,12 @@ public class IrefindexConverter extends BioFileConverter {
 			}
 			String[] ids = cols[13].split("\\|");
 
-			String geneA = processAltIdentifier(cols[2]);
-			if (geneA == null) {
+			Set<String> geneASet = processAltIdentifier(cols[2]);
+			if (geneASet.isEmpty()) {
 				continue;
 			}
-			String geneB = processAltIdentifier(cols[3]);
-			if (geneB == null) {
+			Set<String> geneBSet = processAltIdentifier(cols[3]);
+			if (geneBSet.isEmpty()) {
 				continue;
 			}
 			
@@ -108,98 +110,163 @@ public class IrefindexConverter extends BioFileConverter {
 			
 			List<String> expRefIds = new ArrayList<String>();
 			for (String pmid : pmids) {
-				expRefIds.add(getExperiment(pmid, cols[7], cols[6], cols[28],
-						sourceDb, ids[0]));
+				expRefIds.add(getExperiment(pmid, cols[7], cols[6], cols[28], sourceDb, ids[0]));
 			}
 			Collections.sort(expRefIds);
-			String intKey = String.format("%s_%s_%s", geneA, geneB, StringUtils.join(expRefIds,"_"));
-			if (interactions.contains(intKey)) {
-				continue;
-			}
-			
-			String geneARef = getGene(geneA, cols[9]);
-			String geneBRef = getGene(geneB, cols[10]);
-			String role1 = getMiDesc(cols[18]);
-			String role2 = getMiDesc(cols[19]);
+			if (cols[0].equals(cols[1])) {
+				// self-interaction
+				for (String geneA : geneASet) {
+					String intKey = String.format("%s_%s_%s", geneA, geneA, StringUtils.join(expRefIds,"_"));
+					if (interactions.contains(intKey)) {
+						continue;
+					}
+					
+					String geneARef = getGene(geneA, cols[9]);
+					String role1 = getMiDesc(cols[18]);
+					String role2 = getMiDesc(cols[19]);
+					
+					Item interaction = getInteraction(geneARef, geneARef);
+					
+					for (String expRefId : expRefIds) {
+						Item detail = createItem("InteractionDetail");
+						
+						if (role1 != null) {
+							detail.setAttribute("role1", role1);
+						}
+						if (role2 != null) {
+							detail.setAttribute("role2", role2);
+						}
+						String relationshipType = null;
+						String intType = null;
+						if (!cols[11].equals("-")) {
+							String miType = cols[11].substring(0, 7);
+							relationshipType = getInteractionTerm(miType);
+							detail.setReference("relationshipType", relationshipType);
+							// physical or genetic
+							String interactionType = interactionTypeMap.get(miType);
+							if (interactionType != null) {
+								intType = interactionType;
+							} else {
+								LOG.error(String.format("Cannot resolve interaction type: %s", miType));
+							}
+						}
+						if (intType == null) {
+							intType = "unspecified";
+						}
+						detail.setAttribute("type", intType);
+						
+						detail.setReference("experiment", expRefId);
+						detail.setAttribute("name", String.format("iRef:%s-%s", geneA, geneA));
+						
+						detail.addToCollection("allInteractors", geneARef);
+						
+						detail.setReference("interaction", interaction);
+						
+						store(detail);
 
-			Item interaction = getInteraction(geneARef, geneBRef);
-			
-			for (String expRefId : expRefIds) {
-				Item detail = createItem("InteractionDetail");
-				
-				if (role1 != null) {
-					detail.setAttribute("role1", role1);
-				}
-				if (role2 != null) {
-					detail.setAttribute("role2", role2);
-				}
-				String relationshipType = null;
-				String intType = null;
-				if (!cols[11].equals("-")) {
-					String miType = cols[11].substring(0, 7);
-					relationshipType = getInteractionTerm(miType);
-					detail.setReference("relationshipType", relationshipType);
-					// physical or genetic
-					String interactionType = interactionTypeMap.get(miType);
-					if (interactionType != null) {
-						intType = interactionType;
-					} else {
-						LOG.error(String.format("Cannot resolve interaction type: %s", miType));
 					}
+					interactions.add(intKey);
 				}
-				if (intType == null) {
-					intType = "unspecified";
-				}
-				detail.setAttribute("type", intType);
 				
-				detail.setReference("experiment", expRefId);
-				detail.setAttribute("name", String.format("iRef:%s-%s", geneA, geneB));
-				
-				detail.addToCollection("allInteractors", geneARef);
-				detail.addToCollection("allInteractors", geneBRef);
-				
-				// 2 extra attributes
-				// 2016.1.8 chenyian: not very useful, deprecate
-//				detail.setAttribute("biologicalRole", String.format("1:%s-2:%s", getMiDesc(cols[16]), getMiDesc(cols[17])));
-//				detail.setAttribute("interactorType", String.format("1:%s-2:%s", getMiDesc(cols[20]), getMiDesc(cols[21])));
-				
-				detail.setReference("interaction", interaction);
-				
-				store(detail);
-				
-				if (!geneA.equals(geneB)) {
-					Item interaction2 = getInteraction(geneBRef, geneARef);
-					Item detail2 = createItem("InteractionDetail");
-					
-					if (role1 != null) {
-						detail2.setAttribute("role2", role1);
+			} else {
+				for (String geneA : geneASet) {
+					for (String geneB : geneBSet) {
+						String intKey = String.format("%s_%s_%s", geneA, geneB, StringUtils.join(expRefIds,"_"));
+						String intKey2 = String.format("%s_%s_%s", geneB, geneA, StringUtils.join(expRefIds,"_"));
+						if (interactions.contains(intKey) || interactions.contains(intKey2)) {
+							continue;
+						}
+						
+						String geneARef = getGene(geneA, cols[9]);
+						String geneBRef = getGene(geneB, cols[10]);
+						String role1 = getMiDesc(cols[18]);
+						String role2 = getMiDesc(cols[19]);
+						
+						Item interaction = getInteraction(geneARef, geneBRef);
+						
+						for (String expRefId : expRefIds) {
+							Item detail = createItem("InteractionDetail");
+							
+							if (role1 != null) {
+								detail.setAttribute("role1", role1);
+							}
+							if (role2 != null) {
+								detail.setAttribute("role2", role2);
+							}
+							String relationshipType = null;
+							String intType = null;
+							if (!cols[11].equals("-")) {
+								String miType = cols[11].substring(0, 7);
+								relationshipType = getInteractionTerm(miType);
+								detail.setReference("relationshipType", relationshipType);
+								// physical or genetic
+								String interactionType = interactionTypeMap.get(miType);
+								if (interactionType != null) {
+									intType = interactionType;
+								} else {
+									LOG.error(String.format("Cannot resolve interaction type: %s", miType));
+								}
+							}
+							if (intType == null) {
+								intType = "unspecified";
+							}
+							detail.setAttribute("type", intType);
+							
+							detail.setReference("experiment", expRefId);
+							detail.setAttribute("name", String.format("iRef:%s-%s", geneA, geneB));
+							
+							detail.addToCollection("allInteractors", geneARef);
+							detail.addToCollection("allInteractors", geneBRef);
+							
+							// 2 extra attributes
+							// 2016.1.8 chenyian: not very useful, deprecate
+//							detail.setAttribute("biologicalRole", String.format("1:%s-2:%s", getMiDesc(cols[16]), getMiDesc(cols[17])));
+//							detail.setAttribute("interactorType", String.format("1:%s-2:%s", getMiDesc(cols[20]), getMiDesc(cols[21])));
+							
+							detail.setReference("interaction", interaction);
+							
+							store(detail);
+							
+							Item interaction2 = getInteraction(geneBRef, geneARef);
+							Item detail2 = createItem("InteractionDetail");
+							
+							if (role1 != null) {
+								detail2.setAttribute("role2", role1);
+							}
+							if (role2 != null) {
+								detail2.setAttribute("role1", role2);
+							}
+							
+							if (relationshipType != null) {
+								detail2.setReference("relationshipType",relationshipType);
+							}
+							detail2.setAttribute("type", intType);
+							detail2.setReference("experiment", expRefId);
+							detail2.setAttribute("name", String.format("iRef:%s-%s", geneB, geneA));
+							
+							detail2.addToCollection("allInteractors", geneARef);
+							detail2.addToCollection("allInteractors", geneBRef);
+							
+							// 2 extra attributes
+							// 2016.1.8 chenyian: not very useful, deprecate
+//							detail2.setAttribute("biologicalRole", String.format("1:%s-2:%s", getMiDesc(cols[17]), getMiDesc(cols[16])));
+//							detail2.setAttribute("interactorType", String.format("1:%s-2:%s", getMiDesc(cols[21]), getMiDesc(cols[20])));
+							
+							detail2.setReference("interaction", interaction2);
+							
+							store(detail2);
+						}
+						
+						interactions.add(intKey);
+						interactions.add(intKey2);
+						
 					}
-					if (role2 != null) {
-						detail2.setAttribute("role1", role2);
-					}
-					
-					if (relationshipType != null) {
-						detail2.setReference("relationshipType",relationshipType);
-					}
-					detail2.setAttribute("type", intType);
-					detail2.setReference("experiment", expRefId);
-					detail2.setAttribute("name", String.format("iRef:%s-%s", geneB, geneA));
-					
-					detail2.addToCollection("allInteractors", geneARef);
-					detail2.addToCollection("allInteractors", geneBRef);
-					
-					// 2 extra attributes
-					// 2016.1.8 chenyian: not very useful, deprecate
-//					detail2.setAttribute("biologicalRole", String.format("1:%s-2:%s", getMiDesc(cols[17]), getMiDesc(cols[16])));
-//					detail2.setAttribute("interactorType", String.format("1:%s-2:%s", getMiDesc(cols[21]), getMiDesc(cols[20])));
-					
-					detail2.setReference("interaction", interaction2);
-					
-					store(detail2);
-				}
+				
 			}
 			
-			interactions.add(intKey);
+			
+			}
+			
 		}
 
 	}
@@ -323,14 +390,15 @@ public class IrefindexConverter extends BioFileConverter {
 		return ret;
 	}
 
-	private String processAltIdentifier(String altIdentifier) {
+	private Set<String> processAltIdentifier(String altIdentifier) {
+		Set<String> ret = new HashSet<String>();
 		String[] ids = altIdentifier.split("\\|");
 		for (String id : ids) {
 			if (id.startsWith("entrezgene/locuslink:")) {
-				return id.substring(id.indexOf(":") + 1);
+				ret.add(id.substring(id.indexOf(":") + 1));
 			}
 		}
-		return null;
+		return ret;
 	}
 
 }
