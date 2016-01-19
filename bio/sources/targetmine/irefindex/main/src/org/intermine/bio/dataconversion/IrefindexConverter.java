@@ -27,10 +27,6 @@ import org.intermine.xml.full.Item;
  * Column definition could be found at
  * http://irefindex.org/wiki/index.php?title=README_MITAB2.6_for_iRefIndex .
  * 
- * <p><u>2012.11.29</u> : Refactoring to fit the new Interaction model (InterMine 1.1)</p>
- * <p><u>2014.04.15</u> : Refactoring to reduce the redundant interactions</p>
- * <p><u>2016.01.08</u> : Refactoring to fill the empty type in InteractionDetail</p>
- * 
  * @author chenyian
  */
 public class IrefindexConverter extends BioFileConverter {
@@ -50,7 +46,7 @@ public class IrefindexConverter extends BioFileConverter {
 	private Map<MultiKey, Item> intMap = new HashMap<MultiKey, Item>();
 
 	// to prevent duplications
-	private List<String> interactions = new ArrayList<String>();
+	private Set<String> interactions = new HashSet<String>();
 
 	/**
 	 * Constructor
@@ -113,6 +109,10 @@ public class IrefindexConverter extends BioFileConverter {
 				expRefIds.add(getExperiment(pmid, cols[7], cols[6], cols[28], sourceDb, ids[0]));
 			}
 			Collections.sort(expRefIds);
+
+			String role1 = getMiDesc(cols[18]);
+			String role2 = getMiDesc(cols[19]);
+			
 			if (cols[0].equals(cols[1])) {
 				// self-interaction
 				for (String geneA : geneASet) {
@@ -122,8 +122,6 @@ public class IrefindexConverter extends BioFileConverter {
 					}
 					
 					String geneARef = getGene(geneA, cols[9]);
-					String role1 = getMiDesc(cols[18]);
-					String role2 = getMiDesc(cols[19]);
 					
 					Item interaction = getInteraction(geneARef, geneARef);
 					
@@ -173,14 +171,12 @@ public class IrefindexConverter extends BioFileConverter {
 					for (String geneB : geneBSet) {
 						String intKey = String.format("%s_%s_%s", geneA, geneB, StringUtils.join(expRefIds,"_"));
 						String intKey2 = String.format("%s_%s_%s", geneB, geneA, StringUtils.join(expRefIds,"_"));
-						if (interactions.contains(intKey) || interactions.contains(intKey2)) {
+						if (interactions.contains(intKey)) {
 							continue;
 						}
 						
 						String geneARef = getGene(geneA, cols[9]);
 						String geneBRef = getGene(geneB, cols[10]);
-						String role1 = getMiDesc(cols[18]);
-						String role2 = getMiDesc(cols[19]);
 						
 						Item interaction = getInteraction(geneARef, geneBRef);
 						
@@ -218,11 +214,6 @@ public class IrefindexConverter extends BioFileConverter {
 							detail.addToCollection("allInteractors", geneARef);
 							detail.addToCollection("allInteractors", geneBRef);
 							
-							// 2 extra attributes
-							// 2016.1.8 chenyian: not very useful, deprecate
-//							detail.setAttribute("biologicalRole", String.format("1:%s-2:%s", getMiDesc(cols[16]), getMiDesc(cols[17])));
-//							detail.setAttribute("interactorType", String.format("1:%s-2:%s", getMiDesc(cols[20]), getMiDesc(cols[21])));
-							
 							detail.setReference("interaction", interaction);
 							
 							store(detail);
@@ -246,11 +237,6 @@ public class IrefindexConverter extends BioFileConverter {
 							
 							detail2.addToCollection("allInteractors", geneARef);
 							detail2.addToCollection("allInteractors", geneBRef);
-							
-							// 2 extra attributes
-							// 2016.1.8 chenyian: not very useful, deprecate
-//							detail2.setAttribute("biologicalRole", String.format("1:%s-2:%s", getMiDesc(cols[17]), getMiDesc(cols[16])));
-//							detail2.setAttribute("interactorType", String.format("1:%s-2:%s", getMiDesc(cols[21]), getMiDesc(cols[20])));
 							
 							detail2.setReference("interaction", interaction2);
 							
