@@ -46,7 +46,8 @@ public class IrefindexConverter extends BioFileConverter {
 	private Map<MultiKey, Item> intMap = new HashMap<MultiKey, Item>();
 
 	// to prevent duplications
-	private Set<String> interactions = new HashSet<String>();
+	private Map<String, String> interactions = new HashMap<String, String>();
+	private Set<String> sourceIds = new HashSet<String>();
 
 	/**
 	 * Constructor
@@ -91,6 +92,7 @@ public class IrefindexConverter extends BioFileConverter {
 				continue;
 			}
 			String[] ids = cols[13].split("\\|");
+			String sourceId = ids[0];
 
 			Set<String> geneASet = processAltIdentifier(cols[2]);
 			if (geneASet.isEmpty()) {
@@ -106,26 +108,34 @@ public class IrefindexConverter extends BioFileConverter {
 			
 			List<String> expRefIds = new ArrayList<String>();
 			for (String pmid : pmids) {
-				expRefIds.add(getExperiment(pmid, cols[7], cols[6], cols[28], sourceDb, ids[0]));
+				expRefIds.add(getExperiment(pmid, cols[7], cols[6], cols[28]));
+				// , sourceDb, ids[0]
 			}
 			Collections.sort(expRefIds);
 
 			String role1 = getMiDesc(cols[18]);
 			String role2 = getMiDesc(cols[19]);
 			
-			if (cols[0].equals(cols[1])) {
+			if (cols[0].equals(cols[1]) || StringUtils.join(geneASet, "_").equals(StringUtils.join(geneBSet, "_"))) {
 				// self-interaction
 				for (String geneA : geneASet) {
-					String intKey = String.format("%s_%s_%s", geneA, geneA, StringUtils.join(expRefIds,"_"));
-					if (interactions.contains(intKey)) {
-						continue;
-					}
-					
 					String geneARef = getGene(geneA, cols[9]);
 					
 					Item interaction = getInteraction(geneARef, geneARef);
 					
 					for (String expRefId : expRefIds) {
+						String intKey = String.format("%s_%s_%s", geneA, geneA, expRefId);
+						if (interactions.get(intKey) != null) {
+							if (!sourceIds.contains(sourceId)) {
+								Item source1 = createItem("InteractionSource");
+								source1.setAttribute("sourceDb", sourceDb);
+								source1.setAttribute("sourceId", sourceId);
+								source1.setReference("detail", interactions.get(intKey));
+								store(source1);
+								sourceIds.add(sourceId);
+							}
+							continue;
+						}
 						Item detail = createItem("InteractionDetail");
 						
 						if (role1 != null) {
@@ -161,26 +171,38 @@ public class IrefindexConverter extends BioFileConverter {
 						detail.setReference("interaction", interaction);
 						
 						store(detail);
-
+						interactions.put(intKey, detail.getIdentifier());
 					}
-					interactions.add(intKey);
 				}
 				
 			} else {
 				for (String geneA : geneASet) {
 					for (String geneB : geneBSet) {
-						String intKey = String.format("%s_%s_%s", geneA, geneB, StringUtils.join(expRefIds,"_"));
-						String intKey2 = String.format("%s_%s_%s", geneB, geneA, StringUtils.join(expRefIds,"_"));
-						if (interactions.contains(intKey)) {
-							continue;
-						}
-						
 						String geneARef = getGene(geneA, cols[9]);
 						String geneBRef = getGene(geneB, cols[10]);
 						
 						Item interaction = getInteraction(geneARef, geneBRef);
 						
 						for (String expRefId : expRefIds) {
+							String intKey = String.format("%s_%s_%s", geneA, geneB, expRefId);
+							String intKey2 = String.format("%s_%s_%s", geneB, geneA, expRefId);
+							if (interactions.get(intKey) != null) {
+								if (!sourceIds.contains(sourceId)) {
+									Item source1 = createItem("InteractionSource");
+									source1.setAttribute("sourceDb", sourceDb);
+									source1.setAttribute("sourceId", sourceId);
+									source1.setReference("detail", interactions.get(intKey));
+									store(source1);
+									Item source2 = createItem("InteractionSource");
+									source2.setAttribute("sourceDb", sourceDb);
+									source2.setAttribute("sourceId", sourceId);
+									source2.setReference("detail", interactions.get(intKey2));
+									store(source2);
+									sourceIds.add(sourceId);
+								}
+								continue;
+							}
+							
 							Item detail = createItem("InteractionDetail");
 							
 							if (role1 != null) {
@@ -217,6 +239,7 @@ public class IrefindexConverter extends BioFileConverter {
 							detail.setReference("interaction", interaction);
 							
 							store(detail);
+							interactions.put(intKey, detail.getIdentifier());
 							
 							Item interaction2 = getInteraction(geneBRef, geneARef);
 							Item detail2 = createItem("InteractionDetail");
@@ -241,10 +264,8 @@ public class IrefindexConverter extends BioFileConverter {
 							detail2.setReference("interaction", interaction2);
 							
 							store(detail2);
+							interactions.put(intKey2, detail2.getIdentifier());
 						}
-						
-						interactions.add(intKey);
-						interactions.add(intKey2);
 						
 					}
 				
@@ -340,7 +361,7 @@ public class IrefindexConverter extends BioFileConverter {
 	}
 
 	private String getExperiment(String pubMedId, String author, String detectioniMethod,
-			String host, String sourceDb, String sourceId) throws ObjectStoreException {
+			String host) throws ObjectStoreException {
 		// chenyian: seems that one experiment only associates with one detection method so far (2015.4.15) 
 		MultiKey key = new MultiKey(pubMedId, detectioniMethod);
 		String ret = expMap.get(key);
@@ -366,8 +387,6 @@ public class IrefindexConverter extends BioFileConverter {
 				}
 				exp.setAttribute("hostOrganism", desc);
 			}
-			exp.setAttribute("sourceDb", sourceDb);
-			exp.setAttribute("sourceId", sourceId);
 
 			ret = exp.getIdentifier();
 			expMap.put(key, ret);

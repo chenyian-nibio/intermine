@@ -7,11 +7,8 @@
         <reference name="publication" referenced-type="Publication"/>
         <collection name="interactions" referenced-type="InteractionDetail" reverse-reference="experiment"/>
         <collection name="interactionDetectionMethods" referenced-type="InteractionTerm"/>
-        <!--extra attributes -->
-        <attribute name="sourceDb" type="java.lang.String"/>
-        <attribute name="sourceId" type="java.lang.String"/>
     </class>
-
+    
     <class name="Interaction" is-interface="true">
         <reference name="gene1" referenced-type="Gene" reverse-reference="interactions" />
         <reference name="gene2" referenced-type="Gene" />
@@ -28,6 +25,13 @@
         <reference name="interaction" referenced-type="Interaction" reverse-reference="details"/>
         <collection name="dataSets" referenced-type="DataSet"/>
         <collection name="allInteractors" referenced-type="Gene"/>
+        <collection name="sources" referenced-type="InteractionSource" reverse-reference="detail"/>
+    </class>
+
+    <class name="InteractionSource" is-interface="true">
+        <attribute name="sourceDb" type="java.lang.String"/>
+        <attribute name="sourceId" type="java.lang.String"/>
+        <reference name="detail" referenced-type="InteractionDetail" reverse-reference="sources"/>
     </class>
 
     <class name="Gene" is-interface="true">
