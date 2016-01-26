@@ -46,8 +46,8 @@ public class IrefindexConverter extends BioFileConverter {
 	private Map<MultiKey, Item> intMap = new HashMap<MultiKey, Item>();
 
 	// to prevent duplications
-	private Map<String, String> interactions = new HashMap<String, String>();
-	private Set<String> sourceIds = new HashSet<String>();
+	private Map<String, String> detailMap = new HashMap<String, String>();
+	private Map<String, Item> sourceMap = new HashMap<String, Item>();
 
 	/**
 	 * Constructor
@@ -91,6 +91,9 @@ public class IrefindexConverter extends BioFileConverter {
 			if (sourceDb.equals("ophid")) {
 				continue;
 			}
+			if (sourceDb.equals("biogrid")) {
+				continue;
+			}
 			String[] ids = cols[13].split("\\|");
 			String sourceId = ids[0];
 
@@ -125,14 +128,15 @@ public class IrefindexConverter extends BioFileConverter {
 					
 					for (String expRefId : expRefIds) {
 						String intKey = String.format("%s_%s_%s", geneA, geneA, expRefId);
-						if (interactions.get(intKey) != null) {
-							if (!sourceIds.contains(sourceId)) {
-								Item source1 = createItem("InteractionSource");
-								source1.setAttribute("sourceDb", sourceDb);
-								source1.setAttribute("sourceId", sourceId);
-								source1.setReference("detail", interactions.get(intKey));
-								store(source1);
-								sourceIds.add(sourceId);
+						if (detailMap.get(intKey) != null) {
+							if (sourceMap.get(sourceId) == null) {
+								Item source = createItem("InteractionSource");
+								source.setAttribute("sourceDb", sourceDb);
+								source.setAttribute("sourceId", sourceId);
+								source.addToCollection("details", detailMap.get(intKey));
+								sourceMap.put(sourceId, source);
+							} else {
+								sourceMap.get(sourceId).addToCollection("details", detailMap.get(intKey));
 							}
 							continue;
 						}
@@ -171,7 +175,17 @@ public class IrefindexConverter extends BioFileConverter {
 						detail.setReference("interaction", interaction);
 						
 						store(detail);
-						interactions.put(intKey, detail.getIdentifier());
+						detailMap.put(intKey, detail.getIdentifier());
+						
+						if (sourceMap.get(sourceId) == null) {
+							Item source = createItem("InteractionSource");
+							source.setAttribute("sourceDb", sourceDb);
+							source.setAttribute("sourceId", sourceId);
+							source.addToCollection("details", detailMap.get(intKey));
+							sourceMap.put(sourceId, source);
+						} else {
+							sourceMap.get(sourceId).addToCollection("details", detailMap.get(intKey));
+						}
 					}
 				}
 				
@@ -186,19 +200,17 @@ public class IrefindexConverter extends BioFileConverter {
 						for (String expRefId : expRefIds) {
 							String intKey = String.format("%s_%s_%s", geneA, geneB, expRefId);
 							String intKey2 = String.format("%s_%s_%s", geneB, geneA, expRefId);
-							if (interactions.get(intKey) != null) {
-								if (!sourceIds.contains(sourceId)) {
-									Item source1 = createItem("InteractionSource");
-									source1.setAttribute("sourceDb", sourceDb);
-									source1.setAttribute("sourceId", sourceId);
-									source1.setReference("detail", interactions.get(intKey));
-									store(source1);
-									Item source2 = createItem("InteractionSource");
-									source2.setAttribute("sourceDb", sourceDb);
-									source2.setAttribute("sourceId", sourceId);
-									source2.setReference("detail", interactions.get(intKey2));
-									store(source2);
-									sourceIds.add(sourceId);
+							if (detailMap.get(intKey) != null) {
+								if (sourceMap.get(sourceId) == null) {
+									Item source = createItem("InteractionSource");
+									source.setAttribute("sourceDb", sourceDb);
+									source.setAttribute("sourceId", sourceId);
+									source.addToCollection("details", detailMap.get(intKey));
+									source.addToCollection("details", detailMap.get(intKey2));
+									sourceMap.put(sourceId, source);
+								} else {
+									sourceMap.get(sourceId).addToCollection("details", detailMap.get(intKey));
+									sourceMap.get(sourceId).addToCollection("details", detailMap.get(intKey2));
 								}
 								continue;
 							}
@@ -239,7 +251,7 @@ public class IrefindexConverter extends BioFileConverter {
 							detail.setReference("interaction", interaction);
 							
 							store(detail);
-							interactions.put(intKey, detail.getIdentifier());
+							detailMap.put(intKey, detail.getIdentifier());
 							
 							Item interaction2 = getInteraction(geneBRef, geneARef);
 							Item detail2 = createItem("InteractionDetail");
@@ -264,7 +276,19 @@ public class IrefindexConverter extends BioFileConverter {
 							detail2.setReference("interaction", interaction2);
 							
 							store(detail2);
-							interactions.put(intKey2, detail2.getIdentifier());
+							detailMap.put(intKey2, detail2.getIdentifier());
+							
+							if (sourceMap.get(sourceId) == null) {
+								Item source = createItem("InteractionSource");
+								source.setAttribute("sourceDb", sourceDb);
+								source.setAttribute("sourceId", sourceId);
+								source.addToCollection("details", detailMap.get(intKey));
+								source.addToCollection("details", detailMap.get(intKey2));
+								sourceMap.put(sourceId, source);
+							} else {
+								sourceMap.get(sourceId).addToCollection("details", detailMap.get(intKey));
+								sourceMap.get(sourceId).addToCollection("details", detailMap.get(intKey2));
+							}
 						}
 						
 					}
@@ -406,4 +430,8 @@ public class IrefindexConverter extends BioFileConverter {
 		return ret;
 	}
 
+	@Override
+	public void close() throws Exception {
+		store(sourceMap.values());
+	}
 }

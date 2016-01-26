@@ -25,13 +25,13 @@
         <reference name="interaction" referenced-type="Interaction" reverse-reference="details"/>
         <collection name="dataSets" referenced-type="DataSet"/>
         <collection name="allInteractors" referenced-type="Gene"/>
-        <collection name="sources" referenced-type="InteractionSource" reverse-reference="detail"/>
+        <collection name="sources" referenced-type="InteractionSource" reverse-reference="details"/>
     </class>
 
     <class name="InteractionSource" is-interface="true">
         <attribute name="sourceDb" type="java.lang.String"/>
         <attribute name="sourceId" type="java.lang.String"/>
-        <reference name="detail" referenced-type="InteractionDetail" reverse-reference="sources"/>
+        <collection name="details" referenced-type="InteractionDetail" reverse-reference="sources"/>
     </class>
 
     <class name="Gene" is-interface="true">

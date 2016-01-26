@@ -19,8 +19,6 @@
 		<tr>
 			<th>Publication.PubMedID</th>
 			<th>Interaction Detection Methods</th>
-			<th>Source DB</th>
-			<th>Source ID</th>
 		</tr>
 		</thead>
 		<tbody>
@@ -32,9 +30,6 @@
 				<c:if test="${status.count < fn:length(reaction.types)}">,&nbsp;</c:if> 
 				</c:forEach>
 			</td>
-			<td>${detail.experiment.sourceDb}</td>
-			<td>${detail.experiment.sourceId}</td>
-
 		</tr>
 		</tbody>
 		</table>
