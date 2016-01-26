@@ -264,7 +264,12 @@ public class MissingGeneRetriever {
 					gene.setAttribute("description", "-");
 				}
 			} else if ("Description".equals(name)) {
-				gene.setAttribute("name", characters.toString());
+				String value = characters.toString();
+				if (StringUtils.isEmpty(value)) {
+					value = "unavailable";
+					LOG.info("The name of the gene " + gene.getAttribute("primaryIdentifier").getValue() + " is unavailable.");
+				}
+				gene.setAttribute("name", value);
 			}
 			name = null;
 		}
