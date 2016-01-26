@@ -6,7 +6,16 @@
 
   <c:choose>
   <c:when test="${!empty attributeLinkConfiguration}">
-  <h3 class="goog">Auxiliary Toolkit</h3>
+
+    <c:choose>
+	<c:when test="${!empty bag}">
+	  <h3 class="goog">Auxiliary Toolkit</h3>
+	</c:when>
+	<c:otherwise>
+	  <h3 class="goog">External Links</h3>
+	</c:otherwise>
+	</c:choose>
+
   <ul>
     <c:forEach var="confMapEntry" items="${attributeLinkConfiguration}">
       <c:set var="href" value="${confMapEntry.value.url}" />
