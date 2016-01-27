@@ -9,7 +9,7 @@
 	    <property name="cp" refid="task.class.path"/>
 
 	    <taskdef name="retrieve-genes" 
-	             classname="org.intermine.bio.dataconversion.MissingGeneRetriever">
+	             classname="org.intermine.bio.dataconversion.MissingGeneXomRetriever">
 	      <classpath refid="task.class.path"/>
 	    </taskdef>
 	    
