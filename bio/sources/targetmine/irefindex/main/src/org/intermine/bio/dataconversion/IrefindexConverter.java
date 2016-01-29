@@ -109,11 +109,17 @@ public class IrefindexConverter extends BioFileConverter {
 			// in case there are redundant entries
 			String[] pmids = cols[8].split("\\|");
 			
-			List<String> expRefIds = new ArrayList<String>();
+			Set<String> expRefIdSet = new HashSet<String>();
+			String detectioniMethod = cols[6];
+			// these terms were deprecated
+			if (detectioniMethod.equals("MI:0492(in vitro)") || detectioniMethod.equals("MI:0493(in vivo)")) {
+				detectioniMethod = "-";
+			}
 			for (String pmid : pmids) {
-				expRefIds.add(getExperiment(pmid, cols[7], cols[6], cols[28]));
+				expRefIdSet.add(getExperiment(pmid, cols[7], detectioniMethod, cols[28]));
 				// , sourceDb, ids[0]
 			}
+			List<String> expRefIds = new ArrayList<String>(expRefIdSet);
 			Collections.sort(expRefIds);
 
 			String role1 = getMiDesc(cols[18]);
