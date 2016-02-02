@@ -9,7 +9,7 @@
 
 
 <html:xhtml/>
-<link rel="stylesheet" type="text/css" href="css/contactForm.css"/>
+<link rel="stylesheet" type="text/css" href="/${WEB_PROPERTIES['webapp.path']}/css/contactForm.css"/>
 <div class="body">
   <html:form action="/contactAction">
   <table cellspacing="0" cellpadding="3" border="0">

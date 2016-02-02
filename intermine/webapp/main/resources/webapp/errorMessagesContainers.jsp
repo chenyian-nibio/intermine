@@ -5,7 +5,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <!-- errorMessagesContainers.jsp -->
-<link rel="stylesheet" type="text/css" href="css/errorMessages.css"/>
+<link rel="stylesheet" type="text/css" href="/${WEB_PROPERTIES['webapp.path']}/css/errorMessages.css"/>
 <div>
     <div class="topBar errors" id="error_msg" style="display:none">
     	<a onclick="javascript:jQuery('#error_msg').hide('slow');return false" href="#">Hide</a>
