@@ -319,8 +319,6 @@
       <fieldconfig fieldExpr="gene2.symbol" />
     </fields>
   </class>
-<!-- chenyian
--->
   <class className="org.intermine.model.bio.IntegratedPathwayCluster" >
     <fields>
       <fieldconfig fieldExpr="identifier" />
@@ -336,8 +334,6 @@
     </fields>
   </class>
 
-<!-- chenyian: disable for external server 
--->
   <class className="org.intermine.model.bio.Disease">
     <headerconfig>
         <titles>
@@ -633,16 +629,6 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.PpiDruggability">
-    <fields>
-      <fieldconfig fieldExpr="identifier" showInSummary="false"/>
-      <fieldconfig fieldExpr="structuralScore"/>
-      <fieldconfig fieldExpr="drugChemicalScore"/>
-      <fieldconfig fieldExpr="functionalScore"/>
-      <fieldconfig fieldExpr="allScore"/>
-    </fields>
-  </class>
-
   <class className="org.intermine.model.bio.GenomeWideAssociation">
     <fields>
       <fieldconfig fieldExpr="trait"/>
@@ -769,16 +755,6 @@
                      placement="summary"
                      types="SequenceFeature"/>
 
-<!-- 
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
-                     jspName="model/ppiDruggabilityDisplayer.jsp"
-                     replacesFields="ppiDruggability"
-                     types="Interaction"/>
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
-                     jspName="model/interactDetailInteractionDisplayer.jsp"
-                     replacesFields="interaction"
-                     types="InteractionDetail"/>
- -->
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
                      jspName="model/interactionExperimentDisplayer.jsp"
                      replacesFields="experiment"
@@ -1159,8 +1135,6 @@
                                  views="identifier, name, targetProteins.protein.primaryAccession, targetProteins.protein.name, targetProteins.protein.organism.name,"
                                  externalLink="/targetmine/portal.do?class=Protein&amp;externalids="/>
 
-<!-- chenyian: disable for external server 
--->
       <enrichmentwidgetdisplayer id="gene_omim_enrichment"
                                  title="OMIM Enrichment"
                                  description="OMIM enriched for genes in this list"

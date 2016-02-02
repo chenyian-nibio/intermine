@@ -234,13 +234,6 @@
       <property name="src.data.dir.includes" value="*_MTI.txt" />
     </source>
 
-<!-- chenyian: for internal only | start -->    
-  	<source name="drpias" type="drpias">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/drpias" />
-      <property name="src.data.dir.includes" value="drpias_druggability_scores_w_id.tsv" />
-    </source>
-<!-- chenyian: for internal only | end -->    
-
     <source name="affy-probe" type="affy-probe-annot">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/affymetrix" />
       <property name="src.data.dir.includes" value="*.na35.annot.csv" />
@@ -324,7 +317,6 @@
       <post-process name="integrated-pathway-clustering"/>
       <post-process name="associate-gene-to-cluster"/>
       <post-process name="network-analysis"/>
-      <post-process name="ppi-druggability"/>
       <post-process name="calculate-biotheme-background"/>
       <post-process name="create-references"/>
       <post-process name="summarise-objectstore"/>
