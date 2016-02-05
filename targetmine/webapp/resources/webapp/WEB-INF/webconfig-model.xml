@@ -713,6 +713,12 @@
 <!-- reportdisplayers -->
   <reportdisplayers>
 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.HomologInfoDisplayer"
+                     jspName="model/homologInfoDisplayer.jsp"
+                     replacesFields="homologues"
+                     placement="Genes"
+                     types="Gene"/>
+
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.CytoscapeNetworkDisplayer"
                      jspName="model/cytoscapeNetworkDisplayer.jsp"
                      replacesFields="interactions"
