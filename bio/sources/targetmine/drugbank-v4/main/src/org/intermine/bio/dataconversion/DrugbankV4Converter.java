@@ -171,7 +171,7 @@ public class DrugbankV4Converter extends BioFileConverter {
 										.toLowerCase()));
 							}
 							Collections.sort(actionValues);
-							interaction.setAttribute("tag", StringUtils.join(actionValues,", "));
+							interaction.setAttribute("actionLabel", StringUtils.join(actionValues,", "));
 						} else {
 							interaction.addToCollection("actions", getDrugAction("unknown"));
 						}

@@ -312,12 +312,12 @@ public class CalculateBioThemeBackground {
 
 	}
 
-	private InterMineObject createStatisticsItem(String identifier, String tag, int count,
+	private InterMineObject createStatisticsItem(String identifier, String label, int count,
 			Integer taxonId) {
 		InterMineObject item = (InterMineObject) DynamicUtil.simpleCreateObject(model
 				.getClassDescriptorByName("Statistics").getType());
 		item.setFieldValue("identifier", identifier);
-		item.setFieldValue("tag", tag);
+		item.setFieldValue("label", label);
 		item.setFieldValue("number", Integer.valueOf(count));
 		item.setFieldValue("organism", organismMap.get(taxonId));
 

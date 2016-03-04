@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <classes>
 	<class name="CompoundProteinInteraction" is-interface="true">
-		<attribute name="tag" type="java.lang.String"/>
+		<attribute name="actionLabel" type="java.lang.String"/>
 		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
 		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
