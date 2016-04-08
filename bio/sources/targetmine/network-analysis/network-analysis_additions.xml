@@ -1,27 +1,28 @@
 <?xml version="1.0"?>
 
 <classes>
-    <class name="Interaction" is-interface="true">
-        <collection name="confidences" referenced-type="InteractionConfidence" reverse-reference="interaction" />
-    </class>
-    <class name="InteractionConfidence" is-interface="true">
-        <attribute name="type" type="java.lang.String" />
-        <reference name="interaction" referenced-type="Interaction" reverse-reference="confidences" />
-        <reference name="dataSet" referenced-type="DataSet"/>
-    </class>
+	<class name="Interaction" is-interface="true">
+		<attribute name="coexp" type="java.lang.Float" />
+		<collection name="confidences" referenced-type="InteractionConfidence" reverse-reference="interaction" />
+	</class>
+	<class name="InteractionConfidence" is-interface="true">
+		<attribute name="type" type="java.lang.String" />
+		<reference name="interaction" referenced-type="Interaction" reverse-reference="confidences" />
+		<reference name="dataSet" referenced-type="DataSet"/>
+	</class>
     
-    <class name="NetworkProperty" is-interface="true">
-        <attribute name="isBottleneck" type="java.lang.Boolean" />
-        <attribute name="isHub" type="java.lang.Boolean" />
-        <attribute name="networkType" type="java.lang.String" />
-        <attribute name="betweenness" type="java.lang.Double" />
-        <attribute name="closeness" type="java.lang.Double" />
-        <attribute name="degree" type="java.lang.Integer" />
-        <reference name="gene" referenced-type="Gene" reverse-reference="networkProperties" />
-    </class>
-    <class name="Gene" is-interface="true">
-        <attribute name="primaryIdentifier" type="java.lang.String"/>
-        <collection name="networkProperties" referenced-type="NetworkProperty" reverse-reference="gene"/>
-    </class>
+	<class name="NetworkProperty" is-interface="true">
+		<attribute name="isBottleneck" type="java.lang.Boolean" />
+		<attribute name="isHub" type="java.lang.Boolean" />
+		<attribute name="networkType" type="java.lang.String" />
+		<attribute name="betweenness" type="java.lang.Double" />
+		<attribute name="closeness" type="java.lang.Double" />
+		<attribute name="degree" type="java.lang.Integer" />
+		<reference name="gene" referenced-type="Gene" reverse-reference="networkProperties" />
+	</class>
+	<class name="Gene" is-interface="true">
+		<attribute name="primaryIdentifier" type="java.lang.String"/>
+		<collection name="networkProperties" referenced-type="NetworkProperty" reverse-reference="gene"/>
+	</class>
 
 </classes>

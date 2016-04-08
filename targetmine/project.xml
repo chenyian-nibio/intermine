@@ -317,6 +317,10 @@
       <post-process name="integrated-pathway-clustering"/>
       <post-process name="associate-gene-to-cluster"/>
       <post-process name="network-analysis"/>
+      
+      <!-- the coexpression data location is assigned in the CoExpressionInteraction.java -->
+      <post-process name="coexpression"/>
+      
       <post-process name="calculate-biotheme-background"/>
       <post-process name="create-references"/>
       <post-process name="summarise-objectstore"/>

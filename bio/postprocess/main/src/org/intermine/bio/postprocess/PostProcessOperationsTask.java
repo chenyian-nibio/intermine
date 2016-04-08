@@ -245,6 +245,11 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
     				PpiDruggability ppid = new PpiDruggability(getObjectStoreWriter());
     				ppid.annotatePpiDruggabilities();
     			// chenyian:
+    			} else if ("coexpression".equals(operation)) {
+    				CoExpressionInteraction coex = new CoExpressionInteraction(getObjectStoreWriter());
+    				System.out.println("Start adding coexpression value...");
+    				coex.addCoExpressionValue();
+    			// chenyian:
     			} else if ("transcribe-ncbiGeneId".equals(operation)) {
     				TranscribeNcbiGeneId tn = new TranscribeNcbiGeneId(getObjectStoreWriter());
     				tn.transcribeIdentifeir();
