@@ -94,8 +94,8 @@
     </source>
 
     <source name="drugbank" type="drugbank-v4">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank/v4.3"/>
-      <property name="src.data.dir.includes" value="drugbank.xml"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank/v4.5"/>
+      <property name="src.data.dir.includes" value="full_database.xml"/>
     </source>
 
     <source name="kegg-drug" type="kegg-drug">

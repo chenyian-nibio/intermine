@@ -185,9 +185,9 @@ public class DrugbankV4Converter extends BioFileConverter {
 			// get brand names
 			// in v4.2 the collection "brands" has been changed to "international-brands" 
 			Elements brands = drug.getFirstChildElement("international-brands", NAMESPACE_URI).getChildElements(
-					"brand", NAMESPACE_URI);
+					"international-brand", NAMESPACE_URI);
 			for (int j = 0; j < brands.size(); j++) {
-				String brandName = brands.get(j).getValue();
+				String brandName = brands.get(j).getFirstChildElement("name", NAMESPACE_URI).getValue();
 				setSynonyms(drugItem, brandName);
 			}
 			// get synonyms
