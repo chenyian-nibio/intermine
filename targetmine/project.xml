@@ -317,6 +317,7 @@
       <post-process name="integrated-pathway-clustering"/>
       <post-process name="associate-gene-to-cluster"/>
       <post-process name="network-analysis"/>
+      <post-process name="transcribe-drugbank"/>
       <post-process name="calculate-biotheme-background"/>
       <post-process name="create-references"/>
       <post-process name="summarise-objectstore"/>

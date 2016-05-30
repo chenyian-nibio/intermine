@@ -6,7 +6,6 @@ import org.apache.log4j.Logger;
 import org.intermine.metadata.ConstraintOp;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
-import org.intermine.model.bio.Gene;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
@@ -37,7 +36,7 @@ public class RemoveCompoundCasRegistryNumber {
 	}
 	
 	public void removeCasNumber() {
-		Results results = getGenesWithoutNcbiGeneId();
+		Results results = getCompoundsContainCasNumber();
 		
 		System.out.println(String.format("found %d compounds with CAS Registry Number", results.size()));
 		LOG.info(String.format("found %d compounds with CAS Registry Number", results.size()));
@@ -54,24 +53,22 @@ public class RemoveCompoundCasRegistryNumber {
 				osw.store(compound);
 			}
 			
-			// osw.abortTransaction();
 			osw.commitTransaction();
 
 		} catch (ObjectStoreException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	private Results getGenesWithoutNcbiGeneId() {
+	private Results getCompoundsContainCasNumber() {
 		Query q = new Query();
 		QueryClass qcCompound = new QueryClass(model.getClassDescriptorByName(
 				"Compound").getType());
-		QueryField qfGeneId = new QueryField(qcCompound, "casRegistryNumber");
+		QueryField qfCasNumber = new QueryField(qcCompound, "casRegistryNumber");
 		
 		q.addFrom(qcCompound);
 		q.addToSelect(qcCompound);
-		q.setConstraint(new SimpleConstraint(qfGeneId,ConstraintOp.IS_NOT_EMPTY));
+		q.setConstraint(new SimpleConstraint(qfCasNumber,ConstraintOp.IS_NOT_EMPTY));
 		
 		ObjectStore os = osw.getObjectStore();
 

@@ -350,7 +350,7 @@
     <fields>
       <fieldconfig fieldExpr="protein.primaryAccession"/>
       <fieldconfig fieldExpr="protein.name"/>
-      <fieldconfig fieldExpr="tag"/>
+      <fieldconfig fieldExpr="actionLabel"/>
       <fieldconfig fieldExpr="compound.identifier" />
       <fieldconfig fieldExpr="compound.name" />
       <fieldconfig fieldExpr="dataSet.name" />

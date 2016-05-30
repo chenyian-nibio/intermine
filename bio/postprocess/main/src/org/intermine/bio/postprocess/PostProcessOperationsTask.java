@@ -252,6 +252,10 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
     			} else if ("remove-casreg".equals(operation)) {
     				RemoveCompoundCasRegistryNumber rccrn = new RemoveCompoundCasRegistryNumber(getObjectStoreWriter());
     				rccrn.removeCasNumber();
+    			// chenyian: 
+    			} else if ("transcribe-drugbank".equals(operation)) {
+    				TranscribeDrugBankTargets tdbt = new TranscribeDrugBankTargets(getObjectStoreWriter());
+    				tdbt.transcribe();
     			} else {
     				throw new BuildException("unknown operation: " + operation);
             }
