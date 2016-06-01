@@ -2,7 +2,8 @@
 <classes>
 	<class name="Statistics" is-interface="true" >
 		<attribute name="identifier" type="java.lang.String"/>
-		<attribute name="label" type="java.lang.String"/>
+		<attribute name="type" type="java.lang.String"/>
+		<attribute name="dataSet" type="java.lang.String"/>
 		<attribute name="number" type="java.lang.Integer"/>
 		<reference name="organism" referenced-type="Organism"/>
 	</class>

@@ -235,9 +235,17 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
     			} else if ("calculate-biotheme-background".equals(operation)) {
     				CalculateBioThemeBackground cbtb = new CalculateBioThemeBackground(
     						getObjectStoreWriter());
-    				cbtb.calculateGOBackground();
-    				cbtb.calculatePathwayBackground();
-    				cbtb.calculateGOSlimBackground();
+    				cbtb.calculateGOBackgroundForGene();
+    				cbtb.calculatePathwayBackgroundForGene();
+    				cbtb.calculateGOSlimBackgroundForGene();
+    				
+    				cbtb.calculatePathwayBackgroundForProbeset();
+    				cbtb.calculateGOBackgroundForProbeset();
+    				cbtb.calculateGOSlimBackgroundForProbeSet();
+    				
+    				cbtb.calculatePathwayBackgroundForProtein();
+    				cbtb.calculateGOBackgroundForProtein();
+    				cbtb.calculateGOSlimBackgroundForProtein();
     				
     				cbtb.closeDbConnection();
     			// chenyian: deprecated; to be removed
