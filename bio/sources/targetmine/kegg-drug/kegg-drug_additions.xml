@@ -23,6 +23,7 @@
     
 	<class name="CompoundSynonym" is-interface="true">
 		<attribute name="value" type="java.lang.String"/>
+		<attribute name="type" type="java.lang.String"/>
 		<reference name="subject" referenced-type="Compound" reverse-reference="synonyms"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>

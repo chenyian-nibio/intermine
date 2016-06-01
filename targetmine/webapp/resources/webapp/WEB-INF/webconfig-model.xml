@@ -484,7 +484,6 @@
       <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" showInSummary="false" />
     </fields>
     <inlinelist>
-      <table path="synonyms.value" showLinksToObjects="true" />
       <table path="drugTypes.name" showLinksToObjects="false" />
     </inlinelist>
   </class>
@@ -703,6 +702,14 @@
       <fieldconfig fieldExpr="name"/>
     </fields>
   </class>
+
+  <class className="org.intermine.model.bio.ProbeSet">
+    <fields>
+      <fieldconfig fieldExpr="probeSetId"/>
+      <fieldconfig fieldExpr="mappingType"/>
+      <fieldconfig fieldExpr="organism.name" />
+    </fields>
+  </class>
   
 
 <!-- exporters -->
@@ -793,7 +800,7 @@
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
                      jspName="model/atcJtcCodeDisplayer.jsp"
-                     replacesFields="atcCodes,jtcCodes" 
+                     replacesFields="atcCodes,jtcCodes,synonyms" 
                      types="DrugCompound"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProbeSetExpressionDisplayer"
@@ -1140,6 +1147,45 @@
                                  typeClass="DrugCompound"
                                  views="identifier, name, targetProteins.protein.primaryAccession, targetProteins.protein.name, targetProteins.protein.organism.name,"
                                  externalLink="/targetmine/portal.do?class=Protein&amp;externalids="/>
+
+      <enrichmentwidgetdisplayer id="drug_jsc_enrichment"
+                                 title="JSC Classification Enrichment"
+                                 description="JSC Classification enriched for drugs in this list"
+                                 label="JSC Classification"
+                                 startClass="DrugCompound"
+                                 startClassDisplay="identifier"
+                                 enrich="jtcCodes.allParents.name"
+                                 enrichIdentifier="jtcCodes.allParents.jtcCode"
+                                 typeClass="DrugCompound"
+                                 views="identifier, name, jtcCodes.allParents.jtcCode, jtcCodes.allParents.name"
+                                 externalLink="/targetmine/portal.do?class=JtcClassification&amp;externalids="/>
+                                 
+      <enrichmentwidgetdisplayer id="probe_tissue_enrichment"
+                                 title="Tissue Enrichment"
+                                 description="Tissues enriched for probes in this list"
+                                 label="Tissue"
+                                 startClass="ProbeSet"
+                                 startClassDisplay="probeSetId"
+                                 enrich="expressions.tissue.name"
+                                 enrichIdentifier="expressions.tissue.identifier"
+                                 constraints="organism.name=[list], expressions.isExpressed=true" 
+                                 typeClass="ProbeSet" 
+                                 views="probeSetId, mappingType, organism.name, expressions.tissue.name"/>
+
+      <enrichmentwidgetdisplayer id="probe_pathway_enrichment"
+                                 title="Pathway Enrichment"
+                                 description="Pathways enriched for probes in this list - data from KEGG, Reactome and NCI"
+                                 label="Pathways"
+                                 filterLabel="DataSet"
+                                 filters="All,KEGG Pathway,Reactome,NCI Pathway Interaction Database"
+                                 startClass="ProbeSet"
+                                 startClassDisplay="probeSetId"
+                                 enrich="genes.pathways.name"
+                                 enrichIdentifier="genes.pathways.identifier"
+                                 constraints="genes.pathways.dataSets.name=[DataSet],organism.taxonId=[list]"
+                                 typeClass="ProbeSet"
+                                 views="probeSetId, mappingType, organism.name, genes.pathways.identifier, genes.pathways.name, genes.pathways.dataSets.name"
+                                 externalLink="/targetmine/portal.do?class=Pathway&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="gene_omim_enrichment"
                                  title="OMIM Enrichment"

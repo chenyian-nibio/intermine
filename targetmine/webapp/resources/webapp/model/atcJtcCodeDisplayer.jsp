@@ -48,12 +48,12 @@
 <br/>
 <c:choose>
 	<c:when test="${empty drug.jtcCodes}">
-		<h3>0 JTC Code</h3>
-    	<p style="margin: 10px;">No JTC annotations.</p>
+		<h3>0 JSCC Code</h3>
+    	<p style="margin: 10px;">No JSCC annotations.</p>
 	</c:when>
 	<c:otherwise>
 		<h3>
-			${fn:length(drug.jtcCodes)} JTC Code<c:if test="${fn:length(drug.jtcCodes) > 1}">s</c:if>
+			${fn:length(drug.jtcCodes)} JSCC Code<c:if test="${fn:length(drug.jtcCodes) > 1}">s</c:if>
 		</h3>
 		<table>
 		<thead>
@@ -83,5 +83,33 @@
 		
 	</c:otherwise>
 </c:choose>
+
+<br/>
+<c:choose>
+	<c:when test="${empty drug.synonyms}">
+		<h3>Synonym</h3>
+    	<p style="margin: 10px;">No synonym.</p>
+	</c:when>
+	<c:otherwise>
+		<h3>
+			${fn:length(drug.synonyms)} Synonym<c:if test="${fn:length(drug.synonyms) > 1}">s</c:if>
+		</h3>
+		<table>
+		<tbody>
+	    	<tr>
+	    		<td style="padding-left: 16px; padding-bottom: 12px;">
+	    			<c:forEach var="synonym" items="${drug.synonyms}" varStatus="status">
+	    				<a href="report.do?id=${synonym.id}" title="${synonym.value}">${synonym.value}</a>
+	    				<c:if test="${!empty synonym.type}"> (${synonym.type})</c:if>
+	    				<c:if test="${status.count < fn:length(drug.synonyms)}">, </c:if>
+	    			</c:forEach>
+	    		</td>
+	    	</tr>
+		</tbody>
+		</table>
+		
+	</c:otherwise>
+</c:choose>
+
 
 </div>

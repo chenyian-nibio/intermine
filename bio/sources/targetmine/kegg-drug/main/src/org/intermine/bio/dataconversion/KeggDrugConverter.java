@@ -14,6 +14,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -82,11 +84,13 @@ public class KeggDrugConverter extends BioFileConverter {
 			String keggDrugId = "";
 			String dblDrugBankId = "";
 			String name = "";
+			List<String> allNames = new ArrayList<String>();
 			String atcCodes = "";
 			String casNumber = "";
 			Map<String, Set<String>> metabolisms = new HashMap<String, Set<String>>();
 			Map<String, Set<String>> interactions = new HashMap<String, Set<String>>();
 			
+			boolean isName = false;
 			boolean isMetabolism = false;
 			boolean isInteraction = false;
 			
@@ -102,12 +106,22 @@ public class KeggDrugConverter extends BioFileConverter {
 					isMetabolism = false;
 				}
 				
+				if (isName) {
+					if (line.startsWith(" ")) {
+						allNames.add(line.substring(12).trim());
+					} else {
+						isName = false;
+					}
+				}
+				
 				if (line.startsWith("ENTRY")) {
 					String[] split = line.split("\\s+");
 					keggDrugId = split[1];
 				} else if (line.startsWith("NAME")) {
 					// TODO to be refined
 					name = line.substring(12).replaceAll(";$", "").replaceAll("\\s\\(.+?\\)$","").trim();
+					allNames.add(line.substring(12).trim());
+					isName = true;
 				} else if (line.contains("ATC code:")) {
 					atcCodes = line.substring(line.indexOf(":") + 2);
 				} else if (line.contains("DrugBank:")) {
@@ -271,12 +285,40 @@ public class KeggDrugConverter extends BioFileConverter {
 								}
 							}
 						}
+						if (!allNames.isEmpty()) {
+							for (String drugName: allNames) {
+								// example: Dexamethasone (JP17/USP/INN);
+								if (drugName.contains("(")) {
+									Pattern pattern = Pattern.compile("(.+) \\((.+?)\\);?$");
+									Matcher matcher = pattern.matcher(drugName);
+									
+									if (matcher.find()) {
+										String value = matcher.group(1);
+										String types = matcher.group(2);
+										for (String type: types.split("/")) {
+											Item syn = createItem("CompoundSynonym");
+											syn.setAttribute("value", value);
+											syn.setAttribute("type", type);
+											syn.setReference("subject", drugItem);
+											store(syn);
+										}
+									}
+									
+								} else {
+									Item syn = createItem("CompoundSynonym");
+									syn.setAttribute("value", drugName.replaceAll(";$", "").trim());
+									syn.setReference("subject", drugItem);
+									store(syn);
+								}
+							}
+						}
 					}
 					
 					// clear current entry
 					keggDrugId = "";
 					dblDrugBankId = "";
 					name = "";
+					allNames = new ArrayList<String>();
 					atcCodes = "";
 					casNumber = "";
 					

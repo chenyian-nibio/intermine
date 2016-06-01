@@ -92,12 +92,12 @@ public class DrugbankV4Converter extends BioFileConverter {
 			// if the length of the name is greater than 40 characters,
 			// use id instead and save the long name as the synonym
 			if (name.length() > 40) {
-				setSynonyms(drugItem, name);
+				setSynonyms(drugItem, name, "name");
 				name = drugBankId;
 			}
 
 			for (String synonym : alias) {
-				setSynonyms(drugItem, synonym);
+				setSynonyms(drugItem, synonym, "DrugBank accession");
 			}
 
 			drugItem.setAttribute("name", name);
@@ -188,14 +188,14 @@ public class DrugbankV4Converter extends BioFileConverter {
 					"international-brand", NAMESPACE_URI);
 			for (int j = 0; j < brands.size(); j++) {
 				String brandName = brands.get(j).getFirstChildElement("name", NAMESPACE_URI).getValue();
-				setSynonyms(drugItem, brandName);
+				setSynonyms(drugItem, brandName, "brand name");
 			}
 			// get synonyms
 			Elements synonyms = drug.getFirstChildElement("synonyms", NAMESPACE_URI)
 					.getChildElements("synonym", NAMESPACE_URI);
 			for (int j = 0; j < synonyms.size(); j++) {
 				String synonym = synonyms.get(j).getValue();
-				setSynonyms(drugItem, synonym);
+				setSynonyms(drugItem, synonym, "synonym");
 			}
 
 			drugItem.addToCollection("drugTypes", getDrugType(drug.getAttribute("type").getValue()));
@@ -207,7 +207,7 @@ public class DrugbankV4Converter extends BioFileConverter {
 				drugItem.addToCollection("drugTypes", getDrugType(group));
 			}
 
-			// TODO get ATC codes
+			// get ATC codes
 			Elements atcCodes = drug.getFirstChildElement("atc-codes", NAMESPACE_URI)
 					.getChildElements("atc-code", NAMESPACE_URI);
 			for (int j = 0; j < atcCodes.size(); j++) {
@@ -250,11 +250,11 @@ public class DrugbankV4Converter extends BioFileConverter {
 			Item item = createItem("AtcClassification");
 			item.setAttribute("atcCode", atcCode);
 			item.setAttribute("name", name);
-			// TODO add parent
+			// add parent
 			String parentCode = atcCode.substring(0, 5);
 			item.setReference("parent", getParent(parentCode));
 			
-			// TODO create parents; to be improved
+			// create parents; to be improved
 			item.addToCollection("allParents", getParent(parentCode));
 			item.addToCollection("allParents", getParent(parentCode.substring(0, 4)));
 			item.addToCollection("allParents", getParent(parentCode.substring(0, 3)));
@@ -342,9 +342,10 @@ public class DrugbankV4Converter extends BioFileConverter {
 		return ret;
 	}
 
-	private void setSynonyms(Item subject, String value) throws ObjectStoreException {
+	private void setSynonyms(Item subject, String value, String type) throws ObjectStoreException {
 		Item syn = createItem("CompoundSynonym");
 		syn.setAttribute("value", value);
+		syn.setAttribute("type", type);
 		syn.setReference("subject", subject);
 		store(syn);
 	}
