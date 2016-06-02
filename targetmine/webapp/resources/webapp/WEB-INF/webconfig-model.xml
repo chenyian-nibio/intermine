@@ -659,9 +659,9 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.JtcClassification">
+  <class className="org.intermine.model.bio.JscClassification">
     <fields>
-      <fieldconfig fieldExpr="jtcCode"/>
+      <fieldconfig fieldExpr="jsccCode"/>
       <fieldconfig fieldExpr="name"/>
     </fields>
   </class>
@@ -794,13 +794,13 @@
                      types="AtcClassification"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.AtcClassificationDisplayer"
-                     jspName="model/jtcClassificationDisplayer.jsp"
+                     jspName="model/jscClassificationDisplayer.jsp"
                      replacesFields="parent" 
-                     types="JtcClassification"/>
+                     types="JscClassification"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
-                     jspName="model/atcJtcCodeDisplayer.jsp"
-                     replacesFields="atcCodes,jtcCodes,synonyms" 
+                     jspName="model/drugCompoundInfoDisplayer.jsp"
+                     replacesFields="atcCodes,jsccCodes,synonyms" 
                      types="DrugCompound"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProbeSetExpressionDisplayer"
@@ -1150,15 +1150,15 @@
 
       <enrichmentwidgetdisplayer id="drug_jsc_enrichment"
                                  title="JSC Classification Enrichment"
-                                 description="JSC Classification enriched for drugs in this list"
+                                 description="Japan Standard Commodity Classification(JSCC) enriched for drugs in this list"
                                  label="JSC Classification"
                                  startClass="DrugCompound"
                                  startClassDisplay="identifier"
-                                 enrich="jtcCodes.allParents.name"
-                                 enrichIdentifier="jtcCodes.allParents.jtcCode"
+                                 enrich="jsccCodes.allParents.name"
+                                 enrichIdentifier="jsccCodes.allParents.jsccCode"
                                  typeClass="DrugCompound"
-                                 views="identifier, name, jtcCodes.allParents.jtcCode, jtcCodes.allParents.name"
-                                 externalLink="/targetmine/portal.do?class=JtcClassification&amp;externalids="/>
+                                 views="identifier, name, jsccCodes.allParents.jsccCode, jsccCodes.allParents.name"
+                                 externalLink="/targetmine/portal.do?class=JscClassification&amp;externalids="/>
                                  
       <enrichmentwidgetdisplayer id="probe_tissue_enrichment"
                                  title="Tissue Enrichment"

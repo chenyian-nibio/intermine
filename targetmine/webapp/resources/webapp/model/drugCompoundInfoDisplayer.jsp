@@ -47,13 +47,13 @@
 </c:choose>
 <br/>
 <c:choose>
-	<c:when test="${empty drug.jtcCodes}">
-		<h3>0 JSCC Code</h3>
+	<c:when test="${empty drug.jsccCodes}">
+		<h3>0 Japan Standard Commodity Classification(JSCC) Code</h3>
     	<p style="margin: 10px;">No JSCC annotations.</p>
 	</c:when>
 	<c:otherwise>
 		<h3>
-			${fn:length(drug.jtcCodes)} JSCC Code<c:if test="${fn:length(drug.jtcCodes) > 1}">s</c:if>
+			${fn:length(drug.jsccCodes)} Japan Standard Commodity Classification(JSCC) Code<c:if test="${fn:length(drug.jsccCodes) > 1}">s</c:if>
 		</h3>
 		<table>
 		<thead>
@@ -63,18 +63,18 @@
 		</tr>
 		</thead>
 		<tbody>
-		<c:forEach var="jtcCode" items="${drug.jtcCodes}">
+		<c:forEach var="jsccCode" items="${drug.jsccCodes}">
 		    <tr>
-		      <td><a href="report.do?id=${jtcCode.id}">${jtcCode.jtcCode}</a></td>
+		      <td><a href="report.do?id=${jsccCode.id}">${jsccCode.jsccCode}</a></td>
 		      <td>
-		      <a href="report.do?id=${jtcCode.parent.parent.parent.id}">${jtcCode.parent.parent.parent.jtcCode}</a> 
-		      ${jtcCode.parent.parent.parent.name} &raquo; 
-		      <a href="report.do?id=${jtcCode.parent.parent.id}">${jtcCode.parent.parent.jtcCode}</a> 
-		      ${jtcCode.parent.parent.name} &raquo; 
-		      <a href="report.do?id=${jtcCode.parent.id}">${jtcCode.parent.jtcCode}</a> 
-		      ${jtcCode.parent.name} &raquo;
-		      <a href="report.do?id=${jtcCode.id}">${jtcCode.jtcCode}</a> 
-		      ${jtcCode.name}
+		      <a href="report.do?id=${jsccCode.parent.parent.parent.id}">${jsccCode.parent.parent.parent.jsccCode}</a> 
+		      ${jsccCode.parent.parent.parent.name} &raquo; 
+		      <a href="report.do?id=${jsccCode.parent.parent.id}">${jsccCode.parent.parent.jsccCode}</a> 
+		      ${jsccCode.parent.parent.name} &raquo; 
+		      <a href="report.do?id=${jsccCode.parent.id}">${jsccCode.parent.jsccCode}</a> 
+		      ${jsccCode.parent.name} &raquo;
+		      <a href="report.do?id=${jsccCode.id}">${jsccCode.jsccCode}</a> 
+		      ${jsccCode.name}
 		      </td>
 		    </tr>
 		</c:forEach>

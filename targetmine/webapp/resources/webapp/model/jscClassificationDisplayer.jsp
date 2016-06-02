@@ -5,7 +5,7 @@
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
 
 <div class="collection-table">
-<h3>JTC Classification Hierarchy</h3>
+<h3>Japan Standard Commodity Classification(JSCC) Hierarchy</h3>
 
   	<c:choose>
 	  	<c:when test="${!empty allParents}">
@@ -19,7 +19,7 @@
 		        <tbody>
 				<c:forEach items="${allParents}" var="entry">
 			    	<tr>
-			    		<td><a href="report.do?id=${entry.id}">${entry.jtcCode}</a></td>
+			    		<td><a href="report.do?id=${entry.id}">${entry.jsccCode}</a></td>
 			    		<td><a href="report.do?id=${entry.id}">${entry.name}</a></td>
 			    	</tr>
 				</c:forEach>
