@@ -45,6 +45,7 @@ public class KeggDrugConverter extends BioFileConverter {
 	private static final String DATASET_TITLE = "KEGG Drug";
 	private static final String DATA_SOURCE_NAME = "KEGG";
 
+	private Set<String> synonymTypeSet = new HashSet<String>();
 	/**
 	 * Constructor
 	 * 
@@ -55,6 +56,17 @@ public class KeggDrugConverter extends BioFileConverter {
 	 */
 	public KeggDrugConverter(ItemWriter writer, Model model) {
 		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
+//		JAN - Japanese Approved Name
+//		USAN - United States Adopted Name
+//		NF - National Formulary drug name
+//		INN - International Nonproprietary Name
+//		BAN - British Approved Name
+//		DCF - Denomination commune francaise
+//		JP17 - Japanese Pharmacopoeia, 17th edition
+//		USP - United States Pharmacopeia
+//		non-JP - Japanese standards for non-Pharmacopoeial crude drugs
+		synonymTypeSet.addAll(Arrays.asList("JAN", "USAN", "NF", "INN", "BAN", "DCF", "JP17",
+				"USP", "non-JP"));
 	}
 
 	private File inchikeyFile;
@@ -298,7 +310,10 @@ public class KeggDrugConverter extends BioFileConverter {
 										for (String type: types.split("/")) {
 											Item syn = createItem("CompoundSynonym");
 											syn.setAttribute("value", value);
-											syn.setAttribute("type", type);
+											if (synonymTypeSet.contains(type) ||
+													isSynonymType(type)) {
+												syn.setAttribute("type", type);
+											}
 											syn.setReference("subject", drugItem);
 											store(syn);
 										}
@@ -338,6 +353,15 @@ public class KeggDrugConverter extends BioFileConverter {
 				in.close();
 		}
 
+	}
+	
+	private boolean isSynonymType(String type) {
+		for (String st : synonymTypeSet) {
+			if (type.startsWith(st) || type.endsWith(st)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private Item createDrugCompound(String identifier, String drugBankId, String keggDrugId,
