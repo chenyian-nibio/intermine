@@ -238,6 +238,7 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
     				cbtb.calculateGOBackgroundForGene();
     				cbtb.calculatePathwayBackgroundForGene();
     				cbtb.calculateGOSlimBackgroundForGene();
+    				cbtb.calculateTissueBackgroundForGene();
     				
     				cbtb.calculatePathwayBackgroundForProbeset();
     				cbtb.calculateGOBackgroundForProbeset();

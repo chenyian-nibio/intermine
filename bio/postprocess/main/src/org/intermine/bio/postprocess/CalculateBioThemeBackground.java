@@ -370,6 +370,85 @@ public class CalculateBioThemeBackground {
 		return sql;
 	}
 
+	public void calculateTissueBackgroundForGene() {
+		System.out.println("calculating Pathway Background for gene...");
+		try {
+			Statement statement = connection.createStatement();
+			
+			osw.beginTransaction();
+			
+			for (Integer taxonId : PROCESS_TAXONIDS) {
+				
+				ResultSet resultSet = statement.executeQuery(getSqlQueryForTissueTermOfGene(taxonId));
+				LOG.info("calculating... (" + taxonId + "):");
+				while (resultSet.next()) {
+					String id = resultSet.getString("identifier");
+					int count = resultSet.getInt("count");
+					osw.store(createStatisticsItem(id, "Gene", "barcode3", count, taxonId));
+				}
+				
+				// calculate N
+				ResultSet resultN = statement.executeQuery(getSqlQueryForTissueClassOfGene(taxonId));
+				resultN.next();
+				int count = resultN.getInt("count");
+				osw.store(createStatisticsItem("Tissue N", "Gene", "barcode3", count, taxonId));
+				
+				ResultSet resultTN = statement.executeQuery(getSqlQueryForTissueTestNumber(taxonId));
+				resultTN.next();
+				int testNumber = resultTN.getInt("count");
+				osw.store(createStatisticsItem("Tissue test number", "Gene", "barcode3", testNumber, taxonId));
+			}
+			
+			statement.close();
+			
+//			 osw.abortTransaction();
+			osw.commitTransaction();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (ObjectStoreException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	private String getSqlQueryForTissueTermOfGene(Integer taxonId) {
+		String sqlQuery = " select t.identifier, count (distinct (g.id)) "
+				+ " from gene as g "
+				+ " join genesprobesets as gps on gps.genes = g.id "
+				+ " join probeset as ps on ps.id = gps.probesets "
+				+ " join expression as e on e.probesetid = ps.id "
+				+ " join tissue as t on t.id=e.tissueid "
+				+ " join organism as org on org.id = g.organismid " 
+				+ " where org.taxonId = " + taxonId 
+				+ " and e.isexpressed = 't' " + " group by t.identifier ";
+		
+		return sqlQuery;
+	}
+	
+	private String getSqlQueryForTissueClassOfGene(Integer taxonId) {
+		String sql = " select count (distinct (g.id)) "
+				+ " from gene as g "
+				+ " join genesprobesets as gps on gps.genes = g.id "
+				+ " join probeset as ps on ps.id = gps.probesets "
+				+ " join expression as e on e.probesetid = ps.id "
+				+ " join tissue as t on t.id=e.tissueid "
+				+ " join organism as org on org.id = g.organismid " 
+				+ " where org.taxonId =  " + taxonId 
+				+ " and e.isexpressed = 't' ";
+		return sql;
+	}
+	
+	private String getSqlQueryForTissueTestNumber(Integer taxonId) {
+		String sql = " select count (distinct (t.id)) "
+				+ " from probeset as ps "
+				+ " join expression as e on e.probesetid = ps.id " 
+				+ " join tissue as t on t.id=e.tissueid "
+				+ " join organism as org on org.id = ps.organismid " 
+				+ " where org.taxonId = " + taxonId + " ";
+		return sql;
+	}
+	
 	public void calculateGOSlimBackgroundForGene() {
 		System.out.println("calculating GOSlim Background for gene...");
 		try {
