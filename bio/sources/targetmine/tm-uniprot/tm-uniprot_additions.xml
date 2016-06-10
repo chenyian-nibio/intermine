@@ -7,6 +7,8 @@
 		<attribute name="end" type="java.lang.Integer"/>
 		<reference name="protein" referenced-type="Protein" reverse-reference="features" />
 		<reference name="feature" referenced-type="OntologyTerm"/>
+		<!-- Testing... -->
+		<reference name="modification" referenced-type="Modification" reverse-reference="feature"/>
 	</class>
 	<class name="Protein" is-interface="true">
 		<attribute name="isFragment" type="java.lang.Boolean"/>
@@ -18,6 +20,8 @@
 		<collection name="keywords" referenced-type="OntologyTerm" />
 		<collection name="features" referenced-type="UniProtFeature" reverse-reference="protein" />
 		<collection name="otherAccessions" referenced-type="ProteinAccession" reverse-reference="protein" />
+		<!-- Testing... -->
+		<collection name="modifications" referenced-type="Modification" reverse-reference="protein" />
 	</class>
 	<class name="Component" is-interface="true">
 		<attribute name="name" type="java.lang.String" />
@@ -29,5 +33,12 @@
 	<class name="ProteinAccession" is-interface="true">
 		<attribute name="accession" type="java.lang.String" />
 		<reference name="protein" referenced-type="Protein" reverse-reference="otherAccessions" />
+	</class>
+	
+	<!-- Testing... -->
+	<class name="Modification" is-interface="true">
+		<attribute name="type" type="java.lang.String" />
+		<reference name="feature" referenced-type="UniProtFeature" reverse-reference="modification" />
+		<reference name="protein" referenced-type="Protein" reverse-reference="modifications" />
 	</class>
 </classes>

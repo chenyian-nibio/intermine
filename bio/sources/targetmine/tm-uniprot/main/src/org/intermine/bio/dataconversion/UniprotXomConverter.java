@@ -292,23 +292,24 @@ public class UniprotXomConverter extends BioFileConverter {
 							String description = feature.getAttributeValue("description");
 							String status = feature.getAttributeValue("status");
 
-							Item item = createItem("UniProtFeature");
-							item.setAttribute("type", type);
+							// TODO process feature at this step?
+							Item featureItem = createItem("UniProtFeature");
+							featureItem.setAttribute("type", type);
 							String keywordRefId = getKeyword(type);
-							item.setReference("feature", keywordRefId);
+							featureItem.setReference("feature", keywordRefId);
 							String featureDescription = description;
 							if (status != null) {
 								featureDescription = (description == null ? status : description
 										+ " (" + status + ")");
 							}
 							if (!StringUtils.isEmpty(featureDescription)) {
-								item.setAttribute("description", featureDescription);
+								featureItem.setAttribute("description", featureDescription);
 							}
 							Element location = feature.getFirstChildElement("location");
 							Element position = location.getFirstChildElement("position");
 							if (position != null) {
-								item.setAttribute("begin", position.getAttributeValue("position"));
-								item.setAttribute("end", position.getAttributeValue("position"));
+								featureItem.setAttribute("begin", position.getAttributeValue("position"));
+								featureItem.setAttribute("end", position.getAttributeValue("position"));
 							} else {
 								Element beginElement = location.getFirstChildElement("begin");
 								Element endElement = location.getFirstChildElement("end");
@@ -317,17 +318,35 @@ public class UniprotXomConverter extends BioFileConverter {
 									// e.g. <end status="unknown"/>
 									String begin = beginElement.getAttributeValue("position");
 									if (begin != null) {
-										item.setAttribute("begin", begin);
+										featureItem.setAttribute("begin", begin);
 									}
 									String end = endElement.getAttributeValue("position");
 									if (end != null) {
-										item.setAttribute("end", end);
+										featureItem.setAttribute("end", end);
 									}
 								}
 							}
-							item.setReference("protein", protein);
-							store(item);
-							// protein.addToCollection("features", item);
+							featureItem.setReference("protein", protein);
+							
+							if (type.equals("modified residue")) {
+								if (featureDescription.startsWith("Phospho")) {
+									Item modification = createItem("Modification");
+									modification.setReference("feature", featureItem);
+									modification.setReference("protein", protein);
+									modification.setAttribute("type", "phosphorylation");
+									store(modification);
+									featureItem.setReference("modification", modification);
+								} else if (featureDescription.contains("-methyl")) {
+									Item modification = createItem("Modification");
+									modification.setReference("feature", featureItem);
+									modification.setReference("protein", protein);
+									modification.setAttribute("type", "methylation");
+									store(modification);
+									featureItem.setReference("modification", modification);
+								}
+							}
+							
+							store(featureItem);
 						}
 
 						/* components */
