@@ -2,6 +2,9 @@ package org.intermine.bio.dataconversion;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
@@ -49,6 +52,9 @@ public class UniprotXomConverter extends BioFileConverter {
 	private Map<String, String> publications = new HashMap<String, String>();
 	private Map<String, String> allSequences = new HashMap<String, String>();
 
+	// 
+	private Map<String, String> ptmListMap = new HashMap<String, String>();
+
 	private Set<String> doneEntries = new HashSet<String>();
 
 	private Set<Item> synonymsAndXrefs = new HashSet<Item>();
@@ -69,6 +75,10 @@ public class UniprotXomConverter extends BioFileConverter {
 
 	@Override
 	public void process(Reader reader) throws Exception {
+		if (ptmListMap == null || ptmListMap.isEmpty()) {
+			loadPtmListFile();
+		}
+		
 		try {
 			BufferedReader br = new BufferedReader(reader);
 
@@ -328,19 +338,23 @@ public class UniprotXomConverter extends BioFileConverter {
 							}
 							featureItem.setReference("protein", protein);
 							
-							if (type.equals("modified residue")) {
-								if (featureDescription.startsWith("Phospho")) {
+							String kw = ptmListMap.get(description);
+							
+							if (kw == null) {
+								// TODO slightly tricky?
+								if (type.equals("glycosylation site")) {
+									kw = "Glycoprotein";
+								} else if (!StringUtils.isEmpty(description)) {
+									kw = searchPtmListMap(description);
+								}
+							}
+							
+							if (kw != null) {
+								for (String modType: kw.split("; ")) {
 									Item modification = createItem("Modification");
 									modification.setReference("feature", featureItem);
 									modification.setReference("protein", protein);
-									modification.setAttribute("type", "phosphorylation");
-									store(modification);
-									featureItem.setReference("modification", modification);
-								} else if (featureDescription.contains("-methyl")) {
-									Item modification = createItem("Modification");
-									modification.setReference("feature", featureItem);
-									modification.setReference("protein", protein);
-									modification.setAttribute("type", "methylation");
+									modification.setAttribute("type", modType);
 									store(modification);
 									featureItem.setReference("modification", modification);
 								}
@@ -359,7 +373,6 @@ public class UniprotXomConverter extends BioFileConverter {
 										.getValue());
 								item.setReference("protein", protein);
 								store(item);
-								// protein.addToCollection("components", item);
 							}
 						}
 
@@ -401,6 +414,49 @@ public class UniprotXomConverter extends BioFileConverter {
 		String info = "Create " + numOfNewEntries + " entries.";
 		System.out.println(info);
 		LOG.info(info);
+
+	}
+
+	private String searchPtmListMap(String description) {
+		for (String key : ptmListMap.keySet()) {
+			if (description.startsWith(key)) {
+				return ptmListMap.get(key);
+			}
+		}
+		return null;
+	}
+
+	private File ptmlistFile;
+
+	public void setptmlistFile(File fileName) {
+		this.ptmlistFile = fileName;
+	}
+
+	private void loadPtmListFile() {
+		System.out.println("Processing ptmlist.txt ...");
+		ptmListMap.clear();
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(ptmlistFile));
+			String line;
+			String id = "";
+			while ((line = in.readLine()) != null) {
+				if (line.startsWith("ID")) {
+					id = line.substring(5);
+					if (id.contains(" (")) {
+						id = id.substring(0, id.indexOf(" ("));
+					}
+				} else if (line.startsWith("KW")) {
+					ptmListMap.put(id, line.substring(5).replaceAll("\\.$", ""));
+				}
+			}
+			in.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			throw new RuntimeException("The file 'ptmlist.txt' is not found.");
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 
 	}
 
