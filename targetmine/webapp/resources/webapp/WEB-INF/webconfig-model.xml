@@ -750,6 +750,12 @@
                      placement="Proteins"
                      types="Protein"/>
 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinModificationDisplayer"
+                     jspName="model/proteinModificationDisplayer.jsp"
+                     replacesFields="modifications"
+                     placement="Proteins"
+                     types="Protein"/>
+
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinDomainDisplayer"
                      jspName="model/proteinAnalysisResult.jsp"
                      replacesFields="proteinDomainRegions"
