@@ -235,9 +235,18 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
     			} else if ("calculate-biotheme-background".equals(operation)) {
     				CalculateBioThemeBackground cbtb = new CalculateBioThemeBackground(
     						getObjectStoreWriter());
-    				cbtb.calculateGOBackground();
-    				cbtb.calculatePathwayBackground();
-    				cbtb.calculateGOSlimBackground();
+    				cbtb.calculateGOBackgroundForGene();
+    				cbtb.calculatePathwayBackgroundForGene();
+    				cbtb.calculateGOSlimBackgroundForGene();
+    				cbtb.calculateTissueBackgroundForGene();
+    				
+    				cbtb.calculatePathwayBackgroundForProbeset();
+    				cbtb.calculateGOBackgroundForProbeset();
+    				cbtb.calculateGOSlimBackgroundForProbeSet();
+    				
+    				cbtb.calculatePathwayBackgroundForProtein();
+    				cbtb.calculateGOBackgroundForProtein();
+    				cbtb.calculateGOSlimBackgroundForProtein();
     				
     				cbtb.closeDbConnection();
     			// chenyian: deprecated; to be removed
@@ -257,6 +266,10 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
     			} else if ("remove-casreg".equals(operation)) {
     				RemoveCompoundCasRegistryNumber rccrn = new RemoveCompoundCasRegistryNumber(getObjectStoreWriter());
     				rccrn.removeCasNumber();
+    			// chenyian: 
+    			} else if ("transcribe-drugbank".equals(operation)) {
+    				TranscribeDrugBankTargets tdbt = new TranscribeDrugBankTargets(getObjectStoreWriter());
+    				tdbt.transcribe();
     			} else {
     				throw new BuildException("unknown operation: " + operation);
             }

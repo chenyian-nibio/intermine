@@ -41,3 +41,5 @@
 	</tr>
   </tbody>
 </table>
+
+</div>

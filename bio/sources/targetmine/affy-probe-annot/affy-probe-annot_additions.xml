@@ -7,7 +7,9 @@
 	</class>
 	<class name="ProbeSet" is-interface="true">
 		<attribute name="probeSetId" type="java.lang.String"/>
+		<attribute name="mappingType" type="java.lang.String"/>
 		<collection name="genes" referenced-type="Gene" reverse-reference="probeSets"/>
+		<reference name="organism" referenced-type="Organism"/>
 	</class>
 
 </classes>

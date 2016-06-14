@@ -14,6 +14,7 @@
     </source>
     <source name="uniprot" type="tm-uniprot">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/uniprot/split"/>
+      <property name="ptmlistFile" value="/data/bio/db/Targetmine/uniprot/docs/ptmlist.txt"/>
     </source>
     <source name="protein-ortholog" type="protein-ortholog">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-ortholog/" />
@@ -104,7 +105,7 @@
       <property name="inchikeyFile" value="/data/bio/db/Targetmine/kegg-ftp/drug/drug.inchikey"/>
       <property name="osAlias" value="os.production"/>
     </source>
-    <source name="kegg-jtc" type="kegg-jtc">
+    <source name="kegg-jscc" type="kegg-jtc">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/br"/>
       <property name="src.data.dir.includes" value="br08301.keg"/>
       <property name="osAlias" value="os.production"/>
@@ -317,10 +318,9 @@
       <post-process name="integrated-pathway-clustering"/>
       <post-process name="associate-gene-to-cluster"/>
       <post-process name="network-analysis"/>
-      
       <!-- the coexpression data location is assigned in the CoExpressionInteraction.java -->
       <post-process name="coexpression"/>
-      
+      <post-process name="transcribe-drugbank"/>
       <post-process name="calculate-biotheme-background"/>
       <post-process name="create-references"/>
       <post-process name="summarise-objectstore"/>

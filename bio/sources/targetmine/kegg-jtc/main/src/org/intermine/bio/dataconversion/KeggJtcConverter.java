@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.intermine.dataconversion.FileConverter;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
@@ -26,8 +27,9 @@ import org.intermine.xml.full.Item;
  * 
  * @author chenyian
  */
-public class KeggJtcConverter extends FileConverter
-{
+public class KeggJtcConverter extends FileConverter {
+	
+	protected static final Logger LOG = Logger.getLogger(KeggJtcConverter.class);
     //
 
     /**
@@ -54,25 +56,26 @@ public class KeggJtcConverter extends FileConverter
 			if (line.startsWith("A")) {
 				String replaceAll = line.replaceAll("<\\/?b>", " ");
 				String[] split = replaceAll.split("\\s+", 3);
-				createJtcClassification(split[1], split[2], null);
+				createJscClassification(split[1], split[2], null);
 			} else if (line.startsWith("D") || line.startsWith("C") || line.startsWith("B")) {
 				String[] split = line.split("\\s+", 3);
 				String id = split[1];
 				String parentId = id.substring(0, id.length()-1);
-				createJtcClassification(id, split[2], parentId);
+				createJscClassification(id, split[2], parentId);
 				currentClassId = id;
 			} else if (line.startsWith("E")) {
 				String keggDrugId = line.substring(9, 15);
 				if (currentClassId.length() == 4) {
-					Set<String> drugBankIds = drugBankIdMap.get(keggDrugId);
-					if (drugBankIds != null) {
-						for (String drugBankId : drugBankIds) {
-							Item drugCompound = getDrugBankCompound(drugBankId);
-							drugCompound.addToCollection("jtcCodes", jtcMap.get(currentClassId));
+					Set<String> identifiers = drugCompoundIdMap.get(keggDrugId);
+					if (identifiers != null) {
+						for (String drugCompoundId : identifiers) {
+							Item drugCompound = getDrugCompound(drugCompoundId);
+							drugCompound.addToCollection("jsccCodes", jsccMap.get(currentClassId));
 						}
 					} else {
+						LOG.info("Unfound entry: " + keggDrugId);
 						Item drugCompound = getKeggDrugCompound(keggDrugId);
-						drugCompound.addToCollection("jtcCodes", jtcMap.get(currentClassId));
+						drugCompound.addToCollection("jsccCodes", jsccMap.get(currentClassId));
 					}
 
 				} else {
@@ -89,40 +92,48 @@ public class KeggJtcConverter extends FileConverter
     }
     
     private Map<String, Item> drugCompoundMap = new HashMap<String, Item>();
-    
+
+    // Though this should be never used
     private Item getKeggDrugCompound(String keggDrugId) throws ObjectStoreException {
     	Item ret = drugCompoundMap.get(keggDrugId);
     	if (ret == null) {
     		ret = createItem("DrugCompound");
+    		ret.setAttribute("identifier", String.format("KEGG DRUG: %s", keggDrugId));
     		ret.setAttribute("keggDrugId", keggDrugId);
     		drugCompoundMap.put(keggDrugId, ret);
     	}
     	return ret;
     }
-    private Item getDrugBankCompound(String drugBankId) throws ObjectStoreException {
-    	Item ret = drugCompoundMap.get(drugBankId);
+    
+    private Item getDrugCompound(String identifier) throws ObjectStoreException {
+    	Item ret = drugCompoundMap.get(identifier);
     	if (ret == null) {
     		ret = createItem("DrugCompound");
-    		ret.setAttribute("drugBankId", drugBankId);
-    		drugCompoundMap.put(drugBankId, ret);
+    		ret.setAttribute("identifier", identifier);
+    		drugCompoundMap.put(identifier, ret);
     	}
     	return ret;
     }
 
-    private Map<String, String> jtcMap = new HashMap<String, String>();
+    private Map<String, String> jsccMap = new HashMap<String, String>();
     
-    private String createJtcClassification(String jtcCode, String name, String parentId) throws ObjectStoreException {
-    	String ret = jtcMap.get(jtcCode);
+    private String createJscClassification(String jsccCode, String name, String parentId) throws ObjectStoreException {
+    	String ret = jsccMap.get(jsccCode);
     	if (ret == null) {
-    		Item item = createItem("JtcClassification");
-    		item.setAttribute("jtcCode", jtcCode);
+    		Item item = createItem("JscClassification");
+    		item.setAttribute("jsccCode", jsccCode);
     		item.setAttribute("name", name);
     		if (parentId != null) {
-    			item.setReference("parent", jtcMap.get(parentId));
+    			item.setReference("parent", jsccMap.get(parentId));
+    			
+    			for (int i = 0; i < parentId.length(); i++) {
+    				item.addToCollection("allParents", jsccMap.get(parentId.substring(0, i + 1)));
+				}
+    			item.addToCollection("allParents", item);
     		}
     		store(item);
     		ret = item.getIdentifier();
-    		jtcMap.put(jtcCode, ret);
+    		jsccMap.put(jsccCode, ret);
     	}
     	return ret;
     }
@@ -133,11 +144,11 @@ public class KeggJtcConverter extends FileConverter
 		this.osAlias = osAlias;
 	}
 
-	private Map<String, Set<String>> drugBankIdMap;
+	private Map<String, Set<String>> drugCompoundIdMap;
 
 	@SuppressWarnings("unchecked")
 	private void getDrugBankIdMap() throws Exception {
-		drugBankIdMap = new HashMap<String, Set<String>>();
+		drugCompoundIdMap = new HashMap<String, Set<String>>();
 
 		ObjectStore os = ObjectStoreFactory.getObjectStore(osAlias);
 
@@ -156,14 +167,14 @@ public class KeggJtcConverter extends FileConverter
 			ResultsRow<InterMineObject> rr = (ResultsRow<InterMineObject>) iterator.next();
 			InterMineObject p = rr.get(0);
 
-			String drugBankId = (String) p.getFieldValue("drugBankId");
+			String identifier = (String) p.getFieldValue("identifier");
 			String keggDrugId = (String) p.getFieldValue("keggDrugId");
 			
-			if (drugBankId != null && keggDrugId != null) {
-				if (drugBankIdMap.get(keggDrugId) == null) {
-					drugBankIdMap.put(keggDrugId, new HashSet<String>());
+			if (identifier != null && keggDrugId != null) {
+				if (drugCompoundIdMap.get(keggDrugId) == null) {
+					drugCompoundIdMap.put(keggDrugId, new HashSet<String>());
 				}
-				drugBankIdMap.get(keggDrugId).add(drugBankId);
+				drugCompoundIdMap.get(keggDrugId).add(identifier);
 			}
 
 		}
