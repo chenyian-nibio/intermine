@@ -22,7 +22,7 @@
     </source>
     <source name="go-annotation" type="go-goslim-annotation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/go-annotation"/>
-      <property name="src.data.dir.includes" value="gene_association.goa_*"/>
+      <property name="src.data.dir.includes" value="goa_*.gaf"/>
       <property name="goslim.map" value="/data/bio/db/Targetmine/goslim/goslim.map"/>
     </source>
     <source name="do" type="do">
