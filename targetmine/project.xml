@@ -1,7 +1,6 @@
 <project type="bio">
   <property name="target.model" value="genomic"/>
   <property name="source.location" location="../bio/sources/"/>
-  <property name="source.location" location="../bio/sources/targetmine/"/>
   <property name="common.os.prefix" value="common"/>
   <property name="intermine.properties.file" value="targetmine.properties"/>
   <property name="default.intermine.properties.file" location="../default.intermine.integrate.properties"/>
@@ -34,7 +33,7 @@
       <property name="geneinfo.organisms" value="9606 10090 10116"/>
       <property name="unigene.organisms" value="Hs Rn Mm"/>
       <property name="chromosomeFile" value="/data/bio/db/Targetmine/genome/chromosome"/>
-      <property name="chromosomeAssembly" value="Reference GRCh38.p2 Primary Assembly;Reference GRCh38 Primary Assembly;Reference Rnor_5.0 Primary Assembly;Reference Rnor_6.0 Primary Assembly;Reference GRCm38 C57BL/6J;Reference GRCm38.p1 C57BL/6J;Reference GRCm38.p2 C57BL/6J;Reference GRCm38.p3 C57BL/6J"/>
+      <property name="chromosomeAssembly" value="Reference GRCh38.p7 Primary Assembly;Reference Rnor_6.0 Primary Assembly;Reference GRCm38.p3 C57BL/6J;Reference GRCm38.p4 C57BL/6J"/>
       <property name="gene2unigeneFile" value="/data/bio/db/Targetmine/gene_info/gene2unigene"/>
       <property name="gene2accessionFile" value="/data/bio/db/Targetmine/gene_info/gene2accession"/>
       <property name="genehistoryFile" value="/data/bio/db/Targetmine/gene_info/gene_history"/>
@@ -44,6 +43,11 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/do-annotation"/>
       <property name="src.data.dir.includes" value="do_rif.human.txt"/>
     </source>
+    <!-- to be added -->
+    <source name="hpo" type="hpo">
+      <property name="src.data.file" location="/data/bio/db/Targetmine/hpo/hp.obo" />
+    </source>
+    
     <source name="interpro" type="interpro">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/interpro"/>
       <property name="src.data.dir.includes" value="interpro.xml"/>
@@ -249,8 +253,9 @@
     </source>
 
     <source name="predicted-dbp" type="predicted-dbp">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/pred_annot/dbp" />
-      <property name="src.data.dir.includes" value="precision-scores.txt" />
+      <property name="dbpScoreFile" value="/data/bio/db/Targetmine/pred_annot/dbp/precision-scores.txt"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/pred_annot/dbs" />
+      <property name="src.data.dir.includes" value="all.dbsite.txt" />
     </source>
     
     <source name="enzyme" type="enzyme">
