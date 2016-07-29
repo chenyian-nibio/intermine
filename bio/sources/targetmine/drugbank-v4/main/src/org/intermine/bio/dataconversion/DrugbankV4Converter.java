@@ -199,12 +199,12 @@ public class DrugbankV4Converter extends BioFileConverter {
 			}
 
 			drugItem.addToCollection("drugTypes", getDrugType(drug.getAttribute("type").getValue()));
-			// get groups (for DrugType)
+			// get groups (store as DrugType but in a different collection)
 			Elements groups = drug.getFirstChildElement("groups", NAMESPACE_URI).getChildElements(
 					"group", NAMESPACE_URI);
 			for (int j = 0; j < groups.size(); j++) {
 				String group = groups.get(j).getValue();
-				drugItem.addToCollection("drugTypes", getDrugType(group));
+				drugItem.addToCollection("drugGroups", getDrugType(group));
 			}
 
 			// get ATC codes

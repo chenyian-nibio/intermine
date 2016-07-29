@@ -17,7 +17,7 @@
 	</class>
 
 	<class name="DrugType" is-interface="true">
-		<attribute name="code" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
 	</class>
 
 	<class name="AtcClassification" is-interface="true">
@@ -38,6 +38,7 @@
 		<attribute name="description" type="java.lang.String"/>
 		<reference name="protein" referenced-type="Protein" />
 		<collection name="drugTypes" referenced-type="DrugType"/>		
+		<collection name="drugGroups" referenced-type="DrugType"/>		
 		<collection name="atcCodes" referenced-type="AtcClassification"/>		
 	</class>
 
