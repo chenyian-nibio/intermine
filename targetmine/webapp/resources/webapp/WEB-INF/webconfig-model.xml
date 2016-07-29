@@ -1252,5 +1252,17 @@
                                  views="probeSetId, mappingType, organism.name, genes.pathways.identifier, genes.pathways.name, genes.pathways.dataSets.name"
                                  externalLink="/targetmine/portal.do?class=Pathway&amp;externalids="/>
 
+      <enrichmentwidgetdisplayer id="uniprot_keywords"
+                                 title="UniProt Keywords"
+                                 description="UniProt keywords enriched for proteins in this list."
+                                 label="Keyword"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="keywords.name"
+                                 constraints="organism.name=[list]"
+                                 typeClass="Protein"
+                                 views="primaryIdentifier, primaryAccession, organism.name,
+                                       keywords.name, keywords.description"/>
+
 </widgets>
 </webconfig>

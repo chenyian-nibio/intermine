@@ -15,6 +15,10 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/uniprot/split"/>
       <property name="ptmlistFile" value="/data/bio/db/Targetmine/uniprot/docs/ptmlist.txt"/>
     </source>
+    <source name="uniprot-keywords" type="keyword-xml">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/uniprot/keyword"/>
+      <property name="src.data.dir.includes" value="keywlist.xml"/>
+    </source>
     <source name="protein-ortholog" type="protein-ortholog">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/protein-ortholog/" />
       <property name="src.data.dir.includes" value="*.bb" />

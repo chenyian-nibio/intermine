@@ -1,0 +1,5 @@
+<project name="keyword-xml" default="default" basedir=".">
+  <description>build, test, package keyword-xml</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

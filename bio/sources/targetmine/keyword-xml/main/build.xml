@@ -1,0 +1,4 @@
+<project name="keyword-xml-tasks" default="default" basedir=".">
+  <description>build keyword-xml tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

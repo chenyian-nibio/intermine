@@ -249,13 +249,14 @@ public class FillProteinsXomConverter extends BioFileConverter {
 						Elements keywordElements = entry.getChildElements("keyword");
 						for (int i = 0; i < keywordElements.size(); i++) {
 							String title = keywordElements.get(i).getValue();
-							String refId = keywords.get(title);
+							String id = keywordElements.get(i).getAttributeValue("id");
+							String refId = keywords.get(id);
 							if (refId == null) {
 								Item item = createItem("OntologyTerm");
 								item.setAttribute("name", title);
 								item.setReference("ontology", ontologies.get("UniProtKeyword"));
 								refId = item.getIdentifier();
-								keywords.put(title, refId);
+								keywords.put(id, refId);
 								store(item);
 							}
 							protein.addToCollection("keywords", refId);
@@ -325,8 +326,8 @@ public class FillProteinsXomConverter extends BioFileConverter {
 							
 							Item featureItem = createItem("UniProtFeature");
 							featureItem.setAttribute("type", type);
-							String keywordRefId = getKeyword(type);
-							featureItem.setReference("feature", keywordRefId);
+//							String keywordRefId = getKeyword(type);
+//							featureItem.setReference("feature", keywordRefId);
 							String featureDescription = description;
 							if (status != null) {
 								featureDescription = (description == null ? status : description + " ("
@@ -489,18 +490,18 @@ public class FillProteinsXomConverter extends BioFileConverter {
 		return md5Checksum;
 	}
 
-	private String getKeyword(String title) throws ObjectStoreException {
-		String refId = keywords.get(title);
-		if (refId == null) {
-			Item item = createItem("OntologyTerm");
-			item.setAttribute("name", title);
-			item.setReference("ontology", ontologies.get("UniProtKeyword"));
-			refId = item.getIdentifier();
-			keywords.put(title, refId);
-			store(item);
-		}
-		return refId;
-	}
+//	private String getKeyword(String title) throws ObjectStoreException {
+//		String refId = keywords.get(title);
+//		if (refId == null) {
+//			Item item = createItem("OntologyTerm");
+//			item.setAttribute("name", title);
+//			item.setReference("ontology", ontologies.get("UniProtKeyword"));
+//			refId = item.getIdentifier();
+//			keywords.put(title, refId);
+//			store(item);
+//		}
+//		return refId;
+//	}
 
 	private String getPublication(String pubMedId) throws ObjectStoreException {
 		String refId = publications.get(pubMedId);
