@@ -266,16 +266,24 @@
   </class>
 
   <class className="org.intermine.model.bio.ProteinDomain">
+    <headerconfig>
+        <titles>
+            <title mainTitles="primaryIdentifier|shortName" subTitles="type" />
+        </titles>
+    </headerconfig>
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
       <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="shortName"/>
       <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="description" doNotTruncate="true" />
     </fields>
   </class>
 
   <class className="org.intermine.model.bio.ProteinDomainRegion">
     <fields>
+      <fieldconfig fieldExpr="protein.primaryIdentifier"/>
+      <fieldconfig fieldExpr="protein.primaryAccession"/>
       <fieldconfig fieldExpr="start"/>
       <fieldconfig fieldExpr="end"/>
       <fieldconfig fieldExpr="originalId"/>
@@ -777,7 +785,7 @@
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinDomainDisplayer"
                      jspName="model/proteinAnalysisResult.jsp"
                      replacesFields="proteinDomainRegions"
-                     placement="Proteins"
+                     placement="Protein Domain"
                      types="Protein"/>
                      
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinSequenceDisplayer"
@@ -831,6 +839,11 @@
                      jspName="model/probeSetExpressionDisplayer.jsp"
                      replacesFields="expressions" 
                      types="ProbeSet"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/proteinDomainHierDisplayer.jsp"
+                     replacesFields="parentFeatures,childFeatures,contains,foundIn" 
+                     types="ProteinDomain"/>
 
   </reportdisplayers>
 

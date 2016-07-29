@@ -9,11 +9,16 @@
 		<attribute name="originalDb" type="java.lang.String"/>
 		<attribute name="originalId" type="java.lang.String"/>
 		<reference name="protein" referenced-type="Protein" reverse-reference="proteinDomainRegions"/>
-		<reference name="proteinDomain" referenced-type="ProteinDomain"/>
+		<reference name="proteinDomain" referenced-type="ProteinDomain" reverse-reference="proteinDomainRegions"/>
 	</class>
 	
 	<class name="Protein" is-interface="true">
 		<collection name="proteinDomainRegions" referenced-type="ProteinDomainRegion" reverse-reference="protein"/>
+	</class>
+
+	<class name="ProteinDomain" extends="BioEntity" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<collection name="proteinDomainRegions" referenced-type="ProteinDomainRegion" reverse-reference="proteinDomain" />
 	</class>
 
 </classes>
