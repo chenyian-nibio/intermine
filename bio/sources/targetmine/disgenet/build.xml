@@ -1,0 +1,5 @@
+<project name="disgenet" default="default" basedir=".">
+  <description>build, test, package disgenet</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

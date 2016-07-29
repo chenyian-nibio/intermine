@@ -101,7 +101,7 @@
   <class className="org.intermine.model.bio.OntologyTerm">
     <headerconfig>
       <titles>
-      <title mainTitles="identifier|name" subTitles="ontology.name" />
+        <title mainTitles="identifier|name" subTitles="ontology.name" />
       </titles>
     </headerconfig>
     <fields>
@@ -334,6 +334,7 @@
     </fields>
   </class>
 
+<!-- 
   <class className="org.intermine.model.bio.Disease">
     <headerconfig>
         <titles>
@@ -342,6 +343,23 @@
     </headerconfig>
     <fields>
       <fieldconfig fieldExpr="omimId"/>
+      <fieldconfig fieldExpr="title"/>
+    </fields>
+  </class>
+ -->
+  <class className="org.intermine.model.bio.Disease">
+    <fields>
+      <fieldconfig fieldExpr="gene.primaryIdentifier"/>
+      <fieldconfig fieldExpr="gene.symbol"/>
+      <fieldconfig fieldExpr="diseaseTerm.title"/>
+    </fields>
+    <inlinelist>
+      <table path="sources.name" showLinksToObjects="true" />
+    </inlinelist>
+  </class>
+  <class className="org.intermine.model.bio.DiseaseTerm">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="title"/>
     </fields>
   </class>
@@ -892,6 +910,20 @@
                                  constraintsForView="goAnnotation.evidence.code.code != IEA"
                                  externalLink="/targetmine/portal.do?class=GOSlimTerm&amp;externalids="/>
 
+      <enrichmentwidgetdisplayer id="gene_disease_enrichment"
+                                 title="Disease Enrichment"
+                                 description="Disease enriched for genes in this list"
+                                 label="Disease"
+                                 filterLabel="DataSet"
+                                 filters="All,DisGeNET,OMIM data set"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="diseases.diseaseTerm.title"
+                                 enrichIdentifier="diseases.diseaseTerm.identifier"
+                                 constraints="diseases.dataSet.name=[DataSet],organism.taxonId=[list]"
+                                 typeClass="Gene"
+                                 views="primaryIdentifier, symbol, organism.name, diseases.diseaseTerm.identifier, diseases.diseaseTerm.title"/>
+
       <enrichmentwidgetdisplayer id="gene_do_enrichment"
                                  title="Disease Ontology Enrichment"
                                  description="DO terms enriched for genes in this list."
@@ -977,6 +1009,20 @@
                                        goAnnotation.goSlimTerms.parents.identifier,goAnnotation.goSlimTerms.parents.name"
                                  constraintsForView="goAnnotation.evidence.code.code != IEA"
                                  externalLink="/targetmine/portal.do?class=GOSlimTerm&amp;externalids="/>
+
+      <enrichmentwidgetdisplayer id="protein_disease_enrichment"
+                                 title="Disease Enrichment"
+                                 description="Disease enriched for proteins in this list"
+                                 label="Disease"
+                                 filterLabel="DataSet"
+                                 filters="All,DisGeNET,OMIM data set"
+                                 startClass="Protein"
+                                 startClassDisplay="primaryIdentifier"
+                                 enrich="genes.diseases.diseaseTerm.title"
+                                 enrichIdentifier="genes.diseases.diseaseTerm.identifier"
+                                 constraints="genes.diseases.dataSet.name=[DataSet],organism.taxonId=[list]"
+                                 typeClass="Protein"
+                                 views="primaryIdentifier, primaryAccession, genes.diseases.diseaseTerm.identifier, genes.diseases.diseaseTerm.title"/>
 
       <enrichmentwidgetdisplayer id="protein_do_enrichment"
                                  title="Disease Ontology Enrichment"
@@ -1192,30 +1238,6 @@
                                  typeClass="ProbeSet"
                                  views="probeSetId, mappingType, organism.name, genes.pathways.identifier, genes.pathways.name, genes.pathways.dataSets.name"
                                  externalLink="/targetmine/portal.do?class=Pathway&amp;externalids="/>
-
-      <enrichmentwidgetdisplayer id="gene_omim_enrichment"
-                                 title="OMIM Enrichment"
-                                 description="OMIM enriched for genes in this list"
-                                 label="OMIM"
-                                 startClass="Gene"
-                                 startClassDisplay="symbol"
-                                 enrich="diseases.title"
-                                 enrichIdentifier="diseases.omimId"
-                                 constraints="organism.taxonId=[list]"
-                                 typeClass="Gene"
-                                 views="primaryIdentifier, symbol, organism.name, diseases.omimId, diseases.title"/>
-
-      <enrichmentwidgetdisplayer id="protein_omim_enrichment"
-                                 title="OMIM Enrichment"
-                                 description="OMIM enriched for proteins in this list"
-                                 label="OMIM"
-                                 startClass="Protein"
-                                 startClassDisplay="primaryIdentifier"
-                                 enrich="genes.diseases.title"
-                                 enrichIdentifier="genes.diseases.omimId"
-                                 constraints="organism.taxonId=[list]"
-                                 typeClass="Protein"
-                                 views="primaryAccession, name, organism.name, genes.diseases.omimId, genes.diseases.title"/>
 
 </widgets>
 </webconfig>

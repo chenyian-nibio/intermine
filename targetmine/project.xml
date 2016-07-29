@@ -43,10 +43,11 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/do-annotation"/>
       <property name="src.data.dir.includes" value="do_rif.human.txt"/>
     </source>
-    <!-- to be added -->
+    <!-- to be added 
     <source name="hpo" type="hpo">
       <property name="src.data.file" location="/data/bio/db/Targetmine/hpo/hp.obo" />
     </source>
+    -->
     
     <source name="interpro" type="interpro">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/interpro"/>
@@ -127,11 +128,15 @@
       <property name="src.data.dir.includes" value="*/*/*.xml"/>
     </source>
 
-<!-- chenyian: for internal only | start -->    
+    <source name="disgenet" type="disgenet">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/disgenet"/>
+      <property name="src.data.dir.includes" value="curated_gene_disease_associations.tsv"/>
+    </source>
+<!-- chenyian: for internal only | start -->
     <source name="omim" type="omim-gene">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/omim"/>
-      <property name="src.data.dir.includes" value="omim_phenotype_title"/>
-      <property name="mim2geneFile" value="/data/bio/db/Targetmine/omim/mim2gene_medgen" />
+      <property name="src.data.dir.includes" value="mim2gene_medgen"/>
+      <property name="titleFile" value="/data/bio/db/Targetmine/omim/omim_phenotype_title" />
     </source>
 <!-- chenyian: for internal only | end -->    
 

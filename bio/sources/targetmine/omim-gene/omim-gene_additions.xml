@@ -2,20 +2,25 @@
 
 <classes>
     <class name="Disease" is-interface="true" >
-        <attribute name="omimId" type="java.lang.String"/>
-        <attribute name="title" type="java.lang.String"/>
-        <collection name="genes" referenced-type="Gene" reverse-reference="diseases"/>
+        <reference name="diseaseTerm" referenced-type="DiseaseTerm"/>
+        <reference name="gene" referenced-type="Gene" reverse-reference="diseases"/>
+        <collection name="sources" referenced-type="DataSource"/>
         <reference name="dataSet" referenced-type="DataSet"/>
-        <collection name="synonyms" referenced-type="DiseaseSynonym" reverse-reference="disease"/>
     </class>
-    <class name="DiseaseSynonym" is-interface="true">
-        <attribute name="name" type="java.lang.String"/>
-        <reference name="disease" referenced-type="Disease" reverse-reference="synonyms"/>
+    <class name="DiseaseTerm" is-interface="true" >
+        <attribute name="identifier" type="java.lang.String"/>
+        <attribute name="title" type="java.lang.String"/>
+        <collection name="genes" referenced-type="Disease" reverse-reference="diseaseTerm"/>
+        <collection name="synonyms" referenced-type="DiseaseSynonym" reverse-reference="diseaseTerm"/>
+    </class>
+    <class name="Gene" is-interface="true">
+        <attribute name="primaryIdentifier" type="java.lang.String"/>
+	    <collection name="diseases" referenced-type="Disease" reverse-reference="gene"/>
     </class>
 
-    <class name="Gene" is-interface="true">
-        <attribute name="ncbiGeneId" type="java.lang.String"/>
-	    <collection name="diseases" referenced-type="Disease" reverse-reference="genes"/>
+    <class name="DiseaseSynonym" is-interface="true">
+        <attribute name="name" type="java.lang.String"/>
+        <reference name="diseaseTerm" referenced-type="DiseaseTerm" reverse-reference="synonyms"/>
     </class>
 
 </classes>

@@ -5,19 +5,25 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
+import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
 /**
+ * This parser integrates OMIM data from the file 'mim2gene_medgen' in the NCBI FTP site 
+ * (ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/mim2gene_medgen). 
+ * The OMIM phenotype titles are retrieved using OMIM API in a tab separated 3-column format.
+ * <pre>
+ * omimId, title, synonyms.
+ * </pre>
+ * Please contact targetmine[at]nibiohn.go.jp if you are interested in the script. 
  * 
  * @author chenyian
  */
@@ -26,16 +32,13 @@ public class OmimGeneConverter extends BioFileConverter {
 	private static final String DATASET_TITLE = "OMIM data set";
 	private static final String DATA_SOURCE_NAME = "OMIM";
 
-	private Map<String, String> omimMap = new HashMap<String, String>();
-	private Map<String, String> geneMap = new HashMap<String, String>();
-
-	private Map<String, Set<String>> geneOminMap = new HashMap<String, Set<String>>();
-//	private Set<String> phenotypeOmimIds = new HashSet<String>();
+	private Map<String, String> titleMap = new HashMap<String, String>();
+	private Map<String, String> diseaseTermMap = new HashMap<String, String>();
 
 	private static final Logger LOG = Logger.getLogger(OmimGeneConverter.class);
 
 	// omim and geneId mapping file
-	private File mim2geneFile;
+	private File titleFile;
 
 	/**
 	 * Constructor
@@ -50,33 +53,15 @@ public class OmimGeneConverter extends BioFileConverter {
 	}
 
 	/**
-	 * Read data from pre-retrieved file on ncbi 'omim_phenotype_name'
-	 * The format are as follow : omim_id[tab]title
+	 * Read data from the file 'omim_phenotype_name'
+	 * The format are as follow : omim_id[tab]title[tab]synonyms
 	 * 
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
-
-		// parse omim and geneId mapping file
-		readMim2geneMedgen();
-
-		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(new BufferedReader(reader));
 		
-		while (iterator.hasNext()) {
-			String[] cols = iterator.next();
-			getDisease(cols[0], cols[1], cols[2]);
-		}
+		readTitleFile();
 
-		// create gene items
-		for (String geneId : geneOminMap.keySet()) {
-			getGene(geneId, geneOminMap.get(geneId));
-		}
-
-	}
-
-	private void readMim2geneMedgen() throws Exception {
-		
-		Reader reader = new BufferedReader(new FileReader(mim2geneFile));
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
 		
 		// generate gene -> omims map
@@ -87,72 +72,83 @@ public class OmimGeneConverter extends BioFileConverter {
 			if (type.equals("gene") || "-".equals(cols[1])) {
 				continue;
 			}
-			String geneId = cols[1];
 			String omimId = cols[0];
-			if (!geneOminMap.keySet().contains(geneId)) {
-				geneOminMap.put(geneId, new HashSet<String>());
-			}
-			geneOminMap.get(geneId).add(omimId);
-//			phenotypeOmimIds.add(omimId);
+			String geneId = cols[1];
+//			String cui = cols[4];
+			
+    		Item item = createItem("Disease");
+    		item.setReference("diseaseTerm", getDiseaseTerm(omimId));
+    		item.setReference("gene", getGene(geneId));
+    		item.addToCollection("sources", getDataSource("OMIM"));
+    		store(item);
+
 		}
-		
+
 	}
 	
-//	private String formatTitle(String title) {
-//		return title.charAt(0) + title.substring(1).toLowerCase();
-//	}
-
-	private String getDisease(String omimId, String title, String aliasString) throws Exception {
-		String ret = omimMap.get(omimId);
-		if (ret == null) {
-			Item disease = createItem("Disease");
-			disease.setAttribute("omimId", omimId);
-			disease.setAttribute("title", title);
-			if (!StringUtils.isEmpty(aliasString)){
-				String[] alias = aliasString.split(";;");
-				for (String name : alias) {
-					Item synonym = createItem("DiseaseSynonym");
-					synonym.setAttribute("name", name);
-					synonym.setReference("disease", disease);
-					store(synonym);
-				}
-			}
-			ret = disease.getIdentifier();
-			omimMap.put(omimId, ret);
-
-			store(disease);
+	private void readTitleFile() throws Exception {
+		BufferedReader reader = new BufferedReader(new FileReader(titleFile));
+		String line;
+		
+		titleMap.clear();
+		while ((line = reader.readLine()) != null) {  
+			String[] cols = line.split("\t");
+			titleMap.put(cols[0], line);
 		}
-		return ret;
+		
+		reader.close();
 	}
 
-	private String getGene(String geneId, Set<String> omimIds) throws Exception {
+	public File getTitleFile() {
+		return titleFile;
+	}
+
+	public void setTitleFile(File titleFile) {
+		this.titleFile = titleFile;
+	}
+
+	private Map<String, String> geneMap = new HashMap<String, String>();
+	private String getGene(String geneId) throws ObjectStoreException {
 		String ret = geneMap.get(geneId);
 		if (ret == null) {
-			Item gene = createItem("Gene");
-			gene.setAttribute("primaryIdentifier", geneId);
-			gene.setAttribute("ncbiGeneId", geneId);
-
-			for (String omimId : omimIds) {
-				String diseaseRef = omimMap.get(omimId);
-				if (diseaseRef == null) {
-					LOG.error("Unknown OMIM id: " + omimId + "; Gene: " + geneId + "; Skip!");
-				} else {
-					gene.addToCollection("diseases", diseaseRef);
-				}
-			}
-			store(gene);
-			ret = gene.getIdentifier();
+			Item item = createItem("Gene");
+			item.setAttribute("primaryIdentifier", geneId);
+			ret = item.getIdentifier();
+			store(item);
 			geneMap.put(geneId, ret);
 		}
 		return ret;
 	}
 
-	public File getMim2geneFile() {
-		return mim2geneFile;
-	}
+	private String getDiseaseTerm(String omimId) throws ObjectStoreException {
+		String ret = diseaseTermMap.get(omimId);
+		if (ret == null) {
+			Item diseaseTerm = createItem("DiseaseTerm");
+			diseaseTerm.setAttribute("identifier", omimId);
 
-	public void setMim2geneFile(File mim2geneFile) {
-		this.mim2geneFile = mim2geneFile;
+			String line = titleMap.get(omimId);
+			if (line != null) {
+				String[] cols = line.split("\t", 3);
+				diseaseTerm.setAttribute("title", cols[1]);
+				String aliasString = cols[2];
+				if (!StringUtils.isEmpty(aliasString)){
+					String[] alias = aliasString.split(";;");
+					for (String name : alias) {
+						Item synonym = createItem("DiseaseSynonym");
+						synonym.setAttribute("name", name);
+						synonym.setReference("diseaseTerm", diseaseTerm);
+						store(synonym);
+					}
+				}
+			} else {
+				LOG.info("Unable to find the title. omimId: " + omimId);
+			}
+			ret = diseaseTerm.getIdentifier();
+			store(diseaseTerm);
+			
+			diseaseTermMap.put(omimId, ret);
+		}
+		return ret;
 	}
 
 }
