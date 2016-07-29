@@ -265,7 +265,8 @@ public class PostProcessOperationsTask extends DynamicAttributeTask
     			// chenyian: used by external server
     			} else if ("remove-casreg".equals(operation)) {
     				RemoveCompoundCasRegistryNumber rccrn = new RemoveCompoundCasRegistryNumber(getObjectStoreWriter());
-    				rccrn.removeCasNumber();
+//    				rccrn.removeCasNumber();
+    				rccrn.removeCasNumberBySQL();
     			// chenyian: 
     			} else if ("transcribe-drugbank".equals(operation)) {
     				TranscribeDrugBankTargets tdbt = new TranscribeDrugBankTargets(getObjectStoreWriter());
