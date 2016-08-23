@@ -150,7 +150,7 @@ function collapseTable(e, maxCount) {
   }).appendTo(table.parent().parent().find('div.toggle'));
 
   // hide the show all in table one
-  table.parent().parent().find('div.show-in-table').hide();
+  // table.parent().parent().find('div.show-in-table').hide();
 
   return false;
 }
