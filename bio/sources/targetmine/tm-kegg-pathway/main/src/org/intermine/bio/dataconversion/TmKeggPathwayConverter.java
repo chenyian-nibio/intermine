@@ -42,19 +42,28 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 	private Map<String, String> pathwayNameMap = new HashMap<String, String>();
 
 	private Map<String, String> pathwayMap = new HashMap<String, String>();
+	private Map<String, String> pathwayDescMap = new HashMap<String, String>();
 
 	private File pathwayClassFile;
-	private boolean readClass;
+	private File pathwayDescFile;
+//	private boolean readClass;
 
 	public void setPathwayClassFile(File pathwayClassFile) {
 		this.pathwayClassFile = pathwayClassFile;
 	}
 
-	private void readPathwayClassification() {
+	public void setPathwayDescFile(File pathwayDescFile) {
+		this.pathwayDescFile = pathwayDescFile;
+	}
+
+	private void processPathwayClassFile() {
 		if (pathwayClassFile == null) {
-			throw new NullPointerException("pathwayClassFile property not set");
+			throw new NullPointerException("pathwayClassFile property is missing");
 		}
 		try {
+			mainClassMap.clear();
+			subClassMap.clear();
+			
 			BufferedReader reader = new BufferedReader(new FileReader(pathwayClassFile));
 			String line;
 			String mainClass = "";
@@ -83,10 +92,32 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 				}
 			}
 			reader.close();
-			readClass = true;
-		} catch (Exception e) {
+//			readClass = true;
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void processPathwayDescFile() {
+		if (pathwayDescFile == null) {
+			throw new NullPointerException("pathwayDescFile property is missing");
+		}
+		try {
+			pathwayDescMap.clear();
+			
+			BufferedReader reader = new BufferedReader(new FileReader(pathwayDescFile));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				String[] split = line.split("\\t");
+				if (split.length > 1) {
+					pathwayDescMap.put(split[0].trim(), split[1].trim());
+				}
+			}
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	public void setKeggOrganisms(String taxonIds) {
@@ -150,8 +181,15 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
-		if (readClass == false) {
-			readPathwayClassification();
+		if (mainClassMap.isEmpty() || subClassMap.isEmpty()) {
+			System.out.println("processing pathwayClassFile....");
+			LOG.info("processing pathwayClasscFile....");
+			processPathwayClassFile();
+		}
+		if (pathwayDescMap.isEmpty()) {
+			System.out.println("processing pathwayDescFile....");
+			LOG.info("processing pathwayDescFile....");
+			processPathwayDescFile();
 		}
 
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
@@ -179,9 +217,9 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 		}
 	}
 
-	@Override
-	public void close() throws Exception {
-	}
+//	@Override
+//	public void close() throws Exception {
+//	}
 
 	private String getPathway(String pathwayId, String organism) throws ObjectStoreException {
 		String fullId = organism + pathwayId;
@@ -195,6 +233,14 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 			item.setAttribute("mainClass", mainClassMap.get(subClass));
 			item.setAttribute("identifier", fullId);
 			item.setReference("organism", getOrganism(taxonId));
+
+			String desc = pathwayDescMap.get(fullId);
+			if (desc != null) {
+				item.setAttribute("description", desc);
+			} else {
+				LOG.info("desc not found: " + fullId);
+			}
+			
 			store(item);
 			ret = item.getIdentifier();
 			pathwayMap.put(fullId, ret);

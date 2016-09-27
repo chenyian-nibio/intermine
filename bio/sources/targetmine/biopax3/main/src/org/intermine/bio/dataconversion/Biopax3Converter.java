@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,7 +16,6 @@ import org.biopax.paxtools.controller.Traverser;
 import org.biopax.paxtools.controller.Visitor;
 import org.biopax.paxtools.io.SimpleIOHandler;
 import org.biopax.paxtools.model.BioPAXElement;
-import org.biopax.paxtools.model.BioPAXLevel;
 import org.biopax.paxtools.model.level3.EntityReference;
 import org.biopax.paxtools.model.level3.Pathway;
 import org.biopax.paxtools.model.level3.Protein;
@@ -69,6 +69,7 @@ public class Biopax3Converter extends BioFileConverter {
 	 * 
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	public void process(Reader reader) throws Exception {
 		String fn = getCurrentFile().getName();
 		if (fn.startsWith("Homo")){
@@ -87,7 +88,7 @@ public class Biopax3Converter extends BioFileConverter {
 				getCurrentFile()));
 		Set<Pathway> pathways = owlModel.getObjects(Pathway.class);
 
-		traverser = new Traverser(new SimpleEditorMap(BioPAXLevel.L3), new Visitor() {
+		traverser = new Traverser(SimpleEditorMap.L3, new Visitor() {
 
 			@SuppressWarnings("rawtypes")
 			@Override
@@ -130,8 +131,7 @@ public class Biopax3Converter extends BioFileConverter {
 								}
 							}
 						} else {
-							LOG.error("Null EntityReference! "
-									+ StringUtils.substringAfter(p.getRDFId(), "#"));
+//							LOG.error("Null EntityReference! " + p.getRDFId());
 						}
 
 					}
@@ -160,16 +160,34 @@ public class Biopax3Converter extends BioFileConverter {
 			}
 
 			currentPathway = getPathway(pathwayId);
-			currentPathway.setAttribute("name", pathway.getDisplayName());
+			String pathwayName = pathway.getDisplayName();
+			Set<String> comments = pathway.getComment();
+			Iterator<String> iterator = comments.iterator();
+			String comment = null;
+			while (iterator.hasNext()) {
+				String c = iterator.next();
+				if (c.matches("^\\w+ed:\\s.+")) {
+					continue;
+				} else {
+					comment = c;
+					break;
+				}
+			}
+			if (comment != null) {
+				if (comment.startsWith("This event has been computationally inferred")) {
+					pathwayName += " (computationally inferred)";
+				}
+				
+				currentPathway.setAttribute("description", comment.replaceAll("<\\/?.+?>", " "));
+			}
+			
+//			LOG.info(pathwayId + ": " + pathwayName);
+			currentPathway.setAttribute("name", pathwayName);
+			
 
 			visited = new HashSet<BioPAXElement>();
 			traverser.traverse(pathway, owlModel);
 		}
-
-		// for (Pathway pathway : pathways) {
-		// LOG.info(pathway.getDisplayName() + ", lv: "
-		// + pathwayEntryMap.get(pathway.getRDFId()).getLevel());
-		// }
 
 	}
 

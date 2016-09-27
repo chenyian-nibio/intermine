@@ -124,6 +124,7 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp"/>
       <property name="src.data.dir.includes" value="*/*_gene_map.tab"/>
       <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.list"/>
+      <property name="pathwayDescFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.hrme.desc.txt"/>
       <property name="kegg.organisms" value="9606 10090 10116"	/>
     </source>
 
@@ -276,6 +277,7 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/ec" />
       <property name="src.data.dir.includes" value="ec.list" />
       <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.list"/>
+      <property name="pathwayDescFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.hrme.desc.txt"/>
     </source>
 
     <source name="dataset-info" type="dataset-info">

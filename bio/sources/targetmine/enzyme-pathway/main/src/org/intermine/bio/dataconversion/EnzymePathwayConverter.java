@@ -3,6 +3,7 @@ package org.intermine.bio.dataconversion;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +30,7 @@ public class EnzymePathwayConverter extends BioFileConverter {
 	private static final String DATA_SOURCE_NAME = "KEGG";
 
 	private Map<String, String> pathwayMap = new HashMap<String, String>();
+	private Map<String, String> pathwayDescMap = new HashMap<String, String>();
 
 	/**
 	 * Constructor
@@ -48,11 +50,18 @@ public class EnzymePathwayConverter extends BioFileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
-		
-		readPathwayClassification();
+		if (mainClassMap.isEmpty() || subClassMap.isEmpty()) {
+			System.out.println("processing pathwayClassFile....");
+			LOG.info("processing pathwayClasscFile....");
+			processPathwayClassFile();
+		}
+		if (pathwayDescMap.isEmpty()) {
+			System.out.println("processing pathwayDescFile....");
+			LOG.info("processing pathwayDescFile....");
+			processPathwayDescFile();
+		}
 
-		Iterator<String[]> iterator = FormattedTextParser
-				.parseTabDelimitedReader(new BufferedReader(reader));
+		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
 
 		Map<String, Set<String>> ecPathwayMap = new HashMap<String, Set<String>>();
 		// Parse source data to map
@@ -100,6 +109,11 @@ public class EnzymePathwayConverter extends BioFileConverter {
 			pathway.setAttribute("subClass", subClass);
 			pathway.setAttribute("mainClass", mainClassMap.get(subClass));
 			
+			String desc = pathwayDescMap.get(pathwayId);
+			if (desc != null) {
+				pathway.setAttribute("description", desc);
+			}
+			
 			ret = pathway.getIdentifier();
 			pathwayMap.put(pathwayId, ret);
 			store(pathway);
@@ -112,16 +126,24 @@ public class EnzymePathwayConverter extends BioFileConverter {
 	private Map<String, String> pathwayNameMap = new HashMap<String, String>();
 
 	private File pathwayClassFile;
+	private File pathwayDescFile;
 
 	public void setPathwayClassFile(File pathwayClassFile) {
 		this.pathwayClassFile = pathwayClassFile;
 	}
 
-	private void readPathwayClassification() {
+	public void setPathwayDescFile(File pathwayDescFile) {
+		this.pathwayDescFile = pathwayDescFile;
+	}
+
+	private void processPathwayClassFile() {
 		if (pathwayClassFile == null) {
-			throw new NullPointerException("pathwayClassFile property not set");
+			throw new NullPointerException("pathwayClassFile property is missing");
 		}
 		try {
+			mainClassMap.clear();
+			subClassMap.clear();
+			
 			BufferedReader reader = new BufferedReader(new FileReader(pathwayClassFile));
 			String line;
 			String mainClass = "";
@@ -150,9 +172,31 @@ public class EnzymePathwayConverter extends BioFileConverter {
 				}
 			}
 			reader.close();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void processPathwayDescFile() {
+		if (pathwayDescFile == null) {
+			throw new NullPointerException("pathwayDescFile property is missing");
+		}
+		try {
+			pathwayDescMap.clear();
+			
+			BufferedReader reader = new BufferedReader(new FileReader(pathwayDescFile));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				String[] split = line.split("\\t");
+				if (split.length > 1) {
+					pathwayDescMap.put(split[0].trim(), split[1].trim());
+				}
+			}
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 }
