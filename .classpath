@@ -168,9 +168,6 @@
 	<classpathentry kind="lib" path="intermine/web/main/lib/javax.servlet-api-3.1.0.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/javax.servlet.jsp-api-2.3.1.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/HikariCP-java6-2.3.8.jar"/>
-	<classpathentry kind="lib" path="bio/webapp/lib/jami-core-1.2.0.jar"/>
-	<classpathentry kind="lib" path="bio/webapp/lib/jami-interactionviewer-json-1.1.0.jar"/>
-	<classpathentry kind="lib" path="bio/webapp/lib/jami-commons-1.1.0.jar"/>
 	<classpathentry kind="lib" path="bio/webapp/lib/bridges-core-1.1.0.jar"/>
 	<classpathentry kind="lib" path="imbuild/lib/im-ant-tasks.jar"/>
 	<classpathentry kind="lib" path="bio/webapp/lib/jami-ols-1.1.0.jar"/>

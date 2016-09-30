@@ -314,6 +314,7 @@
       <fieldconfig fieldExpr="organism.name" />
       <fieldconfig fieldExpr="mainClass" showInSummary="false"/>
       <fieldconfig fieldExpr="subClass" showInSummary="false"/>
+      <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" />
     </fields>
   </class>
   <class className="org.intermine.model.bio.Reaction">
@@ -827,7 +828,7 @@
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.AtcClassificationDisplayer"
                      jspName="model/jscClassificationDisplayer.jsp"
-                     replacesFields="parent" 
+                     replacesFields="parent, allParents" 
                      types="JscClassification"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"

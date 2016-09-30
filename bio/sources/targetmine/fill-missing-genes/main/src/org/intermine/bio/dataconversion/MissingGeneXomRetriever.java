@@ -38,8 +38,9 @@ public class MissingGeneXomRetriever {
 	private static final Logger LOG = Logger.getLogger(MissingGeneXomRetriever.class);
 	
 //	private static final String ESUMMARY_URL = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?tool=flymine&version=1.0&db=gene&id=";
-	private static final String ESUMMARY_URL = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?tool=flymine&db=gene&id=";
-	
+//	private static final String ESUMMARY_URL = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?tool=flymine&db=gene&id=";
+    private static final String ESUMMARY_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?tool=flymine&db=gene&id=";
+
 	private static final int BATCH_SIZE = 200;
 	
 	private String osAlias = null;

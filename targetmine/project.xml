@@ -104,7 +104,7 @@
     </source>
 
     <source name="drugbank" type="drugbank-v4">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank/v4.5"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank/v5.0.1"/>
       <property name="src.data.dir.includes" value="full_database.xml"/>
     </source>
 
@@ -251,7 +251,7 @@
 
     <source name="affy-probe" type="affy-probe-annot">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/affymetrix" />
-      <property name="src.data.dir.includes" value="*.na35.annot.csv" />
+      <property name="src.data.dir.includes" value="*.na36.annot.csv" />
     </source>
     <source name="barcode" type="barcode30">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/barcode/transcriptome" />

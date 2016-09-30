@@ -7,8 +7,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -24,7 +22,9 @@ import org.intermine.xml.full.Item;
 
 /**
  * 
- * This parser will parse DrugBank xml file v4 format.
+ * This parser will parse DrugBank xml file, full_database.xml. (version 5.0.1)</br>
+ * 
+ * 2016/9/29 refined the 'references' section parsing, due to the format changes in version 5.0.1
  * 
  * @author chenyian
  */
@@ -157,14 +157,15 @@ public class DrugbankV4Converter extends BioFileConverter {
 						Item interaction = createItem("DrugBankInteraction");
 						interaction.setReference("protein", getProtein(id));
 						interaction.setReference("compound", drugItem);
-						String ref = t.getFirstChildElement("references", NAMESPACE_URI).getValue();
-						Pattern pattern = Pattern
-								.compile("\"Pubmed\":http://www.ncbi.nlm.nih.gov/pubmed/(\\d+)");
-						Matcher matcher = pattern.matcher(ref);
-						while (matcher.find()) {
-							interaction.addToCollection("publications",
-									getPublication(matcher.group(1)));
+						Elements articles = t.getFirstChildElement("references", NAMESPACE_URI)
+								.getFirstChildElement("articles", NAMESPACE_URI)
+								.getChildElements("article", NAMESPACE_URI);
+						for (int x = 0; x < articles.size(); x++) {
+							Element article = articles.get(x);
+							String pubmedId = article.getFirstChildElement("pubmed-id", NAMESPACE_URI).getValue();
+							interaction.addToCollection("publications", getPublication(pubmedId));
 						}
+						
 						if (actionValues.size() > 0) {
 							for (String action : actionValues) {
 								interaction.addToCollection("actions", getDrugAction(action.trim()
