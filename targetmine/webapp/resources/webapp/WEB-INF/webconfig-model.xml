@@ -312,8 +312,8 @@
       <fieldconfig fieldExpr="identifier" />
       <fieldconfig fieldExpr="name" />
       <fieldconfig fieldExpr="organism.name" />
-      <fieldconfig fieldExpr="mainClass" showInSummary="false"/>
-      <fieldconfig fieldExpr="subClass" showInSummary="false"/>
+      <fieldconfig fieldExpr="label1" showInSummary="false"/>
+      <fieldconfig fieldExpr="label2" showInSummary="false"/>
       <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" />
     </fields>
   </class>
@@ -343,19 +343,6 @@
     </fields>
   </class>
 
-<!-- 
-  <class className="org.intermine.model.bio.Disease">
-    <headerconfig>
-        <titles>
-            <title mainTitles="title" subTitles="omimId" />
-        </titles>
-    </headerconfig>
-    <fields>
-      <fieldconfig fieldExpr="omimId"/>
-      <fieldconfig fieldExpr="title"/>
-    </fields>
-  </class>
- -->
   <class className="org.intermine.model.bio.Disease">
     <fields>
       <fieldconfig fieldExpr="gene.primaryIdentifier"/>

@@ -229,8 +229,8 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 			Item item = createItem("Pathway");
 			item.setAttribute("name", pathwayNameMap.get(pathwayId));
 			String subClass = subClassMap.get(pathwayId);
-			item.setAttribute("subClass", subClass);
-			item.setAttribute("mainClass", mainClassMap.get(subClass));
+			item.setAttribute("label2", subClass);
+			item.setAttribute("label1", mainClassMap.get(subClass));
 			item.setAttribute("identifier", fullId);
 			item.setReference("organism", getOrganism(taxonId));
 

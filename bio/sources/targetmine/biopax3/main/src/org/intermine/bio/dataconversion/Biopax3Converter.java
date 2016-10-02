@@ -175,7 +175,8 @@ public class Biopax3Converter extends BioFileConverter {
 			}
 			if (comment != null) {
 				if (comment.startsWith("This event has been computationally inferred")) {
-					pathwayName += " (computationally inferred)";
+//					pathwayName += " (computationally inferred)";
+					currentPathway.setAttribute("label2", "computationally inferred");
 				}
 				
 				currentPathway.setAttribute("description", comment.replaceAll("<\\/?.+?>", " "));
@@ -228,7 +229,7 @@ public class Biopax3Converter extends BioFileConverter {
 		// add the level information
 		for (String pid : pathwayMap.keySet()) {
 			Item item = pathwayMap.get(pid);
-			item.setAttribute("level", String.valueOf(pathwayEntryMap.get(pid).getLevel()));
+			item.setAttribute("label1", "lv" + String.valueOf(pathwayEntryMap.get(pid).getLevel()));
 			for (String parentId : pathwayEntryMap.get(pid).getParentIds()) {
 				item.addToCollection("parents", pathwayMap.get(parentId));
 			}

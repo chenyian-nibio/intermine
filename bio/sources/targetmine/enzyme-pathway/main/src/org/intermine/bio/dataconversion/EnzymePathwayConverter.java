@@ -106,8 +106,8 @@ public class EnzymePathwayConverter extends BioFileConverter {
 			String key = pathwayId.substring(2);
 			pathway.setAttribute("name", pathwayNameMap.get(key));
 			String subClass = subClassMap.get(key);
-			pathway.setAttribute("subClass", subClass);
-			pathway.setAttribute("mainClass", mainClassMap.get(subClass));
+			pathway.setAttribute("label2", subClass);
+			pathway.setAttribute("label1", mainClassMap.get(subClass));
 			
 			String desc = pathwayDescMap.get(pathwayId);
 			if (desc != null) {
