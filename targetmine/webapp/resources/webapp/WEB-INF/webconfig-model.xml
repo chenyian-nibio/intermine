@@ -312,9 +312,9 @@
       <fieldconfig fieldExpr="identifier" />
       <fieldconfig fieldExpr="name" />
       <fieldconfig fieldExpr="organism.name" />
-      <fieldconfig fieldExpr="label1" showInSummary="false"/>
-      <fieldconfig fieldExpr="label2" showInSummary="false"/>
-      <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" />
+      <fieldconfig fieldExpr="label1"/>
+      <fieldconfig fieldExpr="label2"/>
+      <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" showInSummary="false" />
     </fields>
   </class>
   <class className="org.intermine.model.bio.Reaction">
