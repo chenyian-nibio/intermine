@@ -818,11 +818,6 @@
                      replacesFields="parent, allParents" 
                      types="JscClassification"/>
 
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
-                     jspName="model/drugCompoundInfoDisplayer.jsp"
-                     replacesFields="atcCodes,jsccCodes,synonyms" 
-                     types="DrugCompound"/>
-
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProbeSetExpressionDisplayer"
                      jspName="model/probeSetExpressionDisplayer.jsp"
                      replacesFields="expressions" 
@@ -832,6 +827,16 @@
                      jspName="model/proteinDomainHierDisplayer.jsp"
                      replacesFields="parentFeatures,childFeatures,contains,foundIn" 
                      types="ProteinDomain"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/compoundImageDisplayer.jsp"
+                     replacesFields="inchiKey" 
+                     types="Compound"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.DrugCompoundInfoDisplayer"
+                     jspName="model/drugCompoundInfoDisplayer.jsp"
+                     replacesFields="atcCodes,jsccCodes,synonyms" 
+                     types="DrugCompound"/>
 
   </reportdisplayers>
 
