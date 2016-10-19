@@ -744,7 +744,14 @@
                      jspName="model/cytoscapeNetworkDisplayer.jsp"
                      replacesFields="interactions"
                      placement="Interactions"
-                     types="Gene,Protein"/>
+                     types="Gene"/>
+
+	<!-- temporary solution for protein interaction -->
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.CytoscapeNetworkDisplayer"
+                     jspName="model/cytoscapeNetworkDisplayer.jsp"
+                     replacesFields=""
+                     placement="Interactions"
+                     types="Protein"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneOntologyDisplayer"
                      jspName="model/geneOntologyDisplayer.jsp"
