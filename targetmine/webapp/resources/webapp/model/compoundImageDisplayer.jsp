@@ -16,12 +16,14 @@
 	</c:when>
 	<c:otherwise>
 
-	<p style="margin-top: 8px;">
-		InChIKey: ${compound.inchiKey} <br/>
-		<img src="https://cactus.nci.nih.gov/chemical/structure/InChIKey=${compound.inchiKey}/image" />
+	<p style="margin: 8px 0px;">
+		InChIKey: ${compound.inchiKey}
+	</p>
+	<div id="structureimage">
+		<img src="https://cactus.nci.nih.gov/chemical/structure/InChIKey=${compound.inchiKey}/image" onerror="document.getElementById('structureimage').innerHTML = 'image unavailable.'"/>
 		<br/>
 		<span style="font-size: 8px;">Provided by <a href="https://cactus.nci.nih.gov/" target="_blank">The CACTUS web server</a></span>
-	</p>
+	</div>
 	</c:otherwise>
 </c:choose>
 
