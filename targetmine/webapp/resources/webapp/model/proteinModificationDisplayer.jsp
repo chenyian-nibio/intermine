@@ -13,7 +13,7 @@
 			<table>
 			  <thead>
 			    <tr>
-					<th>Modification Type</th>
+					<th style="width: 180px;">Modification Type</th>
 					<th>Positions</th>
 			    </tr>
 			  </thead>
@@ -22,8 +22,8 @@
 			    <tr>
 			    	<td>${type}</td>
 			    	<td>
-		    			<c:forEach var="feature" items="${modificationMap[type]}" varStatus="status">
-		    				<a href="report.do?id=${feature.id}" title="${feature.description}">${feature.begin}</a>
+		    			<c:forEach var="modification" items="${modificationMap[type]}" varStatus="status">
+		    				<a href="report.do?id=${modification.id}">${modification.position}</a>
 		    				<c:if test="${status.count < fn:length(modificationMap[type])}">, </c:if>
 		    			</c:forEach>
 			    	</td>
@@ -37,4 +37,9 @@
 		</c:otherwise>
 	</c:choose>
 
+	<c:if test="${pageNote}">
+		<div style="font-size: 8px; margin: 12px 12px;">
+			Contains the data derived from <a href="http://www.phosphosite.org/uniprotAccAction?id=${reportObject.object.primaryAccession}" target="_blank">PhosphoSitePlus&reg; (PSP)</a>. The PSP data is not for commercial use.
+		</div>
+	</c:if>
 </div>

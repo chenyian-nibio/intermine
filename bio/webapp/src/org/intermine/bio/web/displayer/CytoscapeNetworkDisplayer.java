@@ -46,9 +46,11 @@ public class CytoscapeNetworkDisplayer extends ReportDisplayer
          if (object instanceof Gene) {
         	 size = ((Gene) object).getInteractions().size();
          } else if (object instanceof Protein) {
-        	 if (((Protein) object).getGenes() != null) {
+        	 if (((Protein) object).getGenes() != null && ((Protein) object).getGenes().size() > 0) {
         		 // if there are multiple genes, just arbitrary take the first one 
         		 size = ((Protein) object).getGenes().iterator().next().getInteractions().size();
+        	 } else {
+        		 size = -1;
         	 }
          } else {
          	throw new RuntimeException("Unexpected type: " + object.getClass().getName());

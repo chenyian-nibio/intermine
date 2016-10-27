@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="Protein" is-interface="true">
+		<collection name="modifications" referenced-type="Modification" reverse-reference="protein" />
+	</class>
+	<class name="Modification" is-interface="true">
+		<attribute name="type" type="java.lang.String" />
+		<attribute name="position" type="java.lang.Integer" />
+		<reference name="protein" referenced-type="Protein" reverse-reference="modifications" />
+		<collection name="dataSets" referenced-type="DataSet"/>
+	</class>
+
+</classes>

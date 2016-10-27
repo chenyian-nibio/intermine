@@ -295,6 +295,7 @@ public class UniprotXomConverter extends BioFileConverter {
 
 						/* features */
 						Elements features = entry.getChildElements("feature");
+						Set<String> modificationSet = new HashSet<String>();
 						for (int i = 0; i < features.size(); i++) {
 							Element feature = features.get(i);
 							String type = feature.getAttributeValue("type");
@@ -319,9 +320,11 @@ public class UniprotXomConverter extends BioFileConverter {
 							}
 							Element location = feature.getFirstChildElement("location");
 							Element position = location.getFirstChildElement("position");
+							String modiPos = null;
 							if (position != null) {
-								featureItem.setAttribute("begin", position.getAttributeValue("position"));
-								featureItem.setAttribute("end", position.getAttributeValue("position"));
+								modiPos = position.getAttributeValue("position");
+								featureItem.setAttribute("begin", modiPos);
+								featureItem.setAttribute("end", modiPos);
 							} else {
 								Element beginElement = location.getFirstChildElement("begin");
 								Element endElement = location.getFirstChildElement("end");
@@ -336,29 +339,47 @@ public class UniprotXomConverter extends BioFileConverter {
 									if (end != null) {
 										featureItem.setAttribute("end", end);
 									}
+									if (begin != null && begin.equals(end)) {
+										modiPos = begin;
+										// should not happen?
+										LOG.info("Protein " + accession + " contains the same begin and end values.");
+									}
 								}
 							}
 							featureItem.setReference("protein", protein);
 							
-							String kw = ptmListMap.get(description);
-							
-							if (kw == null) {
-								// TODO slightly tricky?
-								if (type.equals("glycosylation site")) {
-									kw = "Glycoprotein";
-								} else if (!StringUtils.isEmpty(description)) {
-									kw = searchPtmListMap(description);
+							if (modiPos != null) {
+								String kw = ptmListMap.get(description);
+								
+								if (kw == null) {
+									// TODO slightly tricky?
+									if (type.equals("glycosylation site")) {
+										kw = "Glycosylation";
+									} else if (!StringUtils.isEmpty(description)) {
+										kw = searchPtmListMap(description);
+									}
 								}
-							}
-							
-							if (kw != null) {
-								for (String modType: kw.split("; ")) {
-									Item modification = createItem("Modification");
-									modification.setReference("feature", featureItem);
-									modification.setReference("protein", protein);
-									modification.setAttribute("type", modType);
-									store(modification);
-									featureItem.setReference("modification", modification);
+								
+								if (kw != null) {
+									for (String modType: kw.split("; ")) {
+										if (modType.equals("Phosphoprotein")) {
+											modType = "Phosphorylation";
+										}
+										
+										String key = String.format("%s-%s", position, modType);
+										if (!modificationSet.contains(key)) {
+											Item modification = createItem("Modification");
+											modification.setReference("protein", protein);
+											modification.setAttribute("type", modType);
+											modification.setAttribute("position", modiPos);
+											modification.addToCollection(
+													"dataSets",
+													getDataSet(entry.getAttributeValue("dataset")
+															+ " data set", dataSource));
+											store(modification);
+											modificationSet.add(key);
+										}
+									}
 								}
 							}
 							

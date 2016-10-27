@@ -26,43 +26,65 @@ public class ProteinModificationDisplayer extends ReportDisplayer {
 	public void display(HttpServletRequest request, ReportObject reportObject) {
 		InterMineObject imo = (InterMineObject) reportObject.getObject();
 		try {
+			@SuppressWarnings("unchecked")
 			Set<InterMineObject> modifications = (Set<InterMineObject>) imo.getFieldValue("modifications");
 			Map<String, List<InterMineObject>> modificationMap = new HashMap<String, List<InterMineObject>>();
+			boolean containPspData = false;
 			for (InterMineObject mod : modifications) {
 				String type = (String) mod.getFieldValue("type");
 				if (null == modificationMap.get(type)) {
 					modificationMap.put(type, new ArrayList<InterMineObject>());
 				}
-				InterMineObject feature = (InterMineObject) mod.getFieldValue("feature");
-				modificationMap.get(type).add(feature);
+				modificationMap.get(type).add(mod);
+				
+				if (!containPspData) {
+					@SuppressWarnings("unchecked")
+					Set<InterMineObject> dataSets = (Set<InterMineObject>) mod.getFieldValue("dataSets");
+					for (InterMineObject ds : dataSets) {
+						String title = (String) ds.getFieldValue("name");
+						if (title.equals("PhosphoSitePlus")) {
+							containPspData = true;
+							break;
+						}
+					}
+				}
 			}
 			for (String key : modificationMap.keySet()) {
-				modificationMap.put(key, sortByRegion(modificationMap.get(key)));
+				modificationMap.put(key, sortByPosition(modificationMap.get(key)));
 			}
 			List<String> typeList = new ArrayList<String>(modificationMap.keySet());
 			Collections.sort(typeList);
 			request.setAttribute("modificationMap", modificationMap);
 			request.setAttribute("typeList", typeList);
+			
+			if (containPspData) {
+				request.setAttribute("pageNote", true);
+			}
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private List<InterMineObject> sortByRegion(List<InterMineObject> list) {
+	/**
+	 * 
+	 * @param list A list of Modification instance
+	 * @return
+	 */
+	private List<InterMineObject> sortByPosition(List<InterMineObject> list) {
 		Collections.sort(list, new Comparator<InterMineObject>() {
 
 			@Override
 			public int compare(InterMineObject o1, InterMineObject o2) {
 				try {
-					Integer begin1 = (Integer) o1.getFieldValue("begin");
-					Integer begin2 = (Integer) o2.getFieldValue("begin");
-					if (begin1 == null) {
+					Integer pos1 = (Integer) o1.getFieldValue("position");
+					Integer pos2 = (Integer) o2.getFieldValue("position");
+					if (pos1 == null) {
 						return 1;
 					}
-					if (begin2 == null) {
+					if (pos2 == null) {
 						return -1;
 					}
-					return begin1.compareTo(begin2);
+					return pos1.compareTo(pos2);
 					
 				} catch (IllegalAccessException e) {
 					e.printStackTrace();

@@ -12,18 +12,27 @@
 
 <c:choose>
 	<c:when test="${empty compound.inchiKey}">
-    	<p style="margin: 10px;">No InChIKey annotation is available.</p>
+    	<p style="margin: 10px;">Not available.</p>
 	</c:when>
 	<c:otherwise>
-
-	<p style="margin: 8px 0px;">
-		InChIKey: ${compound.inchiKey}
-	</p>
+		<c:choose>
+			<c:when test="${fn:startsWith(compound.identifier, 'CHEMBL') || fn:startsWith(compound.name, 'CHEMBL')}">
+			
 	<div id="structureimage">
-		<img src="https://cactus.nci.nih.gov/chemical/structure/InChIKey=${compound.inchiKey}/image" onerror="document.getElementById('structureimage').innerHTML = 'image unavailable.'"/>
+		<img src="https://www.ebi.ac.uk/chembl/api/data/image/${compound.inchiKey}?dimensions=300" onerror="document.getElementById('structureimage').innerHTML = 'Not available.'"/>
+		<br/>
+		<span style="font-size: 8px;">Provided by <a href="https://www.ebi.ac.uk/chembl/ws" target="_blank">ChEMBL web service</a></span>
+	</div>
+			</c:when>
+			<c:otherwise>
+
+	<div id="structureimage">
+		<img src="https://cactus.nci.nih.gov/chemical/structure/InChIKey=${compound.inchiKey}/image" onerror="document.getElementById('structureimage').innerHTML = 'Not available.'"/>
 		<br/>
 		<span style="font-size: 8px;">Provided by <a href="https://cactus.nci.nih.gov/" target="_blank">The CACTUS web server</a></span>
 	</div>
+			</c:otherwise>
+		</c:choose>
 	</c:otherwise>
 </c:choose>
 

@@ -6,11 +6,6 @@
 		<attribute name="begin" type="java.lang.Integer"/>
 		<attribute name="end" type="java.lang.Integer"/>
 		<reference name="protein" referenced-type="Protein" reverse-reference="features" />
-		<!-- unnecessary? 
-		<reference name="feature" referenced-type="OntologyTerm"/>
-		 -->
-		<!-- Testing... -->
-		<reference name="modification" referenced-type="Modification" reverse-reference="feature"/>
 	</class>
 	<class name="Protein" is-interface="true">
 		<attribute name="isFragment" type="java.lang.Boolean"/>
@@ -40,7 +35,8 @@
 	<!-- Testing... -->
 	<class name="Modification" is-interface="true">
 		<attribute name="type" type="java.lang.String" />
-		<reference name="feature" referenced-type="UniProtFeature" reverse-reference="modification" />
+		<attribute name="position" type="java.lang.Integer" />
 		<reference name="protein" referenced-type="Protein" reverse-reference="modifications" />
+		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
 </classes>

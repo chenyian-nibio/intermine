@@ -162,7 +162,8 @@ public class BioassayConverter extends BioFileConverter {
 			String inchiKey = inchikeyMap.get(cid);
 			if (inchiKey != null) {
 				item.setAttribute("inchiKey", inchiKey);
-				setSynonyms(item, inchiKey);
+				// chenyian: no longer needed
+//				setSynonyms(item, inchiKey);
 				item.setReference("compoundGroup",
 						getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
 			}

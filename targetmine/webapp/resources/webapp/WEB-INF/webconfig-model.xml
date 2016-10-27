@@ -776,6 +776,10 @@
                      replacesFields="modifications"
                      placement="Proteins"
                      types="Protein"/>
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/modificationPspInfoDisplayer.jsp"
+                     replacesFields=""
+                     types="Modification"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinDomainDisplayer"
                      jspName="model/proteinAnalysisResult.jsp"
@@ -837,7 +841,7 @@
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
                      jspName="model/compoundImageDisplayer.jsp"
-                     replacesFields="inchiKey" 
+                     replacesFields="" 
                      types="Compound"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.DrugCompoundInfoDisplayer"
