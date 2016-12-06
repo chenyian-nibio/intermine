@@ -16,7 +16,7 @@
 	</c:when>
 	<c:otherwise>
 		<c:choose>
-			<c:when test="${fn:startsWith(compound.identifier, 'CHEMBL') || fn:startsWith(compound.name, 'CHEMBL')}">
+			<c:when test="${fn:startsWith(compound.identifier, 'ChEMBL') || fn:startsWith(compound.name, 'CHEMBL')}">
 			
 	<div id="structureimage">
 		<img src="https://www.ebi.ac.uk/chembl/api/data/image/${compound.inchiKey}?dimensions=300" onerror="document.getElementById('structureimage').innerHTML = 'Not available.'"/>
