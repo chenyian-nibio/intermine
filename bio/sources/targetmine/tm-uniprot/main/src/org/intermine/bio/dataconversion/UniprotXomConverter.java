@@ -171,7 +171,8 @@ public class UniprotXomConverter extends BioFileConverter {
 						protein.setAttribute("length", length);
 						protein.setAttribute("molecularWeight", sequence.getAttributeValue("mass"));
 
-						String md5Checksum = getSequence(sequence.getValue());
+						String aaSeq = sequence.getValue();
+						String md5Checksum = getSequence(aaSeq);
 						protein.setReference("sequence", allSequences.get(md5Checksum));
 						protein.setAttribute("md5checksum", md5Checksum);
 
@@ -366,12 +367,16 @@ public class UniprotXomConverter extends BioFileConverter {
 											modType = "Phosphorylation";
 										}
 										
-										String key = String.format("%s-%s", position, modType);
+										String key = String.format("%s-%s", modiPos, modType);
 										if (!modificationSet.contains(key)) {
 											Item modification = createItem("Modification");
 											modification.setReference("protein", protein);
 											modification.setAttribute("type", modType);
 											modification.setAttribute("position", modiPos);
+											
+											int pos = Integer.valueOf(modiPos).intValue();
+											modification.setAttribute("residue", aaSeq.substring(pos - 1, pos));
+											
 											modification.addToCollection(
 													"dataSets",
 													getDataSet(entry.getAttributeValue("dataset")

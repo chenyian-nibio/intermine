@@ -104,7 +104,7 @@
     </source>
 
     <source name="drugbank" type="drugbank-v4">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank/v5.0.1"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/drugbank"/>
       <property name="src.data.dir.includes" value="full_database.xml"/>
     </source>
 
@@ -271,6 +271,11 @@
     <source name="psp" type="phosphositesplus">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/phosphositesplus" />
       <property name="src.data.dir.includes" value="*_site_dataset" />
+      <property name="osAlias" value="os.production"/>
+    </source>
+    <source name="psp-reaction" type="psp-reaction">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/phosphositesplus"/>
+      <property name="src.data.dir.includes" value="Kinase_Substrate_Dataset"/>
       <property name="osAlias" value="os.production"/>
     </source>
 

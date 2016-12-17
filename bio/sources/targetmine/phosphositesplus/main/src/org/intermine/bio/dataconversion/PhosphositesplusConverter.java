@@ -13,16 +13,19 @@ import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.ConstraintOp;
 import org.intermine.metadata.Model;
 import org.intermine.model.bio.Protein;
+import org.intermine.model.bio.Sequence;
 import org.intermine.model.bio.Synonym;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreFactory;
+import org.intermine.objectstore.query.ClobAccess;
 import org.intermine.objectstore.query.ConstraintSet;
 import org.intermine.objectstore.query.ContainsConstraint;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
 import org.intermine.objectstore.query.QueryCollectionReference;
 import org.intermine.objectstore.query.QueryField;
+import org.intermine.objectstore.query.QueryObjectReference;
 import org.intermine.objectstore.query.QueryValue;
 import org.intermine.objectstore.query.Results;
 import org.intermine.objectstore.query.ResultsRow;
@@ -66,6 +69,8 @@ public class PhosphositesplusConverter extends BioFileConverter {
 			modificationType = "Phosphorylation";
 		} else if (currentFileName.equals("Methylation_site_dataset")) {
 			modificationType = "Methylation";
+		} else if (currentFileName.equals("Acetylation_site_dataset")) {
+			modificationType = "Acetylation";
 		} else {
 			System.out.println("Unexpected file: " + currentFileName + ", skip it.");
 			return;
@@ -80,14 +85,14 @@ public class PhosphositesplusConverter extends BioFileConverter {
 				String proteinId = cols[2];
 				String accession = null;
 				if (proteinId.startsWith("ENS")) {
-					accession = getgetPrimaryAccession(proteinId);
+					accession = getPrimaryAccession(proteinId);
 					if (StringUtils.isEmpty(accession)) {
 						LOG.info("Unable to find the accession: " + proteinId);
 						continue;
 					}
 					LOG.info(proteinId + " -> " + accession);
 				} else if (proteinId.contains("_")) {
-					accession = getgetPrimaryAccession(proteinId);
+					accession = getPrimaryAccession(proteinId);
 					if (StringUtils.isEmpty(accession)) {
 						LOG.info("Unable to find the accession: " + proteinId);
 						continue;
@@ -99,23 +104,52 @@ public class PhosphositesplusConverter extends BioFileConverter {
 				} else {
 					accession = proteinId;
 				}
-
-				String modifiedResidue = cols[4];
-				String position = modifiedResidue.substring(1, modifiedResidue.indexOf('-'));
-				String key = String.format("%s-%s", accession, position);
-
-				// different methylation (e.g. m1, m2) may be annotated to the same position
-				if (modiSet.contains(key)) {
-					continue;
+				
+				String sequence = getProteinSequence(accession);
+				if (!StringUtils.isEmpty(sequence)) {
+					String modifiedResidue = cols[4];
+					int position = Integer.valueOf(modifiedResidue.substring(1, modifiedResidue.indexOf('-'))).intValue();
+					String residue = modifiedResidue.substring(0, 1);
+					
+					if (position > sequence.length()) {
+						LOG.info(String.format("Position is greater than the length of the sequence, skip the entry. %s: %s-%d.", proteinId, residue, position));
+						continue;
+					}
+					
+					String expectedResidue = sequence.substring(position - 1, position);
+					if (!expectedResidue.equals(residue)) {
+						if (position + 1 > sequence.length()) {
+//							throw new RuntimeException(String.format("Inconsistence residue. Unable to correct the position, skip the entry. %s: %s-%d.", proteinId, residue, position)); 
+							LOG.info(String.format("Inconsistence residue. Unable to correct the position, skip the entry. %s: %s-%d.", proteinId, residue, position));
+							continue;
+						}
+						expectedResidue = sequence.substring(position, position + 1);
+						if (expectedResidue.equals(residue)) {
+							LOG.info(String.format("Inconsistence residue. Automatically correct the position. %s: %d -> %d.", proteinId, position, position + 1));
+							position = position + 1;
+						} else {
+							LOG.info(String.format("Inconsistence residue. Unable to correct the position, skip the entry. %s: %s-%d.", proteinId, residue, position));
+							continue;
+						}
+					}
+					
+					String key = String.format("%s-%d", accession, position);
+					
+					// different methylation (e.g. m1, m2) may be annotated to the same position
+					if (modiSet.contains(key)) {
+						continue;
+					}
+					
+					Item modification = createItem("Modification");
+					modification.setReference("protein", getProtein(accession));
+					modification.setAttribute("type", modificationType);
+					modification.setAttribute("position", String.valueOf(position));
+					modification.setAttribute("residue", residue);
+					store(modification);
+					
+					modiSet.add(key);
 				}
 
-				Item modification = createItem("Modification");
-				modification.setReference("protein", getProtein(accession));
-				modification.setAttribute("type", modificationType);
-				modification.setAttribute("position", position);
-				store(modification);
-
-				modiSet.add(key);
 			} else {
 				if (cols[0].equals("GENE")) {
 					flag = true;
@@ -148,8 +182,9 @@ public class PhosphositesplusConverter extends BioFileConverter {
 		this.osAlias = osAlias;
 	}
 
+	
 	@SuppressWarnings("unchecked")
-	private String getgetPrimaryAccession(String qs) throws Exception {
+	private String getPrimaryAccession(String qs) throws Exception {
 		String ret = primaryAccessionMap.get(qs);
 
 		if (ret == null) {
@@ -181,6 +216,45 @@ public class PhosphositesplusConverter extends BioFileConverter {
 				ret = "";
 			}
 			primaryAccessionMap.put(qs, ret);
+		}
+
+		return ret;
+	}
+
+	private Map<String, String> proteinSequenceMap = new HashMap<String, String>();
+
+	@SuppressWarnings("unchecked")
+	private String getProteinSequence(String proteinAccession) throws Exception {
+		String ret = proteinSequenceMap.get(proteinAccession);
+
+		if (ret == null) {
+			Query q = new Query();
+			QueryClass qcProtein = new QueryClass(Protein.class);
+			QueryClass qcSequence = new QueryClass(Sequence.class);
+			QueryField qfPrimaryAcc = new QueryField(qcProtein, "primaryAccession");
+			QueryField qfResidues = new QueryField(qcSequence, "residues");
+			q.addFrom(qcProtein);
+			q.addFrom(qcSequence);
+			q.addToSelect(qfResidues);
+
+			ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
+
+			QueryObjectReference synRef = new QueryObjectReference(qcProtein, "sequence");
+			cs.addConstraint(new ContainsConstraint(synRef, ConstraintOp.CONTAINS, qcSequence));
+			cs.addConstraint(new SimpleConstraint(qfPrimaryAcc, ConstraintOp.EQUALS, new QueryValue(proteinAccession)));
+			q.setConstraint(cs);
+
+			// LOG.info("querying for " + qs + " ......");
+			ObjectStore os = ObjectStoreFactory.getObjectStore(osAlias);
+			Results results = os.execute(q);
+			Iterator<Object> iterator = results.iterator();
+			if (iterator.hasNext()) {
+				ResultsRow<ClobAccess> rr = (ResultsRow<ClobAccess>) iterator.next();
+				ret = rr.get(0).toString();
+			} else {
+				ret = "";
+			}
+			proteinSequenceMap.put(proteinAccession, ret);
 		}
 
 		return ret;

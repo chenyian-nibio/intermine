@@ -328,6 +328,15 @@
       <fieldconfig fieldExpr="gene2.symbol" />
     </fields>
   </class>
+  <class className="org.intermine.model.bio.Modification">
+    <fields>
+      <fieldconfig fieldExpr="protein.primaryIdentifier" />
+      <fieldconfig fieldExpr="protein.primaryAccession" />
+      <fieldconfig fieldExpr="type" />
+      <fieldconfig fieldExpr="position" />
+      <fieldconfig fieldExpr="residue" />
+    </fields>
+  </class>
   <class className="org.intermine.model.bio.IntegratedPathwayCluster" >
     <fields>
       <fieldconfig fieldExpr="identifier" />
@@ -780,6 +789,10 @@
                      jspName="model/modificationPspInfoDisplayer.jsp"
                      replacesFields=""
                      types="Modification"/>
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
+                     jspName="model/reactionExtraInfoDisplayer.jsp"
+                     replacesFields=""
+                     types="Reaction"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinDomainDisplayer"
                      jspName="model/proteinAnalysisResult.jsp"

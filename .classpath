@@ -57,6 +57,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/predicted-dbp/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein-analysis/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein-ortholog/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/psp-reaction/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pubchem/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/retrieve-publication-local/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/scop/main/src"/>

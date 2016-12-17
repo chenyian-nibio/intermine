@@ -6,6 +6,7 @@
 	<class name="Modification" is-interface="true">
 		<attribute name="type" type="java.lang.String" />
 		<attribute name="position" type="java.lang.Integer" />
+		<attribute name="residue" type="java.lang.String" />
 		<reference name="protein" referenced-type="Protein" reverse-reference="modifications" />
 		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
