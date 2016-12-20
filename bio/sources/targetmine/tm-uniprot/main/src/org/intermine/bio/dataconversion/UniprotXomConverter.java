@@ -111,7 +111,7 @@ public class UniprotXomConverter extends BioFileConverter {
 					for (int i = 1; i < accessions.size(); i++) {
 						otherAccessions.add(accessions.get(i).getValue());
 					}
-					// TODO actually, should not find duplicated primary accessions
+					// should not find duplicated primary accessions
 					if (!doneEntries.contains(accession)) {
 						// create Protein items
 						Item protein = createItem("Protein");
@@ -194,6 +194,26 @@ public class UniprotXomConverter extends BioFileConverter {
 							}
 						}
 
+						// Extract pubmedId from evidence
+						// Only looking for ECO:0000269, which means 
+						// "manually curated information for which there is published experimental evidence"
+						Elements evidences = entry.getChildElements("evidence");
+						Map<String,String> evidPubMap = new HashMap<String, String>();
+						for (int i = 0; i < evidences.size(); i++) {
+							Element evidenceEle = evidences.get(i);
+							String key = evidenceEle.getAttributeValue("key");
+							String type = evidenceEle.getAttributeValue("type");
+							if (type.equals("ECO:0000269")) {
+								Element sourceEle = evidenceEle.getFirstChildElement("source");
+								if (sourceEle != null) {
+									Element dbReferenceEle = sourceEle.getFirstChildElement("dbReference");
+									if (dbReferenceEle != null && "PubMed".equals(dbReferenceEle.getAttributeValue("type"))) {
+										evidPubMap.put(key, dbReferenceEle.getAttributeValue("id"));
+									}
+								}
+							}
+						}
+
 						/* comments */
 						Elements comments = entry.getChildElements("comment");
 						for (int i = 0; i < comments.size(); i++) {
@@ -212,7 +232,16 @@ public class UniprotXomConverter extends BioFileConverter {
 								} else {
 									item.setAttribute("description", commentText);
 								}
-								// TODO add publications for comments?
+								// TODO add publications for comments (not confirmed)
+								String evidStringIds = text.getAttributeValue("evidence");
+								if (evidStringIds != null) {
+									for (String eId : evidStringIds.split(" ")) {
+										if (evidPubMap.get(eId) != null) {
+											item.addToCollection("publications", getPublication(evidPubMap.get(eId)));
+										}
+									}
+								}
+								
 								store(item);
 								protein.addToCollection("comments", item);
 							}
@@ -288,8 +317,6 @@ public class UniprotXomConverter extends BioFileConverter {
 							}
 						}
 
-						// TODO evidence?
-
 						store(protein);
 						// actually, the main accession should not be duplicated
 						doneEntries.add(accession);
@@ -303,10 +330,10 @@ public class UniprotXomConverter extends BioFileConverter {
 							if (!featureTypes.contains(type)) {
 								continue;
 							}
+							
 							String description = feature.getAttributeValue("description");
 							String status = feature.getAttributeValue("status");
 
-							// TODO process feature at this step?
 							Item featureItem = createItem("UniProtFeature");
 							featureItem.setAttribute("type", type);
 //							String keywordRefId = getKeyword(type);
@@ -348,7 +375,19 @@ public class UniprotXomConverter extends BioFileConverter {
 								}
 							}
 							featureItem.setReference("protein", protein);
-							
+
+							// example:
+							// <feature evidence="9 10 13 20 21 22" description="Phosphoserine; by AURKB, AURKC and RPS6KA5" type="modified residue">
+							Set<String> pubRefIds = new HashSet<String>();
+							String evidStringIds = feature.getAttributeValue("evidence");
+							if (evidStringIds != null) {
+								for (String eId : evidStringIds.split(" ")) {
+									if (evidPubMap.get(eId) != null) {
+										pubRefIds.add(getPublication(evidPubMap.get(eId)));
+									}
+								}
+							}
+
 							if (modiPos != null) {
 								String kw = ptmListMap.get(description);
 								
@@ -381,13 +420,19 @@ public class UniprotXomConverter extends BioFileConverter {
 													"dataSets",
 													getDataSet(entry.getAttributeValue("dataset")
 															+ " data set", dataSource));
+											for (String refId: pubRefIds) {
+												modification.addToCollection("publications", refId);
+											}
+											
 											store(modification);
 											modificationSet.add(key);
 										}
 									}
 								}
 							}
-							
+							for (String refId: pubRefIds) {
+								featureItem.addToCollection("publications", refId);
+							}
 							store(featureItem);
 						}
 
