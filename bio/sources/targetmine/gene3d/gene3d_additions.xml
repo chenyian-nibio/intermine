@@ -2,16 +2,17 @@
 <classes>
 
 	<class name="Protein" is-interface="true">
-		<collection name="structuralDomains" referenced-type="StructuralDomainRegion" reverse-reference="protein"/>
+		<collection name="structuralDomains" referenced-type="StructuralDomainRegion" />
 	</class>
 
 	<class name="ProteinRegion" is-interface="true">
 		<attribute name="start" type="java.lang.Integer"/>
 		<attribute name="end" type="java.lang.Integer"/>
+		<attribute name="regionType" type="java.lang.String"/>
+		<reference name="protein" referenced-type="Protein" reverse-reference="regions" />
 	</class>
 	
 	<class name="StructuralDomainRegion" extends="ProteinRegion" is-interface="true">
-		<reference name="protein" referenced-type="Protein"  reverse-reference="structuralDomains"/>
 		<reference name="cathClassification" referenced-type="CathClassification" ordered="true"/>
 	    <collection name="dataSets" referenced-type="DataSet" /> 
 	</class>

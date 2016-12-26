@@ -19,23 +19,23 @@
 			          	<c:forEach items="${featureMap[parentEntry]}" var="entry">
 			            	<tr>
 			            		<c:choose>
-			            			<c:when test="${entry.begin == entry.end}">
-			            				<td>${entry.begin}</td>
+			            			<c:when test="${entry.start == entry.end}">
+			            				<td>${entry.start}</td>
 			            				<td>1</td>
 			            			</c:when>
 			            			<c:otherwise>
 			            				<c:choose>
 			            					<c:when test="${entry.type == 'disulfide bond'}">
-			            						<td colspan="2">${entry.begin} &harr; ${entry.end}</td>
+			            						<td colspan="2">${entry.start} &harr; ${entry.end}</td>
 				    	        			</c:when>
 					            			<c:otherwise>
 					            				<td>
-					            					<c:out value="${entry.begin == null? '?' : entry.begin }"/> - 
+					            					<c:out value="${entry.start == null? '?' : entry.start }"/> - 
 					            					<c:out value="${entry.end == null? '?' : entry.end }"/>
 					            				</td>
 					            				<c:choose>
-						            				<c:when test="${entry.begin != null && entry.end != null}"> 
-				            							<c:set var="len" value="${entry.end - entry.begin + 1}" />
+						            				<c:when test="${entry.start != null && entry.end != null}"> 
+				            							<c:set var="len" value="${entry.end - entry.start + 1}" />
 			    	        							<td>${len}</td>
 				    		        				</c:when>
 					    	        				<c:otherwise>

@@ -23,7 +23,7 @@ public class PredictedDbpConverter extends BioFileConverter {
 	private static final String ANNOTATION_TYPE = "DNA binding";
 	//
 
-	private Map<String, String> proteinMap = new HashMap<String, String>();
+	private Map<String, Item> proteinMap = new HashMap<String, Item>();
 
 	/**
 	 * Constructor
@@ -56,18 +56,37 @@ public class PredictedDbpConverter extends BioFileConverter {
 				Item item = createItem("PredictedRegion");
 				item.setAttribute("start", position);
 				item.setAttribute("end", position);
+				item.setAttribute("regionType", "predicted");
 				item.setAttribute("type", ANNOTATION_TYPE);
-				item.setReference("protein", getProtein(accession));
+				Item protein = getProtein(accession);
+				item.setReference("protein", protein);
 				
 				if (predictedAnnotationMap.get(accession) != null) {
 					item.setReference("prediction", predictedAnnotationMap.get(accession));
 				}
 				
 				store(item);
+				
+				protein.addToCollection("predictedRegions", item);
 			}
 		}
     }
-    
+
+	@Override
+	public void close() throws Exception {
+		store(proteinMap.values());
+	}
+
+	private Item getProtein(String primaryAccession) throws ObjectStoreException {
+		Item ret = proteinMap.get(primaryAccession);
+		if (ret == null) {
+			ret = createItem("Protein");
+			ret.setAttribute("primaryAccession", primaryAccession);
+			proteinMap.put(primaryAccession, ret);
+		}
+		return ret;
+	}
+
 	private File dbpScoreFile;
 
 	public void setDbpScoreFile(File dbpScoreFile) {
@@ -106,17 +125,5 @@ public class PredictedDbpConverter extends BioFileConverter {
 			}
 		}
     }
-
-    private String getProtein(String primaryAccession) throws ObjectStoreException {
-		String ret = proteinMap.get(primaryAccession);
-		if (ret == null) {
-			Item item = createItem("Protein");
-			item.setAttribute("primaryAccession", primaryAccession);
-			store(item);
-			ret = item.getIdentifier();
-			proteinMap.put(primaryAccession, ret);
-		}
-		return ret;
-	}
 
 }

@@ -55,7 +55,7 @@ public class Protein2iprConverter extends BioFileConverter {
 
 	private Set<String> proteinIds = new HashSet<String>();
 
-	private Map<String, String> proteinMap = new HashMap<String, String>();
+	private Map<String, Item> proteinMap = new HashMap<String, Item>();
 	private Map<String, String> proteinDomainMap = new HashMap<String, String>();
 
 	public void setOrganisms(String taxonIds) {
@@ -97,12 +97,17 @@ public class Protein2iprConverter extends BioFileConverter {
 
 				item.setAttribute("start", cols[4]);
 				item.setAttribute("end", cols[5]);
+				item.setAttribute("regionType", "domain");
 				item.setAttribute("originalId", cols[3]);
 				item.setAttribute("originalDb", getDatabaseName(cols[3]));
 				item.setReference("proteinDomain", getProteinDomain(cols[1]));
-				item.setReference("protein", getProtein(cols[0]));
+				Item protein = getProtein(cols[0]);
+				item.setReference("protein", protein);
 
 				store(item);
+				
+				protein.addToCollection("proteinDomainRegions", item);
+
 				count++;
 			} else {
 				skipped++;
@@ -112,14 +117,17 @@ public class Protein2iprConverter extends BioFileConverter {
 		LOG.info("Number of skipped lines: " + skipped);
 	}
 
-	private String getProtein(String identifier) throws ObjectStoreException {
-		String ret = proteinMap.get(identifier);
+	@Override
+	public void close() throws Exception {
+		store(proteinMap.values());
+	}
+
+	private Item getProtein(String primaryAccession) throws ObjectStoreException {
+		Item ret = proteinMap.get(primaryAccession);
 		if (ret == null) {
-			Item item = createItem("Protein");
-			item.setAttribute("primaryAccession", identifier);
-			ret = item.getIdentifier();
-			store(item);
-			proteinMap.put(identifier, ret);
+			ret = createItem("Protein");
+			ret.setAttribute("primaryAccession", primaryAccession);
+			proteinMap.put(primaryAccession, ret);
 		}
 		return ret;
 	}

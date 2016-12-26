@@ -107,8 +107,8 @@ public class UniprotFeatureDisplayer extends ReportDisplayer {
 					Integer order2 = Integer.valueOf(TYPE_ORDER.indexOf((String) o2
 							.getFieldValue("type")));
 					if (order1.equals(order2)) {
-						Integer begin1 = (Integer) o1.getFieldValue("begin");
-						Integer begin2 = (Integer) o2.getFieldValue("begin");
+						Integer begin1 = (Integer) o1.getFieldValue("start");
+						Integer begin2 = (Integer) o2.getFieldValue("start");
 						if (begin1 == null) {
 							return 1;
 						}

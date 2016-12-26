@@ -113,7 +113,7 @@ public class LigandExpoPostProcess extends PostProcessor {
 
 		// Protein.structureRelatedRegion.pdbRegion.chain.structure.pdbCompound
 		QueryCollectionReference c1 = new QueryCollectionReference(qcProtein,
-				"structureRelatedRegion");
+				"proteinStructureRegions");
 		cs.addConstraint(new ContainsConstraint(c1, ConstraintOp.CONTAINS, qcProteinStructureRegion));
 
 		QueryObjectReference r2 = new QueryObjectReference(qcProteinStructureRegion, "chain");

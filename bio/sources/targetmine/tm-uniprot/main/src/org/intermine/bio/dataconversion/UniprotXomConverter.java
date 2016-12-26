@@ -317,10 +317,6 @@ public class UniprotXomConverter extends BioFileConverter {
 							}
 						}
 
-						store(protein);
-						// actually, the main accession should not be duplicated
-						doneEntries.add(accession);
-
 						/* features */
 						Elements features = entry.getChildElements("feature");
 						Set<String> modificationSet = new HashSet<String>();
@@ -336,6 +332,7 @@ public class UniprotXomConverter extends BioFileConverter {
 
 							Item featureItem = createItem("UniProtFeature");
 							featureItem.setAttribute("type", type);
+							featureItem.setAttribute("regionType", "feature");
 //							String keywordRefId = getKeyword(type);
 //							featureItem.setReference("feature", keywordRefId);
 							String featureDescription = description;
@@ -351,7 +348,7 @@ public class UniprotXomConverter extends BioFileConverter {
 							String modiPos = null;
 							if (position != null) {
 								modiPos = position.getAttributeValue("position");
-								featureItem.setAttribute("begin", modiPos);
+								featureItem.setAttribute("start", modiPos);
 								featureItem.setAttribute("end", modiPos);
 							} else {
 								Element beginElement = location.getFirstChildElement("begin");
@@ -361,7 +358,7 @@ public class UniprotXomConverter extends BioFileConverter {
 									// e.g. <end status="unknown"/>
 									String begin = beginElement.getAttributeValue("position");
 									if (begin != null) {
-										featureItem.setAttribute("begin", begin);
+										featureItem.setAttribute("start", begin);
 									}
 									String end = endElement.getAttributeValue("position");
 									if (end != null) {
@@ -434,7 +431,13 @@ public class UniprotXomConverter extends BioFileConverter {
 								featureItem.addToCollection("publications", refId);
 							}
 							store(featureItem);
+
+							protein.addToCollection("features", featureItem);
 						}
+
+						store(protein);
+						// actually, the main accession should not be duplicated
+						doneEntries.add(accession);
 
 						/* components */
 						Elements components = proteinElement.getChildElements("component");
@@ -456,7 +459,7 @@ public class UniprotXomConverter extends BioFileConverter {
 							item.setReference("protein", protein);
 							store(item);
 						}
-
+						
 						numOfNewEntries++;
 						LOG.info("Entry " + accession + " created.");
 

@@ -309,9 +309,9 @@ public class FillProteinsXomConverter extends BioFileConverter {
 						
 						// TODO evidence?
 						
-						store(protein);
+						// store(protein);
 						// actually, the main accession should not be duplicated
-						doneEntries.add(accession);
+						// doneEntries.add(accession);
 						
 						/* features */
 						Elements features = entry.getChildElements("feature");
@@ -326,6 +326,7 @@ public class FillProteinsXomConverter extends BioFileConverter {
 							
 							Item featureItem = createItem("UniProtFeature");
 							featureItem.setAttribute("type", type);
+							featureItem.setAttribute("regionType", "feature");
 //							String keywordRefId = getKeyword(type);
 //							featureItem.setReference("feature", keywordRefId);
 							String featureDescription = description;
@@ -339,7 +340,7 @@ public class FillProteinsXomConverter extends BioFileConverter {
 							Element location = feature.getFirstChildElement("location");
 							Element position = location.getFirstChildElement("position");
 							if (position != null) {
-								featureItem.setAttribute("begin", position.getAttributeValue("position"));
+								featureItem.setAttribute("start", position.getAttributeValue("position"));
 								featureItem.setAttribute("end", position.getAttributeValue("position"));
 							} else {
 								Element beginElement = location.getFirstChildElement("begin");
@@ -349,7 +350,7 @@ public class FillProteinsXomConverter extends BioFileConverter {
 									// e.g. <end status="unknown"/>
 									String begin = beginElement.getAttributeValue("position");
 									if (begin != null) {
-										featureItem.setAttribute("begin", begin);
+										featureItem.setAttribute("start", begin);
 									}
 									String end = endElement.getAttributeValue("position");
 									if (end != null) {
@@ -359,8 +360,14 @@ public class FillProteinsXomConverter extends BioFileConverter {
 							}
 							featureItem.setReference("protein", protein);
 							store(featureItem);
+
+							protein.addToCollection("features", featureItem);
 						}
 						
+						store(protein);
+						// actually, the main accession should not be duplicated
+						doneEntries.add(accession);
+
 						/* components */
 						Elements components = proteinElement.getChildElements("component");
 						for (int i = 0; i < components.size(); i++) {

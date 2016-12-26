@@ -4,7 +4,7 @@
 	<class name="Protein" is-interface="true">
 		<attribute name="primaryAccession" type="java.lang.String"/>
 		<collection name="predictedAnnotations" referenced-type="PredictedAnnotation" reverse-reference="protein"/>
-		<collection name="predictedRegions" referenced-type="PredictedRegion" reverse-reference="protein"/>
+		<collection name="predictedRegions" referenced-type="PredictedRegion" />
 	</class>
 	<class name="PredictedAnnotation" is-interface="true">
 		<attribute name="type" type="java.lang.String"/>
@@ -17,10 +17,11 @@
 	<class name="ProteinRegion" is-interface="true">
 		<attribute name="start" type="java.lang.Integer"/>
 		<attribute name="end" type="java.lang.Integer"/>
+		<attribute name="regionType" type="java.lang.String"/>
+		<reference name="protein" referenced-type="Protein" reverse-reference="regions" />
 	</class>
 	<class name="PredictedRegion" extends="ProteinRegion" is-interface="true">
 		<attribute name="type" type="java.lang.String"/>
-		<reference name="protein" referenced-type="Protein" reverse-reference="predictedRegions"/>
 		<reference name="prediction" referenced-type="PredictedAnnotation" reverse-reference="regions"/>
 	</class>
 </classes>

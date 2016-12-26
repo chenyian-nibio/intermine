@@ -39,7 +39,7 @@ public class Gene3Dv14Converter extends BioFileConverter {
 
 	// private Item dataSet;
 
-	private Map<String, String> proteinMap = new HashMap<String, String>();
+	private Map<String, Item> proteinMap = new HashMap<String, Item>();
 	private Map<String, String> cathNodeMap = new HashMap<String, String>();
 
 	/**
@@ -92,10 +92,13 @@ public class Gene3Dv14Converter extends BioFileConverter {
 					String key = String.format("%s_%s_%s_%s", startPos, endPos,
 							pAcc, nodeNumber);
 					if (!annotations.contains(key)) {
-						createStructuralDomainRegion(startPos, endPos,
-								getProtein(pAcc),
+						Item protein = getProtein(pAcc);
+						Item region = createStructuralDomainRegion(startPos, endPos,
+								protein.getIdentifier(),
 								getCathClassification(nodeNumber));
 						annotations.add(key);
+						
+						protein.addToCollection("structuralDomains", region);
 					}
 				}
 			}
@@ -103,15 +106,33 @@ public class Gene3Dv14Converter extends BioFileConverter {
 		LOG.info("There were " + annotations.size() + " StructuralDomainRegions have been created." );
 		System.out.println("There were " + annotations.size() + " StructuralDomainRegions have been created.");
 	}
+	
+	@Override
+	public void close() throws Exception {
+		store(proteinMap.values());
+	}
 
-	private void createStructuralDomainRegion(String start, String end, String proteinRefId,
+	private Item getProtein(String primaryAccession) throws ObjectStoreException {
+		Item ret = proteinMap.get(primaryAccession);
+		if (ret == null) {
+			ret = createItem("Protein");
+			ret.setAttribute("primaryAccession", primaryAccession);
+			proteinMap.put(primaryAccession, ret);
+		}
+		return ret;
+	}
+
+	private Item createStructuralDomainRegion(String start, String end, String proteinRefId,
 			String cathRefId) throws ObjectStoreException {
 		Item item = createItem("StructuralDomainRegion");
 		item.setAttribute("start", start);
 		item.setAttribute("end", end);
+		item.setAttribute("regionType", "structural domain");
 		item.setReference("protein", proteinRefId);
 		item.setReference("cathClassification", cathRefId);
 		store(item);
+		
+		return item;
 	}
 
 	private String getCathClassification(String nodeNumber) throws ObjectStoreException {
@@ -122,18 +143,6 @@ public class Gene3Dv14Converter extends BioFileConverter {
 			store(item);
 			ret = item.getIdentifier();
 			cathNodeMap.put(nodeNumber, ret);
-		}
-		return ret;
-	}
-
-	private String getProtein(String primaryAccession) throws ObjectStoreException {
-		String ret = proteinMap.get(primaryAccession);
-		if (ret == null) {
-			Item item = createItem("Protein");
-			item.setAttribute("primaryAccession", primaryAccession);
-			store(item);
-			ret = item.getIdentifier();
-			proteinMap.put(primaryAccession, ret);
 		}
 		return ret;
 	}

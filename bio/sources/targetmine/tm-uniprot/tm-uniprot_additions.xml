@@ -1,11 +1,14 @@
 <?xml version="1.0"?>
 <classes>
-	<class name="UniProtFeature" is-interface="true">
+	<class name="ProteinRegion" is-interface="true">
+		<attribute name="start" type="java.lang.Integer"/>
+		<attribute name="end" type="java.lang.Integer"/>
+		<attribute name="regionType" type="java.lang.String"/>
+		<reference name="protein" referenced-type="Protein" reverse-reference="regions" />
+	</class>
+	<class name="UniProtFeature" extends="ProteinRegion" is-interface="true">
 		<attribute name="type" type="java.lang.String"/>
 		<attribute name="description" type="java.lang.String"/>
-		<attribute name="begin" type="java.lang.Integer"/>
-		<attribute name="end" type="java.lang.Integer"/>
-		<reference name="protein" referenced-type="Protein" reverse-reference="features" />
 		<collection name="publications" referenced-type="Publication"/>
 	</class>
 	<class name="Protein" is-interface="true">
@@ -16,10 +19,10 @@
 		<collection name="comments" referenced-type="Comment" />
 		<collection name="components" referenced-type="Component" reverse-reference="protein" />
 		<collection name="keywords" referenced-type="OntologyTerm" />
-		<collection name="features" referenced-type="UniProtFeature" reverse-reference="protein" />
+		<collection name="features" referenced-type="UniProtFeature" />
 		<collection name="otherAccessions" referenced-type="ProteinAccession" reverse-reference="protein" />
-		<!-- Testing... -->
 		<collection name="modifications" referenced-type="Modification" reverse-reference="protein" />
+		<collection name="regions" referenced-type="ProteinRegion" reverse-reference="protein" />
 	</class>
 	<class name="Component" is-interface="true">
 		<attribute name="name" type="java.lang.String" />

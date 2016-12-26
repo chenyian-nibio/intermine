@@ -661,7 +661,7 @@
 
   <class className="org.intermine.model.bio.UniProtFeature">
     <fields>
-      <fieldconfig fieldExpr="begin"/>
+      <fieldconfig fieldExpr="start"/>
       <fieldconfig fieldExpr="end"/>
       <fieldconfig fieldExpr="type"/>
       <fieldconfig fieldExpr="description"/>

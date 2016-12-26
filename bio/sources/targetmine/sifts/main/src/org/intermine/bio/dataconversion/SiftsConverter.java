@@ -24,12 +24,12 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class SiftsConverter extends BioFileConverter {
-//	private static Logger LOG = Logger.getLogger(SiftsConverter.class);
+	// private static Logger LOG = Logger.getLogger(SiftsConverter.class);
 	//
 	private static final String DATASET_TITLE = "SIFTS";
 	private static final String DATA_SOURCE_NAME = "PDBe";
 
-	private Map<String, String> proteinMap = new HashMap<String, String>();
+	private Map<String, Item> proteinMap = new HashMap<String, Item>();
 	private Map<String, String> proteinStructureMap = new HashMap<String, String>();
 	private Map<String, String> proteinChainMap = new HashMap<String, String>();
 
@@ -71,27 +71,33 @@ public class SiftsConverter extends BioFileConverter {
 			item.setAttribute("pdbSeqEnd", cols[6]);
 			item.setAttribute("start", cols[7]);
 			item.setAttribute("end", cols[8]);
-			item.setReference("protein", getProtein(cols[2]));
+			item.setAttribute("regionType", "3D structure");
+			Item protein = getProtein(cols[2]);
+			item.setReference("protein", protein);
 			item.setReference("chain", getProteinChain(cols[0], cols[1]));
 
 			store(item);
+
+			protein.addToCollection("proteinStructureRegions", item);
 		}
 	}
 
-	private String getProtein(String primaryAccession) throws ObjectStoreException {
-		String ret = proteinMap.get(primaryAccession);
+	@Override
+	public void close() throws Exception {
+		store(proteinMap.values());
+	}
+
+	private Item getProtein(String primaryAccession) throws ObjectStoreException {
+		Item ret = proteinMap.get(primaryAccession);
 		if (ret == null) {
-			Item item = createItem("Protein");
-			item.setAttribute("primaryAccession", primaryAccession);
-			store(item);
-			ret = item.getIdentifier();
+			ret = createItem("Protein");
+			ret.setAttribute("primaryAccession", primaryAccession);
 			proteinMap.put(primaryAccession, ret);
 		}
 		return ret;
 	}
 
-	private String getProteinChain(String pdbId, String chainId)
-			throws ObjectStoreException {
+	private String getProteinChain(String pdbId, String chainId) throws ObjectStoreException {
 		String identifier = pdbId + chainId;
 		String ret = proteinChainMap.get(identifier);
 		if (ret == null) {
