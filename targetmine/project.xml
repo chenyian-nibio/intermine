@@ -116,7 +116,7 @@
     </source>
     <source name="kegg-jscc" type="kegg-jtc">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/br"/>
-      <property name="src.data.dir.includes" value="br08301.keg"/>
+      <property name="src.data.dir.includes" value="br0830*.keg"/>
       <property name="osAlias" value="os.production"/>
     </source>
   	

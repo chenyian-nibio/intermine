@@ -46,6 +46,8 @@ public class KeggDrugConverter extends BioFileConverter {
 	private static final String DATA_SOURCE_NAME = "KEGG";
 
 	private Set<String> synonymTypeSet = new HashSet<String>();
+	
+	private Set<String> therapeuticLabels = new HashSet<String>();
 	/**
 	 * Constructor
 	 * 
@@ -67,6 +69,7 @@ public class KeggDrugConverter extends BioFileConverter {
 //		non-JP - Japanese standards for non-Pharmacopoeial crude drugs
 		synonymTypeSet.addAll(Arrays.asList("JAN", "USAN", "NF", "INN", "BAN", "DCF", "JP17",
 				"USP", "non-JP"));
+		
 	}
 
 	private File inchikeyFile;
@@ -88,6 +91,7 @@ public class KeggDrugConverter extends BioFileConverter {
 	public void process(Reader reader) throws Exception {
 		readInchikeyFile();
 		getDrugBankIdMap();
+		createAllTherapeuticClassifications();
 
 		BufferedReader in = null;
 		try {
@@ -140,6 +144,11 @@ public class KeggDrugConverter extends BioFileConverter {
 					dblDrugBankId = line.substring(line.indexOf(":") + 2);
 				} else if (line.contains("CAS:")) {
 					casNumber = line.substring(line.indexOf(":") + 2);
+				} else if (line.contains(".html]")) {
+					String refHtml = line.substring(line.indexOf("[br") + 1, line.indexOf(".html]"));
+					if (therapeuticClassMap.keySet().contains(refHtml)) {
+						therapeuticLabels.add(refHtml);
+					}
 				} else if (isMetabolism) {
 					String content = line.substring(12).trim();
 					if (!StringUtils.isEmpty(content)) {
@@ -337,6 +346,8 @@ public class KeggDrugConverter extends BioFileConverter {
 					atcCodes = "";
 					casNumber = "";
 					
+					therapeuticLabels.clear();
+					
 					metabolisms = new HashMap<String, Set<String>>();
 					interactions = new HashMap<String, Set<String>>();
 
@@ -392,6 +403,10 @@ public class KeggDrugConverter extends BioFileConverter {
 			drugItem.setAttribute("inchiKey", inchiKey);
 			drugItem.setReference("compoundGroup",
 					getCompoundGroup(inchiKey.substring(0, inchiKey.indexOf("-")), name));
+		}
+		
+		for (String label : therapeuticLabels) {
+			drugItem.addToCollection("therapeuticClassifications", therapeuticClassMap.get(label));
 		}
 
 		store(drugItem);
@@ -607,5 +622,37 @@ public class KeggDrugConverter extends BioFileConverter {
 		}
 
 	}
+	
+	Map<String, String> therapeuticClassMap = new HashMap<String, String>(); 
+	
+	private void createTherapeuticClassification(String identifier, String name) throws ObjectStoreException {
+		Item item = createItem("TherapeuticClassification");
+		item.setAttribute("identifier", identifier);
+		item.setAttribute("name", name);
+		store(item);
+		therapeuticClassMap.put(identifier, item.getIdentifier());
+	}
+	
+	private void createAllTherapeuticClassifications() throws ObjectStoreException {
+		createTherapeuticClassification("br08340", "Antineoplastics");
+		createTherapeuticClassification("br08350", "Antibacterials");
+		createTherapeuticClassification("br08351", "Antivirals");
+		createTherapeuticClassification("br08352", "Antifungals");
+		createTherapeuticClassification("br08353", "Antiparasitics");
+		createTherapeuticClassification("br08361", "Antidiabetics");
+		createTherapeuticClassification("br08365", "Hypolipidemic agents");
+		createTherapeuticClassification("br08368", "Osteoporosis drugs");
+		createTherapeuticClassification("br08364", "Cardiovascular agents");
+		createTherapeuticClassification("br08363", "Psychiatric agents");
+		createTherapeuticClassification("br08367", "Neurological agents");
+		createTherapeuticClassification("br08362", "Anti-allergic agents");
+		createTherapeuticClassification("br08366", "Antirheumatic and antigout drugs");
+		createTherapeuticClassification("br08369",
+				"Anesthetics, analgesics and anti-inflammatory drugs");
+		createTherapeuticClassification("br08372", "Respiratory agents");
+		createTherapeuticClassification("br08371", "Gastrointestinal agents");
+		createTherapeuticClassification("br08373", "Endocrine and hormonal agents");
+		createTherapeuticClassification("br08370", "Dermatological agents");
+	}	 
 
 }

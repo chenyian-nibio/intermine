@@ -7,9 +7,16 @@
 		<reference name="parent" referenced-type="JscClassification"/>
 		<collection name="allParents" referenced-type="JscClassification"/>
 	</class>
+	<class name="UspClassification" is-interface="true">
+		<attribute name="lv" type="java.lang.Integer"/>
+		<attribute name="name" type="java.lang.String"/>
+		<reference name="parent" referenced-type="UspClassification"/>
+		<collection name="allParents" referenced-type="UspClassification"/>
+	</class>
 	<class name="DrugCompound" extends="Compound" is-interface="true">
 		<attribute name="keggDrugId" type="java.lang.String"/>
 		<collection name="jsccCodes" referenced-type="JscClassification"/>		
+		<collection name="uspClassifications" referenced-type="UspClassification"/>
 	</class>
 
 </classes>
