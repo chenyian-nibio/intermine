@@ -170,6 +170,8 @@ public class Protein2iprConverter extends BioFileConverter {
 			dbName = "HAMAP";
 		} else if (dbId.startsWith("cd")) {
 			dbName = "CDD";
+		} else if (dbId.startsWith("SFLD")) {
+			dbName = "Structure-Function Linkage Database (SFLD)";
 		} else {
 			throw new RuntimeException("Unknown DB found. ID: " + dbId);
 		}
