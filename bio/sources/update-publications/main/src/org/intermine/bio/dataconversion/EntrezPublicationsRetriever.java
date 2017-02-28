@@ -24,6 +24,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -214,6 +215,11 @@ public class EntrezPublicationsRetriever
                 }
             }
 
+            // TODO this is for the problem of kapa in Java 7, a temporary solution
+            // this s string will be \ud835 in java 7 but \ufffd (a replacement character) in java 8
+    		byte[] b = {(byte) 237, (byte) 160, (byte) 181};
+    		String s = new String(b, "UTF-8");
+            
             Iterator<Integer> idIter = idsToFetch.iterator();
             Set<Integer> thisBatch = new HashSet<Integer>();
             while (idIter.hasNext()) {
@@ -229,6 +235,11 @@ public class EntrezPublicationsRetriever
                             StringBuffer buf = new StringBuffer();
                             String line;
                             while ((line = br.readLine()) != null) {
+                            	// TODO this is for the problem of kapa in Java 7, a temporary solution
+                            	if (line.contains(s)) {
+                            		// replace kapa (\ud835\udf05) with k
+                            		line = line.replaceAll("\ud835\udf05", "k");
+                            	}
                                 buf.append(line + "\n");
                             }
                             fromServerMap = new HashMap<String, Map<String, Object>>();
@@ -361,7 +372,7 @@ public class EntrezPublicationsRetriever
             urlString = EFETCH_URL + StringUtil.join(ids, ",");
         }
         System.err .println("retrieving: " + urlString);
-        return new BufferedReader(new InputStreamReader(new URL(urlString).openStream()));
+        return new BufferedReader(new InputStreamReader(new URL(urlString).openStream(), StandardCharsets.UTF_8));
     }
 
     private Set<Item> mapToItems(ItemFactory factory, Map map) {
