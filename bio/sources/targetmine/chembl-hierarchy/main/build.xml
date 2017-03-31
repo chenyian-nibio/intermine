@@ -1,0 +1,4 @@
+<project name="chembl-hierarchy-tasks" default="default" basedir=".">
+  <description>build chembl-hierarchy tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

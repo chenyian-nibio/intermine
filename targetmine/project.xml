@@ -37,7 +37,7 @@
       <property name="geneinfo.organisms" value="9606 10090 10116"/>
       <property name="unigene.organisms" value="Hs Rn Mm"/>
       <property name="chromosomeFile" value="/data/bio/db/Targetmine/genome/chromosome"/>
-      <property name="chromosomeAssembly" value="Reference GRCh38.p7 Primary Assembly;Reference Rnor_6.0 Primary Assembly;Reference GRCm38.p3 C57BL/6J;Reference GRCm38.p4 C57BL/6J"/>
+      <property name="chromosomeAssembly" value="Reference GRCh38.p7 Primary Assembly;Reference Rnor_6.0 Primary Assembly;Reference GRCm38.p4 C57BL/6J"/>
       <property name="gene2unigeneFile" value="/data/bio/db/Targetmine/gene_info/gene2unigene"/>
       <property name="gene2accessionFile" value="/data/bio/db/Targetmine/gene_info/gene2accession"/>
       <property name="genehistoryFile" value="/data/bio/db/Targetmine/gene_info/gene_history"/>
@@ -204,6 +204,9 @@
       <property name="source.db.name" value="chebi-db"/>
     </source>
     <source name="chembl" type="chembl-db">
+      <property name="source.db.name" value="chembl-psql"/>
+    </source>
+    <source name="chembl-hie" type="chembl-hierarchy">
       <property name="source.db.name" value="chembl-psql"/>
     </source>
     <source name="chembl-protein" type="chembl-protein">

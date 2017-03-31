@@ -20,7 +20,7 @@ import org.intermine.xml.full.Item;
 public class ChemblProteinConverter extends BioDBConverter {
 	//
 	private static final String DATASET_TITLE = "ChEMBL";
-	private static final String DATA_SOURCE_NAME = "EMBL-EBI";
+	private static final String DATA_SOURCE_NAME = "ChEMBL";
 
 	private Map<String, String> proteinMap = new HashMap<String, String>();
 
@@ -35,7 +35,7 @@ public class ChemblProteinConverter extends BioDBConverter {
 	 *            an ItemWriter used to handle Items created
 	 */
 	public ChemblProteinConverter(Database database, Model model, ItemWriter writer) {
-		super(database, model, writer);
+        super(database, model, writer, DATA_SOURCE_NAME, DATASET_TITLE);
 	}
 
 	/**
