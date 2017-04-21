@@ -862,6 +862,11 @@
                      replacesFields="atcCodes,jsccCodes,uspClassifications,synonyms" 
                      types="DrugCompound"/>
 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.ChemblAlternateFormDisplayer"
+                     jspName="model/chemblAlternateFormDisplayer.jsp"
+                     replacesFields="parent, alternateForms" 
+                     types="ChemblCompound"/>
+                     
   </reportdisplayers>
 
   

@@ -4,6 +4,7 @@
 <classes>
 	<class name="ChemblCompound" extends="Compound" is-interface="true">
 		<collection name="alternateForms" referenced-type="ChemblCompound"/>
+		<reference name="parent" referenced-type="ChemblCompound"/>
 	</class>
 
 	<class name="Compound" is-interface="true">

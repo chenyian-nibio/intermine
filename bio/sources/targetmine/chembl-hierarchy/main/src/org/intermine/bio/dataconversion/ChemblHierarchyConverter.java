@@ -71,11 +71,12 @@ public class ChemblHierarchyConverter extends BioDBConverter
 		
 		for (String parentId: parentMap.keySet()) {
 			Set<String> set = parentMap.get(parentId);
+//			getChemblCompound(parentId, null);
 			for (String id1 : set) {
 				for (String id2 : set) {
 					if (!id1.equals(id2)) {
-						Item compound = getChemblCompound(id1);
-						compound.addToCollection("alternateForms", getChemblCompound(id2));
+						Item compound = getChemblCompound(id1, parentId);
+						compound.addToCollection("alternateForms", getChemblCompound(id2, parentId));
 					}
 				}
 			}
@@ -91,12 +92,15 @@ public class ChemblHierarchyConverter extends BioDBConverter
     	store(compoundMap.values());
     }
     
-	private Item getChemblCompound(String chemblId) throws ObjectStoreException {
+	private Item getChemblCompound(String chemblId, String parentId) throws ObjectStoreException {
 		Item ret = compoundMap.get(chemblId);
 		if (ret == null) {
 			ret = createItem("ChemblCompound");
 			ret.setAttribute("originalId", chemblId);
 //			ret.setAttribute("identifier", String.format("ChEMBL:%s", chemblId));
+			if (parentId != null && !parentId.equals(chemblId)) {
+				ret.setReference("parent", getChemblCompound(parentId, null));
+			}
 			compoundMap.put(chemblId, ret);
 		}
 		return ret;
