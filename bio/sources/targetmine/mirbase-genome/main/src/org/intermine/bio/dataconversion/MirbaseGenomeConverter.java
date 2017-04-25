@@ -111,7 +111,7 @@ public class MirbaseGenomeConverter extends BioFileConverter {
 			if (chr.toLowerCase().startsWith("chr")) {
 				chrId = chr.substring(3);
 			}
-			item.setAttribute("primaryIdentifier", chrId);
+//			item.setAttribute("primaryIdentifier", chrId);
 			item.setAttribute("symbol", chrId);
 			if (!StringUtils.isEmpty(taxonId)) {
 				item.setReference("organism", getOrganism(taxonId));

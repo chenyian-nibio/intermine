@@ -1,0 +1,5 @@
+<project name="gene-esummary" default="default" basedir=".">
+  <description>build, test, package gene-esummary</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

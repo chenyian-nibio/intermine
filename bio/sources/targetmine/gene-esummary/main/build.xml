@@ -1,0 +1,4 @@
+<project name="gene-esummary-tasks" default="default" basedir=".">
+  <description>build gene-esummary tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

@@ -36,12 +36,14 @@
       <property name="src.data.dir.includes" value="*.gene_info"/>
       <property name="geneinfo.organisms" value="9606 10090 10116"/>
       <property name="unigene.organisms" value="Hs Rn Mm"/>
-      <property name="chromosomeFile" value="/data/bio/db/Targetmine/genome/chromosome"/>
-      <property name="chromosomeAssembly" value="Reference GRCh38.p7 Primary Assembly;Reference Rnor_6.0 Primary Assembly;Reference GRCm38.p4 C57BL/6J"/>
       <property name="gene2unigeneFile" value="/data/bio/db/Targetmine/gene_info/gene2unigene"/>
       <property name="gene2accessionFile" value="/data/bio/db/Targetmine/gene_info/gene2accession"/>
       <property name="genehistoryFile" value="/data/bio/db/Targetmine/gene_info/gene_history"/>
       <property name="knownToLocusLinkFile" value="/data/bio/db/Targetmine/ucsc/knownToLocusLink.txt"/>
+    </source>
+    <source name="gene-esummary" type="gene-esummary">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_info"/>
+      <property name="src.data.dir.includes" value="esummary.*"/>
     </source>
     <source name="do-annotation" type="do-annotation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/do-annotation"/>
@@ -331,13 +333,15 @@
       <property name="hasShortName" value="9606 10090 10116"/>
       <property name="processClass" value="Organism"/>
     </source>
-
+<!-- maybe no longer necessary ... 
     <source name="rpl" type="retrieve-publication-local">
       <property name="source.db.name" value="pub-db"/>
       <property name="osAlias" value="os.production"/>
     </source>
+ -->
     <source name="update-publications" type="update-publications">
       <property name="src.data.file" location="build/publications.xml"/>
+      <property name="loadFullRecord" value="true"/>
     </source>
 
   </sources>

@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -37,8 +38,6 @@ import org.intermine.xml.full.ItemFactory;
 public class MissingGeneXomRetriever {
 	private static final Logger LOG = Logger.getLogger(MissingGeneXomRetriever.class);
 	
-//	private static final String ESUMMARY_URL = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?tool=flymine&version=1.0&db=gene&id=";
-//	private static final String ESUMMARY_URL = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?tool=flymine&db=gene&id=";
     private static final String ESUMMARY_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?tool=flymine&db=gene&id=";
 
 	private static final int BATCH_SIZE = 200;
@@ -103,11 +102,16 @@ public class MissingGeneXomRetriever {
 						if (element.getChildElements("error").size() > 0) {
 							LOG.error("Unable to retrieve gene: " + uid);
 						} else {
+							Set<String> geneSynonyms = new HashSet<String>();
 							Item geneItem = itemFactory.makeItemForClass("Gene");
 							geneItem.setAttribute("primaryIdentifier", uid);
 							
-							String symbol = element.getChildElements("Name").get(0).getValue();
+							String symbol = element.getChildElements("NomenclatureSymbol").get(0).getValue();
+							if (StringUtils.isEmpty(symbol)) {
+								symbol = element.getChildElements("Name").get(0).getValue();
+							}
 							geneItem.setAttribute("symbol", symbol);
+							geneSynonyms.add(symbol);
 							
 							String taxonId = element.getChildElements("Organism").get(0).getChildElements("TaxID").get(0).getValue();
 							geneItem.setReference("organism", getOrganism(taxonId, itemFactory));
@@ -118,19 +122,40 @@ public class MissingGeneXomRetriever {
 								geneItem.setAttribute("briefDescription", String.format("This record was replaced with Gene ID: %s", currentId));
 							}
 							
-							String name = element.getChildElements("Description").get(0).getValue();
+							String name = element.getChildElements("NomenclatureName").get(0).getValue();
 							if (StringUtils.isEmpty(name)) {
-								name = "unavailable";
+								// the 'description' attribute is more like a name?
+								name = element.getChildElements("Description").get(0).getValue();
+								if (StringUtils.isEmpty(name)) {
+									name = "unavailable";
+								}
 							}
 							geneItem.setAttribute("name", name);
 							
-							String desc = element.getChildElements("OtherDesignations").get(0).getValue();
-							if (StringUtils.isEmpty(desc)) {
-								desc = "-";
+							String otherDesignations = element.getChildElements("OtherDesignations").get(0).getValue();
+							if (!StringUtils.isEmpty(otherDesignations)) {
+								geneSynonyms.addAll(Arrays.asList(otherDesignations.split("\\|")));
 							}
-							geneItem.setAttribute("description", desc);
+							String otherAliases = element.getChildElements("OtherAliases").get(0).getValue();
+							if (!StringUtils.isEmpty(otherAliases)) {
+								geneSynonyms.addAll(Arrays.asList(otherAliases.split(", ")));
+							}
+
+							String summary = element.getChildElements("Summary").get(0).getValue();
+							if (!StringUtils.isEmpty(summary)) {
+								// store 'summary' attribute in the 'description' field
+								geneItem.setAttribute("description", summary);
+							}
 
 							writer.write(FullRenderer.render(geneItem));
+							
+							for (String alias : geneSynonyms) {
+								Item item = itemFactory.makeItemForClass("Synonym");
+								item.setReference("subject", geneItem.getIdentifier());
+								item.setAttribute("value", alias);
+								writer.write(FullRenderer.render(item));
+							}
+
 						}
 					}
 					
