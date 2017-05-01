@@ -325,13 +325,22 @@
     </source>
     <source name="calculate-bg" type="calculate-bg">
     </source>
-
+<!-- 
     <source name="organism" type="organism">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/taxonomy"/>
       <property name="src.data.dir.includes" value="taxno.name"/>
       <property name="osAlias" value="os.production"/>
       <property name="hasShortName" value="9606 10090 10116"/>
-      <property name="processClass" value="Organism"/>
+    </source>
+ -->
+    <source name="organism" type="fill-organisms">
+      <property name="src.data.file" location="build/organisms.xml"/>
+      <property name="hasShortName" value="9606 10090 10116"/>
+    </source>
+    <source name="taxon" type="taxonomy">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/taxonomy"/>
+      <property name="src.data.dir.includes" value="nodes.dmp"/>
+      <property name="nameFile" value="/data/bio/db/Targetmine/taxonomy/names.dmp"/>
     </source>
 <!-- maybe no longer necessary ... 
     <source name="rpl" type="retrieve-publication-local">

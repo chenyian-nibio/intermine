@@ -1,0 +1,4 @@
+<project name="taxonomy-tasks" default="default" basedir=".">
+  <description>build taxonomy tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

@@ -2,12 +2,13 @@ package org.intermine.bio.dataconversion;
 
 import java.io.BufferedReader;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -25,6 +26,9 @@ import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
 /**
+ * This converter is deprecated because the rule for identifying the genus and species is not robust. (2017/5/1)
+ * <br/>
+ * <br/>
  * Parse Organism information. Data sources were download from NCBI taxonomy using following script
  * 
  * <pre>
@@ -35,26 +39,22 @@ import org.intermine.xml.full.Item;
  * 
  * @author chenyian
  */
+
+@Deprecated
 public class OrganismConverter extends FileConverter {
 	private static final Logger LOG = Logger.getLogger(OrganismConverter.class);
 
 	//
 	private String osAlias;
 
-	private String processClass;
-
 	private List<String> hasShortName;
 
-	private List<String> allTaxonIds;
+	private Set<String> allTaxonIds;
 
 	private Map<String, String> organismMap = new HashMap<String, String>();
 
 	public void setOsAlias(String osAlias) {
 		this.osAlias = osAlias;
-	}
-
-	public void setProcessClass(String processClass) {
-		this.processClass = processClass;
 	}
 
 	public void setHasShortName(String taxonIds) {
@@ -81,19 +81,21 @@ public class OrganismConverter extends FileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
-		if (processClass == null || osAlias == null) {
-			throw new RuntimeException("check your setting for processClass and osAlias.");
+		if (osAlias == null) {
+			throw new RuntimeException("The property osAlias wasn't set properly.");
 		}
 
-		allTaxonIds = getAllTaxonIds();
+		if (allTaxonIds == null) {
+			allTaxonIds = getAllTaxonIds();
+		}
 
 		int orgNum = allTaxonIds.size();
-		LOG.info(String.format("%d %s object(s) to be processed.", orgNum, processClass));
+		LOG.info(String.format("%d %s object(s) to be processed.", orgNum, "Organism"));
 
 		Iterator<String[]> iterator = FormattedTextParser.parseDelimitedReader(new BufferedReader(
 				reader), '|');
 
-		while (orgNum > organismMap.size() && iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
 
 			String taxonId = cols[0].trim();
@@ -105,10 +107,19 @@ public class OrganismConverter extends FileConverter {
 				}
 			}
 		}
+		
+//		SetView<String> difference = Sets.difference(allTaxonIds, organismMap.keySet());
+//		StringUtils.join(difference, ",");
+		allTaxonIds.removeAll(organismMap.keySet());
+		LOG.info("There are " + allTaxonIds.size() + " unannotated taxonIds: "
+				+ StringUtils.join(allTaxonIds, ","));
+		System.out.println("There are " + allTaxonIds.size() + " unannotated taxonIds: "
+				+ StringUtils.join(allTaxonIds, ","));
+		
 	}
 
 	private String createOrganism(String taxonId, String sciName) throws ObjectStoreException {
-		Item item = createItem(processClass);
+		Item item = createItem("Organism");
 		item.setAttribute("taxonId", taxonId);
 		item.setAttribute("name", sciName);
 		int spaceIndex = sciName.indexOf(" ");
@@ -122,6 +133,12 @@ public class OrganismConverter extends FileConverter {
 						+ sciName.substring(spaceIndex + 1));
 			}
 		}
+		Item taxonomy = createItem("Taxonomy");
+		taxonomy.setAttribute("taxonId", taxonId);
+		store(taxonomy);
+		
+		item.setReference("taxonomy", taxonomy);
+		
 		store(item);
 //		LOG.info(String.format("taxonId: %s; shortName: %s; created.", taxonId, sciName.charAt(0)
 //				+ ". " + sciName.substring(spaceIndex + 1)));
@@ -129,9 +146,9 @@ public class OrganismConverter extends FileConverter {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private List<String> getAllTaxonIds() throws Exception {
+	private Set<String> getAllTaxonIds() throws Exception {
 		Query q = new Query();
-		QueryClass c = new QueryClass(Class.forName("org.intermine.model.bio." + processClass));
+		QueryClass c = new QueryClass(Class.forName("org.intermine.model.bio.Organism"));
 		QueryField f1 = new QueryField(c, "taxonId");
 		q.addFrom(c);
 		q.addToSelect(f1);
@@ -139,7 +156,7 @@ public class OrganismConverter extends FileConverter {
 
 		ObjectStore os = ObjectStoreFactory.getObjectStore(osAlias);
 
-		List<String> ret = new ArrayList<String>();
+		Set<String> ret = new HashSet<String>();
 		Iterator iterator = os.execute(q).iterator();
 		while (iterator.hasNext()) {
 			ResultsRow<Integer> rr = (ResultsRow<Integer>) iterator.next();

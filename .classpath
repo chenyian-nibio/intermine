@@ -29,6 +29,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/enzyme-pathway/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fill-missing-genes/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fill-missing-publications/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/fill-organisms/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fill-proteins-xml/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fugue/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/gene-esummary/main/src"/>
@@ -66,6 +67,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/retrieve-publication-local/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/scop/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/sifts/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/taxonomy/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/tfactor/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/tm-go-annotation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/tm-kegg-orthology/main/src"/>

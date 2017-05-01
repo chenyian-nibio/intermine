@@ -41,15 +41,14 @@ import org.intermine.xml.full.ItemFactory;
  */
 public class MissingPublicationXomRetriever
 {
-    protected static final Logger LOG = Logger.getLogger(MissingPublicationXomRetriever.class);
-    // rettype=abstract or just leave it out
-    protected static final String EFETCH_URL =
-        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?tool=flymine&db=pubmed&rettype=abstract&retmode=xml&id=";
-    // number of records to retrieve per request
-    protected static final int BATCH_SIZE = 500;
-    // number of times to try the same batch from the server
-    private String osAlias = null;
-    private String outputFile = null;
+	private static final Logger LOG = Logger.getLogger(MissingPublicationXomRetriever.class);
+	// rettype=abstract or just leave it out
+	private static final String EFETCH_URL =
+			"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?tool=flymine&db=pubmed&rettype=abstract&retmode=xml&id=";
+	// number of records to retrieve per request
+	private static final int BATCH_SIZE = 500;
+	private String osAlias = null;
+	private String outputFile = null;
 
 	public void setOsAlias(String osAlias) {
 		this.osAlias = osAlias;
@@ -68,7 +67,7 @@ public class MissingPublicationXomRetriever
 			throw new BuildException("osAlias attribute is not set");
 		}
 
-		LOG.info("Starting MissingPublicationXomRetriever");
+		LOG.info("Starting MissingPublicationXomRetriever...");
 
 		Writer writer = null;
 
@@ -199,6 +198,7 @@ public class MissingPublicationXomRetriever
 		LOG.info(String.format("%d publication objects were created.",i));
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Set<String> getPubMedIds() throws Exception {
 		Query q = new Query();
 		QueryClass qc = new QueryClass(Publication.class);
@@ -234,10 +234,11 @@ public class MissingPublicationXomRetriever
 		return pubmedIds;
 	}
 
-    protected Reader getReader(Set<String> ids) throws Exception {
-        String urlString = EFETCH_URL + StringUtil.join(ids, ",");
-        System.err .println("retrieving: " + urlString);
-        return new BufferedReader(new InputStreamReader(new URL(urlString).openStream(), StandardCharsets.UTF_8));
-    }
+	private Reader getReader(Set<String> ids) throws Exception {
+		String urlString = EFETCH_URL + StringUtil.join(ids, ",");
+		System.out.println("retrieving: " + urlString);
+		LOG.info("retrieving: " + urlString);
+		return new BufferedReader(new InputStreamReader(new URL(urlString).openStream(), StandardCharsets.UTF_8));
+	}
 
 }

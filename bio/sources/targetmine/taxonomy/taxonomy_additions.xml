@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="Taxonomy" is-interface="true">
+		<attribute name="taxonId" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+		<attribute name="rank" type="java.lang.String"/>
+		<reference name="parent" referenced-type="Taxonomy"/>
+		<collection name="allParents" referenced-type="Taxonomy"/>
+	</class>
+
+</classes>
