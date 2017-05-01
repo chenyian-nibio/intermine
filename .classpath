@@ -28,6 +28,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/enzyme/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/enzyme-pathway/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fill-missing-genes/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/fill-missing-publications/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fill-proteins-xml/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fugue/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/gene-esummary/main/src"/>
@@ -61,6 +62,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/protein-ortholog/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/psp-reaction/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pubchem/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/publication-efetch/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/retrieve-publication-local/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/scop/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/sifts/main/src"/>
@@ -171,7 +173,6 @@
 	<classpathentry kind="lib" path="intermine/web/main/lib/bcprov-jdk15on-150.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/javax.servlet-api-3.1.0.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/javax.servlet.jsp-api-2.3.1.jar"/>
-	<classpathentry kind="lib" path="intermine/objectstore/main/lib/HikariCP-java6-2.3.8.jar"/>
 	<classpathentry kind="lib" path="bio/webapp/lib/bridges-core-1.1.0.jar"/>
 	<classpathentry kind="lib" path="imbuild/lib/im-ant-tasks.jar"/>
 	<classpathentry kind="lib" path="bio/webapp/lib/jami-ols-1.1.0.jar"/>

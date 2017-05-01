@@ -1,0 +1,4 @@
+<project name="publication-efetch-tasks" default="default" basedir=".">
+  <description>build publication-efetch tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>
