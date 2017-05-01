@@ -4,9 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -57,11 +59,14 @@ public class GeneEsummaryConverter extends BioFileConverter
 		try {  
 			in = new BufferedReader(reader);  
 			String line;
-			StringBuffer sb = new StringBuffer();
+//			StringBuffer sb = new StringBuffer();
+			List<String> stringList = new ArrayList<String>();
 			while ((line = in.readLine()) != null) {  
 				if (line.equals("///")) {
 					Builder parser = new Builder();
-					Document doc = parser.build(new StringReader(sb.toString()));
+//					Document doc = parser.build(new StringReader(sb.toString()));
+					String string = StringUtils.join(stringList.subList(2, stringList.size()), "\n");
+					Document doc = parser.build(new StringReader(string));
 					Element entry = doc.getRootElement();
 
 					Elements elements = entry.getChildElements("DocumentSummarySet").get(0).getChildElements("DocumentSummary");
@@ -156,9 +161,11 @@ public class GeneEsummaryConverter extends BioFileConverter
 					
 //					System.out.println("Processed " + elements.size() + " entries.");
 					
-					sb = new StringBuffer();
+//					sb = new StringBuffer();
+		        	stringList.clear();
 				} else {
-					sb.append(line + "\n");
+//					sb.append(line + "\n");
+					stringList.add(line);
 				}
 			}  
 		}  
