@@ -14,7 +14,6 @@ import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.Element;
 import nu.xom.Elements;
-import nu.xom.ParsingException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -25,9 +24,6 @@ import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreFactory;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
-import org.intermine.objectstore.query.QueryField;
-import org.intermine.objectstore.query.Results;
-import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.xml.full.Item;
 
 
@@ -144,6 +140,10 @@ public class PublicationEfetchConverter extends BioFileConverter
 		        			publication.setAttribute("year", pubDate.getFirstChildElement("Year").getValue());
 		        		} else if (pubDate.getFirstChildElement("MedlineDate") != null){
 		        			String year = pubDate.getFirstChildElement("MedlineDate").getValue().split(" ")[0];
+		        			// some year strings are ranges, for example: '1998-1999'
+	                    	if (year.contains("-")) {
+	                    		year = year.substring(0, year.indexOf("-"));
+	                    	}
 		                    try {
 		                        Integer.parseInt(year);
 		                        publication.setAttribute("year", year);

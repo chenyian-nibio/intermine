@@ -56,8 +56,9 @@
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
       <fieldconfig fieldExpr="symbol"/>
-      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="name" showInSummary="false" />
       <fieldconfig fieldExpr="organism.name" />
+      <fieldconfig fieldExpr="description" doNotTruncate="true" showInInlineCollection="false" showInSummary="false" />
     </fields>
   </class>
 
@@ -733,7 +734,14 @@
       <fieldconfig fieldExpr="organism.name" />
     </fields>
   </class>
-  
+
+  <class className="org.intermine.model.bio.Taxonomy">
+    <fields>
+      <fieldconfig fieldExpr="taxonId"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="rank"/>
+    </fields>
+  </class>
 
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>

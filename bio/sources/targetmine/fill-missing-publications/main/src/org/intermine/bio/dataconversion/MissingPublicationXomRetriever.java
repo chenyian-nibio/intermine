@@ -149,6 +149,10 @@ public class MissingPublicationXomRetriever
 		        			publication.setAttribute("year", pubDate.getFirstChildElement("Year").getValue());
 		        		} else if (pubDate.getFirstChildElement("MedlineDate") != null){
 		        			String year = pubDate.getFirstChildElement("MedlineDate").getValue().split(" ")[0];
+		        			// some year strings are ranges, for example: '1998-1999'
+	                    	if (year.contains("-")) {
+	                    		year = year.substring(0, year.indexOf("-"));
+	                    	}
 		                    try {
 		                        Integer.parseInt(year);
 		                        publication.setAttribute("year", year);
