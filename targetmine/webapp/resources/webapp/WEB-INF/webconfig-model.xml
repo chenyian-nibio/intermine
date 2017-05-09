@@ -56,7 +56,7 @@
     <fields>
       <fieldconfig fieldExpr="primaryIdentifier"/>
       <fieldconfig fieldExpr="symbol"/>
-      <fieldconfig fieldExpr="name" showInSummary="false" />
+      <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="organism.name" />
       <fieldconfig fieldExpr="description" doNotTruncate="true" showInInlineCollection="false" showInSummary="false" />
     </fields>
@@ -135,8 +135,10 @@
       </titles>
     </headerconfig>
     <fields>
-      <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="taxonId" />
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="genus"/>
+      <fieldconfig fieldExpr="species"/>
     </fields>
   </class>
 
@@ -161,9 +163,6 @@
         <title mainTitles="title" subTitles="year"/>
       </titles>
     </headerconfig>
-    <inlinelist>
-      <table path="authors.name" showLinksToObjects="true" />
-    </inlinelist>
     <fields>
       <fieldconfig fieldExpr="firstAuthor"/>
       <fieldconfig fieldExpr="title"/>
