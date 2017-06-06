@@ -114,6 +114,7 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/drug"/>
       <property name="src.data.dir.includes" value="drug"/>
       <property name="inchikeyFile" value="/data/bio/db/Targetmine/kegg-ftp/drug/drug.inchikey"/>
+      <property name="inchiFile" value="/data/bio/db/Targetmine/kegg-ftp/drug/drug.inchi"/>
       <property name="osAlias" value="os.production"/>
     </source>
     <source name="kegg-jscc" type="kegg-jtc">

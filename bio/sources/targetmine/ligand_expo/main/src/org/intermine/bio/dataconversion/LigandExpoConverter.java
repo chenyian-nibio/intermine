@@ -93,7 +93,7 @@ public class LigandExpoConverter extends BioFileConverter {
 							+ "'.");
 					continue;
 				}
-				het.addToCollection("structures", getProteinStructure(pdbId));
+				het.addToCollection("pdbStructures", getProteinStructure(pdbId));
 			}
 			store(het);
 		}

@@ -2,11 +2,11 @@
 <!-- This file details any extensions needed to the data model to store data from this source, everything else is automatically generated from the model description so this is all we need to do to add to the model. -->
 <classes>
 	<class name="ProteinStructure" is-interface="true">
-		<collection name="pdbCompounds" referenced-type="PDBCompound" reverse-reference="structures"/>
+		<collection name="pdbCompounds" referenced-type="PDBCompound" reverse-reference="pdbStructures"/>
 	</class>
 
 	<class name="PDBCompound" extends="Compound" is-interface="true">
-		<collection name="structures" referenced-type="ProteinStructure" reverse-reference="pdbCompounds"/>
+		<collection name="pdbStructures" referenced-type="ProteinStructure" reverse-reference="pdbCompounds"/>
 	</class>
 
 	<class name="Compound" is-interface="true">

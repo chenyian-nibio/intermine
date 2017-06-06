@@ -73,12 +73,17 @@ public class KeggDrugConverter extends BioFileConverter {
 	}
 
 	private File inchikeyFile;
+	private File inchiFile;
 
 	public void setInchikeyFile(File inchikeyFile) {
 		this.inchikeyFile = inchikeyFile;
 	}
+	public void setInchiFile(File inchiFile) {
+		this.inchiFile = inchiFile;
+	}
 	
 	private Map<String, String> inchiKeyMap = new HashMap<String, String>();
+	private Map<String, String> inchiMap = new HashMap<String, String>();
 
 	// chenyian: for keeping unique drug compound entries
 	private Set<String> foundDrugBankId = new HashSet<String>();
@@ -90,6 +95,7 @@ public class KeggDrugConverter extends BioFileConverter {
 	 */
 	public void process(Reader reader) throws Exception {
 		readInchikeyFile();
+		readInchiFile();
 		getDrugBankIdMap();
 		createAllTherapeuticClassifications();
 
@@ -412,8 +418,17 @@ public class KeggDrugConverter extends BioFileConverter {
 		for (String label : therapeuticLabels) {
 			drugItem.addToCollection("therapeuticClassifications", therapeuticClassMap.get(label));
 		}
-
+		
 		store(drugItem);
+
+		String inchi = inchiMap.get(keggDrugId);
+		if (inchi != null) {
+			Item structure = createItem("CompoundStructure");
+			structure.setAttribute("type", "InChI");
+			structure.setAttribute("value", inchi);
+			structure.setReference("compound", drugItem);
+			store(structure);
+		}
 		return drugItem;
 	}
 	
@@ -431,6 +446,23 @@ public class KeggDrugConverter extends BioFileConverter {
 					inchiKeyKeggDrugMap.put(cols[1], new HashSet<String>());
 				}
 				inchiKeyKeggDrugMap.get(cols[1]).add(cols[0]);
+			}
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	private void readInchiFile() {
+		try {
+			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(new FileReader(inchiFile));
+			
+			while(iterator.hasNext()) {
+				String[] cols = iterator.next();
+				inchiMap.put(cols[0], cols[1]);
 			}
 			
 		} catch (FileNotFoundException e) {

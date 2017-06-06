@@ -83,6 +83,8 @@ public class DrugbankV4Converter extends BioFileConverter {
 			if (drugBankId.equals("")) {
 				continue;
 			}
+			
+			Map<String,String> structureMap = new HashMap<String, String>();
 
 			Item drugItem = createItem("DrugCompound");
 			drugItem.setAttribute("drugBankId", drugBankId);
@@ -120,7 +122,8 @@ public class DrugbankV4Converter extends BioFileConverter {
 					if (p.getFirstChildElement("kind", NAMESPACE_URI).getValue().toLowerCase()
 							.equals("inchikey")) {
 						String inchiKey = p.getFirstChildElement("value", NAMESPACE_URI).getValue();
-						inchiKey = inchiKey.substring(inchiKey.indexOf("=") + 1);
+						// not necessary now... (2017.6.5)
+//						inchiKey = inchiKey.substring(inchiKey.indexOf("=") + 1);
 						drugItem.setAttribute("inchiKey", inchiKey);
 						drugItem.setReference(
 								"compoundGroup",
@@ -129,6 +132,12 @@ public class DrugbankV4Converter extends BioFileConverter {
 						// assign inchikey as synonym
 //						setSynonyms(drugItem, inchiKey);
 
+					} else if (p.getFirstChildElement("kind", NAMESPACE_URI).getValue().toLowerCase().equals("inchi")) {
+						String value = p.getFirstChildElement("value", NAMESPACE_URI).getValue();
+						structureMap.put("InChI", value);
+					} else if (p.getFirstChildElement("kind", NAMESPACE_URI).getValue().toLowerCase().equals("smiles")) {
+						String value = p.getFirstChildElement("value", NAMESPACE_URI).getValue();
+						structureMap.put("SMILES", value);
 					}
 				}
 			}
@@ -239,6 +248,13 @@ public class DrugbankV4Converter extends BioFileConverter {
 			}
 			store(drugItem);
 
+			for (String key: structureMap.keySet()) {
+				Item structure = createItem("CompoundStructure");
+				structure.setAttribute("type", key);
+				structure.setAttribute("value", structureMap.get(key));
+				structure.setReference("compound", drugItem);
+				store(structure);
+			}
 		}
 
 	}

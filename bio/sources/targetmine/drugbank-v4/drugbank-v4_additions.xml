@@ -50,7 +50,15 @@
 		<attribute name="casRegistryNumber" type="java.lang.String"/>
 		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
 		<collection name="targetProteins" referenced-type="CompoundProteinInteraction" reverse-reference="compound"/>
+		<collection name="structures" referenced-type="CompoundStructure" reverse-reference="compound"/>
 		<collection name="synonyms" referenced-type="CompoundSynonym" reverse-reference="subject"/>
+	</class>
+
+	<class name="CompoundStructure" is-interface="true">
+		<attribute name="type" type="java.lang.String"/>
+		<attribute name="value" type="java.lang.String"/>
+		<reference name="compound" referenced-type="Compound" reverse-reference="structures"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
     
 	<class name="CompoundSynonym" is-interface="true">
