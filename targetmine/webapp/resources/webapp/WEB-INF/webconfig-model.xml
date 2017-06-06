@@ -445,13 +445,6 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.StructuralDomain">
-    <fields>
-      <fieldconfig fieldExpr="identifier" />
-      <fieldconfig fieldExpr="structuralClassification.code" />
-    </fields>
-  </class>
-
   <class className="org.intermine.model.bio.StructuralRegion">
     <fields>
       <fieldconfig fieldExpr="start" />
@@ -550,13 +543,6 @@
     <fields>
       <fieldconfig fieldExpr="publication.pubMedId"/>
       <fieldconfig fieldExpr="publication.title"/>
-    </fields>
-  </class>
-
-  <class className="org.intermine.model.bio.ProteinInteraction">
-    <fields>
-      <fieldconfig fieldExpr="representativePartner.primaryAccession"/>
-      <fieldconfig fieldExpr="representativePartner.name"/>
     </fields>
   </class>
 
