@@ -259,6 +259,14 @@
     </fields>
   </class>
   
+  <class className="org.intermine.model.bio.CompoundStructure">
+    <fields>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="value"/>
+      <fieldconfig fieldExpr="dataSet.name" />
+    </fields>
+  </class>
+  
   <class className="org.intermine.model.bio.CompoundSynonym">
     <fields>
       <fieldconfig fieldExpr="value"/>

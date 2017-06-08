@@ -58,7 +58,7 @@
 		<attribute name="type" type="java.lang.String"/>
 		<attribute name="value" type="java.lang.String"/>
 		<reference name="compound" referenced-type="Compound" reverse-reference="structures"/>
-		<collection name="dataSets" referenced-type="DataSet"/>
+		<reference name="dataSet" referenced-type="DataSet"/>
 	</class>
     
 	<class name="CompoundSynonym" is-interface="true">
