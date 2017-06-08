@@ -114,8 +114,11 @@ public class MissingPublicationXomRetriever
 		        		
 		        		Element article = element.getChildElements("MedlineCitation").get(0).getChildElements("Article").get(0);
 		        		String title = article.getChildElements("ArticleTitle").get(0).getValue();
+						if (title == null || "".equals(title)) {
+							// some rare cases, the title is empty...
+							title = "not available";
+						}
 		        		publication.setAttribute("title", title);
-		        		
 		        		
 		        		if (article.getFirstChildElement("AuthorList") != null) {
 		        			Element firstAuthor = article.getFirstChildElement("AuthorList").getFirstChildElement("Author");
