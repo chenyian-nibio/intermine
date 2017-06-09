@@ -23,8 +23,6 @@ public class OregannoConverter extends BioFileConverter {
 	private static final String DATASET_TITLE = "ORegAnno";
 	private static final String DATA_SOURCE_NAME = "ORegAnno";
 
-	private static final String INTERACTION_TYPE = "Transcriptional regulation";
-
 	// so far only human
 	private static final String TAXON_ID = "9606";
 
@@ -85,21 +83,7 @@ public class OregannoConverter extends BioFileConverter {
 			}
 			store(bindingStie);
 
-
-			if (targetId.equals(sourceId)) {
-				// create Interaction
-				getInteraction(sourceId, sourceId, "source&target").addToCollection("bindingSites",
-						bindingStie);
-
-			} else {
-				// create Interaction for source
-				getInteraction(sourceId, targetId, "source").addToCollection("bindingSites",
-						bindingStie);
-
-				// create Interaction for target
-				getInteraction(targetId, sourceId, "target").addToCollection("bindingSites",
-						bindingStie);
-			}
+			getInteraction(sourceId, targetId).addToCollection("bindingSites", bindingStie);
 
 		}
 		reader.close();
@@ -107,31 +91,29 @@ public class OregannoConverter extends BioFileConverter {
 
 	Map<String, Item> interactionMap = new HashMap<String, Item>();
 
-	private Item getInteraction(String masterId, String slaveId, String role)
-			throws ObjectStoreException {
-		String key = slaveId + role + masterId;
+	private Item getInteraction(String tfGeneId, String targetGeneId) throws ObjectStoreException {
+		String key = tfGeneId + "->" + targetGeneId;
 		Item ret = interactionMap.get(key);
 		if (ret == null) {
-			ret = createItem("ProteinDNAInteraction");
-			ret.setReference("gene", getGene(masterId));
-			ret.setReference("interactWith", getGene(slaveId));
+			ret = createItem("TranscriptionalRegulation");
+			ret.setAttribute("name", key);
+			ret.setReference("transcriptionFactor", getGene(tfGeneId));
+			ret.setReference("targetGene", getGene(targetGeneId));
 
-			ret.setAttribute("interactionType", INTERACTION_TYPE);
-			ret.setAttribute("role", role);
 			interactionMap.put(key, ret);
 		}
 		return ret;
 	}
 
-	private String getGene(String ncbiGeneId) throws ObjectStoreException {
-		String ret = geneMap.get(ncbiGeneId);
+	private String getGene(String primaryIdentifier) throws ObjectStoreException {
+		String ret = geneMap.get(primaryIdentifier);
 		if (ret == null) {
 			Item item = createItem("Gene");
-			item.setAttribute("primaryIdentifier", ncbiGeneId);
-			item.setAttribute("ncbiGeneId", ncbiGeneId);
+			item.setAttribute("primaryIdentifier", primaryIdentifier);
+			item.setAttribute("ncbiGeneId", primaryIdentifier);
 			store(item);
 			ret = item.getIdentifier();
-			geneMap.put(ncbiGeneId, ret);
+			geneMap.put(primaryIdentifier, ret);
 		}
 		return ret;
 	}

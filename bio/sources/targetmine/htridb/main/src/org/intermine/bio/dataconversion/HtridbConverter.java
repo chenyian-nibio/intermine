@@ -23,8 +23,6 @@ public class HtridbConverter extends BioFileConverter
     private static final String DATASET_TITLE = "HTRI Database";
     private static final String DATA_SOURCE_NAME = "HTRI Database";
 
-	private static final String INTERACTION_TYPE = "Transcriptional regulation";
-
 	private Map<String, String> geneMap = new HashMap<String, String>();
 	private Map<String, String> publicationMap = new HashMap<String, String>();
 
@@ -53,33 +51,21 @@ public class HtridbConverter extends BioFileConverter
     		String sourceId = cols[1];
     		String targetId = cols[3];
     		
-			if (targetId.equals(sourceId)) {
-				// create Interaction
-				getInteraction(sourceId, sourceId, "source&target").addToCollection("experiments", expRefId);
-
-			} else {
-				// create Interaction for source
-				getInteraction(sourceId, targetId, "source").addToCollection("experiments", expRefId);
-
-				// create Interaction for target
-				getInteraction(targetId, sourceId, "target").addToCollection("experiments", expRefId);
-			}
-
+    		getInteraction(sourceId, targetId).addToCollection("experiments", expRefId);
     	}
     }
 
 	Map<String,Item> interactionMap = new HashMap<String, Item>();
 
-	private Item getInteraction(String masterId, String slaveId, String role) throws ObjectStoreException {
-		String key = slaveId + role + masterId;
+	private Item getInteraction(String tfGeneId, String targetGeneId) throws ObjectStoreException {
+		String key = tfGeneId + "->" + targetGeneId;
 		Item ret = interactionMap.get(key);
 		if (ret == null) {
-			ret = createItem("ProteinDNAInteraction");
-			ret.setReference("gene", getGene(masterId));
-			ret.setReference("interactWith", getGene(slaveId));
+			ret = createItem("TranscriptionalRegulation");
+			ret.setAttribute("name", key);
+			ret.setReference("transcriptionFactor", getGene(tfGeneId));
+			ret.setReference("targetGene", getGene(targetGeneId));
 			
-			ret.setAttribute("interactionType", INTERACTION_TYPE);
-			ret.setAttribute("role", role);
 			interactionMap.put(key, ret);
 		}
 		return ret;
@@ -90,7 +76,7 @@ public class HtridbConverter extends BioFileConverter
 		String key = title + "-" + pubmedId;
 		String ret = expItemMap.get(key);
 		if (ret == null) {
-			Item item = createItem("ProteinDNAExperiment");
+			Item item = createItem("TFRegulationExperiment");
 			item.setReference("publication", getPublication(pubmedId));
 			item.setAttribute("title", title);
 			store(item);

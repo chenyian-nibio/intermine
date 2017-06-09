@@ -273,6 +273,10 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pred_annot/dbs" />
       <property name="src.data.dir.includes" value="all.dbsite.txt" />
     </source>
+    <source name="predicted-tft" type="predicted-tft">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/pred_annot/tft" />
+      <property name="src.data.dir.includes" value="*.predicted.tf-targets.v4" />
+    </source>
     
     <source name="psp" type="phosphositesplus">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/phosphositesplus" />

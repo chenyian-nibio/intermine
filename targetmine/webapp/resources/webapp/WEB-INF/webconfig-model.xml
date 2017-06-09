@@ -554,12 +554,21 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.ProteinDNAInteraction">
+  <class className="org.intermine.model.bio.TranscriptionalRegulation">
     <fields>
-      <fieldconfig fieldExpr="role"/>
-      <fieldconfig fieldExpr="interactionType"/>
-      <fieldconfig fieldExpr="interactWith.primaryIdentifier"/>
-      <fieldconfig fieldExpr="interactWith.symbol"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="transcriptionFactor.primaryIdentifier"/>
+      <fieldconfig fieldExpr="transcriptionFactor.symbol"/>
+      <fieldconfig fieldExpr="targetGene.primaryIdentifier"/>
+      <fieldconfig fieldExpr="targetGene.symbol"/>
+    </fields>
+  </class>
+  <class className="org.intermine.model.bio.ChipSeqData">
+    <fields>
+      <fieldconfig fieldExpr="distance"/>
+      <fieldconfig fieldExpr="bindingLocation.start"/>
+      <fieldconfig fieldExpr="bindingLocation.end"/>
+      <fieldconfig fieldExpr="bindingLocation.locatedOn.symbol" label="Chromosome"/>
     </fields>
   </class>
 
@@ -822,11 +831,6 @@
                      jspName="model/compoundAssayExtLinkDisplayer.jsp"
                      replacesFields="originalId" 
                      types="CompoundProteinInteractionAssay"/>
-
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
-                     jspName="model/proteinDnaIntDisplayer.jsp"
-                     replacesFields="gene,interactWith" 
-                     types="ProteinDNAInteraction"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.CompoundGroupDisplayer"
                      jspName="model/compoundGroupDisplayer.jsp"

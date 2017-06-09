@@ -23,8 +23,6 @@ public class AmadeusConverter extends BioFileConverter {
 	private static final String DATASET_TITLE = "Amadeus";
 	private static final String DATA_SOURCE_NAME = "Amadeus";
 
-	private static final String INTERACTION_TYPE = "Transcriptional regulation";
-
 	private Map<String, String> expMap;
 
 	private Map<String, String> geneMap = new HashMap<String, String>();
@@ -60,28 +58,16 @@ public class AmadeusConverter extends BioFileConverter {
 
 		Set<String> targetGeneIds = new HashSet<String>();
 		BufferedReader br = new BufferedReader(reader);
-		String ncbiGeneId;
-		while ((ncbiGeneId = br.readLine()) != null) {
-			String targetGeneId = ncbiGeneId.trim();
+		String line;
+		while ((line = br.readLine()) != null) {
+			String targetGeneId = line.trim();
 			if (targetGeneIds.contains(targetGeneId)) {
 				continue;
 			}
-			if (targetGeneId.equals(cols[0])) {
-				// create Interaction
-				createInteraction(sourceGeneId, sourceGeneId, "source&target", intExp);
-
-			} else {
-				// create Interaction for source
-				createInteraction(sourceGeneId, targetGeneId, "source", intExp);
-
-				// create Interaction for target
-				createInteraction(targetGeneId, sourceGeneId, "target", intExp);
-			}
+			createInteraction(sourceGeneId, targetGeneId, intExp);
 			targetGeneIds.add(targetGeneId);
 		}
 		reader.close();
-
-
 	}
 
 	private Map<String, String> createExpMap() {
@@ -94,14 +80,12 @@ public class AmadeusConverter extends BioFileConverter {
 		return ret;
 	}
 
-	private void createInteraction(String masterId, String slaveId, String role,
-			String extRefId) throws ObjectStoreException {
-		Item item = createItem("ProteinDNAInteraction");
-		item.setReference("gene", getGene(masterId));
-		item.setReference("interactWith", getGene(slaveId));
-
-		item.setAttribute("interactionType", INTERACTION_TYPE);
-		item.setAttribute("role", role);
+	private void createInteraction(String tfGeneId, String targetGeneId, String extRefId)
+			throws ObjectStoreException {
+		Item item = createItem("TranscriptionalRegulation");
+		item.setAttribute("name", tfGeneId + "->" + targetGeneId);
+		item.setReference("transcriptionFactor", getGene(tfGeneId));
+		item.setReference("targetGene", getGene(targetGeneId));
 		item.addToCollection("experiments", extRefId);
 		store(item);
 	}
@@ -111,7 +95,7 @@ public class AmadeusConverter extends BioFileConverter {
 		String key = type + "-" + pubmedId;
 		String ret = expItemMap.get(key);
 		if (ret == null) {
-			Item item = createItem("ProteinDNAExperiment");
+			Item item = createItem("TFRegulationExperiment");
 			item.setReference("publication", getPublication(pubmedId));
 			item.setAttribute("title", expMap.get(type));
 			store(item);
@@ -121,15 +105,15 @@ public class AmadeusConverter extends BioFileConverter {
 		return ret;
 	}
 
-	private String getGene(String ncbiGeneId) throws ObjectStoreException {
-		String ret = geneMap.get(ncbiGeneId);
+	private String getGene(String primaryIdentifier) throws ObjectStoreException {
+		String ret = geneMap.get(primaryIdentifier);
 		if (ret == null) {
 			Item item = createItem("Gene");
-			item.setAttribute("primaryIdentifier", ncbiGeneId);
-			item.setAttribute("ncbiGeneId", ncbiGeneId);
+			item.setAttribute("primaryIdentifier", primaryIdentifier);
+			item.setAttribute("ncbiGeneId", primaryIdentifier);
 			store(item);
 			ret = item.getIdentifier();
-			geneMap.put(ncbiGeneId, ret);
+			geneMap.put(primaryIdentifier, ret);
 		}
 		return ret;
 	}

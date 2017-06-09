@@ -1,16 +1,15 @@
 <?xml version="1.0"?>
 <classes>
-    <class name="ProteinDNAInteraction" is-interface="true">
-		<attribute name="role" type="java.lang.String"/>
-		<attribute name="interactionType" type="java.lang.String"/>
-		<reference name="gene" referenced-type="Gene" reverse-reference="proteinDNAInteractions" />
-		<reference name="interactWith" referenced-type="Gene"/>
+    <class name="TranscriptionalRegulation" is-interface="true">
+    	<attribute name="name" type="java.lang.String"/>
+		<reference name="transcriptionFactor" referenced-type="Gene" reverse-reference="transcriptionalRegulations" />
+		<reference name="targetGene" referenced-type="Gene"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
 		<collection name="bindingSites" referenced-type="TFBindingSite"/>
     </class>
 
     <class name="Gene" is-interface="true">
-        <collection name="proteinDNAInteractions" referenced-type="ProteinDNAInteraction" reverse-reference="gene"/>
+        <collection name="transcriptionalRegulations" referenced-type="TranscriptionalRegulation" reverse-reference="transcriptionFactor"/>
     </class>
 
 </classes>
