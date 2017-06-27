@@ -13,7 +13,7 @@
     <class name="ChipSeqData" is-interface="true">
 		<attribute name="distance" type="java.lang.Integer"/>
  		<reference name="bindingLocation" referenced-type="Location"/>
- 		<reference name="transcriptionalRegulation" referenced-type="TranscriptionalRegulation" />
+ 		<reference name="transcriptionalRegulation" referenced-type="TranscriptionalRegulation" reverse-reference="tfBindingRegion"/>
     </class>
 
 </classes>
