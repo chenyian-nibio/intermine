@@ -208,8 +208,8 @@ public class ChemblDbConverter extends BioDBConverter {
 				+ " join docs on docs.doc_id=ass.doc_id "
 				+ " where ass.confidence_score >= 4 " + " and ass.assay_type = 'B' "
 				+ " and td.target_type = 'SINGLE PROTEIN' "
-				+ " and act.standard_type in ('IC50','Kd','Ki') "
-				+ " and act.standard_value < 10000 " + " and act.standard_relation = '=' "
+				+ " and act.standard_type in ('IC50','Kd','Ki','EC50','AC50') "
+				+ " and act.standard_value <= 10000 " + " and act.standard_relation = '=' "
 				+ " and act.standard_units = 'nM' ";
 		ResultSet resInteraction = stmt.executeQuery(queryInteraction);
 		int i = 0;
