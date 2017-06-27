@@ -34,8 +34,9 @@ default_sources:
   - "IntActComplexes"
   - "HGNC"
   - "NCBIGeneHuman"
-  - "OMIM"
   - "Orphanet"
+  - "DO"
+  - "FlyBaseAlleles"
 
 UniProt:
     organisms:
