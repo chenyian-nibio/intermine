@@ -111,7 +111,7 @@
           </div>
           <c:choose>
             <c:when test="${!useTableWidget}">
-              <div class="show-in-table" style="display:none;">
+              <div class="show-in-table" >
               <html:link action="/collectionDetails?id=${object.id}&amp;field=${fieldName}&amp;trail=${param.trail}">
                 Show all in a table
               </html:link>

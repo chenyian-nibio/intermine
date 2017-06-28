@@ -36,7 +36,7 @@
   </c:if>
   <div id="header">
     <a href="${WEB_PROPERTIES['project.sitePrefix']}" alt="Home" rel="NOFOLLOW">
-       <img id="logo" src="/${WEB_PROPERTIES['webapp.path']}/model/images/new_tm_logo_1s.png" width="227px" height="50px" alt="Logo" /></a>
+       <img id="logo" src="/${WEB_PROPERTIES['webapp.path']}/model/images/new_tm_logo_1s.png" width="250px" height="55px" alt="Logo" /></a>
     <p id="version" style="margin-top: 30px"><fmt:message key="header.version"/> <c:out value="${WEB_PROPERTIES['project.releaseVersion']}" escapeXml="false"/></span>
     <p style="margin-top: 30px"><c:out value="${WEB_PROPERTIES['project.subTitle']}" escapeXml="false"/></p>
     <!-- chenyian: temporary alert-->

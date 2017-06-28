@@ -58,7 +58,7 @@
       <fieldconfig fieldExpr="symbol"/>
       <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="organism.name" />
-      <fieldconfig fieldExpr="description" doNotTruncate="true" showInInlineCollection="false" showInSummary="false" />
+      <fieldconfig fieldExpr="description" doNotTruncate="true" showInResults="false" showInInlineCollection="false" showInSummary="false" />
     </fields>
   </class>
 

@@ -169,7 +169,6 @@
 	<classpathentry kind="lib" path="intermine/integrate/main/lib/xom-1.2.10.jar"/>
 	<classpathentry kind="lib" path="intermine/model/main/lib/antlr-2.7.6-caching.jar"/>
 	<classpathentry kind="lib" path="imbuild/lib/checkstyle-5.6-all.jar"/>
-	<classpathentry kind="lib" path="intermine/objectstore/main/lib/postgresql-9.3-1101.jdbc4.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/org.apache.oltu.oauth2.client-1.0.0.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/org.apache.oltu.oauth2.common-1.0.0.jar"/>
 	<classpathentry kind="lib" path="intermine/model/main/lib/cglib-3.1.jar"/>
@@ -180,5 +179,6 @@
 	<classpathentry kind="lib" path="imbuild/lib/im-ant-tasks.jar"/>
 	<classpathentry kind="lib" path="bio/webapp/lib/jami-ols-1.1.0.jar"/>
 	<classpathentry kind="lib" path="bio/sources/targetmine/biopax3/main/lib/paxtools-4.3.1-no-jena.jar"/>
+	<classpathentry kind="lib" path="intermine/objectstore/main/lib/postgresql-9.4.1212.jre7.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
