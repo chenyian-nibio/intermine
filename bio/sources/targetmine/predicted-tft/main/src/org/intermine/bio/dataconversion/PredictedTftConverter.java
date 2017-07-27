@@ -48,15 +48,15 @@ public class PredictedTftConverter extends BioFileConverter
     	while (iterator.hasNext()) {
     		String[] cols = iterator.next();
     		
-    		String sourceId = cols[2];
-    		String targetId = cols[8];
+    		String sourceId = cols[3];
+    		String targetId = cols[9];
     		
-    		String chrRef = getChromosome(cols[0], cols[3]);
+    		String chrRef = getChromosome(cols[0], cols[4]);
     		
 			Item location = createItem("Location");
-			Integer startValue = Integer.valueOf(cols[4]);
+			Integer startValue = Integer.valueOf(cols[5]);
 			location.setAttribute("start", String.valueOf(startValue));
-			Integer endValue = Integer.valueOf(cols[5]);
+			Integer endValue = Integer.valueOf(cols[6]);
 			location.setAttribute("end", String.valueOf(endValue));
 			if (chrRef != null) {
 				location.setReference("locatedOn", chrRef);
@@ -66,7 +66,8 @@ public class PredictedTftConverter extends BioFileConverter
 			String tfRef = getInteraction(sourceId, targetId);
 			
 			Item chipSeqData = createItem("ChipSeqData");
-			chipSeqData.setAttribute("distance", cols[7]);
+			chipSeqData.setAttribute("epigenomeName", cols[1]);
+			chipSeqData.setAttribute("distance", cols[8]);
 			chipSeqData.setReference("bindingLocation", location);
 			chipSeqData.setReference("transcriptionalRegulation", tfRef);
 			store(chipSeqData);

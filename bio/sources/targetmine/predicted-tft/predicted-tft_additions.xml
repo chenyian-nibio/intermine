@@ -11,6 +11,7 @@
 		<collection name="tfBindingRegion" referenced-type="ChipSeqData" reverse-reference="transcriptionalRegulation"/>
     </class>
     <class name="ChipSeqData" is-interface="true">
+    	<attribute name="epigenomeName" type="java.lang.String"/>
 		<attribute name="distance" type="java.lang.Integer"/>
  		<reference name="bindingLocation" referenced-type="Location"/>
  		<reference name="transcriptionalRegulation" referenced-type="TranscriptionalRegulation" reverse-reference="tfBindingRegion"/>
