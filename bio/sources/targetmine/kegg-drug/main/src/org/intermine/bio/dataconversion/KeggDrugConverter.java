@@ -392,8 +392,8 @@ public class KeggDrugConverter extends BioFileConverter {
 			drugItem.setAttribute("drugBankId", drugBankId);
 		}
 		if (StringUtils.isEmpty(name)) {
-			name = "KEGG compound " + keggDrugId;
-			LOG.info("No name for KEGG compound: " + keggDrugId);
+			name = "KEGG Drug " + keggDrugId;
+			LOG.info("No name for KEGG Drug: " + keggDrugId);
 		}
 		drugItem.setAttribute("name", name);
 		drugItem.setAttribute("genericName", name);

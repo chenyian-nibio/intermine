@@ -1,0 +1,4 @@
+<project name="kegg-compound-tasks" default="default" basedir=".">
+  <description>build kegg-compound tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

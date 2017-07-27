@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="KeggCompound" extends="Compound" is-interface="true">
+        <collection name="pathways" referenced-type="Pathway" reverse-reference="compounds"/>
+        <collection name="enzymes" referenced-type="Enzyme" reverse-reference="compounds"/>
+	</class>
+
+    <class name="Enzyme" is-interface="true">
+        <attribute name="ecNumber" type="java.lang.String"/>
+        <collection name="compounds" referenced-type="KeggCompound" reverse-reference="enzymes" />
+    </class>
+    
+    <class name="Pathway" is-interface="true" >
+        <attribute name="identifier" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+		<attribute name="description" type="java.lang.String"/>
+		<attribute name="label1" type="java.lang.String"/>
+		<attribute name="label2" type="java.lang.String"/>
+        <collection name="compounds" referenced-type="KeggCompound" reverse-reference="pathways"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
+    </class>
+
+	<class name="Compound" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="originalId" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+		<attribute name="inchiKey" type="java.lang.String"/>
+		<attribute name="casRegistryNumber" type="java.lang.String"/>
+		<reference name="compoundGroup" referenced-type="CompoundGroup" reverse-reference="compounds"/>
+		<collection name="structures" referenced-type="CompoundStructure" reverse-reference="compound"/>
+		<collection name="synonyms" referenced-type="CompoundSynonym" reverse-reference="subject"/>
+	</class>
+    
+	<class name="CompoundStructure" is-interface="true">
+		<attribute name="type" type="java.lang.String"/>
+		<attribute name="value" type="java.lang.String"/>
+		<reference name="compound" referenced-type="Compound" reverse-reference="structures"/>
+		<reference name="dataSet" referenced-type="DataSet"/>
+	</class>
+	
+	<class name="CompoundSynonym" is-interface="true">
+		<attribute name="value" type="java.lang.String"/>
+		<reference name="subject" referenced-type="Compound" reverse-reference="synonyms"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
+	</class>
+
+	<class name="CompoundGroup" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
+	</class>
+
+</classes>

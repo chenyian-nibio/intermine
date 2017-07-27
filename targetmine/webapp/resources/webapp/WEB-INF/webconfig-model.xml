@@ -512,6 +512,20 @@
     </inlinelist>
   </class>
 
+  <class className="org.intermine.model.bio.KeggCompound">
+    <headerconfig>
+        <titles>
+            <title mainTitles="name" subTitles="identifier" />
+        </titles>
+    </headerconfig>
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="originalId"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="inchiKey" showInSummary="false"/>
+    </fields>
+  </class>
+
   <class className="org.intermine.model.bio.DrugMetabolism">
     <fields>
       <fieldconfig fieldExpr="type"/>
@@ -1237,7 +1251,7 @@
                                  enrich="targetProteins.protein.name"
                                  enrichIdentifier="targetProteins.protein.primaryAccession"
                                  typeClass="DrugCompound"
-                                 views="identifier, name, targetProteins.protein.primaryAccession, targetProteins.protein.name, targetProteins.protein.organism.name,"
+                                 views="identifier, name, targetProteins.protein.primaryAccession, targetProteins.protein.name, targetProteins.protein.organism.name"
                                  externalLink="/targetmine/portal.do?class=Protein&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="drug_jsc_enrichment"
@@ -1290,6 +1304,31 @@
                                  typeClass="Protein"
                                  views="primaryIdentifier, primaryAccession, organism.name,
                                        keywords.name, keywords.description"/>
+
+      <enrichmentwidgetdisplayer id="keggcompound_pathway_enrichment" 
+                                 title="Pathway Enrichment" 
+                                 description="Pathways enriched for compounds in this list" 
+                                 label="Pathways" 
+                                 startClass="KeggCompound" 
+                                 startClassDisplay="identifier" 
+                                 enrich="pathways.name" 
+                                 enrichIdentifier="pathways.identifier" 
+                                 typeClass="KeggCompound" 
+                                 views="identifier, name, pathways.identifier, pathways.name, pathways.label1, pathways.label2" 
+                                 externalLink="/targetmine/portal.do?class=Pathway&amp;externalids=" />
+
+      <enrichmentwidgetdisplayer id="keggcompound_enzyme_enrichment" 
+                                 title="Enzyme Enrichment" 
+                                 description="Enzymes enriched for compounds in this list" 
+                                 label="Enzymes" 
+                                 startClass="KeggCompound" 
+                                 startClassDisplay="originalId" 
+                                 enrich="enzymes.description" 
+                                 enrichIdentifier="enzymes.ecNumber" 
+                                 typeClass="KeggCompound" 
+                                 views="originalId, name, enzymes.ecNumber, enzymes.description" 
+                                 externalLink="/targetmine/portal.do?class=Enzyme&amp;externalids=" />
+
 
 </widgets>
 </webconfig>

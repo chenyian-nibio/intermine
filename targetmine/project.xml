@@ -136,6 +136,17 @@
       <property name="src.data.dir.includes" value="*/*/*.xml"/>
     </source>
 
+    <source name="kegg-compound" type="kegg-compound">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/compound"/>
+      <property name="src.data.dir.includes" value="compound"/>
+      <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.list"/>
+      <property name="pathwayDescFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.hrme.desc.txt"/>
+      <property name="inchikeyFile" value="/data/bio/db/Targetmine/kegg-ftp/compound/compound.inchikey"/>
+      <property name="inchiFile" value="/data/bio/db/Targetmine/kegg-ftp/compound/compound.inchi"/>
+      <property name="pathwayFile" value="/data/bio/db/Targetmine/kegg-ftp/compound/links/compound_pathway.list"/>
+      <property name="enzymeFile" value="/data/bio/db/Targetmine/kegg-ftp/compound/links/compound_enzyme.list"/>
+    </source>
+
     <source name="disgenet" type="disgenet">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/disgenet"/>
       <property name="src.data.dir.includes" value="curated_gene_disease_associations.tsv"/>
@@ -275,7 +286,7 @@
     </source>
     <source name="predicted-tft" type="predicted-tft">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pred_annot/tft" />
-      <property name="src.data.dir.includes" value="*.predicted.tf-targets.v4" />
+      <property name="src.data.dir.includes" value="*.predicted.tf-targets.new" />
     </source>
     
     <source name="psp" type="phosphositesplus">
