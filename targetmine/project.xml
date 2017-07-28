@@ -280,7 +280,7 @@
     </source>
 
     <source name="predicted-dbp" type="predicted-dbp">
-      <property name="dbpScoreFile" value="/data/bio/db/Targetmine/pred_annot/dbp/precision-scores.txt"/>
+      <property name="dbpScoreFile" value="/data/bio/db/Targetmine/pred_annot/dbp/final-predictions-seq-ge-cons1-cons2-sorted.tsv"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pred_annot/dbs" />
       <property name="src.data.dir.includes" value="all.dbsite.txt" />
     </source>

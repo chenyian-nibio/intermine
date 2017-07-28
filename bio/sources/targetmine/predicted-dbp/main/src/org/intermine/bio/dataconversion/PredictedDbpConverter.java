@@ -100,15 +100,15 @@ public class PredictedDbpConverter extends BioFileConverter {
 			throw new RuntimeException("pathwayClassFile property not set");
 		}
 		
-		Iterator<String[]> iterator = FormattedTextParser.parseDelimitedReader(new FileReader(
-				dbpScoreFile), ' ');
+		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(new FileReader(
+				dbpScoreFile));
     	// skip header ..
 		iterator.next();
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
-			String accession = cols[0];
-			Float consensus2 = Float.valueOf(cols[4]);
-			Float precision = Float.valueOf(cols[12]);
+			String accession = cols[1];
+			Float consensus2 = Float.valueOf(cols[5]);
+//			Float precision = Float.valueOf(cols[12]);
 
 			if (consensus2 >= 0.12f) {
 				String confidence = "medium";
@@ -118,7 +118,7 @@ public class PredictedDbpConverter extends BioFileConverter {
 				Item item = createItem("PredictedAnnotation");
 				item.setAttribute("type", ANNOTATION_TYPE);
 				item.setAttribute("confidence", confidence);
-				item.setAttribute("score", precision.toString());
+//				item.setAttribute("score", precision.toString());
 				item.setReference("protein", getProtein(accession));
 				store(item);
 				predictedAnnotationMap.put(accession, item.getIdentifier());
