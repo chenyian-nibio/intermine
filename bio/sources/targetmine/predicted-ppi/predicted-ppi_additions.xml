@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<classes>
+    <class name="Gene" is-interface="true">
+        <collection name="interactions" referenced-type="Interaction" reverse-reference="gene1"/>
+    </class>
+    <class name="Interaction" is-interface="true">
+		<attribute name="psopiaScore" type="java.lang.Float"/>
+        <reference name="gene1" referenced-type="Gene" reverse-reference="interactions" />
+        <reference name="gene2" referenced-type="Gene" />
+    </class>
+
+</classes>

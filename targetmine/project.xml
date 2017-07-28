@@ -288,6 +288,11 @@
       <property name="src.data.dir" location="/data/bio/db/Targetmine/pred_annot/tft" />
       <property name="src.data.dir.includes" value="*.predicted.tf-targets.new" />
     </source>
+    <source name="predicted-ppi" type="predicted-ppi">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/pred_annot/ppi" />
+      <property name="src.data.dir.includes" value="score_lc-ppis-homo.csv" />
+      <property name="osAlias" value="os.production"/>
+    </source>
     
     <source name="psp" type="phosphositesplus">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/phosphositesplus" />
