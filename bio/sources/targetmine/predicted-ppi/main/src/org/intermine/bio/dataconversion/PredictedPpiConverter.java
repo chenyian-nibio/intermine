@@ -82,7 +82,10 @@ public class PredictedPpiConverter extends BioFileConverter {
     		}
     		String gene1 = geneSet1.iterator().next();
     		String gene2 = geneSet2.iterator().next();
-    		createInteraction(gene1, gene2, cols[2]);
+    		if (gene1.equals(gene2)) {
+			continue;
+		}
+		createInteraction(gene1, gene2, cols[2]);
     	}
     	
     }
