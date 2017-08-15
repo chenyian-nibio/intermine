@@ -1,7 +1,7 @@
 package org.intermine.web.struts;
 
 /*
- * Copyright (C) 2002-2016 FlyMine
+ * Copyright (C) 2002-2017 FlyMine
  *
  * This code may be freely distributed and modified under the
  * terms of the GNU Lesser General Public Licence.  This should
@@ -80,7 +80,6 @@ public class BuildBagForm extends ActionForm
     public FormFile getFormFile() {
         return formFile;
     }
-
 
     /**
      * Get the value to use when creating an extra constraint on a BagQuery, configured in
