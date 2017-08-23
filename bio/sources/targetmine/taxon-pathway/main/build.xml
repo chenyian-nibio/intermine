@@ -1,0 +1,4 @@
+<project name="taxon-pathway-tasks" default="default" basedir=".">
+  <description>build taxon-pathway tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

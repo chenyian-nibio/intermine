@@ -363,6 +363,13 @@
       <property name="src.data.dir.includes" value="nodes.dmp"/>
       <property name="nameFile" value="/data/bio/db/Targetmine/taxonomy/names.dmp"/>
     </source>
+    <source name="taxon-pathway" type="taxon-pathway">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/prokaryotes/pathways"/>
+      <property name="src.data.dir.includes" value="*.pathway.list"/>
+      <property name="pathwayClassFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.list"/>
+      <property name="pathwayDescFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.hrme.desc.txt"/>
+      <property name="taxonMapFile" value="/data/bio/db/Targetmine/kegg-ftp/prokaryotes/taxonomic_rank"/>
+    </source>
 <!-- maybe no longer necessary ... 
     <source name="rpl" type="retrieve-publication-local">
       <property name="source.db.name" value="pub-db"/>
