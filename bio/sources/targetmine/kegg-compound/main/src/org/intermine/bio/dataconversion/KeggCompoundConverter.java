@@ -79,6 +79,7 @@ public class KeggCompoundConverter extends BioFileConverter
 		readPathwayFile();
 		readEnzymeFile();
 		processPathwayClassFile();
+		processPathwayDescFile();
     	
 		BufferedReader in = null;
 		try {

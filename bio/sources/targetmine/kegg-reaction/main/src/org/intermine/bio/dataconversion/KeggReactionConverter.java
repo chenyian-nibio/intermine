@@ -17,6 +17,8 @@ import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.xml.full.Item;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
  * Parse KGML file, see http://www.kegg.jp/kegg/xml/docs/ for the file format definition.
@@ -55,7 +57,11 @@ public class KeggReactionConverter extends BioFileConverter {
 		String currentOrganismCode = fileName.substring(0, 3);
 		String pathwayId = fileName.substring(0, fileName.indexOf("."));
 
-		Builder parser = new Builder();
+		// To suppress the accessing to kegg's DTD. 
+		// Due to the number of the kgml files, sometimes the parsing process may gets 403 forbidden from kegg.  
+		XMLReader xmlreader = XMLReaderFactory.createXMLReader();
+		xmlreader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		Builder parser = new Builder(xmlreader);
 		Document doc = parser.build(reader);
 
 		Element rootElement = doc.getRootElement();
