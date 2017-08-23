@@ -21,7 +21,6 @@ import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.Gene;
 import org.intermine.model.bio.Organism;
-import org.intermine.model.bio.Pathway;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
@@ -86,7 +85,7 @@ public class IntegratedPathwayClustering {
 	}
 
 	Map<String, Set<String>> allPathwayGenes;
-	Map<String, Pathway> pathwayMap;
+	Map<String, InterMineObject> pathwayMap;
 
 	public void queryAllPathwayGenes(String taxonId) {
 		System.out.println("Starting the testQuery... taxonId: " + taxonId);
@@ -94,21 +93,26 @@ public class IntegratedPathwayClustering {
 		Iterator<?> iterator = results.iterator();
 
 		HashMap<String, Set<String>> pathwayGeneMap = new HashMap<String, Set<String>>();
-		pathwayMap = new HashMap<String, Pathway>();
+		pathwayMap = new HashMap<String, InterMineObject>();
 		while (iterator.hasNext()) {
 			ResultsRow<?> result = (ResultsRow<?>) iterator.next();
 			Gene gene = (Gene) result.get(0);
-			Pathway pathway = (Pathway) result.get(1);
-			String pathwayIdentifier = pathway.getIdentifier();
-			if (!pathwayGeneMap.containsKey(pathwayIdentifier)) {
-				pathwayGeneMap.put(pathwayIdentifier, new HashSet<String>());
+			InterMineObject pathway = (InterMineObject) result.get(1);
+			String pathwayIdentifier;
+			try {
+				pathwayIdentifier = (String) pathway.getFieldValue("identifier");
+				if (!pathwayGeneMap.containsKey(pathwayIdentifier)) {
+					pathwayGeneMap.put(pathwayIdentifier, new HashSet<String>());
+				}
+				pathwayGeneMap.get(pathwayIdentifier).add(gene.getPrimaryIdentifier());
+				
+				if (!pathwayMap.containsKey(pathwayIdentifier)) {
+					pathwayMap.put(pathwayIdentifier, pathway);
+				}
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			pathwayGeneMap.get(pathwayIdentifier).add(gene.getPrimaryIdentifier());
-
-			if (!pathwayMap.containsKey(pathwayIdentifier)) {
-				pathwayMap.put(pathwayIdentifier, pathway);
-			}
-
 		}
 
 		allPathwayGenes = new HashMap<String, Set<String>>();
@@ -124,7 +128,7 @@ public class IntegratedPathwayClustering {
 	private Results queryPathwaysToGenes(String taxonId) {
 		Query q = new Query();
 		QueryClass qcGene = new QueryClass(Gene.class);
-		QueryClass qcPathway = new QueryClass(Pathway.class);
+		QueryClass qcPathway = new QueryClass(model.getClassDescriptorByName("Pathway").getType());
 		QueryClass qcOrganism1 = new QueryClass(Organism.class);
 		QueryClass qcOrganism2 = new QueryClass(Organism.class);
 
@@ -235,7 +239,7 @@ public class IntegratedPathwayClustering {
 					accumulate.addAll(pathwayGenes.get(pathway));
 					double accPercent = (double) Math.round((double) accumulate.size()
 							/ (double) count * 10000) / 100;
-					autoName.add(pathwayMap.get(pathway).getName());
+					autoName.add((String) pathwayMap.get(pathway).getFieldValue("name"));
 					if (name == null && accPercent >= 50) {
 						name = StringUtils.join(autoName, "|");
 						numName = autoName.size();
@@ -259,7 +263,7 @@ public class IntegratedPathwayClustering {
 						.getClassDescriptorByName("IntegratedPathwayCluster").getType());
 				item.setFieldValue("identifier", clusterId);
 				item.setFieldValue("name", name);
-				Set<Pathway> pathways = new HashSet<Pathway>();
+				Set<InterMineObject> pathways = new HashSet<InterMineObject>();
 				for (String pId : allPathwayIds) {
 					pathways.add(pathwayMap.get(pId));
 				}
@@ -274,6 +278,9 @@ public class IntegratedPathwayClustering {
 			// osw.abortTransaction();
 
 		} catch (ObjectStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -432,11 +439,15 @@ public class IntegratedPathwayClustering {
 				} else if (pid.startsWith(speciesCode)) {
 					db = "K";
 				}
-				dataSb.append(String
-						.format("\t\t\t{ group: \"nodes\", data: { id: \"%s\", label: \"%s\", desc: \"%s\", db: \"%s\", num: %d } },\n",
-								nid, pid, pathwayMap.get(pid).getName(), db,
-								allPathwayGenes.get(pid).size()));
-				allGenes.addAll(allPathwayGenes.get(pid));
+				try {
+					dataSb.append(String
+							.format("\t\t\t{ group: \"nodes\", data: { id: \"%s\", label: \"%s\", desc: \"%s\", db: \"%s\", num: %d } },\n",
+									nid, pid, (String) pathwayMap.get(pid).getFieldValue("name"), db,
+									allPathwayGenes.get(pid).size()));
+					allGenes.addAll(allPathwayGenes.get(pid));
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
 			}
 
 			for (int i = 0; i < pathwayIds.length - 1; i++) {

@@ -9,7 +9,6 @@ import org.intermine.metadata.ConstraintOp;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.Gene;
-import org.intermine.model.bio.Interaction;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
@@ -77,7 +76,7 @@ public class PpiDruggability {
 			osw.beginTransaction();
 			while (iterator.hasNext()) {
 				ResultsRow<?> result = (ResultsRow<?>) iterator.next();
-				Interaction interaction = (Interaction) result.get(0);
+				InterMineObject interaction = (InterMineObject) result.get(0);
 				Gene gene1 = (Gene) result.get(1);
 				Gene gene2 = (Gene) result.get(2);
 

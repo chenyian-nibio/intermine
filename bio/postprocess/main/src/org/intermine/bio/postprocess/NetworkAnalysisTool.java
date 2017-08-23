@@ -27,7 +27,6 @@ import org.intermine.metadata.ConstraintOp;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.Gene;
-import org.intermine.model.bio.Interaction;
 import org.intermine.model.bio.Organism;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
@@ -147,7 +146,7 @@ public class NetworkAnalysisTool {
 				int y = 0;
 				while (resIter.hasNext()) {
 					ResultsRow<?> rr = (ResultsRow<?>) resIter.next();
-					Interaction interaction = (Interaction) rr.get(0);
+					InterMineObject interaction = (InterMineObject) rr.get(0);
 					Gene gene1 = (Gene) rr.get(1);
 					Gene gene2 = (Gene) rr.get(2);
 					String gene1Id = gene1.getPrimaryIdentifier();
@@ -267,7 +266,8 @@ public class NetworkAnalysisTool {
 		QueryClass qcGene2 = new QueryClass(Gene.class);
 		QueryClass qcOrganism1 = new QueryClass(Organism.class);
 		QueryClass qcOrganism2 = new QueryClass(Organism.class);
-		QueryClass qcInteraction = new QueryClass(Interaction.class);
+		QueryClass qcInteraction = new QueryClass(model.getClassDescriptorByName("Interaction")
+				.getType());
 
 		QueryField qfTaxonId1 = new QueryField(qcOrganism1, "taxonId");
 		QueryField qfTaxonId2 = new QueryField(qcOrganism2, "taxonId");

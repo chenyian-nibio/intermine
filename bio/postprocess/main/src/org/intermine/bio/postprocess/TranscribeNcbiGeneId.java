@@ -4,7 +4,6 @@ import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 import org.intermine.metadata.ConstraintOp;
-import org.intermine.metadata.Model;
 import org.intermine.model.bio.Gene;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
@@ -27,11 +26,8 @@ public class TranscribeNcbiGeneId {
 	
 	protected ObjectStoreWriter osw;
 
-	private Model model;
-
 	public TranscribeNcbiGeneId(ObjectStoreWriter osw) {
 		this.osw = osw;
-		model = Model.getInstanceByName("genomic");
 	}
 	
 	public void transcribeIdentifeir() {
@@ -48,7 +44,7 @@ public class TranscribeNcbiGeneId {
 			while (iterator.hasNext()) {
 				ResultsRow<?> result = (ResultsRow<?>) iterator.next();
 				Gene gene = (Gene) result.get(0);
-				gene.setNcbiGeneId(gene.getPrimaryIdentifier());
+				gene.setFieldValue("ncbiGeneId", gene.getPrimaryIdentifier());
 				osw.store(gene);
 			}
 			

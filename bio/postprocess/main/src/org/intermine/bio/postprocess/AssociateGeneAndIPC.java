@@ -12,7 +12,6 @@ import org.intermine.metadata.ConstraintOp;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.Gene;
-import org.intermine.model.bio.Pathway;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreWriter;
@@ -109,7 +108,7 @@ public class AssociateGeneAndIPC {
 	protected Results findGeneIntegratedPathwayCluster(ObjectStore os) throws ObjectStoreException {
 		Query q = new Query();
 		QueryClass qcGene = new QueryClass(Gene.class);
-		QueryClass qcPathway = new QueryClass(Pathway.class);
+		QueryClass qcPathway = new QueryClass(model.getClassDescriptorByName("Pathway").getType());
 		QueryClass qcGsc = new QueryClass(model.getClassDescriptorByName("IntegratedPathwayCluster")
 				.getType());
 
