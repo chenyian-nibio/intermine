@@ -13,7 +13,6 @@ import org.intermine.metadata.ConstraintOp;
 import org.intermine.metadata.Model;
 import org.intermine.model.InterMineObject;
 import org.intermine.model.bio.Gene;
-import org.intermine.model.bio.Interaction;
 import org.intermine.model.bio.Organism;
 import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
@@ -22,7 +21,6 @@ import org.intermine.objectstore.query.ConstraintSet;
 import org.intermine.objectstore.query.ContainsConstraint;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
-import org.intermine.objectstore.query.QueryCollectionReference;
 import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.QueryObjectReference;
 import org.intermine.objectstore.query.QueryValue;
@@ -52,8 +50,8 @@ public class CoExpressionInteraction {
 	
 	public void addCoExpressionValue() {
 		Results results = queryInteractionByTaxonId("9606");
-		System.out.println(results.size() + " HCDP Interactions found.");
-		LOG.info(results.size() + " HCDP Interactions found.");
+		System.out.println(results.size() + " Interactions found.");
+		LOG.info(results.size() + " Interactions found.");
 
 		Map<String,InterMineObject> interactionMap = new HashMap<String, InterMineObject>();
 		Iterator<?> iterator = results.iterator();
@@ -109,16 +107,17 @@ public class CoExpressionInteraction {
 		QueryClass qcGene2 = new QueryClass(Gene.class);
 		QueryClass qcOrganism1 = new QueryClass(Organism.class);
 		QueryClass qcOrganism2 = new QueryClass(Organism.class);
-		QueryClass qcInteraction = new QueryClass(Interaction.class);
-		QueryClass qcConfidence = new QueryClass(model.getClassDescriptorByName(
-				"InteractionConfidence").getType());
+		QueryClass qcInteraction = new QueryClass(model.getClassDescriptorByName("Interaction")
+				.getType());
+//		QueryClass qcConfidence = new QueryClass(model.getClassDescriptorByName(
+//				"InteractionConfidence").getType());
 
 		QueryField qfTaxonId1 = new QueryField(qcOrganism1, "taxonId");
 		QueryField qfTaxonId2 = new QueryField(qcOrganism2, "taxonId");
-		QueryField qfType = new QueryField(qcConfidence, "type");
+//		QueryField qfType = new QueryField(qcConfidence, "type");
 
 		q.addFrom(qcInteraction);
-		q.addFrom(qcConfidence);
+//		q.addFrom(qcConfidence);
 		q.addFrom(qcGene1);
 		q.addFrom(qcGene2);
 		q.addFrom(qcOrganism1);
@@ -137,13 +136,13 @@ public class CoExpressionInteraction {
 		cs.addConstraint(new ContainsConstraint(qor3, ConstraintOp.CONTAINS, qcGene1));
 		QueryObjectReference qor4 = new QueryObjectReference(qcInteraction, "gene2");
 		cs.addConstraint(new ContainsConstraint(qor4, ConstraintOp.CONTAINS, qcGene2));
-		QueryCollectionReference qcr1 = new QueryCollectionReference(qcInteraction, "confidences");
-		cs.addConstraint(new ContainsConstraint(qcr1, ConstraintOp.CONTAINS, qcConfidence));
+//		QueryCollectionReference qcr1 = new QueryCollectionReference(qcInteraction, "confidences");
+//		cs.addConstraint(new ContainsConstraint(qcr1, ConstraintOp.CONTAINS, qcConfidence));
 		cs.addConstraint(new SimpleConstraint(qfTaxonId1, ConstraintOp.EQUALS, new QueryValue(
 				Integer.valueOf(taxonId))));
 		cs.addConstraint(new SimpleConstraint(qfTaxonId2, ConstraintOp.EQUALS, new QueryValue(
 				Integer.valueOf(taxonId))));
-		cs.addConstraint(new SimpleConstraint(qfType, ConstraintOp.EQUALS, new QueryValue("HCDP")));
+//		cs.addConstraint(new SimpleConstraint(qfType, ConstraintOp.EQUALS, new QueryValue("HCDP")));
 		q.setConstraint(cs);
 
 		ObjectStore os = osw.getObjectStore();

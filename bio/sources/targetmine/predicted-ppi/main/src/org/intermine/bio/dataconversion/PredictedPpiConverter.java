@@ -107,7 +107,7 @@ public class PredictedPpiConverter extends BioFileConverter {
     		
     		processedInteractions.add(gene1 + "-" + gene2);
     	} else {
-    		LOG.info(String.format("duplicated pairs: %s -- %s", gene1, gene2));
+//    		LOG.info(String.format("duplicated pairs: %s -- %s", gene1, gene2));
     	}
     }
     
