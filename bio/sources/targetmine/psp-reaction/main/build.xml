@@ -1,4 +1,0 @@
-<project name="psp-reaction-tasks" default="default" basedir=".">
-  <description>build psp-reaction tasks</description>
-  <import file="../../../../../imbuild/library.xml"/> 
-</project>

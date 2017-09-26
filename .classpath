@@ -44,7 +44,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/kegg-compound/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/kegg-drug/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/kegg-jtc/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/kegg-reaction/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/kegg-relation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/ligand_expo/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase-genome/main/src"/>
@@ -64,7 +64,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/predicted-tft/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein-analysis/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein-ortholog/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/psp-reaction/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/psp-relation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pubchem/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/publication-efetch/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/retrieve-publication-local/main/src"/>

@@ -325,7 +325,7 @@
       <fieldconfig fieldExpr="description" showInResults="false" showInInlineCollection="false" doNotTruncate="true" showInSummary="false" />
     </fields>
   </class>
-  <class className="org.intermine.model.bio.Reaction">
+  <class className="org.intermine.model.bio.Relation">
     <inlinelist>
       <table path="types.name" />
     </inlinelist>
@@ -814,9 +814,9 @@
                      replacesFields=""
                      types="Modification"/>
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
-                     jspName="model/reactionExtraInfoDisplayer.jsp"
+                     jspName="model/relationExtraInfoDisplayer.jsp"
                      replacesFields=""
-                     types="Reaction"/>
+                     types="Relation"/>
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.ProteinDomainDisplayer"
                      jspName="model/proteinAnalysisResult.jsp"

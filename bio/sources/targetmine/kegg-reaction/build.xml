@@ -1,5 +1,0 @@
-<project name="kegg-reaction" default="default" basedir=".">
-  <description>build, test, package kegg-reaction</description>
-  
-  <import file="../../../../imbuild/source.xml"/>
-</project>

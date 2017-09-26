@@ -1,0 +1,4 @@
+<project name="psp-relation-tasks" default="default" basedir=".">
+  <description>build psp-relation tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

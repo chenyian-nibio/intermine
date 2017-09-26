@@ -1,5 +1,0 @@
-<project name="psp-reaction" default="default" basedir=".">
-  <description>build, test, package psp-reaction</description>
-  
-  <import file="../../../../imbuild/source.xml"/>
-</project>

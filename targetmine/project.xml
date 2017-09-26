@@ -131,7 +131,7 @@
       <property name="kegg.organisms" value="9606 10090 10116"	/>
     </source>
 
-    <source name="kegg-reaction" type="kegg-reaction">
+    <source name="kegg-relation" type="kegg-relation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/kgml"/>
       <property name="src.data.dir.includes" value="*/*/*.xml"/>
     </source>
@@ -299,7 +299,7 @@
       <property name="src.data.dir.includes" value="*_site_dataset" />
       <property name="osAlias" value="os.production"/>
     </source>
-    <source name="psp-reaction" type="psp-reaction">
+    <source name="psp-relation" type="psp-relation">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/phosphositesplus"/>
       <property name="src.data.dir.includes" value="Kinase_Substrate_Dataset"/>
       <property name="osAlias" value="os.production"/>

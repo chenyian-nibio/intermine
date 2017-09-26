@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<classes>
+	<class name="Gene" is-interface="true">
+		<attribute name="primaryIdentifier" type="java.lang.String"/>
+		<collection name="relations" referenced-type="Relation" reverse-reference="gene1"/>
+	</class>
+	<class name="Pathway" is-interface="true" >
+		<attribute name="identifier" type="java.lang.String"/>
+    	<collection name="relations" referenced-type="Relation" reverse-reference="pathways" />
+	</class>
+
+	<class name="Relation" is-interface="true">
+    	<attribute name="name" type="java.lang.String"/>
+		<reference name="gene1" referenced-type="Gene" reverse-reference="relations" />
+		<reference name="gene2" referenced-type="Gene" />
+    	<attribute name="text" type="java.lang.String"/>
+    	<collection name="types" referenced-type="RelationType"/>
+		<collection name="pathways" referenced-type="Pathway" reverse-reference="relations" />
+        <collection name="dataSets" referenced-type="DataSet"/>
+	</class>
+	<class name="RelationType" is-interface="true">
+    	<attribute name="name" type="java.lang.String"/>
+	</class>
+</classes>
