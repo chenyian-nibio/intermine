@@ -286,6 +286,7 @@ public class KeggCompoundConverter extends BioFileConverter
 			if (desc != null) {
 				pathway.setAttribute("description", desc);
 			}
+			pathway.addToCollection("dataSets", getDataSet("KEGG Pathway", getDataSource(DATA_SOURCE_NAME)));
 			
 			store(pathway);
 			
