@@ -3,25 +3,57 @@
 <classes>
     <class name="Gene" is-interface="true">
         <attribute name="ncbiGeneId" type="java.lang.String"/>
-        <collection name="snps" referenced-type="SNP" reverse-reference="genes"/>
+        <collection name="snps" referenced-type="GenomicVariation" reverse-reference="gene"/>
     </class>
 
     <class name="SNP" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="region" type="java.lang.String"/>
+		<reference name="chromosome" referenced-type="Chromosome"/>
+		<attribute name="position" type="java.lang.Integer"/>
 		<attribute name="context" type="java.lang.String"/>
-        <collection name="genes" referenced-type="Gene" reverse-reference="snps"/>
+		<attribute name="intergenic" type="java.lang.Boolean"/>
+        <collection name="relatedGenes" referenced-type="GenomicVariation" reverse-reference="snp"/>
         <collection name="genomeWideAssociations" referenced-type="GenomeWideAssociation" reverse-reference="snps"/>
     </class>
 
+    <class name="GenomicVariation" is-interface="true">
+		<attribute name="type" type="java.lang.String"/> <!-- upstream, downstream, gene -->
+ 		<attribute name="distance" type="java.lang.Integer"/>
+        <reference name="gene" referenced-type="Gene" reverse-reference="snps"/>
+        <reference name="snp" referenced-type="SNP" reverse-reference="relatedGenes"/>
+    </class>
+    
     <class name="GenomeWideAssociation" is-interface="true">
+		<attribute name="accession" type="java.lang.String"/>
+		<attribute name="date" type="java.lang.String"/>
+		<attribute name="study" type="java.lang.String"/>
 		<attribute name="trait" type="java.lang.String"/>
+        <attribute name="initialSampleDescription" type="java.lang.String" />
+        <attribute name="replicationSampleDescription" type="java.lang.String" />
+		<attribute name="reportedGenes" type="java.lang.String"/>
         <attribute name="pvalue" type="java.lang.Double" />
+        <attribute name="pvalueNote" type="java.lang.String" />
+        <attribute name="frequency" type="java.lang.Double" />
+        <attribute name="orBeta" type="java.lang.Double" />
+        <attribute name="confidenceInterval" type="java.lang.String" />
+        <attribute name="platform" type="java.lang.String" />
+        <attribute name="mappedTrait" type="java.lang.String" />
+        <attribute name="riskAllele" type="java.lang.String" />
         <collection name="snps" referenced-type="SNP" reverse-reference="genomeWideAssociations"/>
-        <collection name="doTerms" referenced-type="DOTerm"/>
+        <collection name="efoTerms" referenced-type="EFOTerm"/>
 		<reference name="publication" referenced-type="Publication"/>
+		<reference name="dataSet" referenced-type="DataSet"/>
+        <collection name="sampleSizes" referenced-type="GwasSampleSize"/>
+    </class>
+    
+    <class name="GwasSampleSize" is-interface="true">
+        <attribute name="size" type="java.lang.Integer" />
+		<attribute name="population" type="java.lang.String"/>
+		<attribute name="type" type="java.lang.String"/>
     </class>
 
-	<class name="DOTerm" is-interface="true">
+	<class name="EFOTerm" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
     </class>
 
