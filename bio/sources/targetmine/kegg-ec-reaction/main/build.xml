@@ -1,0 +1,4 @@
+<project name="kegg-ec-reaction-tasks" default="default" basedir=".">
+  <description>build kegg-ec-reaction tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

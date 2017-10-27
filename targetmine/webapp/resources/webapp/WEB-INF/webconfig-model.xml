@@ -525,6 +525,14 @@
       <fieldconfig fieldExpr="inchiKey" showInSummary="false"/>
     </fields>
   </class>
+  <class className="org.intermine.model.bio.Reaction">
+    <fields>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="reactionType"/>
+      <fieldconfig fieldExpr="pathway.identifier"/>
+      <fieldconfig fieldExpr="dataSet.name"/>
+    </fields>
+  </class>
 
   <class className="org.intermine.model.bio.DrugMetabolism">
     <fields>

@@ -146,6 +146,11 @@
       <property name="pathwayFile" value="/data/bio/db/Targetmine/kegg-ftp/compound/links/compound_pathway.list"/>
       <property name="enzymeFile" value="/data/bio/db/Targetmine/kegg-ftp/compound/links/compound_enzyme.list"/>
     </source>
+    <source name="kegg-reaction" type="kegg-ec-reaction">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/kgml/ec"/>
+      <property name="src.data.dir.includes" value="*.xml"/>
+      <property name="reactionNameFile" value="/data/bio/db/Targetmine/kegg-ftp/reaction/reaction_name.lst"/>
+    </source>
 
     <source name="disgenet" type="disgenet">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/disgenet"/>
