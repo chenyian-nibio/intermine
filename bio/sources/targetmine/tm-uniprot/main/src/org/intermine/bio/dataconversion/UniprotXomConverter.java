@@ -409,6 +409,9 @@ public class UniprotXomConverter extends BioFileConverter {
 											modification.setReference("protein", protein);
 											modification.setAttribute("type", modType);
 											modification.setAttribute("position", modiPos);
+											modification.setAttribute("start", modiPos);
+											modification.setAttribute("end", modiPos);
+											modification.setAttribute("regionType", "modification");
 											
 											int pos = Integer.valueOf(modiPos).intValue();
 											modification.setAttribute("residue", aaSeq.substring(pos - 1, pos));
@@ -422,6 +425,9 @@ public class UniprotXomConverter extends BioFileConverter {
 											}
 											
 											store(modification);
+											
+											protein.addToCollection("modifications", modification);
+											
 											modificationSet.add(key);
 										}
 									}

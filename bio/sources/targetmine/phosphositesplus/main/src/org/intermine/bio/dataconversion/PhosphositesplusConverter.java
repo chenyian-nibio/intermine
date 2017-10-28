@@ -140,12 +140,17 @@ public class PhosphositesplusConverter extends BioFileConverter {
 						continue;
 					}
 					
+					Item protein = getProtein(accession);
 					Item modification = createItem("Modification");
-					modification.setReference("protein", getProtein(accession));
+					modification.setReference("protein", protein);
 					modification.setAttribute("type", modificationType);
 					modification.setAttribute("position", String.valueOf(position));
 					modification.setAttribute("residue", residue);
+					modification.setAttribute("start", String.valueOf(position));
+					modification.setAttribute("end", String.valueOf(position));
+					modification.setAttribute("regionType", "modification");
 					store(modification);
+					protein.addToCollection("modifications", modification);
 					
 					modiSet.add(key);
 				}
@@ -158,16 +163,19 @@ public class PhosphositesplusConverter extends BioFileConverter {
 		}
 
 	}
+	
+	@Override
+	public void close() throws Exception {
+		store(proteinMap.values());
+	}
 
-	private Map<String, String> proteinMap = new HashMap<String, String>();
+	private Map<String, Item> proteinMap = new HashMap<String, Item>();
 
-	private String getProtein(String uniprotAcc) throws ObjectStoreException {
-		String ret = proteinMap.get(uniprotAcc);
+	private Item getProtein(String uniprotAcc) throws ObjectStoreException {
+		Item ret = proteinMap.get(uniprotAcc);
 		if (ret == null) {
-			Item item = createItem("Protein");
-			item.setAttribute("primaryAccession", uniprotAcc);
-			store(item);
-			ret = item.getIdentifier();
+			ret = createItem("Protein");
+			ret.setAttribute("primaryAccession", uniprotAcc);
 			proteinMap.put(uniprotAcc, ret);
 		}
 		return ret;
