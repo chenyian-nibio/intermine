@@ -1,21 +1,16 @@
 package org.intermine.bio.dataconversion;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
-import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
 /**
@@ -23,26 +18,18 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class GwasConverter extends BioFileConverter {
-	private static final Logger LOG = Logger.getLogger(GwasConverter.class);
+	private static final String HUMAN_TAXON_ID = "9606";
 
-	private static final Double MIN_PVALUE = Double.valueOf("1E-300");
-	//
+//	private static final Logger LOG = Logger.getLogger(GwasConverter.class);
+
 	private static final String DATASET_TITLE = "NHGRI GWAS Catalog";
 	private static final String DATA_SOURCE_NAME = "NHGRI GWAS Catalog";
 
-	private Map<String, String> diseaseMap = new HashMap<String, String>();
-
 	private Map<String, String> geneMap = new HashMap<String, String>();
-	private Map<String, String> gwaMap = new HashMap<String, String>();
-	private Map<String, String> pubMap = new HashMap<String, String>();
-	private Map<String, String> doMap = new HashMap<String, String>();
-	private Map<String, Item> snpMap = new HashMap<String, Item>();
-
-	private File diseaseMapFile;
-
-	public void setDiseaseMapFile(File diseaseMapFile) {
-		this.diseaseMapFile = diseaseMapFile;
-	}
+	private Map<String, String> publicationMap = new HashMap<String, String>();
+	private Map<String, String> efoMap = new HashMap<String, String>();
+	private Map<String, String> snpMap = new HashMap<String, String>();
+	private Map<String, String> chromosomeMap = new HashMap<String, String>();
 
 	/**
 	 * Constructor
@@ -56,55 +43,205 @@ public class GwasConverter extends BioFileConverter {
 		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
 	}
 
+	private static String ENCODING = "utf-8";
+
 	/**
 	 * 
 	 * 
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
-		if (diseaseMap.isEmpty()) {
-			LOG.info("Read diseaseMap file......");
-			readDiseaseMap();
-		}
-		Iterator<String[]> iterator = FormattedTextParser
-				.parseTabDelimitedReader(new BufferedReader(reader));
+//		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(new BufferedReader(reader));
+		List<String> lines = IOUtils.readLines(new ReaderInputStream(reader), ENCODING);
 		// sikp header
-		iterator.next();
-		while (iterator.hasNext()) {
-			String[] cols = iterator.next();
+//		iterator.next();
+		for (int i = 1; i < lines.size(); i++) {
+			String[] cols = lines.get(i).split("\t");
 			if (cols.length < 2) {
 				continue;
 			}
-			String snpGeneId = cols[17];
-			// skip those intergenic snp (when snpGeneId column is empty)
-			if (!StringUtils.isEmpty(snpGeneId)) {
-				String gwaRefId = getGenomeWideAssociation(cols[7].trim(), cols[1], cols[27]);
-				Item snp = getSnp(cols[21], cols[24]);
-				for (String geneId : snpGeneId.split(";")) {
-					snp.addToCollection("genes", getGene(geneId));
-				}
-				snp.addToCollection("genomeWideAssociations", gwaRefId);
+			Item gwaItem = createItem("GenomeWideAssociation");
+			gwaItem.setAttribute("accession", cols[36]);
+			gwaItem.setAttribute("date", cols[0]);
+			gwaItem.setAttribute("study", cols[6]);
+			gwaItem.setAttribute("trait", cols[7]);
+			if (!StringUtils.isEmpty(cols[13])) {
+				gwaItem.setAttribute("reportedGenes", cols[13]);
 			}
+			gwaItem.setAttribute("pvalue", cols[27]);
+			if (!StringUtils.isEmpty(cols[29])) {
+				gwaItem.setAttribute("pvalueNote", cols[29]);
+			}
+			if (!StringUtils.isEmpty(cols[26]) && !cols[26].equals("NR")) {
+				// TODO need refactoring... 
+				if (cols[26].contains("(")) {
+					String[] split = cols[26].split(" ");
+					if (split[0].contains("-")) {
+						gwaItem.setAttribute("frequencyNote", cols[26]);
+					} else {
+						gwaItem.setAttribute("frequency", split[0].replaceAll("\\xA0", ""));
+						gwaItem.setAttribute("frequencyNote", split[1].replaceAll("\\(|\\)", ""));
+					}
+				} else if (cols[26].contains("-")) {
+					gwaItem.setAttribute("frequencyNote", cols[26]);
+				} else {
+					gwaItem.setAttribute("frequency", cols[26].replaceAll("\\xA0", ""));
+				}
+			}
+			if (!StringUtils.isEmpty(cols[30])) {
+				gwaItem.setAttribute("orBeta", cols[30]);
+			}
+			if (!StringUtils.isEmpty(cols[31])) {
+				gwaItem.setAttribute("confidenceInterval", cols[31]);
+			}
+			if (!StringUtils.isEmpty(cols[32])) {
+				gwaItem.setAttribute("platform", cols[32]);
+			}
+			if (!StringUtils.isEmpty(cols[34])) {
+				gwaItem.setAttribute("mappedTrait", cols[34]);
+			}
+			if (!StringUtils.isEmpty(cols[20])) {
+				gwaItem.setAttribute("riskAllele", cols[20]);
+			}
+
+			gwaItem.setReference("publication", getPublication(cols[1]));
+			
+			if (!StringUtils.isEmpty(cols[8])) {
+				gwaItem.setAttribute("initialSampleDescription", cols[8]);
+				String[] initial = cols[8].split(", ");
+				for (String sampleSize : initial) {
+					String[] parts = sampleSize.split(" ", 2);
+					if (parts.length > 1) {
+						try {
+							int number = Integer.parseInt(parts[0].replaceAll(",", ""));
+							Item gssItem = createItem("GwasSampleSize");
+							gssItem.setAttribute("size", String.valueOf(number));
+							gssItem.setAttribute("population", parts[1]);
+							gssItem.setAttribute("type", "initial");
+							store(gssItem);
+							gwaItem.addToCollection("sampleSizes", gssItem);
+							
+						} catch (NumberFormatException e) {
+							continue;
+						}
+					}
+				}
+			}
+			
+			if (!StringUtils.isEmpty(cols[9])) {
+				gwaItem.setAttribute("replicationSampleDescription", cols[9]);
+				String[] replication = cols[9].split(", ");
+				for (String sampleSize : replication) {
+					String[] parts = sampleSize.split(" ", 2);
+					if (parts.length > 1) {
+						try {
+							int number = Integer.parseInt(parts[0].replaceAll(",", ""));
+							Item gssItem = createItem("GwasSampleSize");
+							gssItem.setAttribute("size", String.valueOf(number));
+							gssItem.setAttribute("population", parts[1]);
+							gssItem.setAttribute("type", "replication");
+							store(gssItem);
+							gwaItem.addToCollection("sampleSizes", gssItem);
+							
+						} catch (NumberFormatException e) {
+							continue;
+						}
+					}
+				}
+			}
+			
+			if (!StringUtils.isEmpty(cols[23])) {
+				String dbSnpId = "rs" + cols[23];
+				String snpItemRef = snpMap.get(dbSnpId);
+				if (snpItemRef == null) {
+					Item snpItem = createItem("SNP");
+					snpItem.setAttribute("identifier", dbSnpId);
+					if (!StringUtils.isEmpty(cols[10])) {
+						snpItem.setAttribute("region", cols[10]);
+					}
+					if (!StringUtils.isEmpty(cols[12])) {
+						snpItem.setAttribute("position", cols[12]);
+					}
+					if (!StringUtils.isEmpty(cols[24])) {
+						snpItem.setAttribute("context", cols[24]);
+					}
+					if (!StringUtils.isEmpty(cols[25])) {
+						snpItem.setAttribute("intergenic", cols[25].equals("0") ? "False" : "True");
+					}
+					if (!StringUtils.isEmpty(cols[11])) {
+						snpItem.setReference("chromosome", getChromosome(cols[11], HUMAN_TAXON_ID));
+					}
+					if (StringUtils.isEmpty(cols[17])) {
+						if (!StringUtils.isEmpty(cols[15])) {
+							Item gvItem = createItem("GenomicVariation");
+							gvItem.setAttribute("type", "upstream");
+							if (!StringUtils.isEmpty(cols[18])) {
+								gvItem.setAttribute("distance", cols[18]);
+							}
+							gvItem.setReference("gene", getGene(cols[15]));
+							gvItem.setReference("snp", snpItem);
+							store(gvItem);
+							snpItem.addToCollection("relatedGenes", gvItem);						}
+						if (!StringUtils.isEmpty(cols[16])) {
+							Item gvItem = createItem("GenomicVariation");
+							gvItem.setAttribute("type", "downstream");
+							if (!StringUtils.isEmpty(cols[19])) {
+								gvItem.setAttribute("distance", cols[19]);
+							}
+							gvItem.setReference("gene", getGene(cols[16]));
+							gvItem.setReference("snp", snpItem);
+							store(gvItem);
+							snpItem.addToCollection("relatedGenes", gvItem);
+						}
+					} else {
+						String[] geneIds = cols[17].split(", ");
+						for (String gid : geneIds) {
+							Item gvItem = createItem("GenomicVariation");
+							gvItem.setAttribute("type", "gene");
+							gvItem.setAttribute("distance", "0");
+							gvItem.setReference("gene", getGene(gid));
+							gvItem.setReference("snp", snpItem);
+							store(gvItem);
+							snpItem.addToCollection("relatedGenes", gvItem);
+						}
+					}
+					store(snpItem);
+					snpItemRef = snpItem.getIdentifier();
+					snpMap.put(dbSnpId, snpItemRef);
+				}
+				gwaItem.setReference("snp", snpItemRef);
+				
+				String[] efoUrls = cols[35].split(", ");
+				for (String efoUrl: efoUrls) {
+					if (efoUrl.contains("EFO_")) {
+						String efoId = "EFO:" + efoUrl.substring(efoUrl.indexOf("EFO_") + 4);
+						gwaItem.addToCollection("efoTerms", getEfoTerm(efoId));
+					}
+				}
+
+				store(gwaItem);
+			}
+
+			
 		}
 	}
 	
-	@Override
-	public void close() throws Exception {
-		store(snpMap.values());
-	}
-
-	private Item getSnp(String dbSnpId, String context) {
-		Item ret = snpMap.get(dbSnpId);
+	private String getEfoTerm(String efoId) throws ObjectStoreException {
+		String ret = efoMap.get(efoId);
 		if (ret == null) {
-			ret = createItem("SNP");
-			ret.setAttribute("identifier", dbSnpId);
-			if (!StringUtils.isEmpty(context)) {
-				ret.setAttribute("context", context);
-			}
-			snpMap.put(dbSnpId, ret);
+			Item item = createItem("EFOTerm");
+			item.setAttribute("identifier", efoId);
+			store(item);
+			ret = item.getIdentifier();
+			efoMap.put(efoId, ret);
 		}
 		return ret;
 	}
+
+//	@Override
+//	public void close() throws Exception {
+//		store(snpMap.values());
+//	}
 
 	private String getGene(String geneId) throws ObjectStoreException {
 		String ret = geneMap.get(geneId);
@@ -120,79 +257,35 @@ public class GwasConverter extends BioFileConverter {
 	}
 
 	private String getPublication(String pubMedId) throws ObjectStoreException {
-		String ret = pubMap.get(pubMedId);
+		String ret = publicationMap.get(pubMedId);
 		if (ret == null) {
 			Item item = createItem("Publication");
 			item.setAttribute("pubMedId", pubMedId);
 			store(item);
 			ret = item.getIdentifier();
-			pubMap.put(pubMedId, ret);
+			publicationMap.put(pubMedId, ret);
 		}
 		return ret;
 	}
 
-	private String getGenomeWideAssociation(String trait, String pubMedId, String pvalue)
-			throws ObjectStoreException {
-		String ret = gwaMap.get(trait + pubMedId);
+	private String getChromosome(String chr, String taxonId) throws ObjectStoreException {
+		String key = chr + ":" + taxonId;
+		String ret = chromosomeMap.get(key);
 		if (ret == null) {
-			Item item = createItem("GenomeWideAssociation");
-			item.setAttribute("trait", trait);
-			if (!pvalue.equals("NS")){
-				if (Double.valueOf(pvalue).compareTo(MIN_PVALUE) < 0 && !pvalue.equals("0")) {
-					item.setAttribute("pvalue", MIN_PVALUE.toString());
-					LOG.info(String.format("p-value CHANGED: %s (%s), original p-value: %s", trait, pubMedId, pvalue));
-				} else {
-					item.setAttribute("pvalue", pvalue);
-				}
+			Item item = createItem("Chromosome");
+			String chrId = chr;
+			if (chr.toLowerCase().startsWith("chr")) {
+				chrId = chr.substring(3);
 			}
-			item.setReference("publication", getPublication(pubMedId));
-			String doTerms = diseaseMap.get(trait);
-			if (doTerms != null) {
-				String[] terms = doTerms.split(",");
-				for (String term : terms) {
-					item.addToCollection("doTerms", getDoTerm(term));
-				}
-			} else {
-				LOG.info("DOTerm for '" + trait + "' not found. ");
+			item.setAttribute("symbol", chrId);
+			if (!StringUtils.isEmpty(taxonId)) {
+				item.setReference("organism", getOrganism(taxonId));
 			}
 			store(item);
 			ret = item.getIdentifier();
-			gwaMap.put(trait + pubMedId, ret);
+			chromosomeMap.put(key, ret);
 		}
 		return ret;
-	}
-
-	private String getDoTerm(String doId) throws ObjectStoreException {
-		String ret = doMap.get(doId);
-		if (ret == null) {
-			Item item = createItem("DOTerm");
-			item.setAttribute("identifier", doId);
-			store(item);
-			ret = item.getIdentifier();
-			doMap.put(doId, ret);
-		}
-		return ret;
-	}
-
-	private void readDiseaseMap() {
-			Iterator<String[]> iterator;
-			try {
-				iterator = FormattedTextParser
-						.parseTabDelimitedReader(new BufferedReader(new FileReader(diseaseMapFile)));
-				while (iterator.hasNext()) {
-					String[] cols = iterator.next();
-					if (cols.length < 2 || StringUtils.isEmpty(cols[1])) {
-						continue;
-					}
-					diseaseMap.put(cols[0].trim(), cols[1]);
-				}
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-				throw new RuntimeException("Disease mapping file not found.");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 	}
 
 }

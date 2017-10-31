@@ -14,7 +14,7 @@
 		<attribute name="context" type="java.lang.String"/>
 		<attribute name="intergenic" type="java.lang.Boolean"/>
         <collection name="relatedGenes" referenced-type="GenomicVariation" reverse-reference="snp"/>
-        <collection name="genomeWideAssociations" referenced-type="GenomeWideAssociation" reverse-reference="snps"/>
+        <collection name="genomeWideAssociations" referenced-type="GenomeWideAssociation" reverse-reference="snp"/>
     </class>
 
     <class name="GenomicVariation" is-interface="true">
@@ -35,12 +35,13 @@
         <attribute name="pvalue" type="java.lang.Double" />
         <attribute name="pvalueNote" type="java.lang.String" />
         <attribute name="frequency" type="java.lang.Double" />
+        <attribute name="frequencyNote" type="java.lang.String" />
         <attribute name="orBeta" type="java.lang.Double" />
         <attribute name="confidenceInterval" type="java.lang.String" />
         <attribute name="platform" type="java.lang.String" />
         <attribute name="mappedTrait" type="java.lang.String" />
         <attribute name="riskAllele" type="java.lang.String" />
-        <collection name="snps" referenced-type="SNP" reverse-reference="genomeWideAssociations"/>
+        <reference name="snp" referenced-type="SNP" reverse-reference="genomeWideAssociations"/>
         <collection name="efoTerms" referenced-type="EFOTerm"/>
 		<reference name="publication" referenced-type="Publication"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
