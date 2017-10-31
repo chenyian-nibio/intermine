@@ -88,7 +88,10 @@ public class KeggEcReactionConverter extends BioFileConverter {
 				if (enzymeMap.get(reaction) == null) {
 					enzymeMap.put(reaction, new HashSet<String>());
 				}
-				enzymeMap.get(reaction).add(name.substring(3));
+				String[] split = name.split("\\s");
+				for (String ecString : split) {
+					enzymeMap.get(reaction).add(ecString.substring(3));
+				}
 			}
 		}
 
