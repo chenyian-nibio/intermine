@@ -12,7 +12,7 @@
     	<attribute name="reactionType" type="java.lang.String"/>
     	<collection name="substrates" referenced-type="Compound"/>
     	<collection name="products" referenced-type="Compound"/>
-		<reference name="pathway" referenced-type="Pathway" />
+		<reference name="pathway" referenced-type="Pathway" reverse-reference="reactions"/>
 		<reference name="dataSet" referenced-type="DataSet" />
         <collection name="enzymes" referenced-type="Enzyme" reverse-reference="reactions"/>
 	</class>

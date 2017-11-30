@@ -678,9 +678,43 @@
 
   <class className="org.intermine.model.bio.GenomeWideAssociation">
     <fields>
+      <fieldconfig fieldExpr="accession"/>
       <fieldconfig fieldExpr="trait"/>
+      <fieldconfig fieldExpr="study" showInSummary="false" showInResults="false" doNotTruncate="true"/>
       <fieldconfig fieldExpr="pvalue"/>
-      <fieldconfig fieldExpr="publication.pubMedId"/>
+      <fieldconfig fieldExpr="pvalueNote" showInSummary="false"/>
+      <fieldconfig fieldExpr="publication.pubMedId" showInSummary="false" showInResults="false"/>
+      <fieldconfig fieldExpr="frequency" showInSummary="false"/>
+      <fieldconfig fieldExpr="frequencyNote" showInSummary="false"/>
+      <fieldconfig fieldExpr="orBeta" showInSummary="false"/>
+      <fieldconfig fieldExpr="confidenceInterval" showInSummary="false"/>
+      <fieldconfig fieldExpr="platform" showInSummary="false"/>
+      <fieldconfig fieldExpr="mappedTrait" showInSummary="false"/>
+      <fieldconfig fieldExpr="riskAllele" showInSummary="false"/>
+      <fieldconfig fieldExpr="initialSampleDescription" showInSummary="false" showInResults="false" doNotTruncate="true"/>
+      <fieldconfig fieldExpr="replicationSampleDescription" showInSummary="false" showInResults="false" doNotTruncate="true"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.GenomicVariation">
+    <fields>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="distance"/>
+      <fieldconfig fieldExpr="gene.primaryIdentifier"/>
+      <fieldconfig fieldExpr="gene.symbol"/>
+      <fieldconfig fieldExpr="snp.identifier"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.SNP">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="context"/>
+      <fieldconfig fieldExpr="chromosome.primaryIdentifier" showInResults="false"/>
+      <fieldconfig fieldExpr="chromosome.symbol" showInResults="false"/>
+      <fieldconfig fieldExpr="position"/>
+      <fieldconfig fieldExpr="region"/>
+      <fieldconfig fieldExpr="intergenic"/>
     </fields>
   </class>
 
