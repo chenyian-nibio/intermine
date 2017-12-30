@@ -114,10 +114,14 @@ public class TaxonPathwayConverter extends BioFileConverter {
 			
 			Item pathway = createItem("Pathway");
 			pathway.setAttribute("identifier", "map" + pathwayId);
-			pathway.setAttribute("name", pathwayNameMap.get(pathwayId));
-			String subClass = subClassMap.get(pathwayId);
-			pathway.setAttribute("label2", subClass);
-			pathway.setAttribute("label1", mainClassMap.get(subClass));
+			if (pathwayNameMap.get(pathwayId) != null) {
+				pathway.setAttribute("name", pathwayNameMap.get(pathwayId));
+				String subClass = subClassMap.get(pathwayId);
+				pathway.setAttribute("label2", subClass);
+				pathway.setAttribute("label1", mainClassMap.get(subClass));
+			} else {
+				LOG.info("Unknown pathway name: " + pathwayId);
+			}
 			
 			String desc = pathwayDescMap.get("map" + pathwayId);
 			if (desc != null) {

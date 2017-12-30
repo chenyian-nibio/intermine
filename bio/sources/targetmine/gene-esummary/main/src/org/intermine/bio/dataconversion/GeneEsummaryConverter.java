@@ -34,8 +34,8 @@ public class GeneEsummaryConverter extends BioFileConverter
 {
 	private static final Logger LOG = Logger.getLogger(GeneEsummaryConverter.class);
 	//
-    private static final String DATASET_TITLE = "Entrez Gene";
-    private static final String DATA_SOURCE_NAME = "Entrez Gene";
+    private static final String DATASET_TITLE = "Gene";
+    private static final String DATA_SOURCE_NAME = "NCBI";
 
 	private Map<String, String> chromosomeMap = new HashMap<String, String>();
 	

@@ -32,8 +32,8 @@ public class GeneInfoConverter extends BioFileConverter {
 	private static final Logger LOG = Logger.getLogger(GeneInfoConverter.class);
 	private static final String PROP_FILE = "gene-info_config.properties";
 	//
-	private static final String DATASET_TITLE = "Entrez Gene";
-	private static final String DATA_SOURCE_NAME = "Entrez Gene";
+	private static final String DATASET_TITLE = "Gene";
+	private static final String DATA_SOURCE_NAME = "NCBI";
 
 	private Set<String> taxonIds;
 

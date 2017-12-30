@@ -1,15 +1,5 @@
 package org.intermine.bio.dataconversion;
 
-/*
- * Copyright (C) 2002-2015 FlyMine
- *
- * This code may be freely distributed and modified under the
- * terms of the GNU Lesser General Public Licence.  This should
- * be distributed with the code.  See the LICENSE file for more
- * information or http://www.gnu.org/copyleft/lesser.html.
- *
- */
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -25,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.util.FormattedTextParser;
@@ -38,10 +27,10 @@ import org.intermine.xml.full.Item;
  */
 public class TaxonomyConverter extends BioFileConverter
 {
-	private static final Logger LOG = Logger.getLogger(TaxonomyConverter.class);
+//	private static final Logger LOG = Logger.getLogger(TaxonomyConverter.class);
 	//
     private static final String DATASET_TITLE = "Taxonomy";
-    private static final String DATA_SOURCE_NAME = "GenBank";
+    private static final String DATA_SOURCE_NAME = "NCBI";
 
     /**
      * Constructor
@@ -67,17 +56,11 @@ public class TaxonomyConverter extends BioFileConverter
     public void process(Reader reader) throws Exception {
     	Map<String, String> nameMap = readNameMap();
     	
-//    	for (String taxonId : nameMap.keySet()) {
-//			LOG.info(nameMap.get(taxonId) + " (" + taxonId + ")");
-//		}
-    	
-    	
     	Iterator<String[]> iterator = FormattedTextParser.parseDelimitedReader(reader, '|');
     	while (iterator.hasNext()) {
     		String[] cols = iterator.next();
     		String id = cols[0].trim();
 			TaxonEntry entry = getTaxonEntry(id);
-//			createTaxonomy(id);
     		String parentId = cols[1].trim();
     		if (!id.equals(parentId)) {
     			entry.setParent(getTaxonEntry(parentId));
@@ -85,22 +68,6 @@ public class TaxonomyConverter extends BioFileConverter
     		entry.setRank(cols[2].trim());
     	}
     	
-//    	TaxonEntry test = taxonMap.get("9606");
-//    	LOG.info(nameMap.get(test.getTaxonId()) + " (" + test.getTaxonId() + ") - " + test.getRank());;
-//    	List<TaxonEntry> allParents = new ArrayList<TaxonEntry>(test.getAllParents());
-//    	Collections.sort(allParents, new Comparator<TaxonEntry>() {
-//
-//			@Override
-//			public int compare(TaxonEntry o1, TaxonEntry o2) {
-//				return o1.getAllParents().size() > o2.getAllParents().size()? 1 : -1;
-//			}
-//		});
-//    	for (TaxonEntry taxonEntry : allParents) {
-//    		String id = taxonEntry.getTaxonId();
-//    		LOG.info(nameMap.get(id) + " (" + id + ") - " + taxonEntry.getRank());;
-//		}
-    	
-
     	System.out.println("Sorting entries...");
     	List<TaxonEntry> allEntries = new ArrayList<TaxonEntry>(taxonMap.values());
     	Collections.sort(allEntries, new Comparator<TaxonEntry>() {
@@ -131,15 +98,6 @@ public class TaxonomyConverter extends BioFileConverter
     }
     
     private Map<String, String> taxonRefMap = new HashMap<String, String>();
-    
-//    private Map<String, Item> itemMap = new HashMap<String, Item>();
-//    private void createTaxonomy(String taxonId) {
-//    	if (itemMap.get(taxonId) == null) {
-//    		Item item = createItem("Taxonomy");
-//    		item.setAttribute("taxonId", taxonId);
-//    		itemMap.put(taxonId, item);
-//    	}
-//    }
     
     private Map<String, TaxonEntry> taxonMap = new HashMap<String, TaxonEntry>();
     private TaxonEntry getTaxonEntry(String taxonId) {
