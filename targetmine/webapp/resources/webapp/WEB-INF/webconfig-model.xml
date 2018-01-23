@@ -801,6 +801,20 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.MeshTerm">
+    <inlinelist>
+    	<table path="synonyms.name" showLinksToObjects="true" />
+    </inlinelist>
+  </class>
+
+  <class className="org.intermine.model.bio.MeshTree">
+    <fields>
+      <fieldconfig fieldExpr="number"/>
+      <fieldconfig fieldExpr="meshTerm.identifier"/>
+      <fieldconfig fieldExpr="meshTerm.name"/>
+    </fields>
+  </class>
+
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
   <tableExportConfig id="gff3" className="org.intermine.bio.web.export.GFF3HttpExporter"/>

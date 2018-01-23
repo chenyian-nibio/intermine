@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="MeshTerm" extends="OntologyTerm" is-interface="true">
+		<collection name="treeNumbers" referenced-type="MeshTree" reverse-reference="meshTerm"/>
+	</class>
+
+	<class name="MeshTree" is-interface="true">
+		<attribute name="number" type="java.lang.String"/>
+		<reference name="meshTerm" referenced-type="MeshTerm" reverse-reference="treeNumbers"/>
+		<collection name="parents" referenced-type="MeshTree"/>
+	</class>
+
+</classes>

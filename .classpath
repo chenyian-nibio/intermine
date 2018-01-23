@@ -25,6 +25,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/drugbank/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugbank-v4/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugebility/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/efo-mesh/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/enzyme/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/enzyme-pathway/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fill-missing-genes/main/src"/>
@@ -47,6 +48,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/kegg-jtc/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/kegg-relation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/ligand_expo/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/mesh-term/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase-genome/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirtarbase/main/src"/>

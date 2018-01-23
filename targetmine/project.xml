@@ -235,6 +235,14 @@
     <source name="efo" type="efo">
       <property name="src.data.file" location="/data/bio/db/Targetmine/efo/efo.modi.obo"/>
     </source>  
+    <source name="efo-mesh" type="efo-mesh">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/efo/" />
+      <property name="src.data.dir.includes" value="efo.modi.obo" />
+    </source>  
+    <source name="mesh-term" type="mesh-term">
+      <property name="src.data.dir" location="/data/bio/db/MeSH/2018/text/" />
+      <property name="src.data.dir.includes" value="d2018.bin" />
+    </source>  
     <source name="gwas" type="gwas">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gwas/nhgri-ebi" />
       <property name="src.data.dir.includes" value="gwas-catalog-associations_ontology-annotated.tsv" />

@@ -1,0 +1,4 @@
+<project name="mesh-term-tasks" default="default" basedir=".">
+  <description>build mesh-term tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

@@ -1,0 +1,5 @@
+<project name="mesh-term" default="default" basedir=".">
+  <description>build, test, package mesh-term</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>
