@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<classes>
+  <class name="Publication" is-interface="true">
+    <attribute name="pubMedId" type="java.lang.String"/>
+    <collection name="meshTerms" referenced-type="MeshTerm" reverse-reference="publications" />
+  </class>
+  <class name="MeshTerm" is-interface="true">
+    <attribute name="identifier" type="java.lang.String"/>
+    <collection name="publications" referenced-type="Publication" reverse-reference="meshTerms"/>
+  </class>
+
+</classes>

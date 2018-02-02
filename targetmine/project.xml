@@ -381,6 +381,11 @@
       <property name="pathwayDescFile" value="/data/bio/db/Targetmine/kegg-ftp/pathway.hrme.desc.txt"/>
       <property name="taxonMapFile" value="/data/bio/db/Targetmine/kegg-ftp/prokaryotes/taxonomic_rank"/>
     </source>
+    <source name="pubmed-mesh" type="pubmed-mesh">
+      <property name="src.data.dir" location="/data/bio/db/pubmed/2017"/>
+      <property name="src.data.dir.includes" value="*/mesh/*-mesh.txt"/>
+      <property name="osAlias" value="os.production"/>
+    </source>
 <!-- maybe no longer necessary ... 
     <source name="rpl" type="retrieve-publication-local">
       <property name="source.db.name" value="pub-db"/>

@@ -1,0 +1,5 @@
+<project name="pubmed-mesh" default="default" basedir=".">
+  <description>build, test, package pubmed-mesh</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

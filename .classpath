@@ -70,6 +70,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/psp-relation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pubchem/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/publication-efetch/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/pubmed-mesh/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/retrieve-publication-local/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/scop/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/sifts/main/src"/>
