@@ -7,7 +7,13 @@
 	<class name="MeshTree" is-interface="true">
 		<attribute name="number" type="java.lang.String"/>
 		<reference name="meshTerm" referenced-type="MeshTerm" reverse-reference="treeNumbers"/>
+		<reference name="category" referenced-type="MeshCategory" reverse-reference="trees"/>
 		<collection name="parents" referenced-type="MeshTree"/>
+	</class>
+	<class name="MeshCategory" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+		<collection name="trees" referenced-type="MeshTree" reverse-reference="category"/>
 	</class>
 
 </classes>

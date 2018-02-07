@@ -48,6 +48,9 @@ public class MeshTermConverter extends BioFileConverter
      * {@inheritDoc}
      */
 	public void process(Reader reader) throws Exception {
+		if (meshCategoryMap == null || meshCategoryMap.isEmpty()) {
+			createMeshCategory();
+		}
 
 		BufferedReader in = null;
 		try {
@@ -84,6 +87,7 @@ public class MeshTermConverter extends BioFileConverter
 							Item meshTree = createItem("MeshTree");
 							meshTree.setAttribute("number", tn);
 							meshTree.setReference("meshTerm", item);
+							meshTree.setReference("category", meshCategoryMap.get(tn.substring(0, 1)));
 							meshTreeItemMap.put(tn, meshTree);
 						}
 						count++;
@@ -167,4 +171,35 @@ public class MeshTermConverter extends BioFileConverter
 			meshTreeRefMap.put(tn, item.getIdentifier());
 		}
 	}
+	
+	private Map<String, String> meshCategoryMap = new HashMap<String, String>();
+	private void createMeshCategory() throws ObjectStoreException {
+		Map<String, String> category = new HashMap<String, String>();
+		category.put("A", "Anatomy");
+		category.put("B", "Organisms");
+		category.put("C", "Diseases");
+		category.put("D", "Chemicals and Drugs");
+		category.put("E", "Analytical, Diagnostic and Therapeutic Techniques, and Equipment");
+		category.put("F", "Psychiatry and Psychology");
+		category.put("G", "Phenomena and Processes");
+		category.put("H", "Disciplines and Occupations");
+		category.put("I", "Anthropology, Education, Sociology, and Social Phenomena");
+		category.put("J", "Technology, Industry, and Agriculture");
+		category.put("K", "Humanities");
+		category.put("L", "Information Science");
+		category.put("M", "Named Groups");
+		category.put("N", "Health Care");
+		category.put("V", "Publication Characteristics");
+		category.put("Z", "Geographicals");
+
+		for (String code : category.keySet()) {
+			Item categoryItem = createItem("MeshCategory");
+			categoryItem.setAttribute("identifier", code);
+			categoryItem.setAttribute("name", category.get(code));
+			store(categoryItem);
+			meshCategoryMap.put(code, categoryItem.getIdentifier());
+		}
+
+	}
+	
 }
