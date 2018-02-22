@@ -163,6 +163,15 @@
       <property name="titleFile" value="/data/bio/db/Targetmine/omim/omim_phenotype_title" />
     </source>
 <!-- chenyian: for internal only | end -->    
+    <source name="clinvar" type="tm-clinvar">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/clinvar"/>
+      <property name="src.data.dir.includes" value="variant_summary.txt"/>
+      <property name="submissionSummaryFile" value="/data/bio/db/Targetmine/clinvar/submission_summary.txt" />
+      <property name="variationCitationsFile" value="/data/bio/db/Targetmine/clinvar/var_citations.txt" />
+      <property name="variationAlleleFile" value="/data/bio/db/Targetmine/clinvar/variation_allele.txt" />
+      <property name="crossReferencesFile" value="/data/bio/db/Targetmine/clinvar/cross_references.txt" />
+      <property name="alleleGeneFile" value="/data/bio/db/Targetmine/clinvar/allele_gene.txt" />
+    </source>
 
     <source name="wwpdb" type="wwpdb">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/wwpdb/" />

@@ -64,7 +64,6 @@
 
  <class className="org.intermine.model.bio.Location">
     <fields>
-      <fieldconfig fieldExpr="feature.primaryIdentifier"/>
       <fieldconfig fieldExpr="start"/>
       <fieldconfig fieldExpr="end"/>
       <fieldconfig fieldExpr="strand"/>
@@ -710,9 +709,10 @@
     <fields>
       <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="context"/>
-      <fieldconfig fieldExpr="chromosome.primaryIdentifier" showInResults="false"/>
-      <fieldconfig fieldExpr="chromosome.symbol" showInResults="false"/>
-      <fieldconfig fieldExpr="position"/>
+      <fieldconfig fieldExpr="location.locatedOn.primaryIdentifier" showInResults="false"/>
+      <fieldconfig fieldExpr="location.locatedOn.symbol" showInResults="false"/>
+      <fieldconfig fieldExpr="location.start"/>
+      <fieldconfig fieldExpr="location.end"/>
       <fieldconfig fieldExpr="region"/>
       <fieldconfig fieldExpr="intergenic"/>
     </fields>
@@ -1384,7 +1384,20 @@
                                  typeClass="KeggCompound" 
                                  views="originalId, name, enzymes.ecNumber, enzymes.description" 
                                  externalLink="/targetmine/portal.do?class=Enzyme&amp;externalids=" />
-
+<!-- 
+      <enrichmentwidgetdisplayer id="gene_mesh_enrichment"
+                                 title="MeSH Term Enrichment"
+                                 description="MeSH Terms enriched for genes in this list"
+                                 label="MeSH Terms"
+                                 startClass="Gene"
+                                 startClassDisplay="symbol"
+                                 enrich="publications.meshTerms.name"
+                                 enrichIdentifier="publications.meshTerms.identifier"
+                                 constraints="organism.taxonId=[list]"
+                                 typeClass="Gene"
+                                 views="primaryIdentifier, symbol, organism.name, publications.meshTerms.identifier, publications.meshTerms.name" 
+                                 externalLink="/targetmine/portal.do?class=MeshTerm&amp;externalids="/>
+ -->
 
 </widgets>
 </webconfig>

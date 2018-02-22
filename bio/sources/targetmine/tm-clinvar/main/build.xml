@@ -1,0 +1,4 @@
+<project name="tm-clinvar-tasks" default="default" basedir=".">
+  <description>build tm-clinvar tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

@@ -9,10 +9,9 @@
     <class name="SNP" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="region" type="java.lang.String"/>
-		<reference name="chromosome" referenced-type="Chromosome"/>
-		<attribute name="position" type="java.lang.Integer"/>
 		<attribute name="context" type="java.lang.String"/>
 		<attribute name="intergenic" type="java.lang.Boolean"/>
+		<reference name="location" referenced-type="Location"/>
         <collection name="relatedGenes" referenced-type="GenomicVariation" reverse-reference="snp"/>
         <collection name="genomeWideAssociations" referenced-type="GenomeWideAssociation" reverse-reference="snp"/>
     </class>

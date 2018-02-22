@@ -18,12 +18,12 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class GwasConverter extends BioFileConverter {
-	private static final String HUMAN_TAXON_ID = "9606";
-
 //	private static final Logger LOG = Logger.getLogger(GwasConverter.class);
 
 	private static final String DATASET_TITLE = "NHGRI GWAS Catalog";
 	private static final String DATA_SOURCE_NAME = "NHGRI GWAS Catalog";
+
+	private static final String HUMAN_TAXON_ID = "9606";
 
 	private Map<String, String> geneMap = new HashMap<String, String>();
 	private Map<String, String> publicationMap = new HashMap<String, String>();
@@ -156,20 +156,25 @@ public class GwasConverter extends BioFileConverter {
 				if (snpItemRef == null) {
 					Item snpItem = createItem("SNP");
 					snpItem.setAttribute("identifier", dbSnpId);
+					// TODO this part should be covered by dbSNP; have to be deprecated in the future
 					if (!StringUtils.isEmpty(cols[10])) {
 						snpItem.setAttribute("region", cols[10]);
 					}
 					if (!StringUtils.isEmpty(cols[12])) {
-						snpItem.setAttribute("position", cols[12]);
+						Item location = createItem("Location");
+						location.setAttribute("start", cols[12]);
+						location.setAttribute("end", cols[12]);
+						if (!StringUtils.isEmpty(cols[11])) {
+							location.setReference("locatedOn", getChromosome(cols[11], HUMAN_TAXON_ID));
+						}
+						store(location);
+						snpItem.setReference("location", location);
 					}
 					if (!StringUtils.isEmpty(cols[24])) {
 						snpItem.setAttribute("context", cols[24]);
 					}
 					if (!StringUtils.isEmpty(cols[25])) {
 						snpItem.setAttribute("intergenic", cols[25].equals("0") ? "False" : "True");
-					}
-					if (!StringUtils.isEmpty(cols[11])) {
-						snpItem.setReference("chromosome", getChromosome(cols[11], HUMAN_TAXON_ID));
 					}
 					if (StringUtils.isEmpty(cols[17])) {
 						if (!StringUtils.isEmpty(cols[15])) {
