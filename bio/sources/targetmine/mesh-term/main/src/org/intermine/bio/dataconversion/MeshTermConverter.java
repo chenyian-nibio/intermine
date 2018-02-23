@@ -48,84 +48,149 @@ public class MeshTermConverter extends BioFileConverter
      * {@inheritDoc}
      */
 	public void process(Reader reader) throws Exception {
-		if (meshCategoryMap == null || meshCategoryMap.isEmpty()) {
+		String fileName = getCurrentFile().getName();
+		if (fileName.startsWith("d")) {
+			System.out.println("processing MeSH Descriptor...");
+			LOG.info("processing MeSH Descriptor...");
 			createMeshCategory();
+			
+			BufferedReader in = null;
+			try {
+				in = new BufferedReader(reader);
+				
+				String meshHeading = "";
+				String meshIdentifier = "";
+				String meshScopeNote = "";
+				Set<String> synonyms = new HashSet<String>();
+				Set<String> treeNums = new HashSet<String>();
+				
+				String line;
+				int count = 0;
+				while ((line = in.readLine()) != null) {
+					if ("".equals(line.trim())) {
+						if (!"".equals(meshIdentifier) && !"".equals(meshHeading)) {
+							Item item = createItem("MeshTerm");
+							item.setAttribute("identifier", meshIdentifier);
+							item.setAttribute("name", meshHeading);
+							if (!"".equals(meshScopeNote)) {
+								item.setAttribute("description", meshScopeNote);
+							}
+				    		item.setReference("ontology", getOntology("MeSH"));
+							for (String name : synonyms) {
+								Item synonymItem = createItem("OntologyTermSynonym");
+								synonymItem.setAttribute("name", name);
+								synonymItem.setAttribute("type", "synonym");
+								store(synonymItem);
+								item.addToCollection("synonyms", synonymItem);
+							}
+							store(item);
+							
+							for (String tn : treeNums) {
+								Item meshTree = createItem("MeshTree");
+								meshTree.setAttribute("number", tn);
+								meshTree.setReference("meshTerm", item);
+								meshTree.setReference("category", meshCategoryMap.get(tn.substring(0, 1)));
+								meshTreeItemMap.put(tn, meshTree);
+							}
+							count++;
+						}
+						
+						meshHeading = "";
+						meshIdentifier = "";
+						meshScopeNote = "";
+						synonyms = new HashSet<String>();
+						treeNums = new HashSet<String>();
+						
+					} else if (line.startsWith("MH =")) {
+						meshHeading = line.trim().substring(5);
+					} else if (line.startsWith("MN =")) {
+						treeNums.add(line.trim().substring(5));
+					} else if (line.startsWith("MS =")) {
+						meshScopeNote = line.trim().substring(5);
+					} else if (line.startsWith("ENTRY =")) {
+						if (line.contains("|")) {
+							synonyms.add(line.split("\\|")[0].trim().substring(8));
+						} else {
+							synonyms.add(line.trim().substring(8));
+						}
+					} else if (line.startsWith("UI =")) {
+						meshIdentifier = line.trim().substring(5);
+					}
+				}
+				System.out.println(String.format("create %d MeSH terms.", count));
+				LOG.info(String.format("create %d MeSH terms.", count));
+				
+			} catch (FileNotFoundException e) {
+				LOG.error(e);
+			} catch (IOException e) {
+				LOG.error(e);
+			} finally {
+				if (in != null)
+					in.close();
+			}
+		} else if (fileName.startsWith("c")) {
+			System.out.println("processing MeSH Supplementary Concept Records...");
+			LOG.info("processing MeSH Supplementary Concept Records...");
+			
+			BufferedReader in = null;
+			try {
+				in = new BufferedReader(reader);
+				
+				String nameOfSubstance = "";
+				String meshIdentifier = "";
+				Set<String> synonyms = new HashSet<String>();
+				
+				String line;
+				int count = 0;
+				while ((line = in.readLine()) != null) {
+					if ("".equals(line.trim())) {
+						if (!"".equals(meshIdentifier) && !"".equals(nameOfSubstance)) {
+							Item item = createItem("MeshTerm");
+							item.setAttribute("identifier", meshIdentifier);
+							item.setAttribute("name", nameOfSubstance);
+				    		item.setReference("ontology", getOntology("MeSH"));
+							for (String name : synonyms) {
+								Item synonymItem = createItem("OntologyTermSynonym");
+								synonymItem.setAttribute("name", name);
+								synonymItem.setAttribute("type", "synonym");
+								store(synonymItem);
+								item.addToCollection("synonyms", synonymItem);
+							}
+							store(item);
+							
+							count++;
+						}
+						
+						nameOfSubstance = "";
+						meshIdentifier = "";
+						synonyms = new HashSet<String>();
+						
+					} else if (line.startsWith("NM =")) {
+						nameOfSubstance = line.trim().substring(5);
+					} else if (line.startsWith("SY =")) {
+						if (line.contains("|")) {
+							synonyms.add(line.split("\\|")[0].trim().substring(5));
+						} else {
+							synonyms.add(line.trim().substring(5));
+						}
+					} else if (line.startsWith("UI =")) {
+						meshIdentifier = line.trim().substring(5);
+					}
+				}
+				System.out.println(String.format("create %d MeSH terms.", count));
+				LOG.info(String.format("create %d MeSH terms.", count));
+				
+			} catch (FileNotFoundException e) {
+				LOG.error(e);
+			} catch (IOException e) {
+				LOG.error(e);
+			} finally {
+				if (in != null)
+					in.close();
+			}
+
 		}
 
-		BufferedReader in = null;
-		try {
-			in = new BufferedReader(reader);
-			
-			String meshHeading = "";
-			String meshIdentifier = "";
-			String meshScopeNote = "";
-			Set<String> synonyms = new HashSet<String>();
-			Set<String> treeNums = new HashSet<String>();
-			
-			String line;
-			int count = 0;
-			while ((line = in.readLine()) != null) {
-				if ("".equals(line.trim())) {
-					if (!"".equals(meshIdentifier) && !"".equals(meshHeading)) {
-						Item item = createItem("MeshTerm");
-						item.setAttribute("identifier", meshIdentifier);
-						item.setAttribute("name", meshHeading);
-						if (!"".equals(meshScopeNote)) {
-							item.setAttribute("description", meshScopeNote);
-						}
-			    		item.setReference("ontology", getOntology("MeSH"));
-						for (String name : synonyms) {
-							Item synonymItem = createItem("OntologyTermSynonym");
-							synonymItem.setAttribute("name", name);
-							synonymItem.setAttribute("type", "synonym");
-							store(synonymItem);
-							item.addToCollection("synonyms", synonymItem);
-						}
-						store(item);
-						
-						for (String tn : treeNums) {
-							Item meshTree = createItem("MeshTree");
-							meshTree.setAttribute("number", tn);
-							meshTree.setReference("meshTerm", item);
-							meshTree.setReference("category", meshCategoryMap.get(tn.substring(0, 1)));
-							meshTreeItemMap.put(tn, meshTree);
-						}
-						count++;
-					}
-					
-					meshHeading = "";
-					meshIdentifier = "";
-					meshScopeNote = "";
-					synonyms = new HashSet<String>();
-					treeNums = new HashSet<String>();
-					
-				} else if (line.startsWith("MH =")) {
-					meshHeading = line.trim().substring(5);
-				} else if (line.startsWith("MN =")) {
-					treeNums.add(line.trim().substring(5));
-				} else if (line.startsWith("MS =")) {
-					meshScopeNote = line.trim().substring(5);
-				} else if (line.startsWith("ENTRY =")) {
-					if (line.contains("|")) {
-						synonyms.add(line.split("\\|")[0].trim().substring(8));
-					} else {
-						synonyms.add(line.trim().substring(8));
-					}
-				} else if (line.startsWith("UI =")) {
-					meshIdentifier = line.trim().substring(5);
-				}
-			}
-			System.out.println(String.format("create %d MeSH terms.", count));
-			LOG.info(String.format("create %d MeSH terms.", count));
-			
-		} catch (FileNotFoundException e) {
-			LOG.error(e);
-		} catch (IOException e) {
-			LOG.error(e);
-		} finally {
-			if (in != null)
-				in.close();
-		}
 	}
 
     private Map<String, String> ontologyMap = new HashMap<String, String>();

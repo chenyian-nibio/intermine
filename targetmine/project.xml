@@ -250,7 +250,7 @@
     </source>  
     <source name="mesh-term" type="mesh-term">
       <property name="src.data.dir" location="/data/bio/db/MeSH/2018/text/" />
-      <property name="src.data.dir.includes" value="d2018.bin" />
+      <property name="src.data.dir.includes" value="*.bin" />
     </source>  
     <source name="gwas" type="gwas">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gwas/nhgri-ebi" />
