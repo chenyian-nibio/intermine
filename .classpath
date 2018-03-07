@@ -19,6 +19,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/chembl-hierarchy/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/chembl-protein/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/dataset-info/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/dbsnp/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/disgenet/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/do-annotation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drpias/main/src"/>

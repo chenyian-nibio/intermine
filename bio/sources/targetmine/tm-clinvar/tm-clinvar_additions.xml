@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- This file details any extensions needed to the data model to store data from this source, everything else is automatically generated from the model description so this is all we need to do to add to the model. -->
 
 <classes>
     <class name="Allele" is-interface="true" extends="BioEntity">
@@ -10,9 +9,6 @@
         <attribute name="reviewStatus" type="java.lang.String"/>
         <collection name="snps" referenced-type="SNP" reverse-reference="alleles"/>
         <collection name="variations" referenced-type="Variantion" reverse-reference="alleles"/>
-    </class>
-    <class name="Gene" is-interface="true" extends="BioEntity">
-        <collection name="snps" referenced-type="GenomicVariation" reverse-reference="gene"/>
     </class>
     <class name="Variantion" is-interface="true">
         <attribute name="identifier" type="java.lang.String"/>
@@ -35,18 +31,7 @@
     </class>
     <class name="SNP" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
-        <attribute name="reference" type="java.lang.String"/>
-        <attribute name="alternate" type="java.lang.String"/>
-		<attribute name="region" type="java.lang.String"/>
-		<reference name="location" referenced-type="Location"/>
 		<collection name="alleles" referenced-type="Allele" reverse-reference="snps"/>
-        <collection name="relatedGenes" referenced-type="GenomicVariation" reverse-reference="snp"/>
-    </class>
-    <class name="GenomicVariation" is-interface="true">
-		<attribute name="type" type="java.lang.String"/> <!-- upstream, downstream, gene -->
- 		<attribute name="distance" type="java.lang.Integer"/>
-        <reference name="gene" referenced-type="Gene" reverse-reference="snps"/>
-        <reference name="snp" referenced-type="SNP" reverse-reference="relatedGenes"/>
     </class>
 
 </classes>

@@ -156,60 +156,16 @@ public class GwasConverter extends BioFileConverter {
 				if (snpItemRef == null) {
 					Item snpItem = createItem("SNP");
 					snpItem.setAttribute("identifier", dbSnpId);
-					// TODO this part should be covered by dbSNP; have to be deprecated in the future
-					if (!StringUtils.isEmpty(cols[10])) {
-						snpItem.setAttribute("region", cols[10]);
-					}
-					if (!StringUtils.isEmpty(cols[12])) {
-						Item location = createItem("Location");
-						location.setAttribute("start", cols[12]);
-						location.setAttribute("end", cols[12]);
-						if (!StringUtils.isEmpty(cols[11])) {
-							location.setReference("locatedOn", getChromosome(cols[11], HUMAN_TAXON_ID));
-						}
-						store(location);
-						snpItem.setReference("location", location);
-					}
-					if (!StringUtils.isEmpty(cols[24])) {
-						snpItem.setAttribute("context", cols[24]);
-					}
-					if (!StringUtils.isEmpty(cols[25])) {
-						snpItem.setAttribute("intergenic", cols[25].equals("0") ? "False" : "True");
-					}
-					if (StringUtils.isEmpty(cols[17])) {
-						if (!StringUtils.isEmpty(cols[15])) {
-							Item gvItem = createItem("GenomicVariation");
-							gvItem.setAttribute("type", "upstream");
-							if (!StringUtils.isEmpty(cols[18])) {
-								gvItem.setAttribute("distance", cols[18]);
-							}
-							gvItem.setReference("gene", getGene(cols[15]));
-							gvItem.setReference("snp", snpItem);
-							store(gvItem);
-							snpItem.addToCollection("relatedGenes", gvItem);						}
-						if (!StringUtils.isEmpty(cols[16])) {
-							Item gvItem = createItem("GenomicVariation");
-							gvItem.setAttribute("type", "downstream");
-							if (!StringUtils.isEmpty(cols[19])) {
-								gvItem.setAttribute("distance", cols[19]);
-							}
-							gvItem.setReference("gene", getGene(cols[16]));
-							gvItem.setReference("snp", snpItem);
-							store(gvItem);
-							snpItem.addToCollection("relatedGenes", gvItem);
-						}
-					} else {
-						String[] geneIds = cols[17].split(", ");
-						for (String gid : geneIds) {
-							Item gvItem = createItem("GenomicVariation");
-							gvItem.setAttribute("type", "gene");
-							gvItem.setAttribute("distance", "0");
-							gvItem.setReference("gene", getGene(gid));
-							gvItem.setReference("snp", snpItem);
-							store(gvItem);
-							snpItem.addToCollection("relatedGenes", gvItem);
-						}
-					}
+//					if (!StringUtils.isEmpty(cols[12])) {
+//						Item location = createItem("Location");
+//						location.setAttribute("start", cols[12]);
+//						location.setAttribute("end", cols[12]);
+//						if (!StringUtils.isEmpty(cols[11])) {
+//							location.setReference("locatedOn", getChromosome(cols[11], HUMAN_TAXON_ID));
+//						}
+//						store(location);
+//						snpItem.setReference("location", location);
+//					}
 					store(snpItem);
 					snpItemRef = snpItem.getIdentifier();
 					snpMap.put(dbSnpId, snpItemRef);

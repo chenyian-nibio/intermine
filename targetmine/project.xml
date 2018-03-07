@@ -172,6 +172,10 @@
       <property name="crossReferencesFile" value="/data/bio/db/Targetmine/clinvar/cross_references.txt" />
       <property name="alleleGeneFile" value="/data/bio/db/Targetmine/clinvar/allele_gene.txt" />
     </source>
+    
+    <source name="dbsnp" type="dbsnp">
+      <property name="source.db.name" value="dbsnp-db"/>
+    </source>
 
     <source name="wwpdb" type="wwpdb">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/wwpdb/" />

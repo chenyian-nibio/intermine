@@ -1,0 +1,5 @@
+<project name="dbsnp" default="default" basedir=".">
+  <description>build, test, package dbsnp</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

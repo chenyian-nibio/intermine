@@ -93,7 +93,7 @@ public class TmClinvarConverter extends BioFileConverter
 					
 					String type = snpTypeMap.get(cols[0] + "-" + cols[3]);
 					
-					String snp = getSnp("rs" + cols[9], cols[18], cols[19], cols[20], cols[21], cols[22], cols[23], type, cols[3]);
+					String snp = getSnp("rs" + cols[9]);
 					allele.addToCollection("snps", snp);
 					Set<String> variations = allelVariationMap.get(cols[0]);
 					if (variations != null) {
@@ -298,8 +298,6 @@ public class TmClinvarConverter extends BioFileConverter
 		return ret;
 	}
 	
-	// TODO to be used in the future...
-	@SuppressWarnings("unused")
 	private String getSnp(String identifier) throws ObjectStoreException {
 		String ret = snpMap.get(identifier);
 		if (ret == null) {
@@ -335,54 +333,54 @@ public class TmClinvarConverter extends BioFileConverter
 	/**
 	 * This is a temporary method since this part should be covered by dbSNP
 	 */
-	private String getSnp(String identifier, String chromosome, String start, String end,
-			String reference, String alternate, String region, String type, String geneId) throws ObjectStoreException {
-		String ret = snpMap.get(identifier);
-		if (ret == null) {
-			Item snpItem = createItem("SNP");
-			snpItem.setAttribute("identifier", identifier);
-			snpItem.setAttribute("reference", reference);
-			snpItem.setAttribute("alternate", alternate);
-			snpItem.setAttribute("region", region);
-
-			Item location = createItem("Location");
-			location.setAttribute("start", start);
-			location.setAttribute("end", end);
-			location.setReference("locatedOn", getChromosome(chromosome, HUMAN_TAXON_ID));
-			store(location);
-			snpItem.setReference("location", location);
-			
-			Item gvItem = createItem("GenomicVariation");
-			// these information should come from dbsnp. this is just a temporary solution.
-			if (type != null) {
-				if (type.endsWith("upstream")) {
-					gvItem.setAttribute("type", "upstream");
-					gvItem.setAttribute("distance", "-1");
-				} else if (type.endsWith("downstream")) {
-					gvItem.setAttribute("type", "downstream");
-					gvItem.setAttribute("distance", "-1");
-				} else if (type.startsWith("within") || type.equals("genes overlapped by variant")) {
-					gvItem.setAttribute("type", "gene");
-					gvItem.setAttribute("distance", "0");
-				} else {
-					gvItem.setAttribute("type", "unknown");
-					gvItem.setAttribute("distance", "-1");
-				}
-			} else {
-				gvItem.setAttribute("type", "unknown");
-				gvItem.setAttribute("distance", "-1");
-			}
-			gvItem.setReference("gene", getGene(geneId));
-			gvItem.setReference("snp", snpItem);
-			store(gvItem);
-			snpItem.addToCollection("relatedGenes", gvItem);
-			
-			store(snpItem);
-			ret = snpItem.getIdentifier();
-			snpMap.put(identifier, ret);
-		}
-		return ret;
-	}
+//	private String getSnp(String identifier, String chromosome, String start, String end,
+//			String reference, String alternate, String region, String type, String geneId) throws ObjectStoreException {
+//		String ret = snpMap.get(identifier);
+//		if (ret == null) {
+//			Item snpItem = createItem("SNP");
+//			snpItem.setAttribute("identifier", identifier);
+//			snpItem.setAttribute("reference", reference);
+//			snpItem.setAttribute("alternate", alternate);
+//			snpItem.setAttribute("region", region);
+//
+//			Item location = createItem("Location");
+//			location.setAttribute("start", start);
+//			location.setAttribute("end", end);
+//			location.setReference("locatedOn", getChromosome(chromosome, HUMAN_TAXON_ID));
+//			store(location);
+//			snpItem.setReference("location", location);
+//			
+//			Item gvItem = createItem("GenomicVariation");
+//			// these information should come from dbsnp. this is just a temporary solution.
+//			if (type != null) {
+//				if (type.endsWith("upstream")) {
+//					gvItem.setAttribute("type", "upstream");
+//					gvItem.setAttribute("distance", "-1");
+//				} else if (type.endsWith("downstream")) {
+//					gvItem.setAttribute("type", "downstream");
+//					gvItem.setAttribute("distance", "-1");
+//				} else if (type.startsWith("within") || type.equals("genes overlapped by variant")) {
+//					gvItem.setAttribute("type", "gene");
+//					gvItem.setAttribute("distance", "0");
+//				} else {
+//					gvItem.setAttribute("type", "unknown");
+//					gvItem.setAttribute("distance", "-1");
+//				}
+//			} else {
+//				gvItem.setAttribute("type", "unknown");
+//				gvItem.setAttribute("distance", "-1");
+//			}
+//			gvItem.setReference("gene", getGene(geneId));
+//			gvItem.setReference("snp", snpItem);
+//			store(gvItem);
+//			snpItem.addToCollection("relatedGenes", gvItem);
+//			
+//			store(snpItem);
+//			ret = snpItem.getIdentifier();
+//			snpMap.put(identifier, ret);
+//		}
+//		return ret;
+//	}
 	private String getPublication(String pubmedId) throws ObjectStoreException {
 		String ret = publicationMap.get(pubmedId);
 		if (ret == null) {
