@@ -71,6 +71,10 @@ public class PhosphositesplusConverter extends BioFileConverter {
 			modificationType = "Methylation";
 		} else if (currentFileName.equals("Acetylation_site_dataset")) {
 			modificationType = "Acetylation";
+		} else if (currentFileName.equals("Ubiquitination_site_dataset")) {
+			modificationType = "Ubiquitination";
+		} else if (currentFileName.equals("Sumoylation_site_dataset")) {
+			modificationType = "Sumoylation";
 		} else {
 			System.out.println("Unexpected file: " + currentFileName + ", skip it.");
 			return;
