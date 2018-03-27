@@ -13,7 +13,8 @@ import org.intermine.xml.full.Item;
 
 
 /**
- * parse the file 'curated_gene_disease_associations.tsv' downloaded from DisGeNET
+ * parse the file 'curated_gene_disease_associations.tsv' downloaded from DisGeNET. </br>
+ * refine the parser for version 5.0 (2018/3/27)
  * 
  * @author chenyian
  */
@@ -37,6 +38,8 @@ public class DisgenetConverter extends BioFileConverter
         sourceNameMap.put("UNIPROT", "UniProt");
         sourceNameMap.put("ORPHANET", "Orphanet");
         sourceNameMap.put("CLINVAR", "ClinVar");
+        sourceNameMap.put("PSYGENET", "PsyGeNET");
+        sourceNameMap.put("HPO", "Human Phenotype Ontology");
     }
 
     /**
@@ -47,16 +50,20 @@ public class DisgenetConverter extends BioFileConverter
     public void process(Reader reader) throws Exception {
     	Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
     	
+    	// first line is the header
+    	iterator.next();
+    	
     	while (iterator.hasNext()) {
     		String[] cols = iterator.next();
-    		if (!cols[0].startsWith("umls:")) {
-    			continue;
-    		}
+    		String diseaseId = cols[2];
+    		String diseaseName = cols[3];
+    		String geneId = cols[0];
+    		String source = cols[7];
     		
     		Item item = createItem("Disease");
-    		item.setReference("diseaseTerm", getDiseaseTerm(cols[0], cols[5]));
-    		item.setReference("gene", getGene(cols[1]));
-    		for (String sourceId: cols[6].split(",")) {
+			item.setReference("diseaseTerm", getDiseaseTerm(diseaseId, diseaseName));
+			item.setReference("gene", getGene(geneId));
+			for (String sourceId: source.split(",")) {
     			String name = sourceNameMap.get(sourceId);
     			if (name != null) {
     				item.addToCollection("sources", getDataSource(name));

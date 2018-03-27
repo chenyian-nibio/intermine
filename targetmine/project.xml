@@ -153,7 +153,7 @@
     </source>
 
     <source name="disgenet" type="disgenet">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/disgenet/4.0"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/disgenet/5.0"/>
       <property name="src.data.dir.includes" value="curated_gene_disease_associations.tsv"/>
     </source>
 <!-- chenyian: for internal only | start -->
