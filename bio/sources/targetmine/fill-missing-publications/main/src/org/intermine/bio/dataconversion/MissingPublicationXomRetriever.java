@@ -46,7 +46,7 @@ public class MissingPublicationXomRetriever
 	private static final String EFETCH_URL =
 			"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?tool=flymine&db=pubmed&rettype=abstract&retmode=xml&id=";
 	// number of records to retrieve per request
-	private static final int BATCH_SIZE = 500;
+	private static final int BATCH_SIZE = 400;
 	private String osAlias = null;
 	private String outputFile = null;
 
