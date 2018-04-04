@@ -41,6 +41,7 @@ public class DbsnpConverter extends BioDBConverter
 	private static final int HUMAN_TAXON_ID = 9606;
 	private static final int BATCH_SIZE = 10000;
 
+	private static final String PRIMARY_ASSEMBLY = "Primary_Assembly";
 	private static final int CDS_REFERENCE = 8;
 	private static final String REF = "ref";
 
@@ -86,12 +87,7 @@ public class DbsnpConverter extends BioDBConverter
 			throw new RuntimeException("CANNOT get the maximal snp id.");
 		}
 		
-		int cnt = 0; // to be deleted
-		for (int i = 3100000; i < maxSnpId; i = i + BATCH_SIZE) {
-			cnt++; // to be deleted
-			if (cnt > 30) { // to be deleted
-				break; // to be deleted
-			} // to be deleted
+		for (int i = 0; i < maxSnpId; i = i + BATCH_SIZE) {
 			
 			// get allele
 			String querySnpAllele = String.format(" SELECT snp_id, var_str " + 
@@ -106,9 +102,11 @@ public class DbsnpConverter extends BioDBConverter
 			}
 			if (alleleMap.size() == 0) {
 				System.out.println(String.format("%d - %d skipped!", i, i + BATCH_SIZE));  // to be deleted
+				LOG.info(String.format("%d - %d skipped!", i, i + BATCH_SIZE));
 				continue;
 			}
 			System.out.println(String.format("do some process for %d - %d", i, i + BATCH_SIZE));  // to be deleted
+			LOG.info(String.format("do some process for %d - %d", i, i + BATCH_SIZE));
 
 			// get pubmed
 			String queryPubmed = String.format(" SELECT snp_id, pubmed_id " + 
@@ -125,43 +123,91 @@ public class DbsnpConverter extends BioDBConverter
 			}
 
 			// get snp position
-			String queryPosition = String.format(" SELECT snp_id, contig_chr, orientation, phys_pos_from, asn_from, asn_to" + 
+			String queryPosition = String.format(" SELECT snp_id, contig_chr, orientation, phys_pos_from, asn_from, asn_to, group_term" + 
 					" FROM SNPContigLoc JOIN ContigInfo ON SNPContigLoc.ctg_id = ContigInfo.ctg_id " + 
-					" WHERE group_term = 'Primary_Assembly' AND snp_id > %d AND snp_id <= %d ", i, i + BATCH_SIZE);
+					" WHERE snp_id > %d AND snp_id <= %d ", i, i + BATCH_SIZE);
 			ResultSet positionRes = stmt.executeQuery(queryPosition);
-			Map<String, String> snpItemMap = new HashMap<String, String>();
+			Map<String, Map<String, Set<LocationHolder>>> snpInfoMap = new HashMap<String, Map<String, Set<LocationHolder>>>();
 			while (positionRes.next()) {
 				String snpId = positionRes.getString("snp_id");
+				if (snpInfoMap.get(snpId) == null) {
+					snpInfoMap.put(snpId, new HashMap<String, Set<LocationHolder>>());
+				}
+				String groupTerm = positionRes.getString("group_term");
+				if (snpInfoMap.get(snpId).get(groupTerm) == null) {
+					snpInfoMap.get(snpId).put(groupTerm, new HashSet<LocationHolder>());
+				}
+				
 				String chr = positionRes.getString("contig_chr");
 				String orient = positionRes.getInt("orientation") == 0? "Fwd": "Rev";
 				int pos = positionRes.getInt("phys_pos_from");
 				int asnFrom = positionRes.getInt("asn_from");
 				int asnTo = positionRes.getInt("asn_to");
+				
+				snpInfoMap.get(snpId).get(groupTerm).add(new LocationHolder(chr, orient, pos, asnFrom, asnTo));
+			}
+			
+			Map<String, String> snpItemMap = new HashMap<String, String>();
+			for (String snpId: snpInfoMap.keySet()) {
 				Item item = createItem("SNP");
 				item.setAttribute("identifier", "rs" + snpId);
-				item.setAttribute("orientation", orient);
+				
+				Set<String> chrSet = new HashSet<String>();
+				if (snpInfoMap.get(snpId).get(PRIMARY_ASSEMBLY) != null) {
+					for (LocationHolder lh: snpInfoMap.get(snpId).get(PRIMARY_ASSEMBLY)) {
+						item.setAttribute("orientation", lh.orient);
+						if (!StringUtils.isEmpty(lh.chr)) {
+							String chromosome = getChromosome(lh.chr);
+							chrSet.add(lh.chr);
+							if (lh.pos > 0) {
+								Item location = createItem("Location");
+								
+								if (lh.asnTo - lh.asnFrom > 0) {
+									location.setAttribute("start", String.valueOf(lh.pos + 1));
+									location.setAttribute("end", String.valueOf(lh.pos + lh.asnTo - lh.asnFrom + 1));
+								} else {
+									String posString = String.valueOf(lh.pos + 1);
+									location.setAttribute("start", posString);
+									location.setAttribute("end", posString);
+								}
+								location.setReference("locatedOn", chromosome);
+								store(location);
+								item.addToCollection("locations", location);
+							}
+						}
+					}
+				} else {
+					LocationHolder lh = snpInfoMap.get(snpId).values().iterator().next().iterator().next();
+					item.setAttribute("orientation", lh.orient);
+					if (!StringUtils.isEmpty(lh.chr)) {
+						String chromosome = getChromosome(lh.chr);
+						chrSet.add(lh.chr);
+						if (lh.pos > 0) {
+							Item location = createItem("Location");
+							
+							if (lh.asnTo - lh.asnFrom > 0) {
+								location.setAttribute("start", String.valueOf(lh.pos + 1));
+								location.setAttribute("end", String.valueOf(lh.pos + lh.asnTo - lh.asnFrom + 1));
+							} else {
+								String posString = String.valueOf(lh.pos + 1);
+								location.setAttribute("start", posString);
+								location.setAttribute("end", posString);
+							}
+							location.setReference("locatedOn", chromosome);
+							store(location);
+							item.addToCollection("locations", location);
+						}
+					}
+				}
+
+				if (chrSet.size() > 0) {
+					String chrString = StringUtils.join(chrSet, "/");
+					item.setAttribute("chromosome", chrString);
+				}
+				
 				String allele = alleleMap.get(snpId);
 				if (allele != null) {
 					item.setAttribute("refseqAllele", allele);
-				}
-				if (!StringUtils.isEmpty(chr)) {
-					String chromosome = getChromosome(chr);
-					item.setReference("chromosome", chromosome);
-					if (pos > 0) {
-						Item location = createItem("Location");
-						
-						if (asnTo - asnFrom > 0) {
-							location.setAttribute("start", String.valueOf(pos + 1));
-							location.setAttribute("end", String.valueOf(pos + asnTo - asnFrom + 1));
-						} else {
-							String posString = String.valueOf(pos + 1);
-							location.setAttribute("start", posString);
-							location.setAttribute("end", posString);
-						}
-						location.setReference("locatedOn", chromosome);
-						store(location);
-						item.setReference("location", location);
-					}
 				}
 				// add publications
 				if (pubmedMap.get(snpId) != null) {
@@ -185,7 +231,7 @@ public class DbsnpConverter extends BioDBConverter
 			ResultSet transcriptRes = stmt.executeQuery(queryTranscript);
 			Map<String, Map<String, Map<String, ReferenceHolder>>> referenceDataMap = new HashMap<String, Map<String, Map<String, ReferenceHolder>>>();
 			Map<String, Integer> fxnMap = new HashMap<String, Integer>();
-			Set<String> missingSnps = new HashSet<String>();
+			Set<String> missingSnps = new HashSet<String>();  // TODO to be remove
 			while (transcriptRes.next()) {
 				String snpId = transcriptRes.getString("snp_id");
 				String geneId = transcriptRes.getString("gene_id");
@@ -235,63 +281,15 @@ public class DbsnpConverter extends BioDBConverter
 					
 					fxnMap.put(refKey, Integer.valueOf(fxn));
 				}
-				// collect missing snps
+				 // TODO to be remove
+				// collect missing snps 
 				if (snpItemMap.get(snpId) == null) {
 					missingSnps.add(snpId);
 				}
 			}
 			
 			if (missingSnps.size() != 0) {
-				String queryPosition2 = String.format(" SELECT snp_id, contig_chr, orientation, phys_pos_from, asn_from, asn_to" + 
-						" FROM SNPContigLoc JOIN ContigInfo ON SNPContigLoc.ctg_id = ContigInfo.ctg_id " + 
-						" WHERE snp_id > %d AND snp_id <= %d AND snp_id in (%s) ", i, i + BATCH_SIZE, StringUtils.join(missingSnps, ","));
-				ResultSet positionRes2 = stmt.executeQuery(queryPosition2);
-				while (positionRes2.next()) {
-					String snpId = positionRes2.getString("snp_id");
-					if (snpItemMap.get(snpId) != null) {
-						continue; // one is enough .. 
-					}
-					String chr = positionRes2.getString("contig_chr");
-					String orient = positionRes2.getInt("orientation") == 0? "Fwd": "Rev";
-					int pos = positionRes2.getInt("phys_pos_from");
-					int asnFrom = positionRes2.getInt("asn_from");
-					int asnTo = positionRes2.getInt("asn_to");
-					Item item = createItem("SNP");
-					item.setAttribute("identifier", "rs" + snpId);
-					item.setAttribute("orientation", orient);
-					String allele = alleleMap.get(snpId);
-					if (allele != null) {
-						item.setAttribute("refseqAllele", allele);
-					}
-					if (!StringUtils.isEmpty(chr)) {
-						String chromosome = getChromosome(chr);
-						item.setReference("chromosome", chromosome);
-						if (pos > 0) {
-							Item location = createItem("Location");
-							
-							if (asnTo - asnFrom > 0) {
-								location.setAttribute("start", String.valueOf(pos + 1));
-								location.setAttribute("end", String.valueOf(pos + asnTo - asnFrom + 1));
-							} else {
-								String posString = String.valueOf(pos + 1);
-								location.setAttribute("start", posString);
-								location.setAttribute("end", posString);
-							}
-							location.setReference("locatedOn", chromosome);
-							store(location);
-							item.setReference("location", location);
-						}
-					}
-					// add publications
-					if (pubmedMap.get(snpId) != null) {
-						for (String pubmedId : pubmedMap.get(snpId)) {
-							item.addToCollection("publications", getPublication(pubmedId));
-						}
-					}
-					
-					store(item);
-					snpItemMap.put(snpId, item.getIdentifier());
-				}
+				throw new RuntimeException("null SNP found. snpIds: " + StringUtils.join(missingSnps, ",")); // TODO to be remove
 			}
 			
 			for (String snpGeneId : referenceDataMap.keySet()) {
@@ -305,14 +303,26 @@ public class DbsnpConverter extends BioDBConverter
 					throw new RuntimeException("null SNP, snpId: " + snpId); // TODO to be remove
 				}
 				vaItem.setReference("snp", refId);
-				vaItem.setReference("function", functionMap.get(fxnMap.get(snpGeneId)));
+				String funcRef = functionMap.get(fxnMap.get(snpGeneId));
+				if (funcRef != null) {
+					vaItem.setReference("function", funcRef);
+				}
 				store(vaItem);
 				
 				for (String mrnaAcc: referenceDataMap.get(snpGeneId).keySet()) {
 					Map<String, ReferenceHolder> snpRefMap = referenceDataMap.get(snpGeneId).get(mrnaAcc);
 					Set<String> keys = snpRefMap.keySet();
 					for (String key : keys) {
-						if (!key.equals(REF)) {
+						if (key.equals(REF)) {
+							// some strange case, e.g. rs3800961
+							if (keys.size() == 1) {
+								ReferenceHolder rh = snpRefMap.get(key);
+								createSNPReference(mrnaAcc, rh.mrnaPos, rh.orientation, rh.allele,
+										rh.codon, rh.proteinAcc, rh.aaPos, rh.residue,
+										functionMap.get(Integer.valueOf(CDS_REFERENCE)),
+										vaItem.getIdentifier());
+							}
+						} else {
 							if (keys.contains(REF)) {
 								ReferenceHolder rh = snpRefMap.get(key);
 								ReferenceHolder rhRef = snpRefMap.get(REF);
@@ -424,6 +434,21 @@ public class DbsnpConverter extends BioDBConverter
 		return item.getIdentifier();
 	}	
 
+	static class LocationHolder {
+		String chr;
+		String orient;
+		int pos;
+		int asnFrom;
+		int asnTo;
+		public LocationHolder(String chr, String orient, int pos, int asnFrom, int asnTo) {
+			this.chr = chr;
+			this.orient = orient;
+			this.pos = pos;
+			this.asnFrom = asnFrom;
+			this.asnTo = asnTo;
+		}
+	}
+	
 	static class ReferenceHolder {
 		String mrnaPos;
 		String orientation;

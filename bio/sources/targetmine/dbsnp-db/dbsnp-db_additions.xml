@@ -10,8 +10,8 @@
 		<attribute name="identifier" type="java.lang.String"/>
         <attribute name="refseqAllele" type="java.lang.String"/>
         <attribute name="orientation" type="java.lang.String"/>
-        <reference name="chromosome" referenced-type="Chromosome"/>
-		<reference name="location" referenced-type="Location"/>
+        <attribute name="chromosome" type="java.lang.String"/>
+		<collection name="locations" referenced-type="Location"/>
         <collection name="relatedGenes" referenced-type="VariationAnnotation" reverse-reference="snp"/>
         <collection name="publications" referenced-type="Publication"/>
     </class>
