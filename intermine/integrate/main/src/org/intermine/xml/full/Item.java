@@ -376,6 +376,9 @@ public class Item implements Comparable<Item>
      * @param refId the value of the attribute
      */
     public void setReference(String name, String refId) {
+        if (refId == null) {
+            throw new RuntimeException("refId cannot be null for: "  + name);
+        }
         if ("".equals(refId)) {
             throw new RuntimeException("empty string used as ref_id for: " + name);
         }
