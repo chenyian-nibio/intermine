@@ -12,12 +12,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
-
-import nu.xom.Builder;
-import nu.xom.Document;
-import nu.xom.Element;
-import nu.xom.Elements;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -31,14 +27,27 @@ import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
 import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.SimpleConstraint;
+import org.intermine.util.PropertiesUtil;
 import org.intermine.xml.full.FullRenderer;
 import org.intermine.xml.full.Item;
 import org.intermine.xml.full.ItemFactory;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
+import nu.xom.Builder;
+import nu.xom.Document;
+import nu.xom.Element;
+import nu.xom.Elements;
+
+/**
+ * 
+ * @author chenyian
+ *
+ */
 public class MissingGeneXomRetriever {
 	private static final Logger LOG = Logger.getLogger(MissingGeneXomRetriever.class);
 	
-    private static final String ESUMMARY_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?tool=flymine&db=gene&id=";
+    private static final String ESUMMARY_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=";
 
 	private static final int BATCH_SIZE = 200;
 	
@@ -63,6 +72,9 @@ public class MissingGeneXomRetriever {
 		if (osAlias == null) {
 			throw new BuildException("osAlias attribute is not set");
 		}
+		
+		Properties properties = PropertiesUtil.getPropertiesStartingWith("ncbi");
+		String apiKey = properties.getProperty("ncbi.apikey");
 
 		LOG.info("Starting MissingGeneRetriever");
 
@@ -88,9 +100,24 @@ public class MissingGeneXomRetriever {
 				geneIds.add(gene.getPrimaryIdentifier());
 				if (geneIds.size() == BATCH_SIZE || !i.hasNext()) {
 					LOG.info("Querying NCBI esummary for " + geneIds.size() + " genes.");
-					Reader reader = getReader(geneIds);
+					System.out.println("Querying NCBI esummary for " + geneIds.size() + " genes.");
+					Reader reader = null;
+					while (reader == null) {
+						try {
+							reader = getReader(geneIds, apiKey);
+						} catch (Exception e) {
+							LOG.info(e.getMessage());
+							LOG.info("URL: " + ESUMMARY_URL + StringUtil.join(geneIds, ","));
+							System.out.println("Error occured when retrieving the data from NCBI. Waiting to retry.");
+							Thread.sleep(5000);
+							System.out.println("Try retrieving the data from NCBI again.");
+						}
+					}
 
-					Builder parser = new Builder();
+					XMLReader xmlreader = XMLReaderFactory.createXMLReader();
+					xmlreader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+					Builder parser = new Builder(xmlreader);
+
 					Document doc = parser.build(reader);
 					Element entry = doc.getRootElement();
 
@@ -204,8 +231,12 @@ public class MissingGeneXomRetriever {
 		return ret;
 	}
 
-	protected Reader getReader(Set<String> ids) throws Exception {
-		URL url = new URL(ESUMMARY_URL + StringUtil.join(ids, ","));
+	protected Reader getReader(Set<String> ids, String apiKey) throws Exception {
+		String urlString = ESUMMARY_URL + StringUtil.join(ids, ",");
+		if (apiKey != null) {
+			urlString = urlString + "&api_key=" + apiKey;
+		}
+		URL url = new URL(urlString);
 		return new BufferedReader(new InputStreamReader(url.openStream()));
 	}
 

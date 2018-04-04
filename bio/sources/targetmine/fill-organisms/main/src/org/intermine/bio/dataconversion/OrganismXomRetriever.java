@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import nu.xom.Builder;
@@ -28,20 +29,22 @@ import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
 import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.ResultsRow;
+import org.intermine.util.PropertiesUtil;
 import org.intermine.xml.full.FullRenderer;
 import org.intermine.xml.full.Item;
 import org.intermine.xml.full.ItemFactory;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
  * 
  * @author chenyian
  *
  */
-public class OrganismXomRetriever
-{
+public class OrganismXomRetriever {
 	protected static final Logger LOG = Logger.getLogger(OrganismXomRetriever.class);
-	private static final String ESUMMARY_URL = 
-			"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?tool=flymine&db=taxonomy&retmode=xml&version=2.0&id=";
+	private static final String ESUMMARY_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&retmode=xml&version=2.0&id=";
+    
 	// number of records to retrieve per request
 	private static final int BATCH_SIZE = 500;
 	private String osAlias = null;
@@ -71,6 +74,9 @@ public class OrganismXomRetriever
 			throw new BuildException("osAlias attribute is not set");
 		}
 
+		Properties properties = PropertiesUtil.getPropertiesStartingWith("ncbi");
+		String apiKey = properties.getProperty("ncbi.apikey");
+
 		LOG.info("Starting OrganismXomRetriever...");
 
 		Writer writer = null;
@@ -94,9 +100,23 @@ public class OrganismXomRetriever
 				identifiers.add(id.next());
 				if (identifiers.size() == BATCH_SIZE || !id.hasNext()) {
 					LOG.info("Querying NCBI efetch for " + identifiers.size() + " organisms.");
-					Reader reader = getReader(identifiers);
+					Reader reader = null;
+					while (reader == null) {
+						try {
+							reader = getReader(identifiers, apiKey);
+						} catch (Exception e) {
+							LOG.info(e.getMessage());
+							LOG.info("URL: " + ESUMMARY_URL + StringUtil.join(identifiers, ","));
+							System.out.println("Error occured when retrieving the data from NCBI. Waiting to retry.");
+							Thread.sleep(5000);
+							System.out.println("Try retrieving the data from NCBI again.");
+						}
+					}
 
-					Builder parser = new Builder();
+					XMLReader xmlreader = XMLReaderFactory.createXMLReader();
+					xmlreader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+					Builder parser = new Builder(xmlreader);
+
 					Document doc = parser.build(reader);
 					Element entry = doc.getRootElement();
 
@@ -191,10 +211,11 @@ public class OrganismXomRetriever
 		return ret;
 	}
 
-	private Reader getReader(Set<String> ids) throws Exception {
+	private Reader getReader(Set<String> ids, String apiKey) throws Exception {
 		String urlString = ESUMMARY_URL + StringUtil.join(ids, ",");
-		System.out.println("retrieving: " + urlString);
-		LOG.info("retrieving: " + urlString);
+		if (apiKey != null) {
+			urlString = urlString + "&api_key=" + apiKey;
+		}
 		return new BufferedReader(new InputStreamReader(new URL(urlString).openStream(), StandardCharsets.UTF_8));
     }
 

@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import nu.xom.Builder;
@@ -30,21 +31,23 @@ import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
 import org.intermine.objectstore.query.QueryField;
 import org.intermine.objectstore.query.SimpleConstraint;
+import org.intermine.util.PropertiesUtil;
 import org.intermine.xml.full.FullRenderer;
 import org.intermine.xml.full.Item;
 import org.intermine.xml.full.ItemFactory;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
  * 
  * @author chenyian
  *
  */
-public class MissingPublicationXomRetriever
-{
+public class MissingPublicationXomRetriever {
 	private static final Logger LOG = Logger.getLogger(MissingPublicationXomRetriever.class);
 	// rettype=abstract or just leave it out
-	private static final String EFETCH_URL =
-			"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?tool=flymine&db=pubmed&rettype=abstract&retmode=xml&id=";
+	private static final String EFETCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&rettype=abstract&retmode=xml&id=";
+	
 	// number of records to retrieve per request
 	private static final int BATCH_SIZE = 400;
 	private String osAlias = null;
@@ -66,6 +69,9 @@ public class MissingPublicationXomRetriever
 		if (osAlias == null) {
 			throw new BuildException("osAlias attribute is not set");
 		}
+
+		Properties properties = PropertiesUtil.getPropertiesStartingWith("ncbi");
+		String apiKey = properties.getProperty("ncbi.apikey");
 
 		LOG.info("Starting MissingPublicationXomRetriever...");
 
@@ -90,14 +96,28 @@ public class MissingPublicationXomRetriever
 				identifiers.add(id.next());
 				if (identifiers.size() == BATCH_SIZE || !id.hasNext()) {
 					LOG.info("Querying NCBI efetch for " + identifiers.size() + " publications.");
-					Reader reader = getReader(identifiers);
+					System.out.println("Querying NCBI efetch for " + identifiers.size() + " publications.");
+					Reader reader = null;
+					while (reader == null) {
+						try {
+							reader = getReader(identifiers, apiKey);
+						} catch (Exception e) {
+							LOG.info(e.getMessage());
+							LOG.info("URL: " + EFETCH_URL + StringUtil.join(identifiers, ","));
+							System.out.println("Error occured when retrieving the data from NCBI. Waiting to retry.");
+							Thread.sleep(5000);
+							System.out.println("Try retrieving the data from NCBI again.");
+						}
+					}
 
-					Builder parser = new Builder();
+					XMLReader xmlreader = XMLReaderFactory.createXMLReader();
+					xmlreader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+					Builder parser = new Builder(xmlreader);
+
 					Document doc = parser.build(reader);
 		        	Element entry = doc.getRootElement();
 		        	
 		        	Elements elements = entry.getChildElements("PubmedArticle");
-		        	
 
 					for (int k = 0; k < elements.size(); k++) {
 		        		Element element = elements.get(k);
@@ -241,10 +261,11 @@ public class MissingPublicationXomRetriever
 		return pubmedIds;
 	}
 
-	private Reader getReader(Set<String> ids) throws Exception {
+	private Reader getReader(Set<String> ids, String apiKey) throws Exception {
 		String urlString = EFETCH_URL + StringUtil.join(ids, ",");
-		System.out.println("retrieving: " + urlString);
-		LOG.info("retrieving: " + urlString);
+		if (apiKey != null) {
+			urlString = urlString + "&api_key=" + apiKey;
+		}
 		return new BufferedReader(new InputStreamReader(new URL(urlString).openStream(), StandardCharsets.UTF_8));
 	}
 
