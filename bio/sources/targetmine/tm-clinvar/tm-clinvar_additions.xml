@@ -1,37 +1,38 @@
 <?xml version="1.0"?>
 
 <classes>
-    <class name="Allele" is-interface="true" extends="BioEntity">
-        <attribute name="identifier" type="java.lang.String"/>
-        <attribute name="type" type="java.lang.String"/>
-        <attribute name="name" type="java.lang.String"/>
-        <attribute name="clinicalSignificance" type="java.lang.String"/>
-        <attribute name="reviewStatus" type="java.lang.String"/>
-        <collection name="snps" referenced-type="SNP" reverse-reference="alleles"/>
-        <collection name="variations" referenced-type="Variantion" reverse-reference="alleles"/>
-    </class>
-    <class name="Variantion" is-interface="true">
-        <attribute name="identifier" type="java.lang.String"/>
-        <attribute name="type" type="java.lang.String"/>
-        <collection name="alleles" referenced-type="Allele" reverse-reference="variations"/>
-        <collection name="clinicalAssertions" referenced-type="ClinicalAssertion" reverse-reference="variation"/>
-        <collection name="publications" referenced-type="Publication"/>
-    </class>
-    <class name="ClinicalAssertion" is-interface="true">
-        <attribute name="clinicalSignificance" type="java.lang.String"/>
-        <attribute name="description" type="java.lang.String"/>
-        <attribute name="reportedPhenotypeInfo" type="java.lang.String"/>
-        <attribute name="reviewStatus" type="java.lang.String"/>
-        <attribute name="collectionMethod" type="java.lang.String"/>
-        <attribute name="originCounts" type="java.lang.String"/>
-        <attribute name="submitter" type="java.lang.String"/>
-        <attribute name="accession" type="java.lang.String"/>
-        <attribute name="submittedGeneSymbol" type="java.lang.String"/>
-        <reference name="variation" referenced-type="Variantion" reverse-reference="clinicalAssertions"/>
-    </class>
-    <class name="SNP" is-interface="true">
+	<class name="Allele" is-interface="true" extends="BioEntity">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="type" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
+		<attribute name="clinicalSignificance" type="java.lang.String"/>
+		<attribute name="reviewStatus" type="java.lang.String"/>
+		<collection name="snps" referenced-type="SNP" reverse-reference="alleles"/>
+		<collection name="variations" referenced-type="Variantion" reverse-reference="alleles"/>
+	</class>
+	<class name="Variantion" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="type" type="java.lang.String"/>
+		<collection name="alleles" referenced-type="Allele" reverse-reference="variations"/>
+		<collection name="clinicalAssertions" referenced-type="ClinicalAssertion" reverse-reference="variation"/>
+		<collection name="publications" referenced-type="Publication"/>
+	</class>
+	<class name="ClinicalAssertion" is-interface="true">
+		<attribute name="clinicalSignificance" type="java.lang.String"/>
+		<attribute name="description" type="java.lang.String"/>
+		<attribute name="reportedPhenotypeInfo" type="java.lang.String"/>
+		<attribute name="reviewStatus" type="java.lang.String"/>
+		<attribute name="collectionMethod" type="java.lang.String"/>
+		<attribute name="originCounts" type="java.lang.String"/>
+		<attribute name="submitter" type="java.lang.String"/>
+		<attribute name="accession" type="java.lang.String"/>
+		<attribute name="submittedGeneSymbol" type="java.lang.String"/>
+		<reference name="variation" referenced-type="Variantion" reverse-reference="clinicalAssertions"/>
+	</class>
+	<class name="SNP" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<collection name="alleles" referenced-type="Allele" reverse-reference="snps"/>
-    </class>
+		<collection name="dataSets" referenced-type="DataSet"/>
+	</class>
 
 </classes>

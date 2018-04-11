@@ -172,9 +172,29 @@
       <property name="crossReferencesFile" value="/data/bio/db/Targetmine/clinvar/cross_references.txt" />
       <property name="alleleGeneFile" value="/data/bio/db/Targetmine/clinvar/allele_gene.txt" />
     </source>
-
+<!-- 
     <source name="dbsnp" type="dbsnp-db">
       <property name="source.db.name" value="dbsnp-db"/>
+    </source>
+ -->
+    <source name="dbsnp-info" type="dbsnp-txt">
+      <property name="tableType" value="info"/>
+      <property name="src.data.dir" location="/home/chenyian/data/dbsnp/pre-processed"/>
+      <property name="src.data.dir.includes" value="table1-dbsnp-info.txt"/>
+      <property name="snpListFile" value="/home/chenyian/data/dbsnp/pre-processed/uniq.snp.ids.txt" />
+    </source>
+    <source name="dbsnp-gene" type="dbsnp-txt">
+      <property name="tableType" value="gene"/>
+      <property name="src.data.dir" location="/home/chenyian/data/dbsnp/pre-processed"/>
+      <property name="src.data.dir.includes" value="table3-sorted-snp-gene.txt"/>
+      <property name="snpListFile" value="/home/chenyian/data/dbsnp/pre-processed/uniq.snp.ids.txt" />
+    </source>
+    <source name="dbsnp-transcript" type="dbsnp-txt">
+      <property name="tableType" value="transcript"/>
+      <property name="src.data.dir" location="/home/chenyian/data/dbsnp/pre-processed"/>
+      <property name="src.data.dir.includes" value="table2-dbsnp-transcript.txt"/>
+      <property name="snpListFile" value="/home/chenyian/data/dbsnp/pre-processed/uniq.snp.ids.txt" />
+      <property name="snpFunctionFile" value="/home/chenyian/data/dbsnp/pre-processed/snp_function_code.csv" />
     </source>
 
     <source name="wwpdb" type="wwpdb">

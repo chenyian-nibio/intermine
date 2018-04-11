@@ -695,10 +695,9 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.GenomicVariation">
+  <class className="org.intermine.model.bio.VariationAnnotation">
     <fields>
-      <fieldconfig fieldExpr="type"/>
-      <fieldconfig fieldExpr="distance"/>
+      <fieldconfig fieldExpr="identifier"/>
       <fieldconfig fieldExpr="gene.primaryIdentifier"/>
       <fieldconfig fieldExpr="gene.symbol"/>
       <fieldconfig fieldExpr="snp.identifier"/>
@@ -708,13 +707,40 @@
   <class className="org.intermine.model.bio.SNP">
     <fields>
       <fieldconfig fieldExpr="identifier"/>
-      <fieldconfig fieldExpr="context"/>
-      <fieldconfig fieldExpr="location.locatedOn.primaryIdentifier" showInResults="false"/>
-      <fieldconfig fieldExpr="location.locatedOn.symbol" showInResults="false"/>
-      <fieldconfig fieldExpr="location.start"/>
-      <fieldconfig fieldExpr="location.end"/>
-      <fieldconfig fieldExpr="region"/>
-      <fieldconfig fieldExpr="intergenic"/>
+      <fieldconfig fieldExpr="refseqAllele"/>
+      <fieldconfig fieldExpr="orientation"/>
+      <fieldconfig fieldExpr="chromosome"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.Allele">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="clinicalSignificance"/>
+      <fieldconfig fieldExpr="reviewStatus"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.SNPFunction">
+    <fields>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="description"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.SNPReference">
+    <fields>
+      <fieldconfig fieldExpr="function.name"/>
+      <fieldconfig fieldExpr="mrnaAccession"/>
+      <fieldconfig fieldExpr="mrnaPosition"/>
+      <fieldconfig fieldExpr="orientation"/>
+      <fieldconfig fieldExpr="mrnaAllele"/>
+      <fieldconfig fieldExpr="mrnaCodon"/>
+      <fieldconfig fieldExpr="proteinAccession"/>
+      <fieldconfig fieldExpr="proteinPosition"/>
+      <fieldconfig fieldExpr="residue"/>
     </fields>
   </class>
 

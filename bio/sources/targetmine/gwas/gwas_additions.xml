@@ -1,43 +1,44 @@
 <?xml version="1.0"?>
 
 <classes>
-    <class name="SNP" is-interface="true">
+	<class name="SNP" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
-        <collection name="genomeWideAssociations" referenced-type="GenomeWideAssociation" reverse-reference="snp"/>
-    </class>
+		<collection name="genomeWideAssociations" referenced-type="GenomeWideAssociation" reverse-reference="snp"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
+	</class>
 
-    <class name="GenomeWideAssociation" is-interface="true">
+	<class name="GenomeWideAssociation" is-interface="true">
 		<attribute name="accession" type="java.lang.String"/>
 		<attribute name="date" type="java.lang.String"/>
 		<attribute name="study" type="java.lang.String"/>
 		<attribute name="trait" type="java.lang.String"/>
-        <attribute name="initialSampleDescription" type="java.lang.String" />
-        <attribute name="replicationSampleDescription" type="java.lang.String" />
+		<attribute name="initialSampleDescription" type="java.lang.String" />
+		<attribute name="replicationSampleDescription" type="java.lang.String" />
 		<attribute name="reportedGenes" type="java.lang.String"/>
-        <attribute name="pvalue" type="java.lang.Double" />
-        <attribute name="pvalueNote" type="java.lang.String" />
-        <attribute name="frequency" type="java.lang.Double" />
-        <attribute name="frequencyNote" type="java.lang.String" />
-        <attribute name="orBeta" type="java.lang.Double" />
-        <attribute name="confidenceInterval" type="java.lang.String" />
-        <attribute name="platform" type="java.lang.String" />
-        <attribute name="mappedTrait" type="java.lang.String" />
-        <attribute name="riskAllele" type="java.lang.String" />
-        <reference name="snp" referenced-type="SNP" reverse-reference="genomeWideAssociations"/>
-        <collection name="efoTerms" referenced-type="EFOTerm"/>
+		<attribute name="pvalue" type="java.lang.Double" />
+		<attribute name="pvalueNote" type="java.lang.String" />
+		<attribute name="frequency" type="java.lang.Double" />
+		<attribute name="frequencyNote" type="java.lang.String" />
+		<attribute name="orBeta" type="java.lang.Double" />
+		<attribute name="confidenceInterval" type="java.lang.String" />
+		<attribute name="platform" type="java.lang.String" />
+		<attribute name="mappedTrait" type="java.lang.String" />
+		<attribute name="riskAllele" type="java.lang.String" />
+		<reference name="snp" referenced-type="SNP" reverse-reference="genomeWideAssociations"/>
+		<collection name="efoTerms" referenced-type="EFOTerm"/>
 		<reference name="publication" referenced-type="Publication"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
-        <collection name="sampleSizes" referenced-type="GwasSampleSize"/>
-    </class>
+		<collection name="sampleSizes" referenced-type="GwasSampleSize"/>
+	</class>
     
-    <class name="GwasSampleSize" is-interface="true">
-        <attribute name="size" type="java.lang.Integer" />
+	<class name="GwasSampleSize" is-interface="true">
+		<attribute name="size" type="java.lang.Integer" />
 		<attribute name="population" type="java.lang.String"/>
 		<attribute name="type" type="java.lang.String"/>
-    </class>
+	</class>
 
 	<class name="EFOTerm" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
-    </class>
+	</class>
 
 </classes>
