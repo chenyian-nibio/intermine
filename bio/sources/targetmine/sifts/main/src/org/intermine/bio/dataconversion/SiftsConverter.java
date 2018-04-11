@@ -196,7 +196,9 @@ public class SiftsConverter extends BioFileConverter {
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
 			String pdbId = cols[0].toLowerCase();
-			String pubmedId = cols[2];
+			// Entry 5ii6 contains pubmed ids with strange leading '0' (2018/4/6)  
+			// e.g. 0001690843", 0006819087", 0006793422", 0006928658
+			String pubmedId = String.valueOf(Integer.parseInt(cols[2]));
 			if (pdbIdPubmedIdMap.get(pdbId) == null) {
 				pdbIdPubmedIdMap.put(pdbId, new ArrayList<String>());
 			}
