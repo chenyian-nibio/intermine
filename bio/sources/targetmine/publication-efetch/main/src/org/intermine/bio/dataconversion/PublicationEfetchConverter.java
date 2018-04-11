@@ -99,6 +99,9 @@ public class PublicationEfetchConverter extends BioFileConverter
 		        		
 		        		Element article = element.getChildElements("MedlineCitation").get(0).getChildElements("Article").get(0);
 		        		String title = article.getChildElements("ArticleTitle").get(0).getValue();
+					if (title == null || title.equals("")) {
+						title = "(not available)";
+					}
 		        		publication.setAttribute("title", title);
 		        		
 		        		
