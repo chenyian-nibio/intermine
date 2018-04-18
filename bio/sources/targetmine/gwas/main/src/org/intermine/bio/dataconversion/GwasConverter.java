@@ -23,13 +23,13 @@ public class GwasConverter extends BioFileConverter {
 	private static final String DATASET_TITLE = "NHGRI GWAS Catalog";
 	private static final String DATA_SOURCE_NAME = "NHGRI GWAS Catalog";
 
-	private static final String HUMAN_TAXON_ID = "9606";
+//	private static final String HUMAN_TAXON_ID = "9606";
 
-	private Map<String, String> geneMap = new HashMap<String, String>();
+//	private Map<String, String> geneMap = new HashMap<String, String>();
 	private Map<String, String> publicationMap = new HashMap<String, String>();
 	private Map<String, String> efoMap = new HashMap<String, String>();
 	private Map<String, String> snpMap = new HashMap<String, String>();
-	private Map<String, String> chromosomeMap = new HashMap<String, String>();
+//	private Map<String, String> chromosomeMap = new HashMap<String, String>();
 
 	/**
 	 * Constructor
@@ -51,8 +51,7 @@ public class GwasConverter extends BioFileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
-//		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(new BufferedReader(reader));
-		List<String> lines = IOUtils.readLines(new ReaderInputStream(reader), ENCODING);
+		List<String> lines = IOUtils.readLines(new ReaderInputStream(reader, ENCODING), ENCODING);
 		// sikp header
 //		iterator.next();
 		for (int i = 1; i < lines.size(); i++) {
@@ -204,18 +203,18 @@ public class GwasConverter extends BioFileConverter {
 //		store(snpMap.values());
 //	}
 
-	private String getGene(String geneId) throws ObjectStoreException {
-		String ret = geneMap.get(geneId);
-		if (ret == null) {
-			Item item = createItem("Gene");
-			item.setAttribute("primaryIdentifier", geneId);
-			item.setAttribute("ncbiGeneId", geneId);
-			store(item);
-			ret = item.getIdentifier();
-			geneMap.put(geneId, ret);
-		}
-		return ret;
-	}
+//	private String getGene(String geneId) throws ObjectStoreException {
+//		String ret = geneMap.get(geneId);
+//		if (ret == null) {
+//			Item item = createItem("Gene");
+//			item.setAttribute("primaryIdentifier", geneId);
+//			item.setAttribute("ncbiGeneId", geneId);
+//			store(item);
+//			ret = item.getIdentifier();
+//			geneMap.put(geneId, ret);
+//		}
+//		return ret;
+//	}
 
 	private String getPublication(String pubMedId) throws ObjectStoreException {
 		String ret = publicationMap.get(pubMedId);
@@ -229,24 +228,24 @@ public class GwasConverter extends BioFileConverter {
 		return ret;
 	}
 
-	private String getChromosome(String chr, String taxonId) throws ObjectStoreException {
-		String key = chr + ":" + taxonId;
-		String ret = chromosomeMap.get(key);
-		if (ret == null) {
-			Item item = createItem("Chromosome");
-			String chrId = chr;
-			if (chr.toLowerCase().startsWith("chr")) {
-				chrId = chr.substring(3);
-			}
-			item.setAttribute("symbol", chrId);
-			if (!StringUtils.isEmpty(taxonId)) {
-				item.setReference("organism", getOrganism(taxonId));
-			}
-			store(item);
-			ret = item.getIdentifier();
-			chromosomeMap.put(key, ret);
-		}
-		return ret;
-	}
+//	private String getChromosome(String chr, String taxonId) throws ObjectStoreException {
+//		String key = chr + ":" + taxonId;
+//		String ret = chromosomeMap.get(key);
+//		if (ret == null) {
+//			Item item = createItem("Chromosome");
+//			String chrId = chr;
+//			if (chr.toLowerCase().startsWith("chr")) {
+//				chrId = chr.substring(3);
+//			}
+//			item.setAttribute("symbol", chrId);
+//			if (!StringUtils.isEmpty(taxonId)) {
+//				item.setReference("organism", getOrganism(taxonId));
+//			}
+//			store(item);
+//			ret = item.getIdentifier();
+//			chromosomeMap.put(key, ret);
+//		}
+//		return ret;
+//	}
 
 }

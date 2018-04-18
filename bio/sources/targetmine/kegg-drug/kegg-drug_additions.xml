@@ -22,14 +22,14 @@
 		<collection name="structures" referenced-type="CompoundStructure" reverse-reference="compound"/>
 		<collection name="synonyms" referenced-type="CompoundSynonym" reverse-reference="subject"/>
 	</class>
-    
+
 	<class name="CompoundStructure" is-interface="true">
 		<attribute name="type" type="java.lang.String"/>
 		<attribute name="value" type="java.lang.String"/>
 		<reference name="compound" referenced-type="Compound" reverse-reference="structures"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
 	</class>
-	
+
 	<class name="CompoundSynonym" is-interface="true">
 		<attribute name="value" type="java.lang.String"/>
 		<attribute name="type" type="java.lang.String"/>
@@ -54,16 +54,16 @@
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 	</class>
-	
+
 	<class name="DrugMetabolism" is-interface="true">
 		<attribute name="type" type="java.lang.String"/>
-        <reference name="drug" referenced-type="DrugCompound" reverse-reference="metabolisms"/>
-        <reference name="gene" referenced-type="Gene"/>
+		<reference name="drug" referenced-type="DrugCompound" reverse-reference="metabolisms"/>
+		<reference name="gene" referenced-type="Gene"/>
 	</class>
 	<class name="DrugInteraction" is-interface="true">
 		<attribute name="type" type="java.lang.String"/>
-        <reference name="drug" referenced-type="DrugCompound" reverse-reference="interactions"/>
-        <reference name="gene" referenced-type="Gene"/>
+		<reference name="drug" referenced-type="DrugCompound" reverse-reference="interactions"/>
+		<reference name="gene" referenced-type="Gene"/>
 	</class>
 
 </classes>

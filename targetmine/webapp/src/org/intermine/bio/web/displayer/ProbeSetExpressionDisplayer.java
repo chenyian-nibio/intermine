@@ -21,6 +21,7 @@ public class ProbeSetExpressionDisplayer extends ReportDisplayer {
 		// TODO Auto-generated constructor stub
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void display(HttpServletRequest request, ReportObject reportObject) {
 		InterMineObject imo = (InterMineObject) reportObject.getObject();

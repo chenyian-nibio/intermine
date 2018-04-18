@@ -70,6 +70,7 @@ public class UniprotFeatureDisplayer extends ReportDisplayer {
 		// TODO Auto-generated constructor stub
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void display(HttpServletRequest request, ReportObject reportObject) {
 		// TODO Auto-generated method stub

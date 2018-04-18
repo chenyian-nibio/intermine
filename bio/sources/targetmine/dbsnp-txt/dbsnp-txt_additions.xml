@@ -1,33 +1,33 @@
 <?xml version="1.0"?>
 
 <classes>
-    <class name="Gene" is-interface="true">
-        <attribute name="primaryIdentifier" type="java.lang.String"/>
-        <collection name="snps" referenced-type="VariationAnnotation" reverse-reference="gene"/>
-    </class>
+	<class name="Gene" is-interface="true">
+		<attribute name="primaryIdentifier" type="java.lang.String"/>
+		<collection name="snps" referenced-type="VariationAnnotation" reverse-reference="gene"/>
+	</class>
 
-    <class name="SNP" is-interface="true">
+	<class name="SNP" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
-        <attribute name="refseqAllele" type="java.lang.String"/>
-        <attribute name="orientation" type="java.lang.String"/>
-        <attribute name="chromosome" type="java.lang.String"/>
-        <attribute name="location" type="java.lang.String"/>
-        <collection name="relatedGenes" referenced-type="VariationAnnotation" reverse-reference="snp"/>
-        <collection name="publications" referenced-type="Publication"/>
-        <collection name="dataSets" referenced-type="DataSet"/>
-    </class>
+		<attribute name="refseqAllele" type="java.lang.String"/>
+		<attribute name="orientation" type="java.lang.String"/>
+		<attribute name="chromosome" type="java.lang.String"/>
+		<attribute name="location" type="java.lang.String"/>
+		<collection name="relatedGenes" referenced-type="VariationAnnotation" reverse-reference="snp"/>
+		<collection name="publications" referenced-type="Publication"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
+	</class>
 
-    <class name="VariationAnnotation" is-interface="true">
+	<class name="VariationAnnotation" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
-        <reference name="gene" referenced-type="Gene" reverse-reference="snps"/>
-        <reference name="snp" referenced-type="SNP" reverse-reference="relatedGenes"/>
-        <collection name="references" referenced-type="SNPReference" reverse-reference="annotation"/>
-    </class>
-    <class name="SNPFunction" is-interface="true">
+		<reference name="gene" referenced-type="Gene" reverse-reference="snps"/>
+		<reference name="snp" referenced-type="SNP" reverse-reference="relatedGenes"/>
+		<collection name="references" referenced-type="SNPReference" reverse-reference="annotation"/>
+	</class>
+	<class name="SNPFunction" is-interface="true">
 		<attribute name="name" type="java.lang.String"/>
 		<attribute name="description" type="java.lang.String"/>
-    </class>
-    <class name="SNPReference" is-interface="true">
+	</class>
+	<class name="SNPReference" is-interface="true">
 		<attribute name="mrnaAccession" type="java.lang.String"/>
 		<attribute name="mrnaPosition" type="java.lang.String"/>
 		<attribute name="orientation" type="java.lang.String"/>
@@ -36,8 +36,8 @@
 		<attribute name="proteinAccession" type="java.lang.String"/>
 		<attribute name="proteinPosition" type="java.lang.Integer"/>
 		<attribute name="residue" type="java.lang.String"/>
-        <reference name="function" referenced-type="SNPFunction"/>
-        <reference name="annotation" referenced-type="VariationAnnotation" reverse-reference="references"/>
-    </class>
+		<reference name="function" referenced-type="SNPFunction"/>
+		<reference name="annotation" referenced-type="VariationAnnotation" reverse-reference="references"/>
+	</class>
 
 </classes>

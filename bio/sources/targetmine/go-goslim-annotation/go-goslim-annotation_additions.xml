@@ -21,4 +21,5 @@
 		<collection name="publications" referenced-type="Publication"/>
 		<collection name="with" referenced-type="BioEntity"/>
 	</class>
+	<class name="GOSlimTerm" extends="OntologyTerm" is-interface="true"/>
 </classes>

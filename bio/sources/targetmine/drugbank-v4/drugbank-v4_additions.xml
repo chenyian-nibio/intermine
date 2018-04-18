@@ -68,10 +68,10 @@
 		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
 
-    <class name="CompoundGroup" is-interface="true">
+	<class name="CompoundGroup" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
-    </class>
+	</class>
 
 </classes>

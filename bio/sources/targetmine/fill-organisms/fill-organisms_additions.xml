@@ -12,4 +12,5 @@
 	<class name="Taxonomy" is-interface="true">
 		<attribute name="taxonId" type="java.lang.String"/>
 	</class>
+
 </classes>

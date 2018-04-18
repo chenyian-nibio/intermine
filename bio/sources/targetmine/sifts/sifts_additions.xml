@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
 <classes>
 	<class name="Protein" is-interface="true">
+		<attribute name="primaryAccession" type="java.lang.String"/>
 		<collection name="proteinStructureRegions" referenced-type="ProteinStructureRegion" />
 	</class>
-	
+
 	<class name="ProteinRegion" is-interface="true">
 		<attribute name="start" type="java.lang.Integer"/>
 		<attribute name="end" type="java.lang.Integer"/>
@@ -18,7 +19,7 @@
 		<attribute name="pdbSeqEnd" type="java.lang.String"/>
 		<reference name="chain" referenced-type="ProteinChain" ordered="true" reverse-reference="structureRegions"/>
 	</class>
-	
+
 	<class name="ProteinChain" is-interface="true">
 		<attribute name="pdbId" type="java.lang.String"/>
 		<attribute name="chain" type="java.lang.String"/>
@@ -29,9 +30,8 @@
 		<collection name="organism" referenced-type="Organism"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
-	
-	<class name="MacroMolecularStructure" is-interface="true">
-	</class>
+
+	<class name="MacroMolecularStructure" is-interface="true"/>
 	
 	<class name="ProteinStructure" extends="MacroMolecularStructure" is-interface="true">
 		<attribute name="pdbId" type="java.lang.String"/>

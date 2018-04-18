@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <classes>
-	<class name="ChebiCompound" extends="Compound" is-interface="true">
-	</class>
+	<class name="ChebiCompound" extends="Compound" is-interface="true"/>
 
 	<class name="Compound" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
@@ -13,7 +12,7 @@
 		<collection name="targetProteins" referenced-type="CompoundProteinInteraction" reverse-reference="compound"/>
 		<collection name="synonyms" referenced-type="CompoundSynonym" reverse-reference="subject"/>
 	</class>
-    
+
 	<class name="CompoundSynonym" is-interface="true">
 		<attribute name="value" type="java.lang.String"/>
 		<reference name="subject" referenced-type="Compound" reverse-reference="synonyms"/>

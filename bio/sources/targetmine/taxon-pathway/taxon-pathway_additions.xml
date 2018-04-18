@@ -2,16 +2,16 @@
 <classes>
 	<class name="Taxonomy" is-interface="true">
 		<attribute name="taxonId" type="java.lang.String"/>
-        <collection name="pathways" referenced-type="Pathway" reverse-reference="taxonomys"/>
+		<collection name="pathways" referenced-type="Pathway" reverse-reference="taxonomys"/>
 	</class>
-    <class name="Pathway" is-interface="true" >
-        <attribute name="identifier" type="java.lang.String"/>
+	<class name="Pathway" is-interface="true" >
+		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<attribute name="description" type="java.lang.String"/>
 		<attribute name="label1" type="java.lang.String"/>
 		<attribute name="label2" type="java.lang.String"/>
-        <collection name="taxonomys" referenced-type="Taxonomy" reverse-reference="pathways"/>
+		<collection name="taxonomys" referenced-type="Taxonomy" reverse-reference="pathways"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
-    </class>
+	</class>
 
 </classes>

@@ -5,13 +5,13 @@
 		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
 		<collection name="activities" referenced-type="Activity" reverse-reference="interaction"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
-    </class>
+	</class>
 	<class name="Activity" is-interface="true">
 		<attribute name="type" type="java.lang.String"/>
 		<attribute name="conc" type="java.lang.Float"/>
 		<reference name="interaction" referenced-type="CompoundProteinInteraction" reverse-reference="activities"/>
 		<reference name="assay" referenced-type="CompoundProteinInteractionAssay" reverse-reference="activities"/>
-    </class>
+	</class>
 	<class name="CompoundProteinInteractionAssay" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="originalId" type="java.lang.String"/>
@@ -20,18 +20,17 @@
 		<collection name="publications" referenced-type="Publication"/>
 		<collection name="activities" referenced-type="Activity" reverse-reference="assay"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
-    </class>
-    
-	<class name="ChemblInteraction" extends="CompoundProteinInteraction" is-interface="true">
-    </class>
+	</class>
+
+	<class name="ChemblInteraction" extends="CompoundProteinInteraction" is-interface="true"/>
 
 	<class name="Protein" is-interface="true">
 		<collection name="compounds" referenced-type="CompoundProteinInteraction" reverse-reference="protein"/>
-    </class>
+	</class>
 
 	<class name="DrugType" is-interface="true">
 		<attribute name="name" type="java.lang.String"/>
-    </class>
+	</class>
 
 	<class name="ChemblCompound" extends="Compound" is-interface="true">
 		<collection name="drugTypes" referenced-type="DrugType"/>

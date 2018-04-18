@@ -1,20 +1,21 @@
 <?xml version="1.0"?>
 <classes>
-    <class name="Gene" is-interface="true">
+	<class name="Gene" is-interface="true">
+		<attribute name="primaryIdentifier" type="java.lang.String"/>
 		<collection name="transcriptionalRegulations" referenced-type="TranscriptionalRegulation" reverse-reference="transcriptionFactor"/>
-    </class>
-    <class name="TranscriptionalRegulation" is-interface="true">
-    	<attribute name="name" type="java.lang.String"/>
+	</class>
+	<class name="TranscriptionalRegulation" is-interface="true">
+		<attribute name="name" type="java.lang.String"/>
 		<reference name="transcriptionFactor" referenced-type="Gene" reverse-reference="transcriptionalRegulations" />
 		<reference name="targetGene" referenced-type="Gene"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
 		<collection name="tfBindingRegion" referenced-type="ChipSeqData" reverse-reference="transcriptionalRegulation"/>
-    </class>
-    <class name="ChipSeqData" is-interface="true">
-    	<attribute name="epigenomeName" type="java.lang.String"/>
+	</class>
+	<class name="ChipSeqData" is-interface="true">
+		<attribute name="epigenomeName" type="java.lang.String"/>
 		<attribute name="distance" type="java.lang.Integer"/>
- 		<reference name="bindingLocation" referenced-type="Location"/>
- 		<reference name="transcriptionalRegulation" referenced-type="TranscriptionalRegulation" reverse-reference="tfBindingRegion"/>
-    </class>
+		<reference name="bindingLocation" referenced-type="Location"/>
+		<reference name="transcriptionalRegulation" referenced-type="TranscriptionalRegulation" reverse-reference="tfBindingRegion"/>
+	</class>
 
 </classes>

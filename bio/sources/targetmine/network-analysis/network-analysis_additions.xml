@@ -10,7 +10,7 @@
 		<reference name="interaction" referenced-type="Interaction" reverse-reference="confidences" />
 		<reference name="dataSet" referenced-type="DataSet"/>
 	</class>
-    
+
 	<class name="NetworkProperty" is-interface="true">
 		<attribute name="isBottleneck" type="java.lang.Boolean" />
 		<attribute name="isHub" type="java.lang.Boolean" />

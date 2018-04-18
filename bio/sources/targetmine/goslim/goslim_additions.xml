@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
 <classes>
-<class name="GOSlimTerm" extends="OntologyTerm" is-interface="true"/>
+	<class name="GOSlimTerm" extends="OntologyTerm" is-interface="true"/>
 </classes>

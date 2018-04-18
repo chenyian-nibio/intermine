@@ -91,7 +91,7 @@ public class TmClinvarConverter extends BioFileConverter
 					allele.setAttribute("clinicalSignificance", cols[6]);
 					allele.setAttribute("reviewStatus", cols[24]);
 					
-					String type = snpTypeMap.get(cols[0] + "-" + cols[3]);
+//					String type = snpTypeMap.get(cols[0] + "-" + cols[3]);
 					
 					String snp = getSnp("rs" + cols[9]);
 					allele.addToCollection("snps", snp);
@@ -280,23 +280,23 @@ public class TmClinvarConverter extends BioFileConverter
 		
 	}
 	
-	private Map<String, String> geneMap = new HashMap<String, String>();
+//	private Map<String, String> geneMap = new HashMap<String, String>();
 	private Map<String, String> snpMap = new HashMap<String, String>();
 	private Map<String, String> publicationMap = new HashMap<String, String>();
 	private Map<String, String> variationMap = new HashMap<String, String>();
-	private Map<String, String> chromosomeMap = new HashMap<String, String>();
-	private String getGene(String primaryIdentifier) throws ObjectStoreException {
-		String ret = geneMap.get(primaryIdentifier);
-		if (ret == null) {
-			Item item = createItem("Gene");
-			item.setAttribute("primaryIdentifier", primaryIdentifier);
-			item.setAttribute("ncbiGeneId", primaryIdentifier);
-			store(item);
-			ret = item.getIdentifier();
-			geneMap.put(primaryIdentifier, ret);
-		}
-		return ret;
-	}
+//	private Map<String, String> chromosomeMap = new HashMap<String, String>();
+//	private String getGene(String primaryIdentifier) throws ObjectStoreException {
+//		String ret = geneMap.get(primaryIdentifier);
+//		if (ret == null) {
+//			Item item = createItem("Gene");
+//			item.setAttribute("primaryIdentifier", primaryIdentifier);
+//			item.setAttribute("ncbiGeneId", primaryIdentifier);
+//			store(item);
+//			ret = item.getIdentifier();
+//			geneMap.put(primaryIdentifier, ret);
+//		}
+//		return ret;
+//	}
 	
 	private String getSnp(String identifier) throws ObjectStoreException {
 		String ret = snpMap.get(identifier);
@@ -309,25 +309,25 @@ public class TmClinvarConverter extends BioFileConverter
 		}
 		return ret;
 	}
-	private String getChromosome(String chr, String taxonId) throws ObjectStoreException {
-		String key = chr + ":" + taxonId;
-		String ret = chromosomeMap.get(key);
-		if (ret == null) {
-			Item item = createItem("Chromosome");
-			String chrId = chr;
-			if (chr.toLowerCase().startsWith("chr")) {
-				chrId = chr.substring(3);
-			}
-			item.setAttribute("symbol", chrId);
-			if (!StringUtils.isEmpty(taxonId)) {
-				item.setReference("organism", getOrganism(taxonId));
-			}
-			store(item);
-			ret = item.getIdentifier();
-			chromosomeMap.put(key, ret);
-		}
-		return ret;
-	}
+//	private String getChromosome(String chr, String taxonId) throws ObjectStoreException {
+//		String key = chr + ":" + taxonId;
+//		String ret = chromosomeMap.get(key);
+//		if (ret == null) {
+//			Item item = createItem("Chromosome");
+//			String chrId = chr;
+//			if (chr.toLowerCase().startsWith("chr")) {
+//				chrId = chr.substring(3);
+//			}
+//			item.setAttribute("symbol", chrId);
+//			if (!StringUtils.isEmpty(taxonId)) {
+//				item.setReference("organism", getOrganism(taxonId));
+//			}
+//			store(item);
+//			ret = item.getIdentifier();
+//			chromosomeMap.put(key, ret);
+//		}
+//		return ret;
+//	}
 	
 	// TODO this part should be covered by dbSNP; have to be deprecated in the future
 	/**

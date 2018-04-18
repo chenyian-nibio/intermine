@@ -31,7 +31,7 @@ public class DbsnpTxtConverter extends BioFileConverter
     private static final String DATASET_TITLE = "dbSNP";
     private static final String DATA_SOURCE_NAME = "NCBI";
     
-	private static final int HUMAN_TAXON_ID = 9606;
+//	private static final int HUMAN_TAXON_ID = 9606;
 	
 	private boolean subsetOnly = false;
     private String tableType = "";
@@ -268,7 +268,7 @@ public class DbsnpTxtConverter extends BioFileConverter
 
 	private Map<String, String> geneMap = new HashMap<String, String>();
 //	private Map<String, String> snpMap = new HashMap<String, String>();
-	private Map<String, String> chromosomeMap = new HashMap<String, String>();
+//	private Map<String, String> chromosomeMap = new HashMap<String, String>();
 	private Map<String, String> publicationMap = new HashMap<String, String>();
 	private String getGene(String primaryIdentifier) throws ObjectStoreException {
 		String ret = geneMap.get(primaryIdentifier);
@@ -292,22 +292,22 @@ public class DbsnpTxtConverter extends BioFileConverter
 //		}
 //		return ret;
 //	}
-	private String getChromosome(String chr) throws ObjectStoreException {
-		String ret = chromosomeMap.get(chr);
-		if (ret == null) {
-			Item item = createItem("Chromosome");
-			String chrId = chr;
-			if (chr.toLowerCase().startsWith("chr")) {
-				chrId = chr.substring(3);
-			}
-			item.setAttribute("symbol", chrId);
-			item.setReference("organism", getOrganism(String.valueOf(HUMAN_TAXON_ID)));
-			store(item);
-			ret = item.getIdentifier();
-			chromosomeMap.put(chr, ret);
-		}
-		return ret;
-	}
+//	private String getChromosome(String chr) throws ObjectStoreException {
+//		String ret = chromosomeMap.get(chr);
+//		if (ret == null) {
+//			Item item = createItem("Chromosome");
+//			String chrId = chr;
+//			if (chr.toLowerCase().startsWith("chr")) {
+//				chrId = chr.substring(3);
+//			}
+//			item.setAttribute("symbol", chrId);
+//			item.setReference("organism", getOrganism(String.valueOf(HUMAN_TAXON_ID)));
+//			store(item);
+//			ret = item.getIdentifier();
+//			chromosomeMap.put(chr, ret);
+//		}
+//		return ret;
+//	}
 	private String getPublication(String pubmedId) throws ObjectStoreException {
 		String ret = publicationMap.get(pubmedId);
 		if (ret == null) {

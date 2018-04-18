@@ -6,16 +6,16 @@
 		<collection name="relations" referenced-type="Relation" reverse-reference="gene1"/>
 	</class>
 	<class name="Relation" is-interface="true">
-    	<attribute name="name" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
 		<reference name="gene1" referenced-type="Gene" reverse-reference="relations"/>
 		<reference name="gene2" referenced-type="Gene" />
-    	<attribute name="text" type="java.lang.String"/>
-    	<collection name="types" referenced-type="RelationType"/>
-    	<collection name="modifications" referenced-type="Modification" reverse-reference="relations"/>
-        <collection name="dataSets" referenced-type="DataSet"/>
+		<attribute name="text" type="java.lang.String"/>
+		<collection name="types" referenced-type="RelationType"/>
+		<collection name="modifications" referenced-type="Modification" reverse-reference="relations"/>
+		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
 	<class name="RelationType" is-interface="true">
-    	<attribute name="name" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
 	</class>
 	<class name="Modification" extends="ProteinRegion" is-interface="true">
 		<attribute name="type" type="java.lang.String" />

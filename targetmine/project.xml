@@ -54,7 +54,7 @@
       <property name="src.data.file" location="/data/bio/db/Targetmine/hpo/hp.obo" />
     </source>
     -->
-    
+
     <source name="interpro" type="interpro">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/interpro"/>
       <property name="src.data.dir.includes" value="interpro.xml"/>
@@ -122,7 +122,7 @@
       <property name="src.data.dir.includes" value="br0830*.keg"/>
       <property name="osAlias" value="os.production"/>
     </source>
-  	
+	
     <source name="kegg-pathway" type="tm-kegg-pathway">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp"/>
       <property name="src.data.dir.includes" value="*/*_gene_map.tab"/>
@@ -279,11 +279,6 @@
     <source name="gwas" type="gwas">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gwas/nhgri-ebi" />
       <property name="src.data.dir.includes" value="gwas-catalog-associations_ontology-annotated.tsv" />
-<!-- 
-      <property name="diseaseMapFile" value="/data/bio/db/Targetmine/gwas/nhgri/diseaseMap.150206.txt" />
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/gwas/nhgri-ebi" />
-      <property name="src.data.dir.includes" value="alternative" />
- -->
     </source>
 
     <source name="irefindex" type="irefindex">
@@ -337,7 +332,7 @@
       <property name="src.data.dir.includes" value="score_lc-ppis-homo.csv" />
       <property name="osAlias" value="os.production"/>
     </source>
-    
+
     <source name="psp" type="phosphositesplus">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/phosphositesplus" />
       <property name="src.data.dir.includes" value="*_site_dataset" />
@@ -372,7 +367,7 @@
       <property name="src.data.dir.includes" value="gene2pubmed"/>
     </source>
 
-	<!--  following parts should be run after other resources-->
+    <!--  following parts should be run after other resources-->
     <source name="fill-proteins-xml" type="fill-proteins-xml">
       <property name="src.data.dir" location="/data/bio/db/uniprot"/>
       <property name="src.data.dir.includes" value="uniprot_*.xml" />
@@ -382,22 +377,12 @@
     <source name="fill-missing-genes" type="fill-missing-genes">
       <property name="src.data.file" location="build/genes.txt"/>
     </source>
-    
+
     <!--  do nothing but add the necessary data model for the post-processing -->
-    <source name="network-analysis" type="network-analysis">
-    </source>
-    <source name="gene-set" type="gene-set">
-    </source>
-    <source name="calculate-bg" type="calculate-bg">
-    </source>
-<!-- 
-    <source name="organism" type="organism">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/taxonomy"/>
-      <property name="src.data.dir.includes" value="taxno.name"/>
-      <property name="osAlias" value="os.production"/>
-      <property name="hasShortName" value="9606 10090 10116"/>
-    </source>
- -->
+    <source name="network-analysis" type="network-analysis"/>
+    <source name="gene-set" type="gene-set"/>
+    <source name="calculate-bg" type="calculate-bg"/>
+
     <source name="organism" type="fill-organisms">
       <property name="src.data.file" location="build/organisms.xml"/>
       <property name="hasShortName" value="9606 10090 10116"/>
@@ -419,23 +404,11 @@
       <property name="src.data.dir.includes" value="*/mesh/*-mesh.txt"/>
       <property name="osAlias" value="os.production"/>
     </source>
-<!-- maybe no longer necessary ... 
-    <source name="rpl" type="retrieve-publication-local">
-      <property name="source.db.name" value="pub-db"/>
-      <property name="osAlias" value="os.production"/>
-    </source>
- -->
-    <source name="rpl" type="publication-efetch">
+    <source name="publication-info" type="publication-efetch">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/publication/efetch"/>
       <property name="src.data.dir.includes" value="publications.*.xml"/>
       <property name="osAlias" value="os.production"/>
     </source>
-<!-- 
-    <source name="update-publications" type="update-publications">
-      <property name="src.data.file" location="build/publications.xml"/>
-      <property name="loadFullRecord" value="true"/>
-    </source>
- -->
     <source name="update-publications" type="fill-missing-publications">
       <property name="src.data.file" location="build/publications.xml"/>
     </source>

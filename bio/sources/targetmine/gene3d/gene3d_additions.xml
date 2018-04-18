@@ -11,16 +11,16 @@
 		<attribute name="regionType" type="java.lang.String"/>
 		<reference name="protein" referenced-type="Protein" reverse-reference="regions" />
 	</class>
-	
+
 	<class name="StructuralDomainRegion" extends="ProteinRegion" is-interface="true">
 		<reference name="cathClassification" referenced-type="CathClassification" ordered="true"/>
-	    <collection name="dataSets" referenced-type="DataSet" /> 
+		<collection name="dataSets" referenced-type="DataSet" /> 
 	</class>
-	
-	<class name="StructuralClassification" is-interface="true">
-	</class>
+
+	<class name="StructuralClassification" is-interface="true"/>
+
 	<class name="CathClassification" extends="StructuralClassification" is-interface="true">
-	    <attribute name="cathCode" type="java.lang.String"/>
+		<attribute name="cathCode" type="java.lang.String"/>
 	</class>
 
 </classes>

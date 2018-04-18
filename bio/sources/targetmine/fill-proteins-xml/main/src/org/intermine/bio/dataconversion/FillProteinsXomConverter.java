@@ -381,6 +381,14 @@ public class FillProteinsXomConverter extends BioFileConverter {
 							}
 						}
 						
+						for (String acc : otherAccessions) {
+							// other accessions are synonyms
+							Item item = createItem("ProteinAccession");
+							item.setAttribute("accession", acc);
+							item.setReference("protein", protein);
+							store(item);
+						}
+						
 						numOfNewEntries++;
 						LOG.info("Entry " + accession + " created.");
 						
@@ -395,56 +403,55 @@ public class FillProteinsXomConverter extends BioFileConverter {
 						// reset
 						synonymsAndXrefs = new HashSet<Item>();
 					}
-					for (String acc : otherAccessions) {
-						// these are not uniprot canonical entries
-						if (proteinAcc.contains(acc)) {
-							if (doneEntries.contains(acc)) {
-								// TODO actually the primary accession is different here ...
-								continue;
-							}
-							Item protein = createItem("Protein");
-							protein.addToCollection("dataSets",
-									getDataSet(entry.getAttributeValue("dataset") + " data set", dataSource));
-							// arbitrary pick the first available name
-							protein.setAttribute("name",
-									entry.getFirstChildElement("protein").getChildElements().get(0).getFirstChildElement("fullName").getValue());
-							// show the canonical accession here
-							protein.setAttribute("uniprotAccession", accession);
-							protein.setAttribute("primaryAccession", acc);
-							
-							String name = entry.getFirstChildElement("name").getValue();
-							// use acc + species name as primaryIdentifier; should be an unique value?
-							protein.setAttribute("primaryIdentifier", acc + name.substring(name.indexOf("_")));
-							// tag as a synonym
-							protein.setAttribute("uniprotName", "Synonym of " + accession);
-							
-							protein.setAttribute("isUniprotCanonical", "false");
-							
-							/* sequence */
-							Element sequence = entry.getFirstChildElement("sequence");
-							protein.setAttribute("isFragment",
-									sequence.getAttributeValue("fragment") == null ? "false" : "true");
-							String length = sequence.getAttributeValue("length");
-							protein.setAttribute("length", length);
-							protein.setAttribute("molecularWeight", sequence.getAttributeValue("mass"));
-							
-							String md5Checksum = getSequence(sequence.getValue());
-							protein.setReference("sequence", allSequences.get(md5Checksum));
-							protein.setAttribute("md5checksum", md5Checksum);
-							
-							/* organism */
-							String taxonId = entry.getFirstChildElement("organism")
-									.getFirstChildElement("dbReference").getAttributeValue("id");
-							protein.setReference("organism", getOrganism(taxonId));
-
-							store(protein);
-							doneEntries.add(acc);
-							
-							numOfNewEntries++;
-							LOG.info("Entry " + acc + " created. (non-canonical)");
-						}
-					}
-
+//					for (String acc : otherAccessions) {
+//						// these are not uniprot canonical entries
+//						if (proteinAcc.contains(acc)) {
+//							if (doneEntries.contains(acc)) {
+//								// TODO actually the primary accession is different here ...
+//								continue;
+//							}
+//							Item protein = createItem("Protein");
+//							protein.addToCollection("dataSets",
+//									getDataSet(entry.getAttributeValue("dataset") + " data set", dataSource));
+//							// arbitrary pick the first available name
+//							protein.setAttribute("name",
+//									entry.getFirstChildElement("protein").getChildElements().get(0).getFirstChildElement("fullName").getValue());
+//							// show the canonical accession here
+//							protein.setAttribute("uniprotAccession", accession);
+//							protein.setAttribute("primaryAccession", acc);
+//							
+//							String name = entry.getFirstChildElement("name").getValue();
+//							// use acc + species name as primaryIdentifier; should be an unique value?
+//							protein.setAttribute("primaryIdentifier", acc + name.substring(name.indexOf("_")));
+//							// tag as a synonym
+//							protein.setAttribute("uniprotName", "Synonym of " + accession);
+//							
+//							protein.setAttribute("isUniprotCanonical", "false");
+//							
+//							/* sequence */
+//							Element sequence = entry.getFirstChildElement("sequence");
+//							protein.setAttribute("isFragment",
+//									sequence.getAttributeValue("fragment") == null ? "false" : "true");
+//							String length = sequence.getAttributeValue("length");
+//							protein.setAttribute("length", length);
+//							protein.setAttribute("molecularWeight", sequence.getAttributeValue("mass"));
+//							
+//							String md5Checksum = getSequence(sequence.getValue());
+//							protein.setReference("sequence", allSequences.get(md5Checksum));
+//							protein.setAttribute("md5checksum", md5Checksum);
+//							
+//							/* organism */
+//							String taxonId = entry.getFirstChildElement("organism")
+//									.getFirstChildElement("dbReference").getAttributeValue("id");
+//							protein.setReference("organism", getOrganism(taxonId));
+//
+//							store(protein);
+//							doneEntries.add(acc);
+//							
+//							numOfNewEntries++;
+//							LOG.info("Entry " + acc + " created. (non-canonical)");
+//						}
+//					}
 
 				}
 

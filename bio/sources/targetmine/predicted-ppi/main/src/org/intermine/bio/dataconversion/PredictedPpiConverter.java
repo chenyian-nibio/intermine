@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.ConstraintOp;
 import org.intermine.metadata.Model;
@@ -37,7 +36,7 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class PredictedPpiConverter extends BioFileConverter {
-	private static final Logger LOG = Logger.getLogger(PredictedPpiConverter.class);
+//	private static final Logger LOG = Logger.getLogger(PredictedPpiConverter.class);
     //
 
     // Only human low confidence interactions are available

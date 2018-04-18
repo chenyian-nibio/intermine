@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <classes>
 	<class name="Protein" is-interface="true">
+		<attribute name="primaryAccession" type="java.lang.String"/>
 		<collection name="modifications" referenced-type="Modification" />
 	</class>
 	<class name="Modification" extends="ProteinRegion" is-interface="true">

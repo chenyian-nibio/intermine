@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -19,7 +18,7 @@ import org.intermine.xml.full.Item;
  */
 public class Barcode30SampleConverter extends BioFileConverter
 {
-	private static final Logger LOG = Logger.getLogger(Barcode30SampleConverter.class);
+//	private static final Logger LOG = Logger.getLogger(Barcode30SampleConverter.class);
 	//
 	private static final String DATASET_TITLE = "Barcode 3.0";
 	private static final String DATA_SOURCE_NAME = "Barcode";
@@ -59,7 +58,7 @@ public class Barcode30SampleConverter extends BioFileConverter
 		// start to parse the file
 		Iterator<String[]> iterator = FormattedTextParser.parseCsvDelimitedReader(reader);
 		String[] header = iterator.next(); 
-		int i = 0;
+//		int i = 0;
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
 			Item item = createItem("MicroarraySample");
@@ -73,7 +72,7 @@ public class Barcode30SampleConverter extends BioFileConverter
 			item.setReference("tissue", getTissue(tissueName));
 			item.setReference("platform", platform);
 			store(item);
-			i++;
+//			i++;
 		}
 //		System.out.println(i + " lines processed.");
     }

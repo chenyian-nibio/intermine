@@ -22,8 +22,6 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/dbsnp-txt/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/disgenet/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/do-annotation/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/drpias/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/drugbank/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugbank-v4/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugebility/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/efo-mesh/main/src"/>
@@ -33,7 +31,6 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/fill-missing-publications/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fill-organisms/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/fill-proteins-xml/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/fugue/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/gene-esummary/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/gene-info/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/gene-pubmed/main/src"/>
@@ -48,6 +45,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/kegg-ec-reaction/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/kegg-jtc/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/kegg-relation/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/keyword-xml/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/ligand_expo/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mesh-term/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase/main/src"/>
@@ -57,36 +55,27 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/nci-pathway/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/omim-gene/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/oreganno/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/organism/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pdbchain-organism/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pdb-chaintype/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pdb_ext/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/phosphositesplus/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/ppiview/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/predicted-dbp/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/predicted-ppi/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/predicted-tft/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/protein-analysis/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/protein-ortholog/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/psp-relation/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/pubchem/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/publication-efetch/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/pubmed-mesh/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/retrieve-publication-local/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/scop/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/sifts/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/taxon-pathway/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/taxonomy/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/tfactor/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/tm-clinvar/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/tm-go-annotation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/tm-kegg-orthology/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/tm-kegg-pathway/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/tm-protein2ipr/main/src"/>
-	<classpathentry kind="src" path="bio/sources/targetmine/tm-stitch/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/tm-uniprot/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/wwpdb/main/src"/>
-	<classpathentry kind="src" path="bio/sources/update-publications/main/src"/>
 	<classpathentry kind="src" path="bio/core/main/src"/>
 	<classpathentry kind="src" path="bio/postprocess/main/src"/>
 	<classpathentry kind="src" path="bio/tools/main/src"/>
@@ -152,10 +141,10 @@
 	<classpathentry kind="lib" path="intermine/web/main/lib/commons-fileupload-1.2.2.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/commons-validator-1.3.1.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/commons-codec-1.9.jar"/>
-	<classpathentry kind="lib" path="intermine/model/main/lib/commons-io-1.2.jar"/>
 	<classpathentry kind="lib" path="intermine/model/main/lib/commons-lang-2.6.jar"/>
 	<classpathentry kind="lib" path="intermine/model/main/lib/commons-collections-3.2.jar"/>
 	<classpathentry kind="lib" path="intermine/objectstore/main/lib/commons-digester-2.1.jar"/>
+	<classpathentry kind="lib" path="bio/sources/targetmine/gwas/main/lib/commons-io-2.6.jar"/>
 	<classpathentry kind="lib" path="intermine/api/main/lib/bobo-browse-2.5.1.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/struts-core-1.3.10.jar"/>
 	<classpathentry kind="lib" path="intermine/web/main/lib/struts-extras-1.3.10.jar"/>

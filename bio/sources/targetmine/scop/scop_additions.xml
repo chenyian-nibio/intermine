@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <classes>
-	
 	<class name="StructuralClassification" is-interface="true">
 		<attribute name="type" type="java.lang.String"/>
 		<attribute name="level" type="java.lang.String"/>

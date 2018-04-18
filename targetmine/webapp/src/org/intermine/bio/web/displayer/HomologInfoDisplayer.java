@@ -22,6 +22,7 @@ public class HomologInfoDisplayer extends ReportDisplayer {
 		super(config, im);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void display(HttpServletRequest request, ReportObject reportObject) {
 		InterMineObject gene = reportObject.getObject();

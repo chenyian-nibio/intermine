@@ -9,7 +9,7 @@
 		<attribute name="description" type="java.lang.String"/>
 		<attribute name="url" type="java.lang.String"/>
 		<attribute name="code" type="java.lang.String"/>
-	    <reference name="dataSource" referenced-type="DataSource" reverse-reference="dataSets"/>
+		<reference name="dataSource" referenced-type="DataSource" reverse-reference="dataSets"/>
 	</class>
 	<class name="DataSource" is-interface="true">
 		<attribute name="name" type="java.lang.String"/>

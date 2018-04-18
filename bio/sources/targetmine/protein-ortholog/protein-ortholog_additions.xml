@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <classes>
-
 	<class name="Protein" is-interface="true">
+		<attribute name="primaryAccession" type="java.lang.String"/>
 		<collection name="orthologProteins" referenced-type="Protein" />
 	</class>
 

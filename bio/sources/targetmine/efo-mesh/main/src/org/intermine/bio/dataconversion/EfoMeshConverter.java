@@ -5,7 +5,6 @@ import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -18,7 +17,7 @@ import org.intermine.xml.full.Item;
  */
 public class EfoMeshConverter extends BioFileConverter
 {
-	private static final Logger LOG = Logger.getLogger(EfoMeshConverter.class);
+//	private static final Logger LOG = Logger.getLogger(EfoMeshConverter.class);
     //
 //    private static final String DATASET_TITLE = "Add DataSet.title here";
 //    private static final String DATA_SOURCE_NAME = "Add DataSource.name here";

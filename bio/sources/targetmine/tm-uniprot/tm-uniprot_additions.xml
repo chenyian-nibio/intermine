@@ -11,7 +11,7 @@
 		<attribute name="description" type="java.lang.String"/>
 		<collection name="publications" referenced-type="Publication"/>
 	</class>
-	<class name="Protein" is-interface="true">
+	<class name="Protein" extends="BioEntity" is-interface="true">
 		<attribute name="isFragment" type="java.lang.Boolean"/>
 		<attribute name="isUniprotCanonical" type="java.lang.Boolean"/>
 		<attribute name="uniprotAccession" type="java.lang.String"/>
@@ -35,8 +35,7 @@
 		<attribute name="accession" type="java.lang.String" />
 		<reference name="protein" referenced-type="Protein" reverse-reference="otherAccessions" />
 	</class>
-	
-	<!-- Testing... -->
+
 	<class name="Modification" extends="ProteinRegion" is-interface="true">
 		<attribute name="type" type="java.lang.String" />
 		<attribute name="position" type="java.lang.Integer" />
@@ -44,4 +43,5 @@
 		<collection name="dataSets" referenced-type="DataSet"/>
 		<collection name="publications" referenced-type="Publication"/>
 	</class>
+
 </classes>

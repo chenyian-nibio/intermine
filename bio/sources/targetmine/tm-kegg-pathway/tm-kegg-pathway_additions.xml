@@ -6,11 +6,12 @@
 		<attribute name="description" type="java.lang.String"/>
 		<attribute name="label1" type="java.lang.String"/>
 		<attribute name="label2" type="java.lang.String"/>
-	    <reference name="organism" referenced-type="Organism"/>
+		<reference name="organism" referenced-type="Organism"/>
 		<collection name="genes" referenced-type="Gene" reverse-reference="pathways"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
 	<class name="Gene" is-interface="true">
+		<attribute name="primaryIdentifier" type="java.lang.String"/>
 		<collection name="pathways" referenced-type="Pathway" reverse-reference="genes"/>
 	</class>
 </classes>

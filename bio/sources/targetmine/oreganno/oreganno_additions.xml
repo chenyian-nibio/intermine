@@ -1,15 +1,16 @@
 <?xml version="1.0"?>
 <classes>
-    <class name="TranscriptionalRegulation" is-interface="true">
-    	<attribute name="name" type="java.lang.String"/>
+	<class name="TranscriptionalRegulation" is-interface="true">
+		<attribute name="name" type="java.lang.String"/>
 		<reference name="transcriptionFactor" referenced-type="Gene" reverse-reference="transcriptionalRegulations" />
 		<reference name="targetGene" referenced-type="Gene"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
 		<collection name="bindingSites" referenced-type="TFBindingSite"/>
-    </class>
+	</class>
 
-    <class name="Gene" is-interface="true">
-        <collection name="transcriptionalRegulations" referenced-type="TranscriptionalRegulation" reverse-reference="transcriptionFactor"/>
-    </class>
+	<class name="Gene" is-interface="true">
+		<attribute name="primaryIdentifier" type="java.lang.String"/>
+		<collection name="transcriptionalRegulations" referenced-type="TranscriptionalRegulation" reverse-reference="transcriptionFactor"/>
+	</class>
 
 </classes>

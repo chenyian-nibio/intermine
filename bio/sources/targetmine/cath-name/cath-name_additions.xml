@@ -11,8 +11,8 @@
 	</class>
 
 	<class name="CathClassification" extends="StructuralClassification" is-interface="true">
-	    <attribute name="cathCode" type="java.lang.String"/>
-	    <attribute name="domainLength" type="java.lang.Integer"/>
+		<attribute name="cathCode" type="java.lang.String"/>
+		<attribute name="domainLength" type="java.lang.Integer"/>
 	</class>
 
 	<class name="ProteinRegion" is-interface="true">

@@ -1,4 +1,0 @@
-<project name="drpias-tasks" default="default" basedir=".">
-  <description>build drpias tasks</description>
-  <import file="../../../../../imbuild/library.xml"/> 
-</project>

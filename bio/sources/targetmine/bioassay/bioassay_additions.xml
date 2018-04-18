@@ -5,19 +5,18 @@
 		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
 		<collection name="activities" referenced-type="Activity" reverse-reference="interaction"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
-    </class>
+	</class>
     
 	<class name="Activity" is-interface="true">
 		<reference name="interaction" referenced-type="CompoundProteinInteraction" reverse-reference="activities"/>
 		<reference name="assay" referenced-type="CompoundProteinInteractionAssay" reverse-reference="activities"/>
-    </class>
+	</class>
     
 	<class name="Protein" is-interface="true">
 		<collection name="compounds" referenced-type="CompoundProteinInteraction" reverse-reference="protein"/>
-    </class>
+	</class>
     
-	<class name="PubChemCompound" extends="Compound" is-interface="true">
-    </class>
+	<class name="PubChemCompound" extends="Compound" is-interface="true"/>
     
 	<class name="Compound" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
@@ -36,14 +35,13 @@
 		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
 	
-    <class name="CompoundGroup" is-interface="true">
+	<class name="CompoundGroup" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<collection name="compounds" referenced-type="Compound" reverse-reference="compoundGroup"/>
-    </class>
+	</class>
     
-	<class name="BioAssayInteraction" extends="CompoundProteinInteraction" is-interface="true">
-    </class>
+	<class name="BioAssayInteraction" extends="CompoundProteinInteraction" is-interface="true"/>
     
 	<class name="CompoundProteinInteractionAssay" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
@@ -53,6 +51,6 @@
 		<collection name="publications" referenced-type="Publication"/>
 		<collection name="activities" referenced-type="Activity" reverse-reference="assay"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
-    </class>
+	</class>
 
 </classes>

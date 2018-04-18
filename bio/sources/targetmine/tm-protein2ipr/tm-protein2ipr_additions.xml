@@ -6,14 +6,15 @@
 		<attribute name="regionType" type="java.lang.String"/>
 		<reference name="protein" referenced-type="Protein" reverse-reference="regions" />
 	</class>
-	
+
 	<class name="ProteinDomainRegion" extends="ProteinRegion" is-interface="true">
 		<attribute name="originalDb" type="java.lang.String"/>
 		<attribute name="originalId" type="java.lang.String"/>
 		<reference name="proteinDomain" referenced-type="ProteinDomain" reverse-reference="proteinDomainRegions"/>
 	</class>
-	
+
 	<class name="Protein" is-interface="true">
+		<attribute name="primaryAccession" type="java.lang.String"/>
 		<collection name="proteinDomainRegions" referenced-type="ProteinDomainRegion" />
 	</class>
 

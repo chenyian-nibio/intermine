@@ -6,13 +6,14 @@
 		<collection name="miRNAInteractions" referenced-type="MiRNAInteraction" reverse-reference="miRNA"/>
 	</class>
 	<class name="Gene" is-interface="true">
-        <attribute name="ncbiGeneId" type="java.lang.String"/>
+		<attribute name="primaryIdentifier" type="java.lang.String"/>
+		<attribute name="ncbiGeneId" type="java.lang.String"/>
 		<collection name="miRNAInteractions" referenced-type="MiRNAInteraction" reverse-reference="targetGene"/>
 	</class>
 	<class name="MiRNAInteraction" is-interface="true">
-        <attribute name="identifier" type="java.lang.String"/>
-        <attribute name="sourceId" type="java.lang.String"/>
-        <attribute name="supportType" type="java.lang.String"/>
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="sourceId" type="java.lang.String"/>
+		<attribute name="supportType" type="java.lang.String"/>
 		<reference name="targetGene" referenced-type="Gene" reverse-reference="miRNAInteractions"/>
 		<reference name="miRNA" referenced-type="MiRNA" reverse-reference="miRNAInteractions"/>
 		<collection name="evidences" referenced-type="MiRNAEvidence" reverse-reference="interaction"/>
