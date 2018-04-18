@@ -171,7 +171,12 @@ public class MissingPublicationXomRetriever {
 		        		if (pubDate.getFirstChildElement("Year") != null) {
 		        			publication.setAttribute("year", pubDate.getFirstChildElement("Year").getValue());
 		        		} else if (pubDate.getFirstChildElement("MedlineDate") != null){
-		        			String year = pubDate.getFirstChildElement("MedlineDate").getValue().split(" ")[0];
+		        			String[] medlineDate = pubDate.getFirstChildElement("MedlineDate").getValue().split(" ");
+							String year = medlineDate[0];
+							// example: 'Fall 2016' (pmid: 28078901)
+							if (year.matches("^\\D.+")) {
+								year = medlineDate[1];
+							}
 		        			// some year strings are ranges, for example: '1998-1999'
 	                    	if (year.contains("-")) {
 	                    		year = year.substring(0, year.indexOf("-"));
@@ -232,7 +237,8 @@ public class MissingPublicationXomRetriever {
 		q.addFrom(qc);
 		q.addToSelect(qc);
 
-		ConstraintSet cs = new ConstraintSet(ConstraintOp.OR);
+		// only retrieve those all 3 following columns are missing
+		ConstraintSet cs = new ConstraintSet(ConstraintOp.AND);
 
 		SimpleConstraint scTitle = new SimpleConstraint(new QueryField(qc, "title"),
 				ConstraintOp.IS_NULL);
