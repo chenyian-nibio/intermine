@@ -155,6 +155,8 @@
     <source name="disgenet" type="disgenet">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/disgenet/5.0"/>
       <property name="src.data.dir.includes" value="curated_gene_disease_associations.tsv"/>
+      <property name="pmidFile" value="/data/bio/db/Targetmine/disgenet/5.0/all_gene_disease_pmid_associations.tsv" />
+      <property name="diseaseMapFile" value="/data/bio/db/Targetmine/disgenet/5.0/disease_mappings.tsv" />
     </source>
 <!-- chenyian: for internal only | start -->
     <source name="omim" type="omim-gene">
