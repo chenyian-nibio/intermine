@@ -3,7 +3,9 @@ package org.intermine.bio.dataconversion;
 import java.io.BufferedReader;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
@@ -40,47 +42,39 @@ public class EfoMeshConverter extends BioFileConverter
     	BufferedReader in = new BufferedReader(reader);
     	String line;
     	boolean isTerm = false;
-    	Item efoTerm = null;
+    	String identifier = null;
+    	boolean isObsolete = false;
+    	Set<String> meshIdSet = new HashSet<String>();
     	while ((line = in.readLine()) != null) {
     		if (line.equals("[Term]")) {
     			isTerm = true;
     		} else if (line.startsWith("id:")) {
-    			if (isTerm) {
-    				String identifier = line.substring(4);
-    				efoTerm = getEFOTerm(identifier);
-    			}
+				identifier = line.substring(4);
     		} else if (line.startsWith("property_value: http://www.ebi.ac.uk/efo/MSH_definition_citation")) {
     			String meshIdentifier = line.substring(line.indexOf("MSH:") + 4, line.indexOf("MSH:") + 11);
     			if (!"".equals(meshIdentifier)) {
-    				efoTerm.addToCollection("crossReferences", getMeshTerm(meshIdentifier));
+    				meshIdSet.add(meshIdentifier);
     			}
+    		} else if ("is_obsolete: true".equals(line.trim())) {
+    			isObsolete = true;
     		} else if ("".equals(line.trim())) {
-    			if (efoTerm != null) {
-    				efoTerm = null;
-    				isTerm = false;
+    			if (isTerm && !isObsolete && !meshIdSet.isEmpty()) {
+    				Item efoTerm = createItem("EFOTerm");
+    				efoTerm.setAttribute("identifier", identifier);
+    				efoTerm.setReference("ontology", getOntology("EFO"));
+    				for (String meshIdentifier : meshIdSet) {
+    					efoTerm.addToCollection("crossReferences", getMeshTerm(meshIdentifier));
+    				}
+    				store(efoTerm);
     			}
+    			isTerm = false;
+    			isObsolete = false;
+    			meshIdSet = new HashSet<String>();
     		}
     		
     	}
     }
     
-    @Override
-    public void close() throws Exception {
-    	store(efoTermMap.values());
-    }
-    
-    private Map<String, Item> efoTermMap = new HashMap<String, Item>();
-    private Item getEFOTerm(String identifier) throws ObjectStoreException {
-    	Item ret = efoTermMap.get(identifier);
-    	if (ret == null) {
-    		ret = createItem("EFOTerm");
-    		ret.setAttribute("identifier", identifier);
-    		ret.setReference("ontology", getOntology("EFO"));
-    		efoTermMap.put(identifier, ret);
-    	}
-    	return ret;
-    }
-
     private Map<String, String> meshTermMap = new HashMap<String, String>();
     private String getMeshTerm(String meshIdentifier) throws ObjectStoreException {
     	String ret = meshTermMap.get(meshIdentifier);
