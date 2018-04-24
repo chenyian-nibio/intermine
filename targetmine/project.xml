@@ -181,22 +181,22 @@
  -->
     <source name="dbsnp-info" type="dbsnp-txt">
       <property name="tableType" value="info"/>
-      <property name="src.data.dir" location="/home/chenyian/data/dbsnp/pre-processed"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/dbsnp"/>
       <property name="src.data.dir.includes" value="table1-dbsnp-info.txt"/>
-      <property name="snpListFile" value="/home/chenyian/data/dbsnp/pre-processed/uniq.snp.ids.txt" />
+      <property name="snpListFile" value="/data/bio/db/Targetmine/dbsnp/uniq.snp.ids.txt" />
     </source>
     <source name="dbsnp-gene" type="dbsnp-txt">
       <property name="tableType" value="gene"/>
-      <property name="src.data.dir" location="/home/chenyian/data/dbsnp/pre-processed"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/dbsnp"/>
       <property name="src.data.dir.includes" value="table3-sorted-snp-gene.txt"/>
-      <property name="snpListFile" value="/home/chenyian/data/dbsnp/pre-processed/uniq.snp.ids.txt" />
+      <property name="snpListFile" value="/data/bio/db/Targetmine/dbsnp/uniq.snp.ids.txt" />
     </source>
     <source name="dbsnp-transcript" type="dbsnp-txt">
       <property name="tableType" value="transcript"/>
-      <property name="src.data.dir" location="/home/chenyian/data/dbsnp/pre-processed"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/dbsnp"/>
       <property name="src.data.dir.includes" value="table2-dbsnp-transcript.txt"/>
-      <property name="snpListFile" value="/home/chenyian/data/dbsnp/pre-processed/uniq.snp.ids.txt" />
-      <property name="snpFunctionFile" value="/home/chenyian/data/dbsnp/pre-processed/snp_function_code.csv" />
+      <property name="snpListFile" value="/data/bio/db/Targetmine/dbsnp/uniq.snp.ids.txt" />
+      <property name="snpFunctionFile" value="/data/bio/db/Targetmine/dbsnp/snp_function_code.csv" />
     </source>
 
     <source name="wwpdb" type="wwpdb">
@@ -238,7 +238,7 @@
     </source>
 
     <source name="reactome" type="biopax3">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/reactome"/>
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/reactome/current"/>
       <property name="src.data.dir.includes" value="*.owl"/>
     </source>
     <source name="nci-pathway" type="nci-pathway">
@@ -293,14 +293,14 @@
     </source>
 
     <source name="mirbase" type="mirbase">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/mirbase" />
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/mirbase/current" />
       <property name="src.data.dir.includes" value="m*.*" />
-      <property name="taxonIdFile" value="/data/bio/db/Targetmine/mirbase/taxonId.txt" />
+      <property name="taxonIdFile" value="/data/bio/db/Targetmine/mirbase/current/taxonId.txt" />
     </source>
     <source name="mirbase-genome" type="mirbase-genome">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/mirbase/genomes" />
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/mirbase/current/genomes" />
       <property name="src.data.dir.includes" value="*.gff3" />
-      <property name="taxonIdFile" value="/data/bio/db/Targetmine/mirbase/taxonId.txt" />
+      <property name="taxonIdFile" value="/data/bio/db/Targetmine/mirbase/current/taxonId.txt" />
     </source>
     <source name="mirtarbase" type="mirtarbase">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/mirtarbase" />
