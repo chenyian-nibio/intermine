@@ -31,6 +31,10 @@
     <source name="do" type="do">
       <property name="src.data.file" location="/data/bio/db/Targetmine/do/HumanDO.obo"/>
     </source>
+    <source name="do-mesh" type="do-mesh">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/do/" />
+      <property name="src.data.dir.includes" value="HumanDO.obo" />
+    </source>  
     <source name="gene-info" type="gene-info">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_info"/>
       <property name="src.data.dir.includes" value="*.gene_info"/>
@@ -44,10 +48,6 @@
     <source name="gene-esummary" type="gene-esummary">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/gene_info"/>
       <property name="src.data.dir.includes" value="esummary.*"/>
-    </source>
-    <source name="do-annotation" type="do-annotation">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/do-annotation"/>
-      <property name="src.data.dir.includes" value="do_rif.human.txt"/>
     </source>
     <!-- to be added 
     <source name="hpo" type="hpo">

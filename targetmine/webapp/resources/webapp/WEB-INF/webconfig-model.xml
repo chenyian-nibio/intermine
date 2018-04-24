@@ -464,15 +464,6 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.DOAnnotation">
-    <fields>
-      <fieldconfig fieldExpr="subject.primaryIdentifier"/>
-      <fieldconfig fieldExpr="ontologyTerm.identifier" />
-      <fieldconfig fieldExpr="ontologyTerm.name" />
-      <fieldconfig fieldExpr="ontologyTerm.namespace" />
-    </fields>
-  </class>
-
   <class className="org.intermine.model.bio.DOTerm">
     <headerconfig>
         <titles>
@@ -1060,20 +1051,6 @@
                                  typeClass="Gene"
                                  views="primaryIdentifier, symbol, organism.name, diseases.diseaseTerm.identifier, diseases.diseaseTerm.title"/>
 
-      <enrichmentwidgetdisplayer id="gene_do_enrichment"
-                                 title="Disease Ontology Enrichment"
-                                 description="DO terms enriched for genes in this list."
-                                 label="DO Term"
-                                 startClass="Gene"
-                                 startClassDisplay="symbol"
-                                 enrich="doAnnotations.ontologyTerm.parents.name"
-                                 enrichIdentifier="doAnnotations.ontologyTerm.parents.identifier"
-                                 constraints="organism.name=[list], doAnnotations.qualifier = null"
-                                 typeClass="Gene"
-                                 views="primaryIdentifier, symbol, organism.name, 
-                                       doAnnotations.ontologyTerm.parents.identifier,doAnnotations.ontologyTerm.parents.name"
-                                 externalLink="/targetmine/portal.do?class=DOTerm&amp;externalids="/>
-
       <enrichmentwidgetdisplayer id="protein_pathway_enrichment"
                                  title="Pathway Enrichment"
                                  description="Pathways enriched for proteins in this list - data from KEGG, Reactome and NCI"
@@ -1159,20 +1136,6 @@
                                  constraints="genes.diseases.dataSet.name=[DataSet],organism.taxonId=[list]"
                                  typeClass="Protein"
                                  views="primaryIdentifier, primaryAccession, genes.diseases.diseaseTerm.identifier, genes.diseases.diseaseTerm.title"/>
-
-      <enrichmentwidgetdisplayer id="protein_do_enrichment"
-                                 title="Disease Ontology Enrichment"
-                                 description="DO terms enriched for proteins in this list."
-                                 label="DO Term"
-                                 startClass="Protein"
-                                 startClassDisplay="primaryIdentifier"
-                                 enrich="genes.doAnnotations.ontologyTerm.parents.name"
-                                 enrichIdentifier="genes.doAnnotations.ontologyTerm.parents.identifier"
-                                 constraints="organism.name=[list], genes.doAnnotations.qualifier = null"
-                                 typeClass="Protein"
-                                 views="primaryAccession, name, organism.name,
-                                       genes.doAnnotations.ontologyTerm.parents.identifier,genes.doAnnotations.ontologyTerm.parents.name"
-                                 externalLink="/targetmine/portal.do?class=DOTerm&amp;externalids="/>
 
       <enrichmentwidgetdisplayer id="protein_interpro_enrichment"
                                  title="InterPro domain Enrichment"

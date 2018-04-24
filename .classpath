@@ -22,6 +22,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/dbsnp-txt/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/disgenet/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/do-annotation/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/do-mesh/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugbank-v4/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/drugebility/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/efo-mesh/main/src"/>

@@ -1,0 +1,5 @@
+<project name="do-mesh" default="default" basedir=".">
+  <description>build, test, package do-mesh</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>
