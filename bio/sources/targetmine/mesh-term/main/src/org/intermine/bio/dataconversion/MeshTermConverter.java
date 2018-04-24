@@ -28,8 +28,8 @@ public class MeshTermConverter extends BioFileConverter
 {
 	private static final Logger LOG = Logger.getLogger(MeshTermConverter.class);
 	//
-    private static final String DATASET_TITLE = "MeSH";
-    private static final String DATA_SOURCE_NAME = "NLM";
+//    private static final String DATASET_TITLE = "MeSH";
+//    private static final String DATA_SOURCE_NAME = "NLM";
 
 	private Map<String, Item> meshTreeItemMap = new HashMap<String, Item>();
 	
@@ -39,7 +39,7 @@ public class MeshTermConverter extends BioFileConverter
      * @param model the Model
      */
     public MeshTermConverter(ItemWriter writer, Model model) {
-        super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
+        super(writer, model);
     }
     
     /**
