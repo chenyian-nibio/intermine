@@ -158,6 +158,9 @@ public class IrefindexConverter extends BioFileConverter {
 						String intType = null;
 						if (!cols[11].equals("-")) {
 							String miType = cols[11].substring(0, 7);
+							if (cols[11].startsWith("psi-mi:")) {
+								miType = cols[11].substring(8, 15);
+							}
 							relationshipType = getInteractionTerm(miType);
 							detail.setReference("relationshipType", relationshipType);
 							// physical or genetic
@@ -233,6 +236,9 @@ public class IrefindexConverter extends BioFileConverter {
 							String intType = null;
 							if (!cols[11].equals("-")) {
 								String miType = cols[11].substring(0, 7);
+								if (cols[11].startsWith("psi-mi:")) {
+									miType = cols[11].substring(8, 15);
+								}
 								relationshipType = getInteractionTerm(miType);
 								detail.setReference("relationshipType", relationshipType);
 								// physical or genetic
