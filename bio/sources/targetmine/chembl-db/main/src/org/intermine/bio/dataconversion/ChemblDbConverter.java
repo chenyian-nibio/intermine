@@ -267,7 +267,10 @@ public class ChemblDbConverter extends BioDBConverter {
 			item.setAttribute("originalId", identifier);
 			item.setAttribute("name", name);
 			item.setAttribute("source", "ChEMBL");
-			item.addToCollection("publications", getPublication(pubmedId));
+			// don't create publication which id equals to '0' 
+			if (!pubmedId.equals("0")) {
+				item.addToCollection("publications", getPublication(pubmedId));
+			}
 			store(item);
 			ret = item.getIdentifier();
 			assayMap.put(identifier, ret);
