@@ -20,8 +20,8 @@ import org.intermine.xml.full.Item;
 public class GwasConverter extends BioFileConverter {
 //	private static final Logger LOG = Logger.getLogger(GwasConverter.class);
 
-	private static final String DATASET_TITLE = "NHGRI GWAS Catalog";
-	private static final String DATA_SOURCE_NAME = "NHGRI GWAS Catalog";
+	private static final String DATASET_TITLE = "GWAS Catalog";
+	private static final String DATA_SOURCE_NAME = "GWAS Catalog";
 
 //	private static final String HUMAN_TAXON_ID = "9606";
 
