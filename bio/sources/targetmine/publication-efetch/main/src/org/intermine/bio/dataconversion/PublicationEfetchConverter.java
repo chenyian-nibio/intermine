@@ -46,6 +46,8 @@ public class PublicationEfetchConverter extends BioFileConverter
 		this.osAlias = osAlias;
 	}
 	
+    private Set<String> pubMedIds;
+    
     /**
      * Constructor
      * @param writer the ItemWriter used to handle the resultant items
@@ -61,7 +63,12 @@ public class PublicationEfetchConverter extends BioFileConverter
      * {@inheritDoc}
      */
     public void process(Reader reader) throws Exception {
-    	Set<String> pubMedIds = getPubMedIds();
+    	if (pubMedIds == null || pubMedIds.isEmpty()) {
+    		pubMedIds = getPubMedIds();
+    	}
+    	
+    	String fileName = getCurrentFile().getName();
+    	LOG.info(String.format("Processing the file %s ...", fileName));
     	
     	int i = 0;
 		BufferedReader in = null;  
