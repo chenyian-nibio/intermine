@@ -172,7 +172,11 @@ public class DrugbankV4Converter extends BioFileConverter {
 						for (int x = 0; x < articles.size(); x++) {
 							Element article = articles.get(x);
 							String pubmedId = article.getFirstChildElement("pubmed-id", NAMESPACE_URI).getValue();
-							interaction.addToCollection("publications", getPublication(pubmedId));
+							if (!StringUtils.isEmpty(pubmedId)) {
+								interaction.addToCollection("publications", getPublication(pubmedId));
+							} else {
+								LOG.info("pubmed-id not available: " + drugBankId);
+							}
 						}
 						
 						if (actionValues.size() > 0) {
