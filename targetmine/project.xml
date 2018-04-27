@@ -199,6 +199,12 @@
       <property name="snpFunctionFile" value="/data/bio/db/Targetmine/dbsnp/snp_function_code.csv" />
     </source>
 
+    <source name="snv-freq" type="snv-freq">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/snv_freq"/>
+      <property name="src.data.dir.includes" value="*.filtered.txt"/>
+      <property name="populationFile" value="/data/bio/db/Targetmine/snv_freq/population.txt" />
+    </source>
+
     <source name="wwpdb" type="wwpdb">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/wwpdb/" />
       <property name="src.data.dir.includes" value="entries.idx" />

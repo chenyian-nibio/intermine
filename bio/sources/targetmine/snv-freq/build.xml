@@ -1,0 +1,5 @@
+<project name="snv-freq" default="default" basedir=".">
+  <description>build, test, package snv-freq</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

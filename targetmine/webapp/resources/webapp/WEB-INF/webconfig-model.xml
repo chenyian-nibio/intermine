@@ -829,6 +829,22 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.Frequency">
+    <fields>
+      <fieldconfig fieldExpr="allele"/>
+      <fieldconfig fieldExpr="frequency"/>
+      <fieldconfig fieldExpr="population.title"/>
+      <fieldconfig fieldExpr="dataSet.name"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.Population">
+    <fields>
+      <fieldconfig fieldExpr="code"/>
+      <fieldconfig fieldExpr="title"/>
+    </fields>
+  </class>
+
 <!-- exporters -->
   <tableExportConfig id="sequence" className="org.intermine.bio.web.export.SequenceHttpExporter"/>
   <tableExportConfig id="gff3" className="org.intermine.bio.web.export.GFF3HttpExporter"/>

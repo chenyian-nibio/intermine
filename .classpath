@@ -69,6 +69,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/pubmed-mesh/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/scop/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/sifts/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/snv-freq/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/taxon-pathway/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/taxonomy/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/tm-clinvar/main/src"/>

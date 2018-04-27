@@ -1,0 +1,4 @@
+<project name="snv-freq-tasks" default="default" basedir=".">
+  <description>build snv-freq tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>
