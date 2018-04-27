@@ -97,7 +97,7 @@
     <source name="kegg-orthology" type="tm-kegg-orthology">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/kegg-ftp/ko"/>
       <property name="src.data.dir.includes" value="ko_genes.list" />
-      <property name="kegg.organisms" value="9606 10090 10116"/>
+      <property name="kegg.organism.codes" value="hsa mmu rno"/>
     </source>
 
     <source name="atc-code" type="atc-code">

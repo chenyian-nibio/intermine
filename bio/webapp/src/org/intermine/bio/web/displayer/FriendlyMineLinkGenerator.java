@@ -134,7 +134,7 @@ public final class FriendlyMineLinkGenerator implements InterMineLinkGenerator
          * @return A mapping from organisms to groups of identifiers.
          */
         private Map<String, Set<ObjectDetails>> localHomologueStrategy(ObjectRequest req) {
-            PathQuery q = getHomologueQuery(thisMine, req);
+            PathQuery q = getLocalHomologueQuery(thisMine, req);
             return runQuery(thisMine, q);
         }
 
@@ -148,6 +148,21 @@ public final class FriendlyMineLinkGenerator implements InterMineLinkGenerator
             q.addOrderBy("Gene.homologues.homologue.organism.shortName", OrderDirection.ASC);
             q.addConstraint(Constraints.lookup("Gene", req.getIdentifier(), req.getDomain()));
             q.addConstraint(Constraints.neq("Gene.homologues.type", "paralogue"));
+            return q;
+        }
+
+        /**
+         * for TargetMine only... (chenyian) 
+         */
+        private PathQuery getLocalHomologueQuery(Mine mine, ObjectRequest req) {
+            PathQuery q = new PathQuery(mine.getModel());
+            q.addViews(
+            		"Gene.proteins.orthologProteins.genes.primaryIdentifier",
+                    "Gene.proteins.orthologProteins.genes.symbol",
+                    "Gene.proteins.orthologProteins.genes.organism.shortName"
+            );
+            q.addOrderBy("Gene.proteins.orthologProteins.genes.organism.shortName", OrderDirection.ASC);
+            q.addConstraint(Constraints.lookup("Gene", req.getIdentifier(), req.getDomain()));
             return q;
         }
 

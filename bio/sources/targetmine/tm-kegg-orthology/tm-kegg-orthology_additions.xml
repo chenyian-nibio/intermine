@@ -1,13 +1,11 @@
 <?xml version="1.0"?>
 <classes>
-	<class name="Homologue" is-interface="true">
-		<attribute name="type" type="java.lang.String"/>
-		<reference name="gene" referenced-type="Gene" reverse-reference="homologues"/>
-		<reference name="homologue" referenced-type="Gene"/>
-		<collection name="dataSets" referenced-type="DataSet"/>
+	<class name="KeggOrthology" is-interface="true">
+		<attribute name="identifier" type="java.lang.String"/>
+		<collection name="genes" referenced-type="Gene" reverse-reference="keggOrthology"/>
 	</class>
 	<class name="Gene" is-interface="true">
 		<attribute name="primaryIdentifier" type="java.lang.String"/>
-		<collection name="homologues" referenced-type="Homologue" reverse-reference="gene"/>
+		<collection name="keggOrthology" referenced-type="KeggOrthology" reverse-reference="genes"/>
 	</class>
 </classes>

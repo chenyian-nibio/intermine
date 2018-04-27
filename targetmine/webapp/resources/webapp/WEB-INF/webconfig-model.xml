@@ -350,12 +350,9 @@
       <fieldconfig fieldExpr="name" />
     </fields>
   </class>
-  <class className="org.intermine.model.bio.Homologue">
+  <class className="org.intermine.model.bio.KeggOrthology">
     <fields>
-      <fieldconfig fieldExpr="type"/>
-      <fieldconfig fieldExpr="gene.primaryIdentifier" showInResults="false" showInInlineCollection="false" />
-      <fieldconfig fieldExpr="homologue.primaryIdentifier"/>
-      <fieldconfig fieldExpr="homologue.organism.shortName"/>
+      <fieldconfig fieldExpr="identifier"/>
     </fields>
   </class>
 
@@ -842,7 +839,7 @@
 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.HomologInfoDisplayer"
                      jspName="model/homologInfoDisplayer.jsp"
-                     replacesFields="homologues"
+                     replacesFields="keggOrthology"
                      placement="Genes"
                      types="Gene"/>
 
