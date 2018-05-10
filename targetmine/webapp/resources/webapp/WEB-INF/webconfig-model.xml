@@ -972,6 +972,12 @@
                      replacesFields="parent, alternateForms" 
                      types="ChemblCompound"/>
                      
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneDiseaseDisplayer"
+                     jspName="model/geneDiseaseDisplayer.jsp"
+                     replacesFields="" 
+                     placement="Disease"
+                     types="Gene"/>
+
   </reportdisplayers>
 
   

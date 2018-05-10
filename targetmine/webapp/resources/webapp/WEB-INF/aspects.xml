@@ -5,12 +5,10 @@
     <icon-image>model/images/genomics.gif</icon-image>
     <large-image>model/images/genomics.gif</large-image>
     <intro-text>
-      The gene and genome annotations in TargetMine are provided by
-      a variety of curated source databases. 
+      The gene annotations in TargetMine are from NCBI Gene databases. 
     </intro-text>
     <tile-name>model/genes.jsp</tile-name>
     <aspect-source name="Entrez Gene" url="http://www.ncbi.nlm.nih.gov/gene"/>
-    <aspect-source name="Ensembl" url="http://www.ensembl.org/"/>
   </aspect>
 
   <aspect name="Proteins">
@@ -22,6 +20,16 @@
     </intro-text>
     <tile-name>model/proteins.jsp</tile-name>
     <aspect-source name="UniProt" url="http://www.uniprot.org"/>
+  </aspect>
+
+  <aspect name="Disease">
+    <subtitle></subtitle>
+    <icon-image>model/images/disease2.png</icon-image>
+    <large-image>model/images/disease2.png</large-image>
+    <intro-text>
+      Human Disease
+    </intro-text>
+    <tile-name>model/diseaseAspect.jsp</tile-name>
   </aspect>
 
   <aspect name="Gene Ontology">
@@ -75,20 +83,6 @@
     <aspect-source name="iRefIndex" url="http://irefindex.uio.no/wiki/iRefIndex"/>
   </aspect>
 
-  <aspect name="Disease">
-    <subtitle></subtitle>
-    <icon-image>model/images/disease2.png</icon-image>
-    <large-image>model/images/disease2.png</large-image>
-    <intro-text>
-      Human Disease
-    </intro-text>
-    <tile-name>model/diseaseAspect.jsp</tile-name>
-<!-- chenyian: disable for external server 
-    <aspect-source name="OMIM" url="http://www.ncbi.nlm.nih.gov/omim/"/>
--->
-    <aspect-source name="Disease Ontology Wiki" url="http://do-wiki.nubic.northwestern.edu/index.php" />
-  </aspect>
-
   <aspect name="Protein Domain">
     <subtitle></subtitle>
     <icon-image>model/images/domain.png</icon-image>
@@ -98,8 +92,6 @@
     </intro-text>
     <tile-name>model/domain.jsp</tile-name>
     <aspect-source name="InterPro" url="http://www.ebi.ac.uk/interpro/"/>
-    <aspect-source name="IPI" url="http://www.ebi.ac.uk/IPI/"/>
-    <aspect-source name="Integr8" url="http://www.ebi.ac.uk/integr8/"/>
   </aspect>
 
   <aspect name="Compounds">
@@ -112,7 +104,6 @@
     </intro-text>
     <tile-name>model/compound.jsp</tile-name>
     <aspect-source name="DrugBank" url="http://www.drugbank.ca/"/>
-    <aspect-source name="STITCH" url="http://stitch.embl.de/"/>
     <aspect-source name="ChEBI" url="http://www.ebi.ac.uk/chebi/"/>
     <aspect-source name="PubChem" url="http://pubchem.ncbi.nlm.nih.gov/"/>
   </aspect>
