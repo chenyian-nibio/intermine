@@ -1,0 +1,4 @@
+<project name="efo-xref-tasks" default="default" basedir=".">
+  <description>build efo-xref tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

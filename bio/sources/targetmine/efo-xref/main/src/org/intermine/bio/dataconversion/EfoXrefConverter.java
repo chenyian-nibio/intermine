@@ -14,12 +14,13 @@ import org.intermine.xml.full.Item;
 
 
 /**
+ * used for extract cross reference from efo terms to mesh terms and do terms
  * 
  * @author chenyian
  */
-public class EfoMeshConverter extends BioFileConverter
+public class EfoXrefConverter extends BioFileConverter
 {
-//	private static final Logger LOG = Logger.getLogger(EfoMeshConverter.class);
+//	private static final Logger LOG = Logger.getLogger(EfoXrefConverter.class);
     //
 //    private static final String DATASET_TITLE = "Add DataSet.title here";
 //    private static final String DATA_SOURCE_NAME = "Add DataSource.name here";
@@ -29,7 +30,7 @@ public class EfoMeshConverter extends BioFileConverter
      * @param writer the ItemWriter used to handle the resultant items
      * @param model the Model
      */
-    public EfoMeshConverter(ItemWriter writer, Model model) {
+    public EfoXrefConverter(ItemWriter writer, Model model) {
         super(writer, model);
     }
 
@@ -45,6 +46,7 @@ public class EfoMeshConverter extends BioFileConverter
     	String identifier = null;
     	boolean isObsolete = false;
     	Set<String> meshIdSet = new HashSet<String>();
+    	Set<String> doIdSet = new HashSet<String>();
     	while ((line = in.readLine()) != null) {
     		if (line.equals("[Term]")) {
     			isTerm = true;
@@ -54,6 +56,12 @@ public class EfoMeshConverter extends BioFileConverter
     			String meshIdentifier = line.substring(line.indexOf("MSH:") + 4, line.indexOf("MSH:") + 11);
     			if (!"".equals(meshIdentifier)) {
     				meshIdSet.add(meshIdentifier);
+    			}
+    		} else if (line.startsWith("property_value: http://www.ebi.ac.uk/efo/DOID_definition_citation")
+    				&& line.contains("DOID:")) {
+    			String doIdentifier = line.substring(line.indexOf("DOID:"), line.indexOf("xsd:") - 1);
+    			if (!"".equals(doIdentifier)) {
+    				doIdSet.add(doIdentifier);
     			}
     		} else if ("is_obsolete: true".equals(line.trim())) {
     			isObsolete = true;
@@ -65,11 +73,15 @@ public class EfoMeshConverter extends BioFileConverter
     				for (String meshIdentifier : meshIdSet) {
     					efoTerm.addToCollection("crossReferences", getMeshTerm(meshIdentifier));
     				}
+    				for (String doIdentifier : doIdSet) {
+    					efoTerm.addToCollection("crossReferences", getDoTerm(doIdentifier));
+    				}
     				store(efoTerm);
     			}
     			isTerm = false;
     			isObsolete = false;
     			meshIdSet = new HashSet<String>();
+    			doIdSet = new HashSet<String>();
     		}
     		
     	}
@@ -89,6 +101,20 @@ public class EfoMeshConverter extends BioFileConverter
     	return ret;
     }
 
+    private Map<String, String> doTermMap = new HashMap<String, String>();
+    private String getDoTerm(String identifier) throws ObjectStoreException {
+    	String ret = doTermMap.get(identifier);
+    	if (ret == null) {
+    		Item item = createItem("DOTerm");
+    		item.setAttribute("identifier", identifier);
+    		item.setReference("ontology", getOntology("DO"));
+    		store(item);
+    		ret = item.getIdentifier();
+    		doTermMap.put(identifier, ret);
+    	}
+    	return ret;
+    }
+    
     private Map<String, String> ontologyMap = new HashMap<String, String>();
     private String getOntology(String name) throws ObjectStoreException {
     	String ret = ontologyMap.get(name);

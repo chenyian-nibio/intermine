@@ -276,7 +276,7 @@
     <source name="efo" type="efo">
       <property name="src.data.file" location="/data/bio/db/Targetmine/efo/efo.modi.obo"/>
     </source>  
-    <source name="efo-mesh" type="efo-mesh">
+    <source name="efo-xref" type="efo-xref">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/efo/" />
       <property name="src.data.dir.includes" value="efo.modi.obo" />
     </source>  
