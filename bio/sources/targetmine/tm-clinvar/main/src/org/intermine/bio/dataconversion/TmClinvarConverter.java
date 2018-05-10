@@ -87,11 +87,13 @@ public class TmClinvarConverter extends BioFileConverter
 					Item allele = createItem("Allele");
 					allele.setAttribute("identifier", cols[0]);
 					allele.setAttribute("type", cols[1]);
-					allele.setAttribute("name", cols[2]);
+					String name = cols[2];
+					if (StringUtils.isEmpty(name)) {
+						name = "NA";
+					}
+					allele.setAttribute("name", name);
 					allele.setAttribute("clinicalSignificance", cols[6]);
 					allele.setAttribute("reviewStatus", cols[24]);
-					
-//					String type = snpTypeMap.get(cols[0] + "-" + cols[3]);
 					
 					String snp = getSnp("rs" + cols[9]);
 					allele.addToCollection("snps", snp);
@@ -135,7 +137,8 @@ public class TmClinvarConverter extends BioFileConverter
 				item.setAttribute("clinicalSignificance", cols[1]);
 				item.setAttribute("description", cols[3]);
 				// NOTE: remove MedGen identifier or ?
-				item.setAttribute("reportedPhenotypeInfo", cols[5]);
+				String reportedPhenotypeInfo = cols[5];
+				item.setAttribute("reportedPhenotypeInfo", reportedPhenotypeInfo);
 				item.setAttribute("reviewStatus", cols[6]);
 				item.setAttribute("collectionMethod", cols[7]);
 				item.setAttribute("originCounts", cols[8]);
@@ -145,6 +148,25 @@ public class TmClinvarConverter extends BioFileConverter
 					item.setAttribute("submittedGeneSymbol", cols[11]);
 				}
 				item.setReference("variation", getVariation(cols[0]));
+				
+				if (!reportedPhenotypeInfo.equals("-")) {
+					for (String info : reportedPhenotypeInfo.split(";")) {
+						try {
+							String id = info.substring(0, info.indexOf(":"));
+//							if (id.matches("C\\d+")) {
+//								item.addToCollection("diseaseTerms", getDiseaseTerm(id, info.substring(info.indexOf(":") + 1)));
+//							}
+							if (!id.equals("na")) {
+								item.addToCollection("diseaseTerms", getDiseaseTerm(id, info.substring(info.indexOf(":") + 1)));
+							}
+						} catch (StringIndexOutOfBoundsException e) {
+							System.out.println(info);
+							System.out.println(reportedPhenotypeInfo);
+							throw new RuntimeException("StringIndexOutOfBoundsException: " + reportedPhenotypeInfo);
+						}
+					}
+				}
+				
 				store(item);
 			}
 			reader.close();
@@ -178,7 +200,7 @@ public class TmClinvarConverter extends BioFileConverter
 			reader.close();
 			
 			for (String varId : varPubMap.keySet()) {
-				Item item = createItem("Variantion");
+				Item item = createItem("Variation");
 				item.setAttribute("identifier", varId);
 				for (String pubmedId : varPubMap.get(varId)) {
 					item.addToCollection("publications", getPublication(pubmedId));
@@ -280,23 +302,9 @@ public class TmClinvarConverter extends BioFileConverter
 		
 	}
 	
-//	private Map<String, String> geneMap = new HashMap<String, String>();
 	private Map<String, String> snpMap = new HashMap<String, String>();
 	private Map<String, String> publicationMap = new HashMap<String, String>();
 	private Map<String, String> variationMap = new HashMap<String, String>();
-//	private Map<String, String> chromosomeMap = new HashMap<String, String>();
-//	private String getGene(String primaryIdentifier) throws ObjectStoreException {
-//		String ret = geneMap.get(primaryIdentifier);
-//		if (ret == null) {
-//			Item item = createItem("Gene");
-//			item.setAttribute("primaryIdentifier", primaryIdentifier);
-//			item.setAttribute("ncbiGeneId", primaryIdentifier);
-//			store(item);
-//			ret = item.getIdentifier();
-//			geneMap.put(primaryIdentifier, ret);
-//		}
-//		return ret;
-//	}
 	
 	private String getSnp(String identifier) throws ObjectStoreException {
 		String ret = snpMap.get(identifier);
@@ -309,78 +317,7 @@ public class TmClinvarConverter extends BioFileConverter
 		}
 		return ret;
 	}
-//	private String getChromosome(String chr, String taxonId) throws ObjectStoreException {
-//		String key = chr + ":" + taxonId;
-//		String ret = chromosomeMap.get(key);
-//		if (ret == null) {
-//			Item item = createItem("Chromosome");
-//			String chrId = chr;
-//			if (chr.toLowerCase().startsWith("chr")) {
-//				chrId = chr.substring(3);
-//			}
-//			item.setAttribute("symbol", chrId);
-//			if (!StringUtils.isEmpty(taxonId)) {
-//				item.setReference("organism", getOrganism(taxonId));
-//			}
-//			store(item);
-//			ret = item.getIdentifier();
-//			chromosomeMap.put(key, ret);
-//		}
-//		return ret;
-//	}
 	
-	// TODO this part should be covered by dbSNP; have to be deprecated in the future
-	/**
-	 * This is a temporary method since this part should be covered by dbSNP
-	 */
-//	private String getSnp(String identifier, String chromosome, String start, String end,
-//			String reference, String alternate, String region, String type, String geneId) throws ObjectStoreException {
-//		String ret = snpMap.get(identifier);
-//		if (ret == null) {
-//			Item snpItem = createItem("SNP");
-//			snpItem.setAttribute("identifier", identifier);
-//			snpItem.setAttribute("reference", reference);
-//			snpItem.setAttribute("alternate", alternate);
-//			snpItem.setAttribute("region", region);
-//
-//			Item location = createItem("Location");
-//			location.setAttribute("start", start);
-//			location.setAttribute("end", end);
-//			location.setReference("locatedOn", getChromosome(chromosome, HUMAN_TAXON_ID));
-//			store(location);
-//			snpItem.setReference("location", location);
-//			
-//			Item gvItem = createItem("GenomicVariation");
-//			// these information should come from dbsnp. this is just a temporary solution.
-//			if (type != null) {
-//				if (type.endsWith("upstream")) {
-//					gvItem.setAttribute("type", "upstream");
-//					gvItem.setAttribute("distance", "-1");
-//				} else if (type.endsWith("downstream")) {
-//					gvItem.setAttribute("type", "downstream");
-//					gvItem.setAttribute("distance", "-1");
-//				} else if (type.startsWith("within") || type.equals("genes overlapped by variant")) {
-//					gvItem.setAttribute("type", "gene");
-//					gvItem.setAttribute("distance", "0");
-//				} else {
-//					gvItem.setAttribute("type", "unknown");
-//					gvItem.setAttribute("distance", "-1");
-//				}
-//			} else {
-//				gvItem.setAttribute("type", "unknown");
-//				gvItem.setAttribute("distance", "-1");
-//			}
-//			gvItem.setReference("gene", getGene(geneId));
-//			gvItem.setReference("snp", snpItem);
-//			store(gvItem);
-//			snpItem.addToCollection("relatedGenes", gvItem);
-//			
-//			store(snpItem);
-//			ret = snpItem.getIdentifier();
-//			snpMap.put(identifier, ret);
-//		}
-//		return ret;
-//	}
 	private String getPublication(String pubmedId) throws ObjectStoreException {
 		String ret = publicationMap.get(pubmedId);
 		if (ret == null) {
@@ -395,7 +332,7 @@ public class TmClinvarConverter extends BioFileConverter
 	private String getVariation(String identifier) throws ObjectStoreException {
 		String ret = variationMap.get(identifier);
 		if (ret == null) {
-			Item item = createItem("Variantion");
+			Item item = createItem("Variation");
 			item.setAttribute("identifier", identifier);
 			String type = variationTypeMap.get(identifier);
 			if (type != null) {
@@ -404,6 +341,20 @@ public class TmClinvarConverter extends BioFileConverter
 			store(item);
 			ret = item.getIdentifier();
 			variationMap.put(identifier, ret);
+		}
+		return ret;
+	}
+
+	private Map<String, String> diseaseTermMap = new HashMap<String, String>();
+	private String getDiseaseTerm(String identifier, String title) throws ObjectStoreException {
+		String ret = diseaseTermMap.get(identifier);
+		if (ret == null) {
+			Item item = createItem("DiseaseTerm");
+			item.setAttribute("identifier", identifier);
+			item.setAttribute("title", title);
+			store(item);
+			ret = item.getIdentifier();
+			diseaseTermMap.put(identifier, ret);
 		}
 		return ret;
 	}

@@ -8,14 +8,15 @@
 		<attribute name="clinicalSignificance" type="java.lang.String"/>
 		<attribute name="reviewStatus" type="java.lang.String"/>
 		<collection name="snps" referenced-type="SNP" reverse-reference="alleles"/>
-		<collection name="variations" referenced-type="Variantion" reverse-reference="alleles"/>
+		<collection name="variations" referenced-type="Variation" reverse-reference="alleles"/>
 	</class>
-	<class name="Variantion" is-interface="true">
+	<class name="Variation" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="type" type="java.lang.String"/>
 		<collection name="alleles" referenced-type="Allele" reverse-reference="variations"/>
 		<collection name="clinicalAssertions" referenced-type="ClinicalAssertion" reverse-reference="variation"/>
 		<collection name="publications" referenced-type="Publication"/>
+		<collection name="diseaseTerms" referenced-type="DiseaseTerm"/> <!-- for postprocess -->
 	</class>
 	<class name="ClinicalAssertion" is-interface="true">
 		<attribute name="clinicalSignificance" type="java.lang.String"/>
@@ -27,12 +28,18 @@
 		<attribute name="submitter" type="java.lang.String"/>
 		<attribute name="accession" type="java.lang.String"/>
 		<attribute name="submittedGeneSymbol" type="java.lang.String"/>
-		<reference name="variation" referenced-type="Variantion" reverse-reference="clinicalAssertions"/>
+		<reference name="variation" referenced-type="Variation" reverse-reference="clinicalAssertions"/>
+		<!-- processed from reportedPhenotypeInfo -->
+		<collection name="diseaseTerms" referenced-type="DiseaseTerm"/>
 	</class>
 	<class name="SNP" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
 		<collection name="alleles" referenced-type="Allele" reverse-reference="snps"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
+	</class>
+	<class name="DiseaseTerm" is-interface="true" >
+		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="title" type="java.lang.String"/>
 	</class>
 
 </classes>
