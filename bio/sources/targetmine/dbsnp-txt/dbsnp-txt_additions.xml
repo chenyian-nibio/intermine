@@ -22,6 +22,7 @@
 		<reference name="gene" referenced-type="Gene" reverse-reference="snps"/>
 		<reference name="snp" referenced-type="SNP" reverse-reference="relatedGenes"/>
 		<collection name="references" referenced-type="SNPReference" reverse-reference="annotation"/>
+		<reference name="function" referenced-type="SNPFunction"/>
 	</class>
 	<class name="SNPFunction" is-interface="true">
 		<attribute name="name" type="java.lang.String"/>

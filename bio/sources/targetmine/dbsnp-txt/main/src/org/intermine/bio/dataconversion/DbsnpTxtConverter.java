@@ -215,20 +215,25 @@ public class DbsnpTxtConverter extends BioFileConverter
 				String proteinAcc = cols[7];
 				String aaPos = cols[8];
 				String residue = cols[9];
+
 				String fxn = cols[10];
+				String funcRef = null; // should not be null; but there are some strange case, e.g. rs1126437
+				if (!fxn.equals("null")) {
+					funcRef = functionMap.get(Integer.valueOf(fxn));
+				}
 				
 				String key = snpId + "-" + geneId;
 				String vaItemRef = variAnnotMap.get(key);
 				if (vaItemRef == null) {
 					Item vaItem = createItem("VariationAnnotation");
 					vaItem.setAttribute("identifier", snpId + "-" + geneId);
+					// take the first one
+					if (funcRef != null) {
+						vaItem.setReference("function", funcRef);
+					}
 					store(vaItem);
 					vaItemRef = vaItem.getIdentifier();
 					variAnnotMap.put(key, vaItemRef);
-				}
-				String funcRef = null; // should not be null; but there are some strange case, e.g. rs1126437
-				if (!fxn.equals("null")) {
-					funcRef = functionMap.get(Integer.valueOf(fxn));
 				}
 				createSNPReference(mrnaAcc, mrnaPos, orientation, allele, codon, proteinAcc, Integer.valueOf(aaPos), residue, funcRef, vaItemRef);
 			}
