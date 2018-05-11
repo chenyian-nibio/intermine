@@ -7,12 +7,12 @@
 <div class="collection-table">
 
 <c:choose>
-	<c:when test="${empty geneticDiseaseTable}">
+	<c:when test="${empty snpList}">
 		<h3>No genetic disease association.</h3>
 	</c:when>
 	<c:otherwise>
 		<h3>
-			Genetic disease association (${fn:length(geneticDiseaseTable)} row<c:if test="${fn:length(geneticDiseaseTable) > 1}">s</c:if>)
+			Genetic disease association (${fn:length(snpList)} SNP<c:if test="${fn:length(snpList) > 1}">s</c:if>)
 		</h3>
 		<table>
 		<thead>
@@ -27,15 +27,20 @@
 			</tr>
 		</thead>
 		<tbody>
-		<c:forEach var="line" items="${geneticDiseaseTable}">
+		<c:forEach var="snp" items="${snpList}">
+			<c:set var="diseaseInfos" value="${diseaseInfoMap[snp]}"/>
+			<c:forEach var="di" items="${diseaseInfos}" varStatus="status">
 	    	<tr>
-	    		<td>${line[0]}</td>
-	    		<td>${line[1]}</td>
-	    		<td>${line[2]}</td>
-	    		<td>${line[3]}</td>
-	    		<td>${line[4]}</td>
-	    		<td>${line[5]}</td>
+	    		<td>${di[0]}</td>
+	    		<c:if test="${status.count == 1}">
+		    		<td rowspan="${fn:length(diseaseInfos)}">${snpInfoMap[snp][0]}</td>
+		    		<td rowspan="${fn:length(diseaseInfos)}">${snpInfoMap[snp][1]}</td>
+		    		<td rowspan="${fn:length(diseaseInfos)}">${snpInfoMap[snp][2]}</td>
+	    		</c:if>
+	    		<td>${di[1]}</td>
+	    		<td>${di[2]}</td>
 	    	</tr>
+			</c:forEach>
 		</c:forEach>
 		</tbody>
 		</table>

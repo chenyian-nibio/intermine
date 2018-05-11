@@ -2,6 +2,8 @@ package org.intermine.bio.web.displayer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +37,10 @@ public class GeneDiseaseDisplayer extends ReportDisplayer {
 		
 		HashSet<String> ignoredDiseaseNames = new HashSet<String>(IGNORED_DISEASE_NAMES);
 		
-		List<List<String>> ret = new ArrayList<List<String>>();
+		Map<String, List<List<String>>> diseaseInfoMap = new HashMap<String, List<List<String>>>();
+		Map<String, List<String>> snpInfoMap = new HashMap<String, List<String>>();
+		
+//		List<List<String>> ret = new ArrayList<List<String>>();
 		
 		List<InterMineObject> disgenet = new ArrayList<InterMineObject>();
 		List<InterMineObject> others = new ArrayList<InterMineObject>(); // so far only OMIM?
@@ -76,6 +81,9 @@ public class GeneDiseaseDisplayer extends ReportDisplayer {
 					}
 				}
 				
+				snpInfoMap.put(snpId, Arrays.asList(String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), snpId), 
+						fc, String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), maf)));
+				
 				Set<InterMineObject> alleles = (Set<InterMineObject>) snp.getFieldValue("alleles");
 				Set<String> csSet = new HashSet<String>();
 				for (InterMineObject allele : alleles) {
@@ -91,8 +99,12 @@ public class GeneDiseaseDisplayer extends ReportDisplayer {
 							if (ignoredDiseaseNames.contains(diseaseTitle)) {
 								continue;
 							}
-							ret.add(Arrays.asList(diseaseTitle, String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), snpId), 
-									fc, String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), maf), StringUtils.join(csSet, "; "), numPub));
+							if (diseaseInfoMap.get(snpId) == null) {
+								diseaseInfoMap.put(snpId, new ArrayList<List<String>>());
+							}
+							diseaseInfoMap.get(snpId).add(Arrays.asList(diseaseTitle, StringUtils.join(csSet, "; "), numPub));
+//							ret.add(Arrays.asList(diseaseTitle, String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), snpId), 
+//									fc, String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), maf), StringUtils.join(csSet, "; "), numPub));
 						}
 					}
 				}
@@ -110,11 +122,17 @@ public class GeneDiseaseDisplayer extends ReportDisplayer {
 					}
 				}
 				for (String diseaseTitle: diseasePvalueMap.keySet()) {
-					ret.add(Arrays.asList(diseaseTitle,
-							String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), snpId),
-							fc, String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), maf), 
+					if (diseaseInfoMap.get(snpId) == null) {
+						diseaseInfoMap.put(snpId, new ArrayList<List<String>>());
+					}
+					diseaseInfoMap.get(snpId).add(Arrays.asList(diseaseTitle, 
 							StringUtils.join(diseasePvalueMap.get(diseaseTitle), ", "),
 							String.valueOf(diseasePvalueMap.get(diseaseTitle).size())));
+//					ret.add(Arrays.asList(diseaseTitle,
+//							String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), snpId),
+//							fc, String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), maf), 
+//							StringUtils.join(diseasePvalueMap.get(diseaseTitle), ", "),
+//							String.valueOf(diseasePvalueMap.get(diseaseTitle).size())));
 				}
 				
 			}
@@ -135,10 +153,23 @@ public class GeneDiseaseDisplayer extends ReportDisplayer {
 			LOG.error(e.getMessage());
 		}
 		
-		request.setAttribute("geneticDiseaseTable", ret);
+//		request.setAttribute("geneticDiseaseTable", ret);
 		request.setAttribute("disgenet", disgenet);
 		request.setAttribute("others", others);
 		
+		List<String> snpList = new ArrayList<String>(snpInfoMap.keySet());
+		Collections.sort(snpList, new Comparator<String>() {
+
+			@Override
+			public int compare(String o1, String o2) {
+				return Integer.valueOf(o1.substring(2)).compareTo(Integer.valueOf(o2.substring(2)));
+			}
+			
+		});
+		
+		request.setAttribute("snpList", snpList);
+		request.setAttribute("diseaseInfoMap", diseaseInfoMap);
+		request.setAttribute("snpInfoMap", snpInfoMap);
 	}
 	
 	
