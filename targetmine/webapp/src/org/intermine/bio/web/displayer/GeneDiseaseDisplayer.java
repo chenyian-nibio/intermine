@@ -33,46 +33,20 @@ public class GeneDiseaseDisplayer extends ReportDisplayer {
 	public void display(HttpServletRequest request, ReportObject reportObject) {
 		InterMineObject gene = (InterMineObject) reportObject.getObject();
 		
-		HashSet<String> ignoredNames = new HashSet<String>(IGNORED_DISEASE_NAMES);
+		HashSet<String> ignoredDiseaseNames = new HashSet<String>(IGNORED_DISEASE_NAMES);
 		
 		List<List<String>> ret = new ArrayList<List<String>>();
 		
+		List<InterMineObject> disgenet = new ArrayList<InterMineObject>();
+		List<InterMineObject> others = new ArrayList<InterMineObject>(); // so far only OMIM?
+		
 		try {
-//			Set<InterMineObject> diseases = (Set<InterMineObject>) gene.getFieldValue("diseases");
-//			for (InterMineObject disease : diseases) {
-//				String diseaseTitle = (String) ((InterMineObject) disease.getFieldValue("diseaseTerm")).getFieldValue("title");
-//			}
-			
-			Map<String, Set<String>> diseaseSnpMap = new HashMap<String, Set<String>>();
-			Map<String, List<String>> snpInfoMap = new HashMap<String, List<String>>();
-			Map<String, Set<InterMineObject>> snpGwasMap = new HashMap<String, Set<InterMineObject>>();
-			
 			Set<InterMineObject> snps = (Set<InterMineObject>) gene.getFieldValue("snps");
 			for (InterMineObject vaItem : snps) {
 				String fc = (String) ((InterMineObject) vaItem.getFieldValue("function")).getFieldValue("name");
 				InterMineObject snp = (InterMineObject) vaItem.getFieldValue("snp");
 				String snpId = (String) snp.getFieldValue("identifier");
-				snpGwasMap.put(snpId, (Set<InterMineObject>) snp.getFieldValue("genomeWideAssociations"));
-				Set<InterMineObject> alleles = (Set<InterMineObject>) snp.getFieldValue("alleles");
-				Set<String> csSet = new HashSet<String>();
-				for (InterMineObject allele : alleles) {
-					String cs = (String) allele.getFieldValue("clinicalSignificance");
-					csSet.add(String.format("<a href=\"report.do?id=%s\">%s</a>", allele.getId().toString(), cs));
-					Set<InterMineObject> variations = (Set<InterMineObject>) allele.getFieldValue("variations");
-					for (InterMineObject var : variations) {
-						Set<InterMineObject> diseaseTerms = (Set<InterMineObject>) var.getFieldValue("diseaseTerms");
-						for (InterMineObject dt : diseaseTerms) {
-							String diseaseTitle = (String) dt.getFieldValue("title");
-							if (ignoredNames.contains(diseaseTitle)) {
-								continue;
-							}
-							if (diseaseSnpMap.get(diseaseTitle) == null) {
-								diseaseSnpMap.put(diseaseTitle, new HashSet<String>());
-							}
-							diseaseSnpMap.get(diseaseTitle).add(snpId);
-						}
-					}
-				}
+				Set<InterMineObject> genomeWideAssociations = (Set<InterMineObject>) snp.getFieldValue("genomeWideAssociations");
 				
 				Set<InterMineObject> frequencies = (Set<InterMineObject>) snp.getFieldValue("frequencies");
 				Map<String, String> freqMap = new HashMap<String, String>();
@@ -97,33 +71,62 @@ public class GeneDiseaseDisplayer extends ReportDisplayer {
 						String pop = freqMap.keySet().iterator().next();
 						maf = String.format("%s (%s)", freqMap.get(pop), pop);
 					}
+					if (freqMap.size() > 1) {
+						maf = maf + " ...";
+					}
 				}
 				
-				snpInfoMap.put(snpId, Arrays.asList(fc, maf, StringUtils.join(csSet, "; "), snp.getId().toString()));
-			}
-			
-			Set<String> diseases = diseaseSnpMap.keySet();
-			for (String d : diseases) {
-				Set<String> snpIds = diseaseSnpMap.get(d);
-				for (String snpId : snpIds) {
-					if (snpInfoMap.get(snpId) != null) { // should not be null?
-						List<String> info = snpInfoMap.get(snpId);
-						List<String> pvalues = new ArrayList<String>();
-						if (snpGwasMap.get(snpId) != null) {
-							Set<InterMineObject> gwasSet = snpGwasMap.get(snpId);
-							for (InterMineObject gwasItem : gwasSet) {
-								Double pvalue = (Double) gwasItem.getFieldValue("pvalue");
-								pvalues.add(String.format("<a href=\"report.do?id=%s\">%s</a>", gwasItem.getId().toString(), pvalue.toString()));
-//								Set<InterMineObject> efoTerms = (Set<InterMineObject>) gwasItem
-//										.getFieldValue("efoTerms");
-//								for (InterMineObject efot : efoTerms) {
-//									String diseaseTitle = (String) efot.getFieldValue("name");
-//								}
+				Set<InterMineObject> alleles = (Set<InterMineObject>) snp.getFieldValue("alleles");
+				Set<String> csSet = new HashSet<String>();
+				for (InterMineObject allele : alleles) {
+					String cs = (String) allele.getFieldValue("clinicalSignificance");
+					csSet.add(String.format("<a href=\"report.do?id=%s\">%s</a>", allele.getId().toString(), cs));
+					Set<InterMineObject> variations = (Set<InterMineObject>) allele.getFieldValue("variations");
+					for (InterMineObject var : variations) {
+						Set<InterMineObject> publications = (Set<InterMineObject>) var.getFieldValue("publications");
+						String numPub = String.format("<a href=\"report.do?id=%s\">%d</a>", var.getId().toString(), publications.size());
+						Set<InterMineObject> diseaseTerms = (Set<InterMineObject>) var.getFieldValue("diseaseTerms");
+						for (InterMineObject dt : diseaseTerms) {
+							String diseaseTitle = (String) dt.getFieldValue("title");
+							if (ignoredDiseaseNames.contains(diseaseTitle)) {
+								continue;
 							}
+							ret.add(Arrays.asList(diseaseTitle, String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), snpId), 
+									fc, String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), maf), StringUtils.join(csSet, "; "), numPub));
 						}
-						ret.add(Arrays.asList(d, String.format("<a href=\"report.do?id=%s\">%s</a>", info.get(3), snpId), 
-								info.get(0), info.get(1), info.get(2), StringUtils.join(pvalues, "<br/>")));
 					}
+				}
+				Map<String, Set<String>> diseasePvalueMap = new HashMap<String, Set<String>>();
+				for (InterMineObject gwasItem : genomeWideAssociations) {
+					Double pvalue = (Double) gwasItem.getFieldValue("pvalue");
+					String pvalueString = String.format("<a href=\"report.do?id=%s\">%s</a>", gwasItem.getId().toString(), pvalue.toString());
+					Set<InterMineObject> efoTerms = (Set<InterMineObject>) gwasItem.getFieldValue("efoTerms");
+					for (InterMineObject efot : efoTerms) {
+						String name = (String) efot.getFieldValue("name");
+						if (diseasePvalueMap.get(name) == null) {
+							diseasePvalueMap.put(name, new HashSet<String>());
+						}
+						diseasePvalueMap.get(name).add(pvalueString);
+					}
+				}
+				for (String diseaseTitle: diseasePvalueMap.keySet()) {
+					ret.add(Arrays.asList(diseaseTitle,
+							String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), snpId),
+							fc, String.format("<a href=\"report.do?id=%s\">%s</a>", snp.getId(), maf), 
+							StringUtils.join(diseasePvalueMap.get(diseaseTitle), ", "),
+							String.valueOf(diseasePvalueMap.get(diseaseTitle).size())));
+				}
+				
+			}
+			// process diseases
+			Set<InterMineObject> diseases = (Set<InterMineObject>) gene.getFieldValue("diseases");
+			for (InterMineObject disease : diseases) {
+				InterMineObject dataSet  = (InterMineObject) disease.getFieldValue("dataSet");
+				String dataSetName = (String) dataSet.getFieldValue("name");
+				if (dataSetName.equals("DisGeNET")) {
+					disgenet.add(disease);
+				} else {
+					others.add(disease);
 				}
 			}
 			
@@ -133,6 +136,9 @@ public class GeneDiseaseDisplayer extends ReportDisplayer {
 		}
 		
 		request.setAttribute("geneticDiseaseTable", ret);
+		request.setAttribute("disgenet", disgenet);
+		request.setAttribute("others", others);
+		
 	}
 	
 	

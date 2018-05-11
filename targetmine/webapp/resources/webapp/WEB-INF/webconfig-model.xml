@@ -974,7 +974,7 @@
                      
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneDiseaseDisplayer"
                      jspName="model/geneDiseaseDisplayer.jsp"
-                     replacesFields="" 
+                     replacesFields="diseases" 
                      placement="Disease"
                      types="Gene"/>
 

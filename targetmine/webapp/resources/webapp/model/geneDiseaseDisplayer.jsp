@@ -12,17 +12,18 @@
 	</c:when>
 	<c:otherwise>
 		<h3>
-			Genetic disease association
+			Genetic disease association (${fn:length(geneticDiseaseTable)} row<c:if test="${fn:length(geneticDiseaseTable) > 1}">s</c:if>)
 		</h3>
 		<table>
 		<thead>
 			<tr>
 				<th>Disease</th>
 				<th>SNP</th>
-				<th>Functional consequence</th>
+				<th>Functional <br/>consequence</th>
 				<th>Frequency</th>
-				<th>Clinical significant<br/>(ClinVar)</th>
-				<th>GWAS p-value<br/>(GWAS catalog)</th>
+				<th>Clinical significant (ClinVar) <br/>
+					or p-value (GWAS catalog)</th>
+				<th>Number of <br/>publications</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -42,3 +43,61 @@
 	</c:otherwise>
 </c:choose>
 </div>
+
+<c:choose>
+	<c:when test="${empty disgenet}">
+		<!-- show nothing?-->
+	</c:when>
+	<c:otherwise>
+	<div class="collection-table">
+		<h3>
+			${fn:length(disgenet)} Disease association<c:if test="${fn:length(disgenet) > 1}">s</c:if> from DisGeNet
+		</h3>
+		<table>
+		<thead>
+		<tr>
+			<th>Disease</th>
+			<th>Number of publications</th>
+		</tr>
+		</thead>
+		<tbody>
+		<c:forEach var="disease" items="${disgenet}">
+		    <tr>
+		    	<td><a href="report.do?id=${disease.id}">${disease.diseaseTerm.title}</a></td>
+		    	<td><a href="report.do?id=${disease.id}">${fn:length(disease.publications)}</a></td>
+		    </tr>
+		</c:forEach>
+		</tbody>
+		</table>
+	</div>
+	</c:otherwise>
+</c:choose>
+
+<c:choose>
+	<c:when test="${empty others}">
+		<!-- show nothing?-->
+	</c:when>
+	<c:otherwise>
+	<div class="collection-table">
+		<h3>
+			${fn:length(others)} Other disease association<c:if test="${fn:length(others) > 1}">s</c:if>
+		</h3>
+		<table>
+		<thead>
+		<tr>
+			<th>Disease</th>
+			<th>Source</th>
+		</tr>
+		</thead>
+		<tbody>
+		<c:forEach var="disease" items="${others}">
+		    <tr>
+		    	<td><a href="report.do?id=${disease.id}">${disease.diseaseTerm.title}</a></td>
+		    	<td>${disease.dataSet.name}</td>
+		    </tr>
+		</c:forEach>
+		</tbody>
+		</table>
+	</div>
+	</c:otherwise>
+</c:choose>
