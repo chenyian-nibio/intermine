@@ -8,13 +8,12 @@
 		<attribute name="allele" type="java.lang.String"/>
 		<attribute name="frequency" type="java.lang.Float"/>
 		<reference name="snp" referenced-type="SNP" reverse-reference="frequencies"/>
-		<reference name="population" referenced-type="Population" reverse-reference="variantFrequencies"/>
+		<reference name="population" referenced-type="Population"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
 	</class>
 	<class name="Population" is-interface="true">
 		<attribute name="code" type="java.lang.String"/>
 		<attribute name="title" type="java.lang.String"/>
-		<collection name="variantFrequencies" referenced-type="Frequency" reverse-reference="population"/>
 	</class>
 
 </classes>
