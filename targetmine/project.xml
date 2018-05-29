@@ -208,11 +208,15 @@
     <source name="wwpdb" type="wwpdb">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/wwpdb/" />
       <property name="src.data.dir.includes" value="entries.idx" />
+      <property name="structureFactorsFile" value="/data/bio/db/Targetmine/wwpdb/sf.list" />
+      <property name="refinementDetailsFile" value="/data/bio/db/Targetmine/pdbj/refine/refinement_details.csv" />
     </source>
     <source name="ligand_expo" type="ligand_expo">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/ligand_expo" />
       <property name="src.data.dir.includes" value="cc-to-pdb.tdd" />
       <property name="inchiKeyFile" value="/data/bio/db/Targetmine/ligand_expo/Components-inchikey.ich.fixed" />
+      <property name="inchiFile" value="/data/bio/db/Targetmine/ligand_expo/Components-inchi.ich" />
+      <property name="smilesFile" value="/data/bio/db/Targetmine/ligand_expo/Components-smiles-stereo-oe.smi" />
     </source>
     <source name="amadeus" type="amadeus">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/amadeus" />

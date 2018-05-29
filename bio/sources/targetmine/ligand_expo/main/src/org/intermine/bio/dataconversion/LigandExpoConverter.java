@@ -52,26 +52,29 @@ public class LigandExpoConverter extends BioFileConverter {
 	 */
 	public void process(Reader reader) throws Exception {
 		readInchiKeyFile();
+		readInchiFile();
+		readSmilesFile();
 
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
 
+			String identifier = cols[0];
 			Item het = createItem("PDBCompound");
-			het.setAttribute("originalId", cols[0]);
-			String name = hetNameMap.get(cols[0]);
+			het.setAttribute("originalId", identifier);
+			String name = hetNameMap.get(identifier);
 			if (name == null || name.equals("")) {
-				name = String.format("HETID %s", cols[0]);
+				name = String.format("HETID %s", identifier);
 			}
 			// if the length of the name is greater than 40 characters,
 			// use id instead and save the long name as the synonym
 			if (name.length() > 40) {
 				setSynonyms(het, name);
-				name = String.format("HETID %s", cols[0]);
+				name = String.format("HETID %s", identifier);
 			}
 			het.setAttribute("name", name);
 
-			String inchiKey = inchiKeyMap.get(cols[0]);
+			String inchiKey = inchiKeyMap.get(identifier);
 			if (inchiKey != null) {
 				het.setAttribute("inchiKey", inchiKey);
 				
@@ -79,22 +82,41 @@ public class LigandExpoConverter extends BioFileConverter {
 				if (compoundGroupId.length() == 14) {
 					het.setReference("compoundGroup", getCompoundGroup(compoundGroupId, name));
 				} else {
-					LOG.info(String.format("Bad InChIKey value: %s, %s .", cols[1], cols[0]));
+					LOG.info(String.format("Bad InChIKey value: %s, %s .", cols[1], identifier));
 				}
 			}
-			het.setAttribute("identifier", String.format("PDBCompound:%s", cols[0]));
+			het.setAttribute("identifier", String.format("PDBCompound:%s", identifier));
 
 			String allPdbId = cols[1];
 			StringUtils.chomp(allPdbId);
 			String[] pdbIds = StringUtils.split(allPdbId, " ");
 			for (String pdbId : pdbIds) {
 				if (pdbId.length() > 4) {
-					LOG.error("Illeagel pdbId: '" + pdbId + "' found at compound '" + cols[0]
+					LOG.error("Illeagel pdbId: '" + pdbId + "' found at compound '" + identifier
 							+ "'.");
 					continue;
 				}
 				het.addToCollection("pdbStructures", getProteinStructure(pdbId));
 			}
+			
+			String inchi = inchiMap.get(identifier);
+			if (inchi != null) {
+				Item structure = createItem("CompoundStructure");
+				structure.setAttribute("type", "InChI");
+				structure.setAttribute("value", inchi);
+				structure.setReference("compound", het);
+				store(structure);
+			}
+
+			String smiles = smilesMap.get(identifier);
+			if (smiles != null) {
+				Item structure = createItem("CompoundStructure");
+				structure.setAttribute("type", "SMILES");
+				structure.setAttribute("value", smiles);
+				structure.setReference("compound", het);
+				store(structure);
+			}
+			
 			store(het);
 		}
 	}
@@ -126,11 +148,21 @@ public class LigandExpoConverter extends BioFileConverter {
 
 	private Map<String, String> hetNameMap = new HashMap<String, String>();
 	private Map<String, String> inchiKeyMap = new HashMap<String, String>();
+	private Map<String, String> inchiMap = new HashMap<String, String>();
+	private Map<String, String> smilesMap = new HashMap<String, String>();
 
 	private File inchiKeyFile;
+	private File inchiFile;
+	private File smilesFile;
 
 	public void setInchiKeyFile(File inchiKeyFile) {
 		this.inchiKeyFile = inchiKeyFile;
+	}
+	public void setInchiFile(File inchiFile) {
+		this.inchiFile = inchiFile;
+	}
+	public void setSmilesFile(File smilesFile) {
+		this.smilesFile = smilesFile;
 	}
 
 	private void readInchiKeyFile() throws Exception {
@@ -159,6 +191,44 @@ public class LigandExpoConverter extends BioFileConverter {
 			}
 			String inchiKey = cols[0];
 			inchiKeyMap.put(cols[1], inchiKey);
+		}
+	}
+
+	private void readInchiFile() throws Exception {
+		Iterator<String[]> iterator = FormattedTextParser
+				.parseTabDelimitedReader(new BufferedReader(new FileReader(inchiFile)));
+		
+		while (iterator.hasNext()) {
+			String[] cols = iterator.next();
+			
+			if (cols.length < 3) {
+				LOG.error(StringUtils.join(cols,"\t"));
+				continue;
+			}
+			if (StringUtils.isEmpty(cols[0])) {
+				LOG.info("Empty InChI for id :" + cols[1]);
+				continue;
+			}
+			inchiMap.put(cols[1], cols[0]);
+		}
+	}
+
+	private void readSmilesFile() throws Exception {
+		Iterator<String[]> iterator = FormattedTextParser
+				.parseTabDelimitedReader(new BufferedReader(new FileReader(smilesFile)));
+		
+		while (iterator.hasNext()) {
+			String[] cols = iterator.next();
+			
+			if (cols.length < 3) {
+				LOG.error(StringUtils.join(cols,"\t"));
+				continue;
+			}
+			if (StringUtils.isEmpty(cols[0])) {
+				LOG.info("Empty SMILES for id :" + cols[1]);
+				continue;
+			}
+			smilesMap.put(cols[1], cols[0]);
 		}
 	}
 	

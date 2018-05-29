@@ -114,10 +114,10 @@ public class ChemblDbConverter extends BioDBConverter {
 			String moleculeType = resMolecule.getString("molecule_type");
 			
 			Map<String,String> structureMap = new HashMap<String, String>();
-			if (inchi != null && !"".equals(inchi)) {
+			if (inchi != null && !"".equals(inchi) && !"null".equals(inchi)) {
 				structureMap.put("InChI", inchi);
 			}
-			if (smiles != null && !"".equals(smiles)) {
+			if (smiles != null && !"".equals(smiles) && !"null".equals(smiles)) {
 				structureMap.put("SMILES", smiles);
 			}
 
