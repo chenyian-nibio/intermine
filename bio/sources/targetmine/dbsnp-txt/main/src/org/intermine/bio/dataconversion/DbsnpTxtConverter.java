@@ -126,7 +126,7 @@ public class DbsnpTxtConverter extends BioFileConverter
 					item.setAttribute("chromosome", chr);
 				}
 				if (!StringUtils.isEmpty(allele)) {
-					item.setAttribute("refseqAllele", allele);
+					item.setAttribute("refSnpAllele", allele);
 				}
 				if (!StringUtils.isEmpty(locationString)) {
 					item.setAttribute("location", locationString);

@@ -8,7 +8,7 @@
 
 	<class name="SNP" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
-		<attribute name="refseqAllele" type="java.lang.String"/>
+		<attribute name="refSnpAllele" type="java.lang.String"/>
 		<attribute name="orientation" type="java.lang.String"/>
 		<attribute name="chromosome" type="java.lang.String"/>
 		<attribute name="location" type="java.lang.String"/>
