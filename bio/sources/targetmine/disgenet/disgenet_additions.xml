@@ -8,11 +8,8 @@
 		<collection name="publications" referenced-type="Publication"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
 	</class>
-	<class name="DiseaseTerm" is-interface="true" >
-		<attribute name="identifier" type="java.lang.String"/>
-		<attribute name="title" type="java.lang.String"/>
+	<class name="DiseaseTerm" extends="OntologyTerm" is-interface="true" >
 		<collection name="genes" referenced-type="Disease" reverse-reference="diseaseTerm"/>
-		<collection name="xrefs" referenced-type="OntologyTerm"/>
 	</class>
 	<class name="Gene" is-interface="true">
 		<attribute name="primaryIdentifier" type="java.lang.String"/>

@@ -351,7 +351,7 @@ public class TmClinvarConverter extends BioFileConverter
 		if (ret == null) {
 			Item item = createItem("DiseaseTerm");
 			item.setAttribute("identifier", identifier);
-			item.setAttribute("title", title);
+			item.setAttribute("name", title);
 			store(item);
 			ret = item.getIdentifier();
 			diseaseTermMap.put(identifier, ret);

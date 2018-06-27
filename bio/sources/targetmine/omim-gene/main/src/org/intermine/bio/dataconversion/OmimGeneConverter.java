@@ -129,7 +129,7 @@ public class OmimGeneConverter extends BioFileConverter {
 			String line = titleMap.get(omimId);
 			if (line != null) {
 				String[] cols = line.split("\t", 3);
-				diseaseTerm.setAttribute("title", cols[1]);
+				diseaseTerm.setAttribute("name", cols[1]);
 				String aliasString = cols[2];
 				if (!StringUtils.isEmpty(aliasString)){
 					String[] alias = aliasString.split(";;");
@@ -138,6 +138,7 @@ public class OmimGeneConverter extends BioFileConverter {
 						synonym.setAttribute("name", name);
 						synonym.setReference("diseaseTerm", diseaseTerm);
 						store(synonym);
+						diseaseTerm.addToCollection("synonyms", synonym);
 					}
 				}
 			} else {

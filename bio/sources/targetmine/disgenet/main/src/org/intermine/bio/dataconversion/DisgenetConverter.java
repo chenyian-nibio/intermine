@@ -207,14 +207,14 @@ public class DisgenetConverter extends BioFileConverter {
 		if (ret == null) {
 			Item item = createItem("DiseaseTerm");
 			item.setAttribute("identifier", identifier);
-			item.setAttribute("title", title);
+			item.setAttribute("name", title);
 			
 			if (ontologyIdMap.get(identifier) != null) {
 				for (String ontologyId : ontologyIdMap.get(identifier)) {
 					if (ontologyId.startsWith("DOID:")) {
-						item.addToCollection("xrefs", getDOTerm(ontologyId));
+						item.addToCollection("crossReferences", getDOTerm(ontologyId));
 					} else {
-						item.addToCollection("xrefs", getMeshTerm(ontologyId));
+						item.addToCollection("crossReferences", getMeshTerm(ontologyId));
 					}
 				}
 			}

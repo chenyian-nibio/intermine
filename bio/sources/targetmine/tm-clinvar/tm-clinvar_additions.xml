@@ -37,9 +37,6 @@
 		<collection name="alleles" referenced-type="Allele" reverse-reference="snps"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
-	<class name="DiseaseTerm" is-interface="true" >
-		<attribute name="identifier" type="java.lang.String"/>
-		<attribute name="title" type="java.lang.String"/>
-	</class>
+	<class name="DiseaseTerm" extends="OntologyTerm" is-interface="true" />
 
 </classes>

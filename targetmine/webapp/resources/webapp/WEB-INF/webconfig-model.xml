@@ -360,7 +360,7 @@
     <fields>
       <fieldconfig fieldExpr="gene.primaryIdentifier"/>
       <fieldconfig fieldExpr="gene.symbol"/>
-      <fieldconfig fieldExpr="diseaseTerm.title"/>
+      <fieldconfig fieldExpr="diseaseTerm.name"/>
     </fields>
     <inlinelist>
       <table path="sources.name" showLinksToObjects="true" />
@@ -369,7 +369,7 @@
   <class className="org.intermine.model.bio.DiseaseTerm">
     <fields>
       <fieldconfig fieldExpr="identifier"/>
-      <fieldconfig fieldExpr="title"/>
+      <fieldconfig fieldExpr="name"/>
     </fields>
   </class>
 
@@ -1064,11 +1064,11 @@
                                  filters="All,DisGeNET,OMIM data set"
                                  startClass="Gene"
                                  startClassDisplay="symbol"
-                                 enrich="diseases.diseaseTerm.title"
+                                 enrich="diseases.diseaseTerm.name"
                                  enrichIdentifier="diseases.diseaseTerm.identifier"
                                  constraints="diseases.dataSet.name=[DataSet],organism.taxonId=[list]"
                                  typeClass="Gene"
-                                 views="primaryIdentifier, symbol, organism.name, diseases.diseaseTerm.identifier, diseases.diseaseTerm.title"/>
+                                 views="primaryIdentifier, symbol, organism.name, diseases.diseaseTerm.identifier, diseases.diseaseTerm.name"/>
 
       <enrichmentwidgetdisplayer id="protein_pathway_enrichment"
                                  title="Pathway Enrichment"
@@ -1150,11 +1150,11 @@
                                  filters="All,DisGeNET,OMIM data set"
                                  startClass="Protein"
                                  startClassDisplay="primaryIdentifier"
-                                 enrich="genes.diseases.diseaseTerm.title"
+                                 enrich="genes.diseases.diseaseTerm.name"
                                  enrichIdentifier="genes.diseases.diseaseTerm.identifier"
                                  constraints="genes.diseases.dataSet.name=[DataSet],organism.taxonId=[list]"
                                  typeClass="Protein"
-                                 views="primaryIdentifier, primaryAccession, genes.diseases.diseaseTerm.identifier, genes.diseases.diseaseTerm.title"/>
+                                 views="primaryIdentifier, primaryAccession, genes.diseases.diseaseTerm.identifier, genes.diseases.diseaseTerm.name"/>
 
       <enrichmentwidgetdisplayer id="protein_interpro_enrichment"
                                  title="InterPro domain Enrichment"

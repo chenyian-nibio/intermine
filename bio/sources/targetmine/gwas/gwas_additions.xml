@@ -37,8 +37,6 @@
 		<attribute name="type" type="java.lang.String"/>
 	</class>
 
-	<class name="EFOTerm" is-interface="true">
-		<attribute name="identifier" type="java.lang.String"/>
-	</class>
+	<class name="EFOTerm" extends="OntologyTerm" is-interface="true"/>
 
 </classes>
