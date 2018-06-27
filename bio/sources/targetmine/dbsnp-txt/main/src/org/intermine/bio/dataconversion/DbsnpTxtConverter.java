@@ -15,7 +15,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
+import org.intermine.objectstore.ObjectStore;
 import org.intermine.objectstore.ObjectStoreException;
+import org.intermine.objectstore.ObjectStoreFactory;
+import org.intermine.objectstore.query.Query;
+import org.intermine.objectstore.query.QueryClass;
+import org.intermine.objectstore.query.QueryField;
+import org.intermine.objectstore.query.Results;
+import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
@@ -33,17 +40,17 @@ public class DbsnpTxtConverter extends BioFileConverter
     
 //	private static final int HUMAN_TAXON_ID = 9606;
 	
-	private boolean subsetOnly = false;
+//	private boolean subsetOnly = false;
     private String tableType = "";
     public void setTableType(String tableType) {
     	this.tableType = tableType;
     }
 
-    private File snpListFile;
-    public void setSnpListFile(File snpListFile) {
-    	this.snpListFile = snpListFile;
-    	subsetOnly = true;
-    }
+//    private File snpListFile;
+//    public void setSnpListFile(File snpListFile) {
+//    	this.snpListFile = snpListFile;
+//    	subsetOnly = true;
+//    }
 	private File snpFunctionFile;
 	public void setSnpFunctionFile(File snpFunctionFile) {
 		this.snpFunctionFile = snpFunctionFile;
@@ -64,9 +71,10 @@ public class DbsnpTxtConverter extends BioFileConverter
      * {@inheritDoc}
      */
     public void process(Reader reader) throws Exception {
-    	if (subsetOnly && snpIdSet.isEmpty()) {
-    		loadSnpSet();
-    	}
+    	getSnpIds();
+    	LOG.info(String.format("Found %d SNPs", snpIdSet.size()));
+    	System.out.println(String.format("Found %d SNPs", snpIdSet.size()));
+    	
 		if (tableType.equals("info")) {
 			System.out.println("Processing SNP information......");
 			processDbsnpInfo(reader);
@@ -81,41 +89,42 @@ public class DbsnpTxtConverter extends BioFileConverter
     
     Set<String> snpIdSet = new HashSet<String>();
     
-    private void loadSnpSet() {
-    	System.out.println("Loading necessary SNP ids...");
-    	LOG.info("Loading necessary SNP ids...");
-		Iterator<String[]> iterator;
-		try {
-			iterator = FormattedTextParser.parseTabDelimitedReader(new FileReader(snpListFile));
-			while (iterator.hasNext()) {
-				String[] cols = iterator.next();
-				String rsId = cols[0].trim();
-				snpIdSet.add(rsId);
-			}
-			System.out.println(String.format("Load %d SNP ids.", snpIdSet.size()));
-			LOG.info(String.format("Load %d SNP ids.", snpIdSet.size()));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			throw new RuntimeException("The snpListFile was not found.");
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-	}
+//    private void loadSnpSet() {
+//    	System.out.println("Loading necessary SNP ids...");
+//    	LOG.info("Loading necessary SNP ids...");
+//		Iterator<String[]> iterator;
+//		try {
+//			iterator = FormattedTextParser.parseTabDelimitedReader(new FileReader(snpListFile));
+//			while (iterator.hasNext()) {
+//				String[] cols = iterator.next();
+//				String rsId = cols[0].trim();
+//				snpIdSet.add(rsId);
+//			}
+//			System.out.println(String.format("Load %d SNP ids.", snpIdSet.size()));
+//			LOG.info(String.format("Load %d SNP ids.", snpIdSet.size()));
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//			throw new RuntimeException("The snpListFile was not found.");
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//			throw new RuntimeException(e);
+//		}
+//	}
 
 	private void processDbsnpInfo(Reader reader) throws Exception {
 		Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
-		int count = 1;
+		int line = 1;
+		int storedSnp = 0;
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
 			String rsId = cols[0];
-			if (!subsetOnly || snpIdSet.contains(rsId)) {
+			String pubmedIdString = cols[6];
+			if (snpIdSet.contains(rsId) || !StringUtils.isEmpty(pubmedIdString)) {
 				String allele = cols[1];
 				String chr = cols[2];
 				String orient = cols[3];
 				String locationString = cols[4];
 //				String group = cols[5];
-				String pubmedIdString = cols[6];
 				
 				Item item = createItem("SNP");
 				item.setAttribute("identifier", rsId);
@@ -155,14 +164,18 @@ public class DbsnpTxtConverter extends BioFileConverter
 					}
 				}
 				store(item);
+				storedSnp++;
 			}
-			count++;
+			line++;
 			
-			if (count % 5000000 == 0) {
-				System.out.println(String.format("Process %d lines...", count));
+			if (line % 5000000 == 0) {
+				System.out.println(String.format("Process %d lines...", line));
 			}
 		}
 		System.out.println("Finish reading the file...");
+		
+		System.out.println(String.format("Stored %d SNPs", storedSnp));
+		LOG.info(String.format("Stored %d SNPs", storedSnp));
 	}
 	
 	private void processDbsnpGene(Reader reader) throws Exception {
@@ -173,7 +186,7 @@ public class DbsnpTxtConverter extends BioFileConverter
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
 			String snpId = "rs" + cols[0];
-			if (!subsetOnly || snpIdSet.contains(snpId)) {
+			if (snpIdSet.contains(snpId)) {
 				String geneId = cols[1];
 				Item vaItem = createItem("VariationAnnotation");
 				vaItem.setAttribute("identifier", snpId + "-" + geneId);
@@ -205,7 +218,7 @@ public class DbsnpTxtConverter extends BioFileConverter
 		while (iterator.hasNext()) {
 			String[] cols = iterator.next();
 			String snpId = "rs" + cols[0];
-			if (!subsetOnly || snpIdSet.contains(snpId)) {
+			if (snpIdSet.contains(snpId)) {
 				String geneId = cols[1];
 				String mrnaAcc = cols[2];
 				String mrnaPos = cols[3];
@@ -358,6 +371,32 @@ public class DbsnpTxtConverter extends BioFileConverter
 		store(item);
 
 		return item.getIdentifier();
+	}
+
+	private String osAlias = null;
+
+	public void setOsAlias(String osAlias) {
+		this.osAlias = osAlias;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void getSnpIds() throws Exception {
+		ObjectStore os = ObjectStoreFactory.getObjectStore(osAlias);
+
+		Query q = new Query();
+		QueryClass qcSnp = new QueryClass(os.getModel().getClassDescriptorByName("SNP").getType());
+
+		QueryField qfSnpId = new QueryField(qcSnp, "identifier");
+
+		q.addFrom(qcSnp);
+		q.addToSelect(qfSnpId);
+
+		Results results = os.execute(q);
+		Iterator<Object> iterator = results.iterator();
+		while (iterator.hasNext()) {
+			ResultsRow<String> rr = (ResultsRow<String>) iterator.next();
+			snpIdSet.add(rr.get(0));
+		}
 	}
 
 }

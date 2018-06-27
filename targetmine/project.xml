@@ -165,7 +165,24 @@
       <property name="titleFile" value="/data/bio/db/Targetmine/omim/omim_phenotype_title" />
     </source>
 <!-- chenyian: for internal only | end -->    
-    <source name="clinvar" type="tm-clinvar">
+
+    <source name="efo" type="efo">
+      <property name="src.data.file" location="/data/bio/db/Targetmine/efo/efo.modi.obo"/>
+    </source>  
+    <source name="efo-xref" type="efo-xref">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/efo/" />
+      <property name="src.data.dir.includes" value="efo.modi.obo" />
+    </source>  
+    <source name="mesh-term" type="mesh-term">
+      <property name="src.data.dir" location="/data/bio/db/MeSH/2018/text/" />
+      <property name="src.data.dir.includes" value="*.bin" />
+    </source>  
+    <source name="gwas" type="gwas">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/gwas/nhgri-ebi" />
+      <property name="src.data.dir.includes" value="gwas-catalog-associations_ontology-annotated.tsv" />
+    </source>
+
+     <source name="clinvar" type="tm-clinvar">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/clinvar"/>
       <property name="src.data.dir.includes" value="variant_summary.txt"/>
       <property name="submissionSummaryFile" value="/data/bio/db/Targetmine/clinvar/submission_summary.txt" />
@@ -174,29 +191,25 @@
       <property name="crossReferencesFile" value="/data/bio/db/Targetmine/clinvar/cross_references.txt" />
       <property name="alleleGeneFile" value="/data/bio/db/Targetmine/clinvar/allele_gene.txt" />
     </source>
-<!-- 
-    <source name="dbsnp" type="dbsnp-db">
-      <property name="source.db.name" value="dbsnp-db"/>
-    </source>
- -->
+
     <source name="dbsnp-info" type="dbsnp-txt">
       <property name="tableType" value="info"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/dbsnp"/>
       <property name="src.data.dir.includes" value="table1-dbsnp-info.txt"/>
-      <property name="snpListFile" value="/data/bio/db/Targetmine/dbsnp/uniq.snp.ids.txt" />
+      <property name="osAlias" value="os.production"/>
     </source>
     <source name="dbsnp-gene" type="dbsnp-txt">
       <property name="tableType" value="gene"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/dbsnp"/>
       <property name="src.data.dir.includes" value="table3-sorted-snp-gene.txt"/>
-      <property name="snpListFile" value="/data/bio/db/Targetmine/dbsnp/uniq.snp.ids.txt" />
+      <property name="osAlias" value="os.production"/>
     </source>
     <source name="dbsnp-transcript" type="dbsnp-txt">
       <property name="tableType" value="transcript"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/dbsnp"/>
       <property name="src.data.dir.includes" value="table2-dbsnp-transcript.txt"/>
-      <property name="snpListFile" value="/data/bio/db/Targetmine/dbsnp/uniq.snp.ids.txt" />
       <property name="snpFunctionFile" value="/data/bio/db/Targetmine/dbsnp/snp_function_code.csv" />
+      <property name="osAlias" value="os.production"/>
     </source>
 
     <source name="snv-freq" type="snv-freq">
@@ -275,22 +288,6 @@
     </source>
     <source name="chembl-protein" type="chembl-protein">
       <property name="source.db.name" value="chembl-psql"/>
-    </source>
-
-    <source name="efo" type="efo">
-      <property name="src.data.file" location="/data/bio/db/Targetmine/efo/efo.modi.obo"/>
-    </source>  
-    <source name="efo-xref" type="efo-xref">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/efo/" />
-      <property name="src.data.dir.includes" value="efo.modi.obo" />
-    </source>  
-    <source name="mesh-term" type="mesh-term">
-      <property name="src.data.dir" location="/data/bio/db/MeSH/2018/text/" />
-      <property name="src.data.dir.includes" value="*.bin" />
-    </source>  
-    <source name="gwas" type="gwas">
-      <property name="src.data.dir" location="/data/bio/db/Targetmine/gwas/nhgri-ebi" />
-      <property name="src.data.dir.includes" value="gwas-catalog-associations_ontology-annotated.tsv" />
     </source>
 
     <source name="irefindex" type="irefindex">
