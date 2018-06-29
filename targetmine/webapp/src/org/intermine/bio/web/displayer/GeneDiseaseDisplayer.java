@@ -95,7 +95,7 @@ public class GeneDiseaseDisplayer extends ReportDisplayer {
 						String numPub = String.format("<a href=\"report.do?id=%s\">%d</a>", var.getId().toString(), publications.size());
 						Set<InterMineObject> diseaseTerms = (Set<InterMineObject>) var.getFieldValue("diseaseTerms");
 						for (InterMineObject dt : diseaseTerms) {
-							String diseaseTitle = (String) dt.getFieldValue("title");
+							String diseaseTitle = (String) dt.getFieldValue("name");
 							if (ignoredDiseaseNames.contains(diseaseTitle)) {
 								continue;
 							}

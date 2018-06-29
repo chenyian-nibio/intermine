@@ -695,7 +695,7 @@
   <class className="org.intermine.model.bio.SNP">
     <fields>
       <fieldconfig fieldExpr="identifier"/>
-      <fieldconfig fieldExpr="refseqAllele"/>
+      <fieldconfig fieldExpr="refSnpAllele"/>
       <fieldconfig fieldExpr="orientation"/>
       <fieldconfig fieldExpr="chromosome"/>
     </fields>
@@ -729,6 +729,16 @@
       <fieldconfig fieldExpr="proteinAccession"/>
       <fieldconfig fieldExpr="proteinPosition"/>
       <fieldconfig fieldExpr="residue"/>
+    </fields>
+  </class>
+
+  <class className="org.intermine.model.bio.GeneticDisease">
+    <fields>
+      <fieldconfig fieldExpr="title"/>
+      <fieldconfig fieldExpr="gene.primaryIdentifier"/>
+      <fieldconfig fieldExpr="gene.symbol"/>
+      <fieldconfig fieldExpr="diseaseTerm.identifier"/>
+      <fieldconfig fieldExpr="diseaseTerm.name"/>
     </fields>
   </class>
 
