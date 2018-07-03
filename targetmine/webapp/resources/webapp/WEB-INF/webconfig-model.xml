@@ -665,21 +665,18 @@
 
   <class className="org.intermine.model.bio.GenomeWideAssociation">
     <fields>
-      <fieldconfig fieldExpr="accession"/>
-      <fieldconfig fieldExpr="trait"/>
-      <fieldconfig fieldExpr="study" showInSummary="false" showInResults="false" doNotTruncate="true"/>
-      <fieldconfig fieldExpr="pvalue"/>
-      <fieldconfig fieldExpr="pvalueNote" showInSummary="false"/>
-      <fieldconfig fieldExpr="publication.pubMedId" showInSummary="false" showInResults="false"/>
+      <fieldconfig fieldExpr="snp.identifier"/>
+      <fieldconfig fieldExpr="riskAllele" showInSummary="false"/>
       <fieldconfig fieldExpr="frequency" showInSummary="false"/>
-      <fieldconfig fieldExpr="frequencyNote" showInSummary="false"/>
+      <fieldconfig fieldExpr="pvalue"/>
       <fieldconfig fieldExpr="orBeta" showInSummary="false"/>
       <fieldconfig fieldExpr="confidenceInterval" showInSummary="false"/>
-      <fieldconfig fieldExpr="platform" showInSummary="false"/>
-      <fieldconfig fieldExpr="mappedTrait" showInSummary="false"/>
-      <fieldconfig fieldExpr="riskAllele" showInSummary="false"/>
+      <fieldconfig fieldExpr="trait"/>
       <fieldconfig fieldExpr="initialSampleDescription" showInSummary="false" showInResults="false" doNotTruncate="true"/>
       <fieldconfig fieldExpr="replicationSampleDescription" showInSummary="false" showInResults="false" doNotTruncate="true"/>
+      <fieldconfig fieldExpr="study" showInSummary="false" showInResults="false" doNotTruncate="true"/>
+      <fieldconfig fieldExpr="accession"/>
+      <fieldconfig fieldExpr="publication.pubMedId" showInSummary="false" showInResults="false"/>
     </fields>
   </class>
 
@@ -698,6 +695,7 @@
       <fieldconfig fieldExpr="refSnpAllele"/>
       <fieldconfig fieldExpr="orientation"/>
       <fieldconfig fieldExpr="chromosome"/>
+      <fieldconfig fieldExpr="location"/>
     </fields>
   </class>
 
@@ -733,8 +731,10 @@
   </class>
 
   <class className="org.intermine.model.bio.GeneticDisease">
+      <titles>
+        <title mainTitles="title"/>
+      </titles>
     <fields>
-      <fieldconfig fieldExpr="title"/>
       <fieldconfig fieldExpr="gene.primaryIdentifier"/>
       <fieldconfig fieldExpr="gene.symbol"/>
       <fieldconfig fieldExpr="diseaseTerm.identifier"/>
@@ -982,9 +982,9 @@
                      replacesFields="parent, alternateForms" 
                      types="ChemblCompound"/>
                      
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneDiseaseDisplayer"
-                     jspName="model/geneDiseaseDisplayer.jsp"
-                     replacesFields="diseases" 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneticDiseaseDisplayer"
+                     jspName="model/geneticDiseaseDisplayer.jsp"
+                     replacesFields="diseases, geneticDiseases" 
                      placement="Disease"
                      types="Gene"/>
 
