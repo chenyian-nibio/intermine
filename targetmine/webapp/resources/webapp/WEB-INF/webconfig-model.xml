@@ -731,14 +731,13 @@
   </class>
 
   <class className="org.intermine.model.bio.GeneticDisease">
+    <headerconfig>
       <titles>
-        <title mainTitles="title"/>
+        <title mainTitles="gene.symbol" subTitles="diseaseTerm.name" />
       </titles>
+    </headerconfig>
     <fields>
-      <fieldconfig fieldExpr="gene.primaryIdentifier"/>
-      <fieldconfig fieldExpr="gene.symbol"/>
-      <fieldconfig fieldExpr="diseaseTerm.identifier"/>
-      <fieldconfig fieldExpr="diseaseTerm.name"/>
+      <fieldconfig fieldExpr="title"/>
     </fields>
   </class>
 
