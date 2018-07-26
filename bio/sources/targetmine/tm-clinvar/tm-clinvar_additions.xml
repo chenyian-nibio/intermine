@@ -12,6 +12,7 @@
 	</class>
 	<class name="Variation" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
+		<attribute name="name" type="java.lang.String"/>
 		<attribute name="type" type="java.lang.String"/>
 		<collection name="alleles" referenced-type="Allele" reverse-reference="variations"/>
 		<collection name="clinicalAssertions" referenced-type="ClinicalAssertion" reverse-reference="variation"/>
@@ -29,6 +30,8 @@
 		<attribute name="accession" type="java.lang.String"/>
 		<attribute name="submittedGeneSymbol" type="java.lang.String"/>
 		<reference name="variation" referenced-type="Variation" reverse-reference="clinicalAssertions"/>
+		<attribute name="numOfPublications" type="java.lang.Integer"/>
+		<collection name="publications" referenced-type="Publication"/>
 		<!-- processed from reportedPhenotypeInfo -->
 		<collection name="diseaseTerms" referenced-type="DiseaseTerm"/>
 	</class>

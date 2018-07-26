@@ -19,27 +19,27 @@ import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
-
 /**
  * 
  * @author chenyian
  */
-public class TmClinvarConverter extends BioFileConverter
-{
+public class TmClinvarConverter extends BioFileConverter {
 	private static final Logger LOG = Logger.getLogger(TmClinvarConverter.class);
-    //
-    private static final String DATASET_TITLE = "ClinVar";
-    private static final String DATA_SOURCE_NAME = "NCBI";
-    
+	//
+	private static final String DATASET_TITLE = "ClinVar";
+	private static final String DATA_SOURCE_NAME = "NCBI";
+
 	private static final String HUMAN_TAXON_ID = "9606";
 
 	private File submissionSummaryFile;
-    private File variationCitationsFile;
-    private File variationAlleleFile;
-    private File crossReferencesFile;
-    private File alleleGeneFile;
+	private File variationCitationsFile;
+	private File variationAlleleFile;
+	private File crossReferencesFile;
+	private File alleleGeneFile;
+	private File variationNameFile;
+	private File clinicalAssertionPubmedFile;
 
-    public void setSubmissionSummaryFile(File submissionSummaryFile) {
+	public void setSubmissionSummaryFile(File submissionSummaryFile) {
 		this.submissionSummaryFile = submissionSummaryFile;
 	}
 
@@ -59,26 +59,39 @@ public class TmClinvarConverter extends BioFileConverter
 		this.alleleGeneFile = alleleGeneFile;
 	}
 
-	/**
-     * Constructor
-     * @param writer the ItemWriter used to handle the resultant items
-     * @param model the Model
-     */
-    public TmClinvarConverter(ItemWriter writer, Model model) {
-        super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
-    }
+	public void setVariationNameFile(File variationNameFile) {
+		this.variationNameFile = variationNameFile;
+	}
 
-    /**
-     * 
-     *
-     * {@inheritDoc}
-     */
-    public void process(Reader reader) throws Exception {
-    	processVariationAlleleFile();
-    	processAlleleGeneFile();
-    	processVariationCitationsFile();
-    	processSubmissionSummaryFile();
-    	
+	public void setClinicalAssertionPubmedFile(File clinicalAssertionPubmedFile) {
+		this.clinicalAssertionPubmedFile = clinicalAssertionPubmedFile;
+	}
+
+	/**
+	 * Constructor
+	 * 
+	 * @param writer
+	 *            the ItemWriter used to handle the resultant items
+	 * @param model
+	 *            the Model
+	 */
+	public TmClinvarConverter(ItemWriter writer, Model model) {
+		super(writer, model, DATA_SOURCE_NAME, DATASET_TITLE);
+	}
+
+	/**
+	 * 
+	 *
+	 * {@inheritDoc}
+	 */
+	public void process(Reader reader) throws Exception {
+		readVariationNameMap();
+		readAccPubmedIdMap();
+		processVariationAlleleFile();
+		processAlleleGeneFile();
+		processVariationCitationsFile();
+		processSubmissionSummaryFile();
+
 		try {
 			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
 			while (iterator.hasNext()) {
@@ -94,7 +107,7 @@ public class TmClinvarConverter extends BioFileConverter
 					allele.setAttribute("name", name);
 					allele.setAttribute("clinicalSignificance", cols[6]);
 					allele.setAttribute("reviewStatus", cols[24]);
-					
+
 					String snp = getSnp("rs" + cols[9]);
 					allele.addToCollection("snps", snp);
 					Set<String> variations = allelVariationMap.get(cols[0]);
@@ -107,12 +120,12 @@ public class TmClinvarConverter extends BioFileConverter
 						}
 					}
 					allele.setReference("organism", getOrganism(HUMAN_TAXON_ID));
-					
+
 					store(allele);
 				}
 			}
 			reader.close();
-			
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			throw new RuntimeException("The file 'cross_references.txt' not found.");
@@ -121,7 +134,7 @@ public class TmClinvarConverter extends BioFileConverter
 			throw new RuntimeException(e);
 		}
 
-    }
+	}
 
 	private void processSubmissionSummaryFile() throws ObjectStoreException {
 		LOG.info("Parsing the file submission_summary.txt......");
@@ -132,7 +145,7 @@ public class TmClinvarConverter extends BioFileConverter
 			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
 			while (iterator.hasNext()) {
 				String[] cols = iterator.next();
-				
+
 				Item item = createItem("ClinicalAssertion");
 				item.setAttribute("clinicalSignificance", cols[1]);
 				item.setAttribute("description", cols[3]);
@@ -144,29 +157,47 @@ public class TmClinvarConverter extends BioFileConverter
 				item.setAttribute("originCounts", cols[8]);
 				item.setAttribute("submitter", cols[9]);
 				item.setAttribute("accession", cols[10]);
+
+				String accession = cols[10];
+				if (accession.contains(".")) {
+					accession = accession.substring(0, accession.indexOf("."));
+				}
+				if (accPubmedIdMap.containsKey(accession)) {
+					String[] pubmedIds = accPubmedIdMap.get(accession).split(",");
+					for (String pubmedId : pubmedIds) {
+						item.addToCollection("publications", getPublication(pubmedId));
+					}
+					item.setAttribute("numOfPublications", String.valueOf(pubmedIds.length));
+				} else {
+					item.setAttribute("numOfPublications", "0");
+				}
+
 				if (!StringUtils.isEmpty(cols[11])) {
 					item.setAttribute("submittedGeneSymbol", cols[11]);
 				}
 				item.setReference("variation", getVariation(cols[0]));
-				
+
 				if (!reportedPhenotypeInfo.equals("-")) {
 					for (String info : reportedPhenotypeInfo.split(";")) {
 						try {
 							String id = info.substring(0, info.indexOf(":"));
-//							if (id.matches("C\\d+")) {
-//								item.addToCollection("diseaseTerms", getDiseaseTerm(id, info.substring(info.indexOf(":") + 1)));
-//							}
+							// if (id.matches("C\\d+")) {
+							// item.addToCollection("diseaseTerms", getDiseaseTerm(id,
+							// info.substring(info.indexOf(":") + 1)));
+							// }
 							if (!id.equals("na")) {
-								item.addToCollection("diseaseTerms", getDiseaseTerm(id, info.substring(info.indexOf(":") + 1)));
+								item.addToCollection("diseaseTerms",
+										getDiseaseTerm(id, info.substring(info.indexOf(":") + 1)));
 							}
 						} catch (StringIndexOutOfBoundsException e) {
 							System.out.println(info);
 							System.out.println(reportedPhenotypeInfo);
-							throw new RuntimeException("StringIndexOutOfBoundsException: " + reportedPhenotypeInfo);
+							throw new RuntimeException(
+									"StringIndexOutOfBoundsException: " + reportedPhenotypeInfo);
 						}
 					}
 				}
-				
+
 				store(item);
 			}
 			reader.close();
@@ -180,10 +211,11 @@ public class TmClinvarConverter extends BioFileConverter
 		}
 
 	}
+
 	private void processVariationCitationsFile() throws ObjectStoreException {
 		LOG.info("Parsing the file var_citations.txt......");
 		System.out.println("Parsing the file var_citations.txt......");
-		
+
 		try {
 			FileReader reader = new FileReader(variationCitationsFile);
 			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
@@ -198,10 +230,18 @@ public class TmClinvarConverter extends BioFileConverter
 				}
 			}
 			reader.close();
-			
+
 			for (String varId : varPubMap.keySet()) {
 				Item item = createItem("Variation");
 				item.setAttribute("identifier", varId);
+				String name = variationNameMap.get(varId);
+				if (name != null) {
+					item.setAttribute("name", name);
+				} else {
+					LOG.info(String.format("Variation name not available: %s", varId));
+					// these variation are deprecated entries, theoretically
+					continue;
+				}
 				for (String pubmedId : varPubMap.get(varId)) {
 					item.addToCollection("publications", getPublication(pubmedId));
 				}
@@ -212,7 +252,7 @@ public class TmClinvarConverter extends BioFileConverter
 				store(item);
 				variationMap.put(varId, item.getIdentifier());
 			}
-			
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			throw new RuntimeException("The file 'var_citations.txt' not found.");
@@ -220,15 +260,16 @@ public class TmClinvarConverter extends BioFileConverter
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
-		
+
 	}
-	
+
 	Map<String, String> variationTypeMap = new HashMap<String, String>();
 	Map<String, Set<String>> allelVariationMap = new HashMap<String, Set<String>>();
+
 	private void processVariationAlleleFile() {
 		LOG.info("Parsing the file variation_allele.txt......");
 		System.out.println("Parsing the file variation_allele.txt......");
-		
+
 		try {
 			FileReader reader = new FileReader(variationAlleleFile);
 			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
@@ -241,7 +282,7 @@ public class TmClinvarConverter extends BioFileConverter
 				allelVariationMap.get(cols[2]).add(cols[0]);
 			}
 			reader.close();
-			
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			throw new RuntimeException("The file 'variation_allele.txt' not found.");
@@ -249,14 +290,15 @@ public class TmClinvarConverter extends BioFileConverter
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
-		
+
 	}
+
 	@SuppressWarnings("unused")
 	private void processCrossReferencesFile() {
 		// TODO insufficient SNP information, skip these contents at the moment (chenyian, 2018.2.7)
 		LOG.info("Parsing the file cross_references.txt......");
 		System.out.println("Parsing the file cross_references.txt......");
-		
+
 		try {
 			FileReader reader = new FileReader(crossReferencesFile);
 			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
@@ -264,7 +306,7 @@ public class TmClinvarConverter extends BioFileConverter
 				String[] cols = iterator.next();
 			}
 			reader.close();
-			
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			throw new RuntimeException("The file 'cross_references.txt' not found.");
@@ -272,17 +314,20 @@ public class TmClinvarConverter extends BioFileConverter
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
-		
+
 	}
-	
+
 	Map<String, String> snpTypeMap = new HashMap<String, String>();
+
 	private void processAlleleGeneFile() {
-		// TODO unable to resolve the model conflict with SO, skip these contents at the moment (chenyian, 2018.2.7)
+		// TODO unable to resolve the model conflict with SO, skip these contents at the moment
+		// (chenyian, 2018.2.7)
 		// NOTE: allele and gene is many-to-many but many-to-one in the sequence ontology(SO)
-		// use to get snp and gene relation; within the gene, upstream or downstream (temporary solution) 
+		// use to get snp and gene relation; within the gene, upstream or downstream (temporary
+		// solution)
 		LOG.info("Parsing the file allele_gene.txt......");
 		System.out.println("Parsing the file allele_gene.txt......");
-		
+
 		try {
 			FileReader reader = new FileReader(alleleGeneFile);
 			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
@@ -291,7 +336,7 @@ public class TmClinvarConverter extends BioFileConverter
 				snpTypeMap.put(cols[0] + "-" + cols[1], cols[5]);
 			}
 			reader.close();
-			
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			throw new RuntimeException("The file 'allele_gene.txt' not found.");
@@ -299,13 +344,13 @@ public class TmClinvarConverter extends BioFileConverter
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
-		
+
 	}
-	
+
 	private Map<String, String> snpMap = new HashMap<String, String>();
 	private Map<String, String> publicationMap = new HashMap<String, String>();
 	private Map<String, String> variationMap = new HashMap<String, String>();
-	
+
 	private String getSnp(String identifier) throws ObjectStoreException {
 		String ret = snpMap.get(identifier);
 		if (ret == null) {
@@ -317,7 +362,7 @@ public class TmClinvarConverter extends BioFileConverter
 		}
 		return ret;
 	}
-	
+
 	private String getPublication(String pubmedId) throws ObjectStoreException {
 		String ret = publicationMap.get(pubmedId);
 		if (ret == null) {
@@ -329,11 +374,18 @@ public class TmClinvarConverter extends BioFileConverter
 		}
 		return ret;
 	}
+
 	private String getVariation(String identifier) throws ObjectStoreException {
 		String ret = variationMap.get(identifier);
 		if (ret == null) {
 			Item item = createItem("Variation");
 			item.setAttribute("identifier", identifier);
+			String name = variationNameMap.get(identifier);
+			if (name != null) {
+				item.setAttribute("name", name);
+			} else {
+				LOG.info(String.format("Cannot find the variation name: %s", identifier));
+			}
 			String type = variationTypeMap.get(identifier);
 			if (type != null) {
 				item.setAttribute("type", type);
@@ -346,6 +398,7 @@ public class TmClinvarConverter extends BioFileConverter
 	}
 
 	private Map<String, String> diseaseTermMap = new HashMap<String, String>();
+
 	private String getDiseaseTerm(String identifier, String title) throws ObjectStoreException {
 		String ret = diseaseTermMap.get(identifier);
 		if (ret == null) {
@@ -357,6 +410,63 @@ public class TmClinvarConverter extends BioFileConverter
 			diseaseTermMap.put(identifier, ret);
 		}
 		return ret;
+	}
+
+	private Map<String, String> variationNameMap = new HashMap<String, String>();
+
+	private void readVariationNameMap() throws ObjectStoreException {
+		String fileName = variationNameFile.getName();
+		LOG.info(String.format("Parsing the file %s......", fileName));
+		System.out.println(String.format("Parsing the file %s......", fileName));
+
+		try {
+			FileReader reader = new FileReader(variationNameFile);
+			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
+			while (iterator.hasNext()) {
+				String[] cols = iterator.next();
+				String vid = cols[0];
+				String name = cols[1];
+				if (name.contains("|||")) {
+					name = name.split("\\|\\|\\|")[0];
+				}
+				variationNameMap.put(vid, name);
+			}
+			reader.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			throw new RuntimeException(String.format("The file '%s' not found.", fileName));
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	private Map<String, String> accPubmedIdMap = new HashMap<String, String>();
+
+	private void readAccPubmedIdMap() throws ObjectStoreException {
+		String fileName = clinicalAssertionPubmedFile.getName();
+		LOG.info(String.format("Parsing the file %s......", fileName));
+		System.out.println(String.format("Parsing the file %s......", fileName));
+
+		try {
+			FileReader reader = new FileReader(clinicalAssertionPubmedFile);
+			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
+			while (iterator.hasNext()) {
+				String[] cols = iterator.next();
+				String acc = cols[0];
+				String pids = cols[2];
+				accPubmedIdMap.put(acc, pids);
+			}
+			reader.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			throw new RuntimeException(String.format("The file '%s' not found.", fileName));
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 }

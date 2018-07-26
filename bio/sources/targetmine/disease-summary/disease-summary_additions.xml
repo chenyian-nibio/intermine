@@ -2,12 +2,12 @@
 <classes>
 	<class name="Gene" is-interface="true">
 		<attribute name="primaryIdentifier" type="java.lang.String"/>
-		<collection name="geneticDiseases" referenced-type="GeneticDisease" reverse-reference="gene"/>
+		<collection name="geneDiseasePairs" referenced-type="GeneDiseasePair" reverse-reference="gene"/>
 	</class>
-	<class name="GeneticDisease" is-interface="true">
+	<class name="GeneDiseasePair" is-interface="true">
 		<attribute name="title" type="java.lang.String"/>
 		<reference name="diseaseTerm" referenced-type="OntologyTerm"/>
-		<reference name="gene" referenced-type="Gene" reverse-reference="geneticDiseases"/>
+		<reference name="gene" referenced-type="Gene" reverse-reference="geneDiseasePairs"/>
 		<collection name="gwas" referenced-type="GenomeWideAssociation"/>
 		<collection name="alleles" referenced-type="Allele"/> <!-- clinvar data -->
 		<collection name="snps" referenced-type="SNP"/>

@@ -699,6 +699,14 @@
     </fields>
   </class>
 
+  <class className="org.intermine.model.bio.Variation">
+    <fields>
+      <fieldconfig fieldExpr="identifier"/>
+      <fieldconfig fieldExpr="name"/>
+      <fieldconfig fieldExpr="type"/>
+    </fields>
+  </class>
+  
   <class className="org.intermine.model.bio.Allele">
     <fields>
       <fieldconfig fieldExpr="identifier"/>
@@ -730,7 +738,7 @@
     </fields>
   </class>
 
-  <class className="org.intermine.model.bio.GeneticDisease">
+  <class className="org.intermine.model.bio.GeneDiseasePair">
     <headerconfig>
       <titles>
         <title mainTitles="gene.symbol" subTitles="diseaseTerm.name" />
@@ -981,9 +989,9 @@
                      replacesFields="parent, alternateForms" 
                      types="ChemblCompound"/>
                      
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneticDiseaseDisplayer"
-                     jspName="model/geneticDiseaseDisplayer.jsp"
-                     replacesFields="diseases, geneticDiseases" 
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneDiseasePairDisplayer"
+                     jspName="model/geneDiseasePairDisplayer.jsp"
+                     replacesFields="diseases, geneDiseasePairs" 
                      placement="Disease"
                      types="Gene"/>
 

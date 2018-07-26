@@ -18,10 +18,10 @@ import org.intermine.web.displayer.ReportDisplayer;
 import org.intermine.web.logic.config.ReportDisplayerConfig;
 import org.intermine.web.logic.results.ReportObject;
 
-public class GeneticDiseaseDisplayer extends ReportDisplayer {
-	protected static final Logger LOG = Logger.getLogger(GeneticDiseaseDisplayer.class);
+public class GeneDiseasePairDisplayer extends ReportDisplayer {
+	protected static final Logger LOG = Logger.getLogger(GeneDiseasePairDisplayer.class);
 
-	public GeneticDiseaseDisplayer(ReportDisplayerConfig config, InterMineAPI im) {
+	public GeneDiseasePairDisplayer(ReportDisplayerConfig config, InterMineAPI im) {
 		super(config, im);
 		// TODO Auto-generated constructor stub
 	}
@@ -38,8 +38,8 @@ public class GeneticDiseaseDisplayer extends ReportDisplayer {
 		try {
 			String geneSymbol = (String) gene.getFieldValue("symbol");
 			
-			Set<InterMineObject> geneticDiseases = (Set<InterMineObject>) gene.getFieldValue("geneticDiseases");
-			for (InterMineObject gdItem : geneticDiseases) {
+			Set<InterMineObject> geneDiseasePairs = (Set<InterMineObject>) gene.getFieldValue("geneDiseasePairs");
+			for (InterMineObject gdItem : geneDiseasePairs) {
 				Map<String,String> entryInfo = new HashMap<String, String>();
 				InterMineObject diseaseTerm = (InterMineObject) gdItem.getFieldValue("diseaseTerm");
 				String name = (String) diseaseTerm.getFieldValue("name");

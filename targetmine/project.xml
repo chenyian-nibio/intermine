@@ -190,6 +190,9 @@
       <property name="variationAlleleFile" value="/data/bio/db/Targetmine/clinvar/variation_allele.txt" />
       <property name="crossReferencesFile" value="/data/bio/db/Targetmine/clinvar/cross_references.txt" />
       <property name="alleleGeneFile" value="/data/bio/db/Targetmine/clinvar/allele_gene.txt" />
+      <!-- the following files are homemade -->
+      <property name="variationNameFile" value="/data/bio/db/Targetmine/clinvar/var_name.txt" />
+      <property name="clinicalAssertionPubmedFile" value="/data/bio/db/Targetmine/clinvar/ca_pubmed.txt" />
     </source>
 
     <source name="dbsnp-info" type="dbsnp-txt">
