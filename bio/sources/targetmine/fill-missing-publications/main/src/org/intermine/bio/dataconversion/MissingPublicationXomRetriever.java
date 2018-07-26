@@ -47,7 +47,7 @@ public class MissingPublicationXomRetriever {
 	private static final Logger LOG = Logger.getLogger(MissingPublicationXomRetriever.class);
 	// rettype=abstract or just leave it out
 	private static final String EFETCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&rettype=abstract&retmode=xml&id=";
-	
+
 	// number of records to retrieve per request
 	private static final int BATCH_SIZE = 400;
 	private String osAlias = null;
@@ -84,9 +84,11 @@ public class MissingPublicationXomRetriever {
 			ObjectStore os = ObjectStoreFactory.getObjectStore(osAlias);
 
 			Set<String> pubMedIds = getPubMedIds();
-			
-			System.out.println("There are " + pubMedIds.size() + " publication(s) without proper information.");
-			LOG.info("There are " + pubMedIds.size() + " publication(s) without proper information.");
+
+			System.out.println("There are " + pubMedIds.size()
+					+ " publication(s) without proper information.");
+			LOG.info("There are " + pubMedIds.size()
+					+ " publication(s) without proper information.");
 
 			ItemFactory itemFactory = new ItemFactory(os.getModel(), "-1_");
 			writer.write(FullRenderer.getHeader() + "\n");
@@ -96,7 +98,8 @@ public class MissingPublicationXomRetriever {
 				identifiers.add(id.next());
 				if (identifiers.size() == BATCH_SIZE || !id.hasNext()) {
 					LOG.info("Querying NCBI efetch for " + identifiers.size() + " publications.");
-					System.out.println("Querying NCBI efetch for " + identifiers.size() + " publications.");
+					System.out.println(
+							"Querying NCBI efetch for " + identifiers.size() + " publications.");
 					Reader reader = null;
 					while (reader == null) {
 						try {
@@ -104,108 +107,128 @@ public class MissingPublicationXomRetriever {
 						} catch (Exception e) {
 							LOG.info(e.getMessage());
 							LOG.info("URL: " + EFETCH_URL + StringUtil.join(identifiers, ","));
-							System.out.println("Error occured when retrieving the data from NCBI. Waiting to retry.");
+							System.out.println(
+									"Error occured when retrieving the data from NCBI. Waiting to retry.");
 							Thread.sleep(5000);
 							System.out.println("Try retrieving the data from NCBI again.");
 						}
 					}
 
 					XMLReader xmlreader = XMLReaderFactory.createXMLReader();
-					xmlreader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+					xmlreader.setFeature(
+							"http://apache.org/xml/features/nonvalidating/load-external-dtd",
+							false);
 					Builder parser = new Builder(xmlreader);
 
 					Document doc = parser.build(reader);
-		        	Element entry = doc.getRootElement();
-		        	
-		        	Elements elements = entry.getChildElements("PubmedArticle");
+					Element entry = doc.getRootElement();
+
+					Elements elements = entry.getChildElements("PubmedArticle");
 
 					for (int k = 0; k < elements.size(); k++) {
-		        		Element element = elements.get(k);
-		        		String pubMedId = element.getChildElements("MedlineCitation").get(0).getChildElements("PMID").get(0).getValue();
-		        		
-		        		if (!pubMedIds.contains(pubMedId)) {
-		        			continue;
-		        		}
-		        		
-		        		Item publication = itemFactory.makeItemForClass("Publication");
-		        		publication.setAttribute("pubMedId", pubMedId);
-//		        		System.out.println("pubMedId: " + pubMedId);
-//		        		LOG.info("pubMedId: " + pubMedId);
-		        		
-		        		Element article = element.getChildElements("MedlineCitation").get(0).getChildElements("Article").get(0);
-		        		String title = article.getChildElements("ArticleTitle").get(0).getValue();
+						Element element = elements.get(k);
+						String pubMedId = element.getFirstChildElement("MedlineCitation")
+								.getFirstChildElement("PMID").getValue();
+
+						if (!pubMedIds.contains(pubMedId)) {
+							continue;
+						}
+
+						Item publication = itemFactory.makeItemForClass("Publication");
+						publication.setAttribute("pubMedId", pubMedId);
+						// System.out.println("pubMedId: " + pubMedId);
+						// LOG.info("pubMedId: " + pubMedId);
+
+						Element article = element.getFirstChildElement("MedlineCitation")
+								.getFirstChildElement("Article");
+						String title = article.getFirstChildElement("ArticleTitle").getValue();
 						if (title == null || "".equals(title)) {
 							// some rare cases, the title is empty...
 							title = "not available";
 						}
-		        		publication.setAttribute("title", title);
-		        		
-		        		if (article.getFirstChildElement("AuthorList") != null) {
-		        			Element firstAuthor = article.getFirstChildElement("AuthorList").getFirstChildElement("Author");
-		        			if (firstAuthor.getFirstChildElement("CollectiveName") != null) {
-		        				publication.setAttribute("firstAuthor", firstAuthor.getFirstChildElement("CollectiveName").getValue());
-		        			} else {
-		        				// according to the DTD, this is a must have field, should not be null
-		        				String last = firstAuthor.getFirstChildElement("LastName").getValue();
-		        				if (firstAuthor.getFirstChildElement("Initials") != null) {
-		        					publication.setAttribute("firstAuthor", last + " " + firstAuthor.getFirstChildElement("Initials").getValue());
-		        				} else {
-		        					publication.setAttribute("firstAuthor", last);
-		        				}
-		        			}
-		        		}
-		        		
-		        		if (article.getFirstChildElement("Pagination") != null) {
-		        			if (article.getFirstChildElement("Pagination").getFirstChildElement("MedlinePgn") != null) {
-		        				String pages = article.getFirstChildElement("Pagination").getFirstChildElement("MedlinePgn").getValue();
-		        				if (!StringUtils.isEmpty(pages)){
-		        					publication.setAttribute("pages", pages);
-		        				}
-		        			} else {
-		        				// TODO could be StartPage ...
-		        				// <!ELEMENT	Pagination ((StartPage, EndPage?, MedlinePgn?) | MedlinePgn) >
-		        			}
-		        		}
-		        		Element journal = article.getFirstChildElement("Journal");
-		        		Element pubDate = journal.getFirstChildElement("JournalIssue").getFirstChildElement("PubDate");
-		        		if (pubDate.getFirstChildElement("Year") != null) {
-		        			publication.setAttribute("year", pubDate.getFirstChildElement("Year").getValue());
-		        		} else if (pubDate.getFirstChildElement("MedlineDate") != null){
-		        			String[] medlineDate = pubDate.getFirstChildElement("MedlineDate").getValue().split(" ");
+						publication.setAttribute("title", title);
+
+						if (article.getFirstChildElement("AuthorList") != null) {
+							Element firstAuthor = article.getFirstChildElement("AuthorList")
+									.getFirstChildElement("Author");
+							if (firstAuthor.getFirstChildElement("CollectiveName") != null) {
+								publication.setAttribute("firstAuthor", firstAuthor
+										.getFirstChildElement("CollectiveName").getValue());
+							} else {
+								// according to the DTD, this is a must have field, should not be
+								// null
+								String last = firstAuthor.getFirstChildElement("LastName")
+										.getValue();
+								if (firstAuthor.getFirstChildElement("Initials") != null) {
+									publication.setAttribute("firstAuthor", last + " " + firstAuthor
+											.getFirstChildElement("Initials").getValue());
+								} else {
+									publication.setAttribute("firstAuthor", last);
+								}
+							}
+						}
+
+						if (article.getFirstChildElement("Pagination") != null) {
+							if (article.getFirstChildElement("Pagination")
+									.getFirstChildElement("MedlinePgn") != null) {
+								String pages = article.getFirstChildElement("Pagination")
+										.getFirstChildElement("MedlinePgn").getValue();
+								if (!StringUtils.isEmpty(pages)) {
+									publication.setAttribute("pages", pages);
+								}
+							} else {
+								// TODO could be StartPage ...
+								// <!ELEMENT Pagination ((StartPage, EndPage?, MedlinePgn?) |
+								// MedlinePgn) >
+							}
+						}
+						Element journal = article.getFirstChildElement("Journal");
+						Element pubDate = journal.getFirstChildElement("JournalIssue")
+								.getFirstChildElement("PubDate");
+						if (pubDate.getFirstChildElement("Year") != null) {
+							publication.setAttribute("year",
+									pubDate.getFirstChildElement("Year").getValue());
+						} else if (pubDate.getFirstChildElement("MedlineDate") != null) {
+							String[] medlineDate = pubDate.getFirstChildElement("MedlineDate")
+									.getValue().split(" ");
 							String year = medlineDate[0];
 							// example: 'Fall 2016' (pmid: 28078901)
 							if (year.matches("^\\D.+")) {
 								year = medlineDate[1];
 							}
-		        			// some year strings are ranges, for example: '1998-1999'
-	                    	if (year.contains("-")) {
-	                    		year = year.substring(0, year.indexOf("-"));
-	                    	}
-		                    try {
-		                        Integer.parseInt(year);
-		                        publication.setAttribute("year", year);
-		                    } catch (NumberFormatException e) {
-		                        LOG.info(String.format("Cannot parse year from publication id: %s, value: %s .", pubMedId, year));
-		                    }
-		        		}
-		        		
-		        		Element volume = journal.getFirstChildElement("JournalIssue").getFirstChildElement("Volume");
-		        		if (volume != null){
-		        			publication.setAttribute("volume", volume.getValue());
-		        		}
-		        		Element issue = journal.getFirstChildElement("JournalIssue").getFirstChildElement("Issue");
-		        		if (issue != null){
-		        			publication.setAttribute("issue", issue.getValue());
-		        		}
-		        		// use ISOAbbreviation instead of Title
-		        		Element journalAbbr = journal.getFirstChildElement("ISOAbbreviation");
-		        		if (journalAbbr != null){
-		        			publication.setAttribute("journal", journalAbbr.getValue());
-		        		}
-		        		writer.write(FullRenderer.render(publication));
-		        		i++;
-		        	}
-					
+							// some year strings are ranges, for example: '1998-1999'
+							if (year.contains("-")) {
+								year = year.substring(0, year.indexOf("-"));
+							}
+							try {
+								Integer.parseInt(year);
+								publication.setAttribute("year", year);
+							} catch (NumberFormatException e) {
+								LOG.info(String.format(
+										"Cannot parse year from publication id: %s, value: %s .",
+										pubMedId, year));
+							}
+						}
+
+						Element volume = journal.getFirstChildElement("JournalIssue")
+								.getFirstChildElement("Volume");
+						if (volume != null) {
+							publication.setAttribute("volume", volume.getValue());
+						}
+						Element issue = journal.getFirstChildElement("JournalIssue")
+								.getFirstChildElement("Issue");
+						if (issue != null) {
+							publication.setAttribute("issue", issue.getValue());
+						}
+						// use ISOAbbreviation instead of Title
+						Element journalAbbr = journal.getFirstChildElement("ISOAbbreviation");
+						if (journalAbbr != null) {
+							publication.setAttribute("journal", journalAbbr.getValue());
+						}
+						writer.write(FullRenderer.render(publication));
+						i++;
+					}
+
 					reader.close();
 					identifiers.clear();
 				}
@@ -225,9 +248,9 @@ public class MissingPublicationXomRetriever {
 				}
 			}
 		}
-		
-		System.out.println(String.format("%d publication objects were created.",i));
-		LOG.info(String.format("%d publication objects were created.",i));
+
+		System.out.println(String.format("%d publication objects were created.", i));
+		LOG.info(String.format("%d publication objects were created.", i));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -272,7 +295,8 @@ public class MissingPublicationXomRetriever {
 		if (apiKey != null) {
 			urlString = urlString + "&api_key=" + apiKey;
 		}
-		return new BufferedReader(new InputStreamReader(new URL(urlString).openStream(), StandardCharsets.UTF_8));
+		return new BufferedReader(
+				new InputStreamReader(new URL(urlString).openStream(), StandardCharsets.UTF_8));
 	}
 
 }
