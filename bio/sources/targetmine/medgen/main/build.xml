@@ -1,0 +1,4 @@
+<project name="medgen-tasks" default="default" basedir=".">
+  <description>build medgen tasks</description>
+  <import file="../../../../../imbuild/library.xml"/> 
+</project>

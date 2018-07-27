@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<classes>
+	<class name="DiseaseTerm" extends="OntologyTerm" is-interface="true">
+		<collection name="publications" referenced-type="Publication"/>
+	</class>
+</classes>

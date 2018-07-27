@@ -195,6 +195,13 @@
       <property name="clinicalAssertionPubmedFile" value="/data/bio/db/Targetmine/clinvar/ca_pubmed.txt" />
     </source>
 
+    <source name="medgen" type="medgen">
+      <property name="src.data.dir" location="/data/bio/db/Targetmine/medgen"/>
+      <property name="src.data.dir.includes" value="NAMES.csv"/>
+      <property name="pubmedFile" value="/data/bio/db/Targetmine/medgen/medgen_pubmed_lnk.txt" />
+      <property name="definitionFile" value="/data/bio/db/Targetmine/medgen/MGDEF.csv" />
+    </source>
+
     <source name="dbsnp-info" type="dbsnp-txt">
       <property name="tableType" value="info"/>
       <property name="src.data.dir" location="/data/bio/db/Targetmine/dbsnp"/>

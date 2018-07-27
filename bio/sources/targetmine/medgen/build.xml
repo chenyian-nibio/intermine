@@ -1,0 +1,5 @@
+<project name="medgen" default="default" basedir=".">
+  <description>build, test, package medgen</description>
+  
+  <import file="../../../../imbuild/source.xml"/>
+</project>

@@ -414,7 +414,7 @@ public class TmClinvarConverter extends BioFileConverter {
 
 	private Map<String, String> variationNameMap = new HashMap<String, String>();
 
-	private void readVariationNameMap() throws ObjectStoreException {
+	private void readVariationNameMap() {
 		String fileName = variationNameFile.getName();
 		LOG.info(String.format("Parsing the file %s......", fileName));
 		System.out.println(String.format("Parsing the file %s......", fileName));
@@ -444,7 +444,7 @@ public class TmClinvarConverter extends BioFileConverter {
 
 	private Map<String, String> accPubmedIdMap = new HashMap<String, String>();
 
-	private void readAccPubmedIdMap() throws ObjectStoreException {
+	private void readAccPubmedIdMap() {
 		String fileName = clinicalAssertionPubmedFile.getName();
 		LOG.info(String.format("Parsing the file %s......", fileName));
 		System.out.println(String.format("Parsing the file %s......", fileName));

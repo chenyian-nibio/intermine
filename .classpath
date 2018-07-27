@@ -49,6 +49,7 @@
 	<classpathentry kind="src" path="bio/sources/targetmine/kegg-relation/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/keyword-xml/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/ligand_expo/main/src"/>
+	<classpathentry kind="src" path="bio/sources/targetmine/medgen/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mesh-term/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase/main/src"/>
 	<classpathentry kind="src" path="bio/sources/targetmine/mirbase-genome/main/src"/>
