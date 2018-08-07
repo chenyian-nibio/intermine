@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -13,6 +14,14 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
+import org.intermine.objectstore.ObjectStore;
+import org.intermine.objectstore.ObjectStoreException;
+import org.intermine.objectstore.ObjectStoreFactory;
+import org.intermine.objectstore.query.Query;
+import org.intermine.objectstore.query.QueryClass;
+import org.intermine.objectstore.query.QueryField;
+import org.intermine.objectstore.query.Results;
+import org.intermine.objectstore.query.ResultsRow;
 import org.intermine.util.FormattedTextParser;
 import org.intermine.xml.full.Item;
 
@@ -29,7 +38,6 @@ public class MedgenConverter extends BioFileConverter {
 	Map<String, Set<String>> pubmedIdMap = new HashMap<String, Set<String>>();
 	Map<String, String> definitionMap = new HashMap<String, String>();
 	
-	@SuppressWarnings("unused")
 	private File pubmedFile;
 	private File definitionFile;
 	
@@ -59,9 +67,12 @@ public class MedgenConverter extends BioFileConverter {
 	 * {@inheritDoc}
 	 */
 	public void process(Reader reader) throws Exception {
-//		if (pubmedIdMap.isEmpty()) {
-//			readPubmedFile();
-//		}
+		if (diseaseTermIdSet.isEmpty()) {
+			getDiseaseTermIds();
+		}
+		if (pubmedIdMap.isEmpty()) {
+			readPubmedFile();
+		}
 		if (definitionMap.isEmpty()) {
 			readDefinitionFile();
 		}
@@ -78,6 +89,10 @@ public class MedgenConverter extends BioFileConverter {
 				String cui = cols[0];
 				String name = cols[1];
 				
+				if (!diseaseTermIdSet.contains(cui)) {
+					continue;
+				}
+				
 				Item item = createItem("DiseaseTerm");
 				item.setAttribute("identifier", cui);
 				item.setAttribute("name", name);
@@ -87,11 +102,11 @@ public class MedgenConverter extends BioFileConverter {
 					item.setAttribute("description", def);
 				}
 				
-//				if (pubmedIdMap.get(cui) != null) {
-//					for (String pmid : pubmedIdMap.get(cui)) {
-//						item.addToCollection("publications", getPublication(pmid));
-//					}
-//				}
+				if (pubmedIdMap.get(cui) != null) {
+					for (String pmid : pubmedIdMap.get(cui)) {
+						item.addToCollection("publications", getPublication(pmid));
+					}
+				}
 				
 				store(item);
 				i++;
@@ -112,33 +127,33 @@ public class MedgenConverter extends BioFileConverter {
 
 	}
 	
-//	private void readPubmedFile() {
-//		String fileName = pubmedFile.getName();
-//		LOG.info(String.format("Parsing the file %s......", fileName));
-//		System.out.println(String.format("Parsing the file %s......", fileName));
-//
-//		try {
-//			FileReader reader = new FileReader(pubmedFile);
-//			Iterator<String[]> iterator = FormattedTextParser.parseDelimitedReader(reader, '|');
-//			while (iterator.hasNext()) {
-//				String[] cols = iterator.next();
-//				String cui = cols[1];
-//				String pubmedId = cols[3];
-//				if (pubmedIdMap.get(cui) == null) {
-//					pubmedIdMap.put(cui, new HashSet<String>());
-//				}
-//				pubmedIdMap.get(cui).add(pubmedId);
-//			}
-//			reader.close();
-//
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//			throw new RuntimeException(String.format("The file '%s' not found.", fileName));
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//			throw new RuntimeException(e);
-//		}
-//	}
+	private void readPubmedFile() {
+		String fileName = pubmedFile.getName();
+		LOG.info(String.format("Parsing the file %s......", fileName));
+		System.out.println(String.format("Parsing the file %s......", fileName));
+
+		try {
+			FileReader reader = new FileReader(pubmedFile);
+			Iterator<String[]> iterator = FormattedTextParser.parseDelimitedReader(reader, '|');
+			while (iterator.hasNext()) {
+				String[] cols = iterator.next();
+				String cui = cols[1];
+				String pubmedId = cols[3];
+				if (pubmedIdMap.get(cui) == null) {
+					pubmedIdMap.put(cui, new HashSet<String>());
+				}
+				pubmedIdMap.get(cui).add(pubmedId);
+			}
+			reader.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			throw new RuntimeException(String.format("The file '%s' not found.", fileName));
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
 
 	private void readDefinitionFile() {
 		String fileName = definitionFile.getName();
@@ -167,18 +182,46 @@ public class MedgenConverter extends BioFileConverter {
 		}
 	}
 
-//	private Map<String, String> publicationMap = new HashMap<String, String>();
+	private Map<String, String> publicationMap = new HashMap<String, String>();
 
-//	private String getPublication(String pubmedId) throws ObjectStoreException {
-//		String ret = publicationMap.get(pubmedId);
-//		if (ret == null) {
-//			Item item = createItem("Publication");
-//			item.setAttribute("pubMedId", pubmedId);
-//			store(item);
-//			ret = item.getIdentifier();
-//			publicationMap.put(pubmedId, ret);
-//		}
-//		return ret;
-//	}
+	private String getPublication(String pubmedId) throws ObjectStoreException {
+		String ret = publicationMap.get(pubmedId);
+		if (ret == null) {
+			Item item = createItem("Publication");
+			item.setAttribute("pubMedId", pubmedId);
+			store(item);
+			ret = item.getIdentifier();
+			publicationMap.put(pubmedId, ret);
+		}
+		return ret;
+	}
+
+	private String osAlias = null;
+
+	public void setOsAlias(String osAlias) {
+		this.osAlias = osAlias;
+	}
+
+    Set<String> diseaseTermIdSet = new HashSet<String>();
+
+    @SuppressWarnings("unchecked")
+	private void getDiseaseTermIds() throws Exception {
+		ObjectStore os = ObjectStoreFactory.getObjectStore(osAlias);
+
+		Query q = new Query();
+		QueryClass qcDiseaseTerm = new QueryClass(os.getModel().getClassDescriptorByName("DiseaseTerm").getType());
+
+		QueryField qfIdentifier = new QueryField(qcDiseaseTerm, "identifier");
+
+		q.addFrom(qcDiseaseTerm);
+		q.addToSelect(qfIdentifier);
+
+		Results results = os.execute(q);
+		Iterator<Object> iterator = results.iterator();
+		while (iterator.hasNext()) {
+			ResultsRow<String> rr = (ResultsRow<String>) iterator.next();
+			diseaseTermIdSet.add(rr.get(0));
+		}
+	}
 
 }
