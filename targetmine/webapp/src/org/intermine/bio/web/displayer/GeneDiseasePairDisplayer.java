@@ -74,6 +74,13 @@ public class GeneDiseasePairDisplayer extends ReportDisplayer {
 					entryInfo.put("clinvarColumn", StringUtils.join(list, ", "));
 				}
 				
+				if (StringUtils.isEmpty(entryInfo.get("gwasColumn"))
+						&& StringUtils.isEmpty(entryInfo.get("clinvarColumn"))) {
+					entryInfo.put("diseaseMeshColumn", "O");
+				} else {
+					entryInfo.put("diseaseMeshColumn", "-");
+				}
+				
 				Set<InterMineObject> publications = (Set<InterMineObject>) gdItem.getFieldValue("publications");
 				if (publications != null) {
 					entryInfo.put("pubCountColumn", String.valueOf(publications.size()));

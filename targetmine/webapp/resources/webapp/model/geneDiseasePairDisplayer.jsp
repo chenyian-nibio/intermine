@@ -17,9 +17,10 @@
 		<table>
 		<thead>
 			<tr>
-				<th style="min-width: 400px;">Disease</th>
-				<th style="max-width: 300px;">Clinical significant <br/> (ClinVar)</th>
-				<th style="max-width: 300px;">p-value <br/> (GWAS catalog)</th>
+				<th style="min-width: 390px;">Disease</th>
+				<th style="max-width: 290px;">Clinical significant <br/> (ClinVar)</th>
+				<th style="max-width: 290px;">p-value <br/> (GWAS catalog)</th>
+				<th style="max-width: 30px;">Disease <br/> MeSH</th>
 				<th>Number of <br/>publications</th>
 				<th>Number of <br/>SNPs</th>
 			</tr>
@@ -28,8 +29,9 @@
 		<c:forEach var="entryInfo" items="${geneticDiseaseList}">
 	    	<tr>
 	    		<td>${entryInfo['diseaseColumn']}</td>
-	    		<td style="max-width: 300px;">${entryInfo['clinvarColumn']}</td>
-	    		<td style="max-width: 300px;">${entryInfo['gwasColumn']}</td>
+	    		<td style="max-width: 290px;">${entryInfo['clinvarColumn']}</td>
+	    		<td style="max-width: 290px;">${entryInfo['gwasColumn']}</td>
+	    		<td style="max-width: 30px;">${entryInfo['diseaseMeshColumn']}</td>
 	    		<td>${entryInfo['pubCountColumn']}</td>
 	    		<td>${entryInfo['snpCountColumn']}</td>
 	    	</tr>
