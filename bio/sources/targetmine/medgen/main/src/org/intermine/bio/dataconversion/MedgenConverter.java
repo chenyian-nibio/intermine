@@ -70,7 +70,10 @@ public class MedgenConverter extends BioFileConverter {
 		if (diseaseTermIdSet.isEmpty()) {
 			getDiseaseTermIds();
 		}
-		if (pubmedIdMap.isEmpty()) {
+		// if the property pubmedFile is not set, we will not read the pubmed mapping
+		// remove the pubmedFile property to skip loading the publication associations.
+		// so far it dramatically slows down the whole database integration (chenyian, 2018.8.24)
+		if (pubmedFile != null && pubmedIdMap.isEmpty()) {
 			readPubmedFile();
 		}
 		if (definitionMap.isEmpty()) {

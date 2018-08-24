@@ -199,7 +199,7 @@
     <source name="medgen" type="medgen">
       <property name="src.data.dir" location="/data/bio/db/Targetmine/medgen"/>
       <property name="src.data.dir.includes" value="NAMES.csv"/>
-      <property name="pubmedFile" value="/data/bio/db/Targetmine/medgen/medgen_pubmed_lnk.txt" />
+      <!--  property name="pubmedFile" value="/data/bio/db/Targetmine/medgen/medgen_pubmed_lnk.txt" /  -->
       <property name="definitionFile" value="/data/bio/db/Targetmine/medgen/MGDEF.csv" />
       <property name="osAlias" value="os.production"/>
     </source>
