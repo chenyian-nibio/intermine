@@ -33,6 +33,7 @@
 	</class>
 
 	<class name="ChemblCompound" extends="Compound" is-interface="true">
+		<attribute name="maxPhase" type="java.lang.Integer"/>
 		<collection name="drugTypes" referenced-type="DrugType"/>
 	</class>
 

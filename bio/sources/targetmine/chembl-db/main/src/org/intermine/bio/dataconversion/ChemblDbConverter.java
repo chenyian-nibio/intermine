@@ -100,7 +100,8 @@ public class ChemblDbConverter extends BioDBConverter {
 		}
 		
 		// create chembl compound entries for all compound
-		String queryMolecule = " select md.molregno, md.pref_name, md.chembl_id, md.molecule_type, cs.standard_inchi_key, cs.standard_inchi, canonical_smiles "
+		String queryMolecule = " select md.molregno, md.pref_name, md.chembl_id, md.molecule_type, "
+				+ " md.max_phase, cs.standard_inchi_key, cs.standard_inchi, canonical_smiles "
 				+ " from molecule_dictionary as md "
 				+ " left join compound_structures as cs on cs.molregno=md.molregno ";
 		ResultSet resMolecule = stmt.executeQuery(queryMolecule);
@@ -112,6 +113,7 @@ public class ChemblDbConverter extends BioDBConverter {
 			String inchi = String.valueOf(resMolecule.getString("standard_inchi"));
 			String smiles = String.valueOf(resMolecule.getString("canonical_smiles"));
 			String moleculeType = resMolecule.getString("molecule_type");
+			int maxPhase = resMolecule.getInt("max_phase");
 			
 			Map<String,String> structureMap = new HashMap<String, String>();
 			if (inchi != null && !"".equals(inchi) && !"null".equals(inchi)) {
@@ -142,6 +144,7 @@ public class ChemblDbConverter extends BioDBConverter {
 //					synonymMap.get(molId).add(name);
 				}
 				compound.setAttribute("name", name);
+				compound.setAttribute("maxPhase", String.valueOf(maxPhase));
 
 //				String drugType = drugTypeTranslateMap.get(moleculeType);
 //				if (!StringUtils.isEmpty(drugType)) {
