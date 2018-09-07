@@ -1000,8 +1000,8 @@
                      replacesFields="parent, alternateForms" 
                      types="ChemblCompound"/>
                      
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneDiseasePairDisplayer"
-                     jspName="model/geneDiseasePairDisplayer.jsp"
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.AltGeneDiseasePairDisplayer"
+                     jspName="model/altGeneDiseasePairDisplayer.jsp"
                      replacesFields="diseases, geneDiseasePairs" 
                      placement="Disease"
                      types="Gene"/>
