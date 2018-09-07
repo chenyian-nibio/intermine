@@ -91,38 +91,74 @@ public class TmClinvarConverter extends BioFileConverter {
 		processAlleleGeneFile();
 		processVariationCitationsFile();
 		processSubmissionSummaryFile();
+		
+		Set<String> processedAllele = new HashSet<String>();
 
 		try {
 			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
 			while (iterator.hasNext()) {
 				String[] cols = iterator.next();
-				if (!cols[9].equals("-1") && cols[16].equals("GRCh38")) {
-					Item allele = createItem("Allele");
-					allele.setAttribute("identifier", cols[0]);
-					allele.setAttribute("type", cols[1]);
-					String name = cols[2];
-					if (StringUtils.isEmpty(name)) {
-						name = "NA";
-					}
-					allele.setAttribute("name", name);
-					allele.setAttribute("clinicalSignificance", cols[6]);
-					allele.setAttribute("reviewStatus", cols[24]);
-
+				String alleleId = cols[0];
+				
+				if (processedAllele.contains(alleleId)) {
+					continue;
+				}
+				
+				Item allele = createItem("Allele");
+				allele.setAttribute("identifier", alleleId);
+				allele.setAttribute("type", cols[1]);
+				String name = cols[2];
+				if (StringUtils.isEmpty(name)) {
+					name = "NA";
+				}
+				allele.setAttribute("name", name);
+				allele.setAttribute("clinicalSignificance", cols[6]);
+				allele.setAttribute("reviewStatus", cols[24]);
+				
+				if (!cols[9].equals("-1")) {
 					String snp = getSnp("rs" + cols[9]);
 					allele.addToCollection("snps", snp);
-					Set<String> variations = allelVariationMap.get(cols[0]);
-					if (variations != null) {
-						for (String varId : variations) {
-							String refId = variationMap.get(varId);
-							if (refId != null) {
-								allele.addToCollection("variations", refId);
+				} else if (!cols[3].equals("-1") && cols[10].equals("-")) {
+					String chr = null;
+					String location = null;
+					if (cols[16].equals("GRCh38") && !cols[18].equals("na")) {
+						chr = cols[18];
+						if (!cols[19].equals("-1") && !cols[20].equals("-1")) {
+							if (cols[19].equals(cols[20])) {
+								location = String.format("%s:%s", chr, cols[19]);
+							} else {
+								location = String.format("%s:%s..%s", chr, cols[19], cols[20]);
 							}
 						}
 					}
-					allele.setReference("organism", getOrganism(HUMAN_TAXON_ID));
-
-					store(allele);
+					String refSnpAllele = null;
+					if (!cols[21].equals("-") && !cols[22].equals("-")) {
+						refSnpAllele = String.format("%s/%s", cols[21], cols[22]);
+						if (refSnpAllele.equals("na/na")) {
+							refSnpAllele = null;
+						}
+					}
+					
+					String snp = getMockSnp(alleleId, cols[3], chr, location, refSnpAllele);
+					allele.addToCollection("snps", snp);
+				} else {
+					continue;
 				}
+				
+				Set<String> variations = alleleVariationMap.get(alleleId);
+				if (variations != null) {
+					for (String varId : variations) {
+						String refId = variationMap.get(varId);
+						if (refId != null) {
+							allele.addToCollection("variations", refId);
+						}
+					}
+				}
+				allele.setReference("organism", getOrganism(HUMAN_TAXON_ID));
+				
+				store(allele);
+				
+				processedAllele.add(alleleId);
 			}
 			reader.close();
 
@@ -264,7 +300,7 @@ public class TmClinvarConverter extends BioFileConverter {
 	}
 
 	Map<String, String> variationTypeMap = new HashMap<String, String>();
-	Map<String, Set<String>> allelVariationMap = new HashMap<String, Set<String>>();
+	Map<String, Set<String>> alleleVariationMap = new HashMap<String, Set<String>>();
 
 	private void processVariationAlleleFile() {
 		LOG.info("Parsing the file variation_allele.txt......");
@@ -276,10 +312,10 @@ public class TmClinvarConverter extends BioFileConverter {
 			while (iterator.hasNext()) {
 				String[] cols = iterator.next();
 				variationTypeMap.put(cols[0], cols[1]);
-				if (allelVariationMap.get(cols[2]) == null) {
-					allelVariationMap.put(cols[2], new HashSet<String>());
+				if (alleleVariationMap.get(cols[2]) == null) {
+					alleleVariationMap.put(cols[2], new HashSet<String>());
 				}
-				allelVariationMap.get(cols[2]).add(cols[0]);
+				alleleVariationMap.get(cols[2]).add(cols[0]);
 			}
 			reader.close();
 
@@ -359,6 +395,48 @@ public class TmClinvarConverter extends BioFileConverter {
 			store(item);
 			ret = item.getIdentifier();
 			snpMap.put(identifier, ret);
+		}
+		return ret;
+	}
+
+	private String getMockSnp(String alleleId, String geneId, String chromosome, String location,
+			String refSnpAllele) throws ObjectStoreException {
+		String ret = snpMap.get("cv-" + alleleId);
+		if (ret == null) {
+			Item snpItem = createItem("SNP");
+			snpItem.setAttribute("identifier", alleleId);
+			if (chromosome != null) {
+				snpItem.setAttribute("chromosome", chromosome);
+				if (location != null) {
+					snpItem.setAttribute("location", location);
+				}
+			}
+			if (refSnpAllele != null) {
+				snpItem.setAttribute("refSnpAllele", refSnpAllele);
+			}
+			store(snpItem);
+			
+			Item vaItem = createItem("VariationAnnotation");
+			vaItem.setAttribute("identifier", alleleId + "-" + geneId);
+			vaItem.setReference("snp", snpItem);
+			vaItem.setReference("gene", getGene(geneId));
+			store(vaItem);
+			
+			ret = snpItem.getIdentifier();
+			snpMap.put("cv-" + alleleId, ret);
+		}
+		return ret;
+	}
+	
+	private Map<String, String> geneMap = new HashMap<String, String>();
+	private String getGene(String geneId) throws ObjectStoreException {
+		String ret = geneMap.get(geneId);
+		if (ret == null) {
+			Item item = createItem("Gene");
+			item.setAttribute("primaryIdentifier", geneId);
+			store(item);
+			ret = item.getIdentifier();
+			geneMap.put(geneId, ret);
 		}
 		return ret;
 	}
