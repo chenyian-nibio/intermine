@@ -16,13 +16,17 @@
 		<attribute name="identifier" type="java.lang.String"/>
 		<attribute name="originalId" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
+		<attribute name="assayType" type="java.lang.String"/>
+		<attribute name="confidenceScore" type="java.lang.Integer"/>
 		<attribute name="source" type="java.lang.String"/>
 		<collection name="publications" referenced-type="Publication"/>
 		<collection name="activities" referenced-type="Activity" reverse-reference="assay"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
 
-	<class name="ChemblInteraction" extends="CompoundProteinInteraction" is-interface="true"/>
+	<class name="ChemblInteraction" extends="CompoundProteinInteraction" is-interface="true">
+		<attribute name="weakInteraction" type="java.lang.Boolean" />
+	</class>
 
 	<class name="Protein" is-interface="true">
 		<collection name="compounds" referenced-type="CompoundProteinInteraction" reverse-reference="protein"/>

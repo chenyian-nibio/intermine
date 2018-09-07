@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <classes>
 	<class name="CompoundProteinInteraction" is-interface="true">
-		<attribute name="actionLabel" type="java.lang.String"/>
 		<reference name="protein" referenced-type="Protein" reverse-reference="compounds"/>
 		<reference name="compound" referenced-type="Compound" reverse-reference="targetProteins"/>
 		<reference name="dataSet" referenced-type="DataSet"/>
 	</class>
 	<class name="DrugBankInteraction" extends="CompoundProteinInteraction" is-interface="true">
+		<attribute name="actionLabel" type="java.lang.String"/>
 		<attribute name="proteinType" type="java.lang.String"/>
 		<collection name="actions" referenced-type="DrugAction"/>
 		<collection name="publications" referenced-type="Publication"/>

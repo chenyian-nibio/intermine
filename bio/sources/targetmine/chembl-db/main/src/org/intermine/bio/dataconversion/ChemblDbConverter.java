@@ -198,21 +198,55 @@ public class ChemblDbConverter extends BioDBConverter {
 			}
 		}
 		LOG.info(c + "ChEMBL compounds were stored.");
+		
+		// query for assay type description
+		String queryAssayType = " select assay_type, assay_desc from assay_type ";
+		ResultSet resAssayType = stmt.executeQuery(queryAssayType);
+		Map<String,String> assayTypeMap = new HashMap<String, String>();
+		while (resAssayType.next()) {
+			String type = resAssayType.getString("assay_type");
+			String desc = resAssayType.getString("assay_desc");
+			assayTypeMap.put(type, desc);
+		}
 
-		// query for interactions
+		// query high affinity interactions
+		String queryHFInteraction = " select distinct md.chembl_id, cseq.accession "
+				+ " from activities as act "
+				+ " join molecule_dictionary as md on md.molregno=act.molregno "
+				+ " join assays as ass on ass.assay_id=act.assay_id "
+				+ " join target_dictionary as td on td.tid=ass.tid "
+				+ " join target_components as tc on tc.tid=ass.tid "
+				+ " join component_sequences as cseq on cseq.component_id=tc.component_id "
+				+ " where ass.confidence_score >= 4 " + " and ass.assay_type = 'B' "
+				+ " and td.target_type = 'SINGLE PROTEIN' "
+				+ " and act.standard_type in ('IC50','Kd','Ki','EC50','AC50') "
+				+ " and act.standard_value <= 10000 " + " and act.standard_relation = '=' "
+				+ " and act.standard_units = 'nM' ";
+		
+		ResultSet resHFInteraction = stmt.executeQuery(queryHFInteraction);
+		Set<String> highAffinitySet = new HashSet<String>();
+		while (resHFInteraction.next()) {
+			String chemblId = resHFInteraction.getString("chembl_id");
+			String uniprotId = resHFInteraction.getString("accession");
+			String intId = uniprotId + "-" + chemblId;
+			highAffinitySet.add(intId);
+		}
+
+		// query all interactions with activities 
 		String queryInteraction = " select distinct md.chembl_id, "
 				+ " act.standard_type, act.standard_value, cseq.accession, cseq.tax_id, docs.pubmed_id, "
-				+ " ass.chembl_id as assay_id, ass.description " + " from activities as act "
+				+ " ass.chembl_id as assay_id, ass.description, ass.assay_type, ass.confidence_score " 
+				+ " from activities as act "
 				+ " join molecule_dictionary as md on md.molregno=act.molregno "
 				+ " join assays as ass on ass.assay_id=act.assay_id "
 				+ " join target_dictionary as td on td.tid=ass.tid "
 				+ " join target_components as tc on tc.tid=ass.tid "
 				+ " join component_sequences as cseq on cseq.component_id=tc.component_id "
 				+ " join docs on docs.doc_id=ass.doc_id "
-				+ " where ass.confidence_score >= 4 " + " and ass.assay_type = 'B' "
+				+ " where ass.confidence_score >= 4 "
 				+ " and td.target_type = 'SINGLE PROTEIN' "
 				+ " and act.standard_type in ('IC50','Kd','Ki','EC50','AC50') "
-				+ " and act.standard_value <= 10000 " + " and act.standard_relation = '=' "
+				+ " and act.standard_relation = '=' "
 				+ " and act.standard_units = 'nM' ";
 		ResultSet resInteraction = stmt.executeQuery(queryInteraction);
 		int i = 0;
@@ -224,6 +258,8 @@ public class ChemblDbConverter extends BioDBConverter {
 			float conc = resInteraction.getFloat("standard_value");
 			String assayId = resInteraction.getString("assay_id");
 			String assayDesc = resInteraction.getString("description");
+			String assayType = assayTypeMap.get(resInteraction.getString("assay_type"));
+			int confidenceScore = resInteraction.getInt("confidence_score");
 
 			String intId = uniprotId + "-" + chemblId;
 			String interactionRef = interactionMap.get(intId);
@@ -237,13 +273,19 @@ public class ChemblDbConverter extends BioDBConverter {
 				Item interactionItem = createItem("ChemblInteraction");
 				interactionItem.setReference("protein", getProtein(uniprotId));
 				interactionItem.setReference("compound", compoundRef);
+				String weakTag = "TRUE";
+				if (highAffinitySet.contains(intId)) {
+					weakTag = "FALSE";
+				}
+				interactionItem.setAttribute("weakInteraction", weakTag);
 
 				store(interactionItem);
 				interactionRef = interactionItem.getIdentifier();
 				interactionMap.put(intId, interactionRef);
 				i++;
 			}
-			String assayRef = getCompoundProteinInteractionAssay(assayId, assayDesc, pubmedId);
+			String assayRef = getCompoundProteinInteractionAssay(assayId, assayDesc, assayType,
+					Integer.valueOf(confidenceScore), pubmedId);
 
 			Item activity = createItem("Activity");
 			activity.setAttribute("type", standardType);
@@ -261,14 +303,16 @@ public class ChemblDbConverter extends BioDBConverter {
 
 	Map<String, String> assayMap = new HashMap<String, String>();
 
-	private String getCompoundProteinInteractionAssay(String identifier, String name, String pubmedId)
-			throws ObjectStoreException {
+	private String getCompoundProteinInteractionAssay(String identifier, String name,
+			String assayType, Integer confidenceScore, String pubmedId) throws ObjectStoreException {
 		String ret = assayMap.get(identifier);
 		if (ret == null) {
 			Item item = createItem("CompoundProteinInteractionAssay");
 			item.setAttribute("identifier", identifier.toLowerCase());
 			item.setAttribute("originalId", identifier);
 			item.setAttribute("name", name);
+			item.setAttribute("assayType", assayType);
+			item.setAttribute("confidenceScore", confidenceScore.toString());
 			item.setAttribute("source", "ChEMBL");
 			// don't create publication which id equals to '0' 
 			if (!pubmedId.equals("0")) {
