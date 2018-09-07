@@ -10,7 +10,7 @@
 		<reference name="taxonomy" referenced-type="Taxonomy" />
 	</class>
 	<class name="Taxonomy" is-interface="true">
-		<attribute name="taxonId" type="java.lang.String"/>
+		<attribute name="taxonId" type="java.lang.Integer"/>
 	</class>
 
 </classes>

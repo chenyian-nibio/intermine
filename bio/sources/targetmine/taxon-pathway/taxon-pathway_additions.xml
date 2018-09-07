@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <classes>
 	<class name="Taxonomy" is-interface="true">
-		<attribute name="taxonId" type="java.lang.String"/>
+		<attribute name="taxonId" type="java.lang.Integer"/>
 		<collection name="pathways" referenced-type="Pathway" reverse-reference="taxonomys"/>
 	</class>
 	<class name="Pathway" is-interface="true" >

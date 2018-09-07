@@ -281,6 +281,7 @@ public class KeggCompoundConverter extends BioFileConverter
 			String subClass = subClassMap.get(key);
 			pathway.setAttribute("label2", subClass);
 			pathway.setAttribute("label1", mainClassMap.get(subClass));
+			pathway.setReference("organism", getOrganism("0"));
 			
 			String desc = pathwayDescMap.get(pathwayId);
 			if (desc != null) {

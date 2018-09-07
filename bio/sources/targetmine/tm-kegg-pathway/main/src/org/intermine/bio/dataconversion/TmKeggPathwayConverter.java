@@ -46,7 +46,6 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 
 	private File pathwayClassFile;
 	private File pathwayDescFile;
-//	private boolean readClass;
 
 	public void setPathwayClassFile(File pathwayClassFile) {
 		this.pathwayClassFile = pathwayClassFile;
@@ -92,7 +91,6 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 				}
 			}
 			reader.close();
-//			readClass = true;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -216,10 +214,6 @@ public class TmKeggPathwayConverter extends BioFileConverter {
 			
 		}
 	}
-
-//	@Override
-//	public void close() throws Exception {
-//	}
 
 	private String getPathway(String pathwayId, String organism) throws ObjectStoreException {
 		String fullId = organism + pathwayId;

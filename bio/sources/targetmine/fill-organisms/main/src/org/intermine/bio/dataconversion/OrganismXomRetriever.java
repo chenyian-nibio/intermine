@@ -171,6 +171,12 @@ public class OrganismXomRetriever {
 					identifiers.clear();
 				}
 			}
+			
+			// add a generic organism 
+			Item item = itemFactory.makeItemForClass("Organism");
+			item.setAttribute("taxonId", "0");
+			item.setAttribute("name", "not specified");
+			writer.write(FullRenderer.render(item));
 
 			writer.write(FullRenderer.getFooter() + "\n");
 
