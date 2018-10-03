@@ -636,6 +636,8 @@
       <fieldconfig fieldExpr="miRNA.secondaryIdentifier"/>
       <fieldconfig fieldExpr="targetGene.symbol"/>
       <fieldconfig fieldExpr="targetGene.organism.name"/>
+      <fieldconfig fieldExpr="targetGene.organism.name"/>
+      <fieldconfig fieldExpr="supportType"/>
     </fields>
   </class>
   <class className="org.intermine.model.bio.MiRNAEvidence">
@@ -1005,6 +1007,11 @@
                      replacesFields="diseases, geneDiseasePairs" 
                      placement="Disease"
                      types="Gene"/>
+
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.PublicationAbstractDisplayer"
+                     jspName="model/publicationAbstractDisplayer.jsp"
+                     replacesFields="" 
+                     types="Publication"/>
 
   </reportdisplayers>
 
