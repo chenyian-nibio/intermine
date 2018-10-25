@@ -723,7 +723,7 @@
   <class className="org.intermine.model.bio.Allele">
     <fields>
       <fieldconfig fieldExpr="identifier"/>
-      <fieldconfig fieldExpr="type"/>
+      <fieldconfig fieldExpr="variantType"/>
       <fieldconfig fieldExpr="name"/>
       <fieldconfig fieldExpr="clinicalSignificance"/>
       <fieldconfig fieldExpr="reviewStatus"/>

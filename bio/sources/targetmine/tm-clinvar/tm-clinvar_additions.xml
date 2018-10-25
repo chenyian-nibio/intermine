@@ -3,11 +3,12 @@
 <classes>
 	<class name="Allele" is-interface="true" extends="BioEntity">
 		<attribute name="identifier" type="java.lang.String"/>
-		<attribute name="type" type="java.lang.String"/>
+		<attribute name="variantType" type="java.lang.String"/>
 		<attribute name="name" type="java.lang.String"/>
 		<attribute name="clinicalSignificance" type="java.lang.String"/>
 		<attribute name="reviewStatus" type="java.lang.String"/>
-		<collection name="snps" referenced-type="SNP" reverse-reference="alleles"/>
+		<reference name="snp" referenced-type="SNP" reverse-reference="alleles"/>
+		<reference name="gene" referenced-type="Gene" reverse-reference="alleles"/>
 		<collection name="variations" referenced-type="Variation" reverse-reference="alleles"/>
 	</class>
 	<class name="Variation" is-interface="true">
@@ -37,7 +38,7 @@
 	</class>
 	<class name="SNP" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>
-		<collection name="alleles" referenced-type="Allele" reverse-reference="snps"/>
+		<collection name="alleles" referenced-type="Allele" reverse-reference="snp"/>
 		<collection name="dataSets" referenced-type="DataSet"/>
 	</class>
 	<class name="DiseaseTerm" extends="OntologyTerm" is-interface="true" />

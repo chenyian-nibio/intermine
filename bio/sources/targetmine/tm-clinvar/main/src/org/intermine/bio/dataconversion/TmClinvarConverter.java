@@ -34,7 +34,6 @@ public class TmClinvarConverter extends BioFileConverter {
 	private File submissionSummaryFile;
 	private File variationCitationsFile;
 	private File variationAlleleFile;
-	private File crossReferencesFile;
 	private File alleleGeneFile;
 	private File variationNameFile;
 	private File clinicalAssertionPubmedFile;
@@ -49,10 +48,6 @@ public class TmClinvarConverter extends BioFileConverter {
 
 	public void setVariationAlleleFile(File variationAlleleFile) {
 		this.variationAlleleFile = variationAlleleFile;
-	}
-
-	public void setCrossReferencesFile(File crossReferencesFile) {
-		this.crossReferencesFile = crossReferencesFile;
 	}
 
 	public void setAlleleGeneFile(File alleleGeneFile) {
@@ -106,7 +101,7 @@ public class TmClinvarConverter extends BioFileConverter {
 				
 				Item allele = createItem("Allele");
 				allele.setAttribute("identifier", alleleId);
-				allele.setAttribute("type", cols[1]);
+				allele.setAttribute("variantType", cols[1]);
 				String name = cols[2];
 				if (StringUtils.isEmpty(name)) {
 					name = "NA";
@@ -115,9 +110,12 @@ public class TmClinvarConverter extends BioFileConverter {
 				allele.setAttribute("clinicalSignificance", cols[6]);
 				allele.setAttribute("reviewStatus", cols[24]);
 				
+				if (!cols[3].equals("-1")) {
+					allele.setReference("gene", getGene(cols[3]));
+				}
 				if (!cols[9].equals("-1")) {
-					String snp = getSnp("rs" + cols[9]);
-					allele.addToCollection("snps", snp);
+					String snpRefId = getSnp("rs" + cols[9]);
+					allele.setReference("snp", snpRefId);
 				} else if (!cols[3].equals("-1") && cols[10].equals("-")) {
 					String chr = null;
 					String location = null;
@@ -139,8 +137,8 @@ public class TmClinvarConverter extends BioFileConverter {
 						}
 					}
 					
-					String snp = getMockSnp(alleleId, cols[3], chr, location, refSnpAllele);
-					allele.addToCollection("snps", snp);
+					String snpRefId = getMockSnp(alleleId, cols[3], chr, location, refSnpAllele);
+					allele.setReference("snp", snpRefId);
 				} else {
 					continue;
 				}
@@ -322,30 +320,6 @@ public class TmClinvarConverter extends BioFileConverter {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			throw new RuntimeException("The file 'variation_allele.txt' not found.");
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	@SuppressWarnings("unused")
-	private void processCrossReferencesFile() {
-		// TODO insufficient SNP information, skip these contents at the moment (chenyian, 2018.2.7)
-		LOG.info("Parsing the file cross_references.txt......");
-		System.out.println("Parsing the file cross_references.txt......");
-
-		try {
-			FileReader reader = new FileReader(crossReferencesFile);
-			Iterator<String[]> iterator = FormattedTextParser.parseTabDelimitedReader(reader);
-			while (iterator.hasNext()) {
-				String[] cols = iterator.next();
-			}
-			reader.close();
-
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			throw new RuntimeException("The file 'cross_references.txt' not found.");
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
