@@ -7,16 +7,14 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
-import nu.xom.Builder;
-import nu.xom.Document;
-import nu.xom.Element;
-import nu.xom.Elements;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -38,6 +36,11 @@ import org.intermine.xml.full.ItemFactory;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+import nu.xom.Builder;
+import nu.xom.Document;
+import nu.xom.Element;
+import nu.xom.Elements;
+
 /**
  * 
  * @author chenyian
@@ -52,6 +55,8 @@ public class MissingPublicationXomRetriever {
 	private static final int BATCH_SIZE = 400;
 	private String osAlias = null;
 	private String outputFile = null;
+
+	private Map<String, String> meshTermMap = new HashMap<String, String>();
 
 	public void setOsAlias(String osAlias) {
 		this.osAlias = osAlias;
@@ -144,7 +149,7 @@ public class MissingPublicationXomRetriever {
 						String title = article.getFirstChildElement("ArticleTitle").getValue();
 						if (title == null || "".equals(title)) {
 							// some rare cases, the title is empty...
-							title = "not available";
+							title = "(not available)";
 						}
 						publication.setAttribute("title", title);
 
@@ -225,10 +230,140 @@ public class MissingPublicationXomRetriever {
 						if (journalAbbr != null) {
 							publication.setAttribute("journal", journalAbbr.getValue());
 						}
+						
+						if (article.getFirstChildElement("PublicationTypeList") != null) {
+							Elements publicationTypes = article.getFirstChildElement("PublicationTypeList")
+									.getChildElements("PublicationType");
+							for (int l = 0; l < publicationTypes.size(); l++) {
+								Element pt = publicationTypes.get(l);
+								String meshId = pt.getAttributeValue("UI");
+								if (!StringUtils.isEmpty(meshId)) {
+									String ref = meshTermMap.get(meshId);
+									if (ref == null) {
+										Item item = itemFactory.makeItemForClass("MeshTerm");
+										item.setAttribute("identifier", meshId);
+										writer.write(FullRenderer.render(item));
+										
+										ref = item.getIdentifier();
+										meshTermMap.put(meshId, ref);
+									}
+									publication.addToCollection("publicationTypes", ref);
+								}
+							}
+						}
+						
+						List<String> sList = new ArrayList<String>();
+						if (article.getFirstChildElement("Abstract") != null) {
+							Elements absTexts = article.getFirstChildElement("Abstract")
+									.getChildElements("AbstractText");
+							for (int l = 0; l < absTexts.size(); l++) {
+								String label = absTexts.get(l).getAttributeValue("Label");
+								if (!StringUtils.isEmpty(label)) {
+									sList.add(label + ":");
+								}
+								sList.add(absTexts.get(l).getValue());
+							}
+						}
+						String abstractText = "(not available)";
+						if (sList.size() != 0) {
+							abstractText = StringUtils.join(sList, " ");
+						}
+						publication.setAttribute("abstractText", abstractText);
+
+
 						writer.write(FullRenderer.render(publication));
 						i++;
 					}
 
+					// Book articles
+					Elements pubmedBookArticles = entry.getChildElements("PubmedBookArticle");
+					for (int k = 0; k < pubmedBookArticles.size(); k++) {
+						Element element = pubmedBookArticles.get(k);
+						Element bookDoc = element.getFirstChildElement("BookDocument");
+						String pubMedId = bookDoc.getFirstChildElement("PMID").getValue();
+						
+						if (!pubMedIds.contains(pubMedId)) {
+							continue;
+						}
+						
+						Item publication = itemFactory.makeItemForClass("Publication");
+						publication.setAttribute("pubMedId", pubMedId);
+						
+						Element book = bookDoc.getFirstChildElement("Book");
+						
+						String title = book.getFirstChildElement("BookTitle").getValue();
+						if (title == null || title.equals("")) {
+							title = "(not available)";
+						}
+						publication.setAttribute("title", title);
+						
+						if (book.getFirstChildElement("AuthorList") != null) {
+							Element firstAuthor = book.getFirstChildElement("AuthorList")
+									.getFirstChildElement("Author");
+							if (firstAuthor.getFirstChildElement("CollectiveName") != null) {
+								publication.setAttribute("firstAuthor", firstAuthor
+										.getFirstChildElement("CollectiveName").getValue());
+							} else {
+								// according to the DTD, this is a must have field, should not
+								// be null
+								String last = firstAuthor.getFirstChildElement("LastName")
+										.getValue();
+								if (firstAuthor.getFirstChildElement("Initials") != null) {
+									publication.setAttribute("firstAuthor",
+											last + " "
+													+ firstAuthor
+													.getFirstChildElement("Initials")
+													.getValue());
+								} else {
+									publication.setAttribute("firstAuthor", last);
+								}
+							}
+						}
+						
+						Element pubDate = book.getFirstChildElement("PubDate");
+						if (pubDate.getFirstChildElement("Year") != null) {
+							publication.setAttribute("year",
+									pubDate.getFirstChildElement("Year").getValue());
+						}
+						
+						publication.setAttribute("journal", "Book");
+						
+						Element publicationType = bookDoc.getFirstChildElement("PublicationType");
+						String meshId = publicationType.getAttributeValue("UI");
+						if (!StringUtils.isEmpty(meshId)) {
+							String ref = meshTermMap.get(meshId);
+							if (ref == null) {
+								Item item = itemFactory.makeItemForClass("MeshTerm");
+								item.setAttribute("identifier", meshId);
+								writer.write(FullRenderer.render(item));
+								
+								ref = item.getIdentifier();
+								meshTermMap.put(meshId, ref);
+							}
+							publication.addToCollection("publicationTypes", ref);
+						}
+						
+						List<String> sList = new ArrayList<String>();
+						if (bookDoc.getFirstChildElement("Abstract") != null) {
+							Elements absTexts = bookDoc.getFirstChildElement("Abstract")
+									.getChildElements("AbstractText");
+							for (int l = 0; l < absTexts.size(); l++) {
+								String label = absTexts.get(l).getAttributeValue("Label");
+								if (!StringUtils.isEmpty(label)) {
+									sList.add(label + ":");
+								}
+								sList.add(absTexts.get(l).getValue());
+							}
+						}
+						String abstractText = "(not available)";
+						if (sList.size() != 0) {
+							abstractText = StringUtils.join(sList, " ");
+						}
+						publication.setAttribute("abstractText", abstractText);
+						
+						writer.write(FullRenderer.render(publication));
+					}
+					
 					reader.close();
 					identifiers.clear();
 				}

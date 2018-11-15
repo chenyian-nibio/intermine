@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -16,6 +18,7 @@ import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.model.bio.Publication;
 import org.intermine.objectstore.ObjectStore;
+import org.intermine.objectstore.ObjectStoreException;
 import org.intermine.objectstore.ObjectStoreFactory;
 import org.intermine.objectstore.query.Query;
 import org.intermine.objectstore.query.QueryClass;
@@ -191,71 +194,121 @@ public class PublicationEfetchConverter extends BioFileConverter {
 						if (journalAbbr != null) {
 							publication.setAttribute("journal", journalAbbr.getValue());
 						}
+						
+						if (article.getFirstChildElement("PublicationTypeList") != null) {
+							Elements publicationTypes = article.getFirstChildElement("PublicationTypeList")
+									.getChildElements("PublicationType");
+							for (int l = 0; l < publicationTypes.size(); l++) {
+								Element pt = publicationTypes.get(l);
+								String meshId = pt.getAttributeValue("UI");
+								if (!StringUtils.isEmpty(meshId)) {
+									publication.addToCollection("publicationTypes", getMeshTerm(meshId));
+								}
+							}
+						}
+
+						List<String> sList = new ArrayList<String>();
+						if (article.getFirstChildElement("Abstract") != null) {
+							Elements absTexts = article.getFirstChildElement("Abstract")
+									.getChildElements("AbstractText");
+							for (int l = 0; l < absTexts.size(); l++) {
+								String label = absTexts.get(l).getAttributeValue("Label");
+								if (!StringUtils.isEmpty(label)) {
+									sList.add(label + ":");
+								}
+								sList.add(absTexts.get(l).getValue());
+							}
+						}
+						String abstractText = "(not available)";
+						if (sList.size() != 0) {
+							abstractText = StringUtils.join(sList, " ");
+						}
+						publication.setAttribute("abstractText", abstractText);
+						
 						store(publication);
 						processedIds.add(pubMedId);
 						i++;
 					}
 
 					Elements pubmedBookArticles = entry.getChildElements("PubmedBookArticle");
-					try {
-
-						for (int k = 0; k < pubmedBookArticles.size(); k++) {
-							Element element = pubmedBookArticles.get(k);
-							Element bookDoc = element.getFirstChildElement("BookDocument");
-							String pubMedId = bookDoc.getFirstChildElement("PMID").getValue();
-
-							if (!pubMedIds.contains(pubMedId) || processedIds.contains(pubMedId)) {
-								continue;
-							}
-
-							Item publication = createItem("Publication");
-							publication.setAttribute("pubMedId", pubMedId);
-
-							Element book = bookDoc.getFirstChildElement("Book");
-
-							String title = book.getFirstChildElement("BookTitle").getValue();
-							if (title == null || title.equals("")) {
-								title = "(not available)";
-							}
-							publication.setAttribute("title", title);
-
-							if (book.getFirstChildElement("AuthorList") != null) {
-								Element firstAuthor = book.getFirstChildElement("AuthorList")
-										.getFirstChildElement("Author");
-								if (firstAuthor.getFirstChildElement("CollectiveName") != null) {
-									publication.setAttribute("firstAuthor", firstAuthor
-											.getFirstChildElement("CollectiveName").getValue());
+					for (int k = 0; k < pubmedBookArticles.size(); k++) {
+						Element element = pubmedBookArticles.get(k);
+						Element bookDoc = element.getFirstChildElement("BookDocument");
+						String pubMedId = bookDoc.getFirstChildElement("PMID").getValue();
+						
+						if (!pubMedIds.contains(pubMedId) || processedIds.contains(pubMedId)) {
+							continue;
+						}
+						
+						Item publication = createItem("Publication");
+						publication.setAttribute("pubMedId", pubMedId);
+						
+						Element book = bookDoc.getFirstChildElement("Book");
+						
+						String title = book.getFirstChildElement("BookTitle").getValue();
+						if (title == null || title.equals("")) {
+							title = "(not available)";
+						}
+						publication.setAttribute("title", title);
+						
+						if (book.getFirstChildElement("AuthorList") != null) {
+							Element firstAuthor = book.getFirstChildElement("AuthorList")
+									.getFirstChildElement("Author");
+							if (firstAuthor.getFirstChildElement("CollectiveName") != null) {
+								publication.setAttribute("firstAuthor", firstAuthor
+										.getFirstChildElement("CollectiveName").getValue());
+							} else {
+								// according to the DTD, this is a must have field, should not
+								// be null
+								String last = firstAuthor.getFirstChildElement("LastName")
+										.getValue();
+								if (firstAuthor.getFirstChildElement("Initials") != null) {
+									publication.setAttribute("firstAuthor",
+											last + " "
+													+ firstAuthor
+													.getFirstChildElement("Initials")
+													.getValue());
 								} else {
-									// according to the DTD, this is a must have field, should not
-									// be null
-									String last = firstAuthor.getFirstChildElement("LastName")
-											.getValue();
-									if (firstAuthor.getFirstChildElement("Initials") != null) {
-										publication.setAttribute("firstAuthor",
-												last + " "
-														+ firstAuthor
-																.getFirstChildElement("Initials")
-																.getValue());
-									} else {
-										publication.setAttribute("firstAuthor", last);
-									}
+									publication.setAttribute("firstAuthor", last);
 								}
 							}
-
-							Element pubDate = book.getFirstChildElement("PubDate");
-							if (pubDate.getFirstChildElement("Year") != null) {
-								publication.setAttribute("year",
-										pubDate.getFirstChildElement("Year").getValue());
-							}
-
-							publication.setAttribute("journal", "Book");
-							store(publication);
-							processedIds.add(pubMedId);
-							j++;
 						}
-					} catch (Exception e) {
-						LOG.info(string);
-						throw new RuntimeException(e);
+						
+						Element pubDate = book.getFirstChildElement("PubDate");
+						if (pubDate.getFirstChildElement("Year") != null) {
+							publication.setAttribute("year",
+									pubDate.getFirstChildElement("Year").getValue());
+						}
+						
+						publication.setAttribute("journal", "Book");
+						
+						Element publicationType = bookDoc.getFirstChildElement("PublicationType");
+						String meshId = publicationType.getAttributeValue("UI");
+						if (!StringUtils.isEmpty(meshId)) {
+							publication.addToCollection("publicationTypes", getMeshTerm(meshId));
+						}
+						
+						List<String> sList = new ArrayList<String>();
+						if (bookDoc.getFirstChildElement("Abstract") != null) {
+							Elements absTexts = bookDoc.getFirstChildElement("Abstract")
+									.getChildElements("AbstractText");
+							for (int l = 0; l < absTexts.size(); l++) {
+								String label = absTexts.get(l).getAttributeValue("Label");
+								if (!StringUtils.isEmpty(label)) {
+									sList.add(label + ":");
+								}
+								sList.add(absTexts.get(l).getValue());
+							}
+						}
+						String abstractText = "(not available)";
+						if (sList.size() != 0) {
+							abstractText = StringUtils.join(sList, " ");
+						}
+						publication.setAttribute("abstractText", abstractText);
+						
+						store(publication);
+						processedIds.add(pubMedId);
+						j++;
 					}
 
 					stringList.clear();
@@ -299,6 +352,20 @@ public class PublicationEfetchConverter extends BioFileConverter {
 		}
 
 		return pubmedIds;
+	}
+
+	private Map<String, String> meshTermMap = new HashMap<String, String>();
+	
+	private String getMeshTerm(String meshId) throws ObjectStoreException {
+		String ret = meshTermMap.get(meshId);
+		if (ret == null) {
+			Item item = createItem("MeshTerm");
+			item.setAttribute("identifier", meshId);
+			store(item);
+			ret = item.getIdentifier();
+			meshTermMap.put(meshId, ret);
+		}
+		return ret;
 	}
 
 }

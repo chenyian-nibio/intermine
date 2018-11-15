@@ -15,6 +15,7 @@
 		<attribute name="abstractText" type="java.lang.String"/>
 		<collection name="authors" referenced-type="Author" reverse-reference="publications" />
 		<collection name="meshTerms" referenced-type="MeshTerm" reverse-reference="publications" />
+		<collection name="publicationTypes" referenced-type="MeshTerm"/>
 	</class>
 	<class name="MeshTerm" is-interface="true">
 		<attribute name="identifier" type="java.lang.String"/>

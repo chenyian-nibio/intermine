@@ -167,9 +167,10 @@
       <fieldconfig fieldExpr="title"/>
       <fieldconfig fieldExpr="year"/>
       <fieldconfig fieldExpr="journal"/>
-      <fieldconfig fieldExpr="volume"/>
-      <fieldconfig fieldExpr="pages"/>
+      <fieldconfig fieldExpr="volume" showInSummary="false"/>
+      <fieldconfig fieldExpr="pages" showInSummary="false"/>
       <fieldconfig fieldExpr="pubMedId"/>
+      <fieldconfig fieldExpr="abstractText" doNotTruncate="true" showInResults="false" showInInlineCollection="false" showInSummary="false"/>
     </fields>
   </class>
 
@@ -1007,11 +1008,12 @@
                      replacesFields="diseases, geneDiseasePairs" 
                      placement="Disease"
                      types="Gene"/>
-
+<!-- 
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.PublicationAbstractDisplayer"
                      jspName="model/publicationAbstractDisplayer.jsp"
                      replacesFields="" 
                      types="Publication"/>
+ -->
 
   </reportdisplayers>
 
