@@ -42,6 +42,8 @@ import org.intermine.xml.full.Item;
 public class FillProteinsXomConverter extends BioFileConverter {
 
 	private static final Logger LOG = Logger.getLogger(FillProteinsXomConverter.class);
+	
+	private static final String NAMESPACE_URI = "http://uniprot.org/uniprot";
 
 	private static final String DATA_SOURCE_NAME = "UniProt";
 	private static final int POSTGRES_INDEX_SIZE = 2712;
@@ -138,7 +140,7 @@ public class FillProteinsXomConverter extends BioFileConverter {
 					Document doc = parser.build(new ByteArrayInputStream(sb.toString().getBytes()));
 					Element entry = doc.getRootElement();
 
-					Elements accessions = entry.getChildElements("accession");
+					Elements accessions = entry.getChildElements("accession", NAMESPACE_URI);
 					String accession = accessions.get(0).getValue();
 					Set<String> otherAccessions = new HashSet<String>();
 					for (int i = 1; i < accessions.size(); i++) {
@@ -153,11 +155,11 @@ public class FillProteinsXomConverter extends BioFileConverter {
 								getDataSet(entry.getAttributeValue("dataset") + " data set", dataSource));
 						
 						/* primaryAccession, primaryIdentifier, name, etc */
-						String primaryIdentifier = entry.getFirstChildElement("name").getValue();
+						String primaryIdentifier = entry.getFirstChildElement("name", NAMESPACE_URI).getValue();
 						
-						Element proteinElement = entry.getFirstChildElement("protein");
+						Element proteinElement = entry.getFirstChildElement("protein", NAMESPACE_URI);
 						Elements nameElements = proteinElement.getChildElements();
-						String proteinName = nameElements.get(0).getFirstChildElement("fullName").getValue();
+						String proteinName = nameElements.get(0).getFirstChildElement("fullName", NAMESPACE_URI).getValue();
 						protein.setAttribute("name", proteinName);
 						for (int i = 0; i < nameElements.size(); i++) {
 							// these are synonyms; there are two types:
@@ -193,7 +195,7 @@ public class FillProteinsXomConverter extends BioFileConverter {
 						protein.setAttribute("isUniprotCanonical", "true");
 						
 						/* sequence */
-						Element sequence = entry.getFirstChildElement("sequence");
+						Element sequence = entry.getFirstChildElement("sequence", NAMESPACE_URI);
 						protein.setAttribute("isFragment",
 								sequence.getAttributeValue("fragment") == null ? "false" : "true");
 						String length = sequence.getAttributeValue("length");
@@ -204,15 +206,15 @@ public class FillProteinsXomConverter extends BioFileConverter {
 						protein.setReference("sequence", allSequences.get(md5Checksum));
 						protein.setAttribute("md5checksum", md5Checksum);
 						
-						String taxonId = entry.getFirstChildElement("organism")
-								.getFirstChildElement("dbReference").getAttributeValue("id");
+						String taxonId = entry.getFirstChildElement("organism", NAMESPACE_URI)
+								.getFirstChildElement("dbReference", NAMESPACE_URI).getAttributeValue("id");
 						protein.setReference("organism", getOrganism(taxonId));
 						
 						/* publications */
-						Elements publications = entry.getChildElements("reference");
+						Elements publications = entry.getChildElements("reference", NAMESPACE_URI);
 						for (int i = 0; i < publications.size(); i++) {
-							Elements dbRefs = publications.get(i).getFirstChildElement("citation")
-									.getChildElements("dbReference");
+							Elements dbRefs = publications.get(i).getFirstChildElement("citation", NAMESPACE_URI)
+									.getChildElements("dbReference", NAMESPACE_URI);
 							for (int d = 0; d < dbRefs.size(); d++) {
 								if ("PubMed".equals(dbRefs.get(d).getAttributeValue("type"))) {
 									String pubMedId = dbRefs.get(d).getAttributeValue("id");
@@ -222,10 +224,10 @@ public class FillProteinsXomConverter extends BioFileConverter {
 						}
 						
 						/* comments */
-						Elements comments = entry.getChildElements("comment");
+						Elements comments = entry.getChildElements("comment", NAMESPACE_URI);
 						for (int i = 0; i < comments.size(); i++) {
 							Element comment = comments.get(i);
-							Element text = comment.getFirstChildElement("text");
+							Element text = comment.getFirstChildElement("text", NAMESPACE_URI);
 							if (text != null) {
 								String commentText = text.getValue();
 								Item item = createItem("Comment");
@@ -246,7 +248,7 @@ public class FillProteinsXomConverter extends BioFileConverter {
 						}
 						
 						/* keywords */
-						Elements keywordElements = entry.getChildElements("keyword");
+						Elements keywordElements = entry.getChildElements("keyword", NAMESPACE_URI);
 						for (int i = 0; i < keywordElements.size(); i++) {
 							String title = keywordElements.get(i).getValue();
 							String id = keywordElements.get(i).getAttributeValue("id");
@@ -264,7 +266,7 @@ public class FillProteinsXomConverter extends BioFileConverter {
 						
 						/* dbrefs */
 						Set<String> geneIds = new HashSet<String>();
-						Elements dbReferences = entry.getChildElements("dbReference");
+						Elements dbReferences = entry.getChildElements("dbReference", NAMESPACE_URI);
 						for (int i = 0; i < dbReferences.size(); i++) {
 							Element dbRef = dbReferences.get(i);
 							String type = dbRef.getAttributeValue("type");
@@ -272,7 +274,7 @@ public class FillProteinsXomConverter extends BioFileConverter {
 							if (type.equals("GeneID")) {
 								geneIds.add(id);
 							} else if (type.equals("Ensembl")) {
-								Elements properties = dbRef.getChildElements("property");
+								Elements properties = dbRef.getChildElements("property", NAMESPACE_URI);
 								for (int p = 0; p < properties.size(); p++) {
 									if (properties.get(p).getAttributeValue("type")
 											.equals("protein sequence ID")) {
@@ -314,7 +316,7 @@ public class FillProteinsXomConverter extends BioFileConverter {
 						// doneEntries.add(accession);
 						
 						/* features */
-						Elements features = entry.getChildElements("feature");
+						Elements features = entry.getChildElements("feature", NAMESPACE_URI);
 						for (int i = 0; i < features.size(); i++) {
 							Element feature = features.get(i);
 							String type = feature.getAttributeValue("type");
@@ -337,14 +339,14 @@ public class FillProteinsXomConverter extends BioFileConverter {
 							if (!StringUtils.isEmpty(featureDescription)) {
 								featureItem.setAttribute("description", featureDescription);
 							}
-							Element location = feature.getFirstChildElement("location");
-							Element position = location.getFirstChildElement("position");
+							Element location = feature.getFirstChildElement("location", NAMESPACE_URI);
+							Element position = location.getFirstChildElement("position", NAMESPACE_URI);
 							if (position != null) {
 								featureItem.setAttribute("start", position.getAttributeValue("position"));
 								featureItem.setAttribute("end", position.getAttributeValue("position"));
 							} else {
-								Element beginElement = location.getFirstChildElement("begin");
-								Element endElement = location.getFirstChildElement("end");
+								Element beginElement = location.getFirstChildElement("begin", NAMESPACE_URI);
+								Element endElement = location.getFirstChildElement("end", NAMESPACE_URI);
 								if (beginElement != null && endElement != null) {
 									// beware that some entries contain unknow position
 									// e.g. <end status="unknown"/>
@@ -369,12 +371,12 @@ public class FillProteinsXomConverter extends BioFileConverter {
 						doneEntries.add(accession);
 
 						/* components */
-						Elements components = proteinElement.getChildElements("component");
+						Elements components = proteinElement.getChildElements("component", NAMESPACE_URI);
 						for (int i = 0; i < components.size(); i++) {
-							Element ele = components.get(i).getFirstChildElement("recommendedName");
+							Element ele = components.get(i).getFirstChildElement("recommendedName", NAMESPACE_URI);
 							if (ele != null) {
 								Item item = createItem("Component");
-								item.setAttribute("name", ele.getFirstChildElement("fullName")
+								item.setAttribute("name", ele.getFirstChildElement("fullName", NAMESPACE_URI)
 										.getValue());
 								item.setReference("protein", protein);
 								store(item);
@@ -403,55 +405,6 @@ public class FillProteinsXomConverter extends BioFileConverter {
 						// reset
 						synonymsAndXrefs = new HashSet<Item>();
 					}
-//					for (String acc : otherAccessions) {
-//						// these are not uniprot canonical entries
-//						if (proteinAcc.contains(acc)) {
-//							if (doneEntries.contains(acc)) {
-//								// TODO actually the primary accession is different here ...
-//								continue;
-//							}
-//							Item protein = createItem("Protein");
-//							protein.addToCollection("dataSets",
-//									getDataSet(entry.getAttributeValue("dataset") + " data set", dataSource));
-//							// arbitrary pick the first available name
-//							protein.setAttribute("name",
-//									entry.getFirstChildElement("protein").getChildElements().get(0).getFirstChildElement("fullName").getValue());
-//							// show the canonical accession here
-//							protein.setAttribute("uniprotAccession", accession);
-//							protein.setAttribute("primaryAccession", acc);
-//							
-//							String name = entry.getFirstChildElement("name").getValue();
-//							// use acc + species name as primaryIdentifier; should be an unique value?
-//							protein.setAttribute("primaryIdentifier", acc + name.substring(name.indexOf("_")));
-//							// tag as a synonym
-//							protein.setAttribute("uniprotName", "Synonym of " + accession);
-//							
-//							protein.setAttribute("isUniprotCanonical", "false");
-//							
-//							/* sequence */
-//							Element sequence = entry.getFirstChildElement("sequence");
-//							protein.setAttribute("isFragment",
-//									sequence.getAttributeValue("fragment") == null ? "false" : "true");
-//							String length = sequence.getAttributeValue("length");
-//							protein.setAttribute("length", length);
-//							protein.setAttribute("molecularWeight", sequence.getAttributeValue("mass"));
-//							
-//							String md5Checksum = getSequence(sequence.getValue());
-//							protein.setReference("sequence", allSequences.get(md5Checksum));
-//							protein.setAttribute("md5checksum", md5Checksum);
-//							
-//							/* organism */
-//							String taxonId = entry.getFirstChildElement("organism")
-//									.getFirstChildElement("dbReference").getAttributeValue("id");
-//							protein.setReference("organism", getOrganism(taxonId));
-//
-//							store(protein);
-//							doneEntries.add(acc);
-//							
-//							numOfNewEntries++;
-//							LOG.info("Entry " + acc + " created. (non-canonical)");
-//						}
-//					}
 
 				}
 
@@ -504,19 +457,6 @@ public class FillProteinsXomConverter extends BioFileConverter {
 		return md5Checksum;
 	}
 
-//	private String getKeyword(String title) throws ObjectStoreException {
-//		String refId = keywords.get(title);
-//		if (refId == null) {
-//			Item item = createItem("OntologyTerm");
-//			item.setAttribute("name", title);
-//			item.setReference("ontology", ontologies.get("UniProtKeyword"));
-//			refId = item.getIdentifier();
-//			keywords.put(title, refId);
-//			store(item);
-//		}
-//		return refId;
-//	}
-
 	private String getPublication(String pubMedId) throws ObjectStoreException {
 		String refId = publications.get(pubMedId);
 
@@ -530,19 +470,6 @@ public class FillProteinsXomConverter extends BioFileConverter {
 
 		return refId;
 	}
-
-//	private String getEvidence(String attribute) throws ObjectStoreException {
-//		if (attribute.contains("=")) {
-//			String[] bits = attribute.split("=");
-//			if (bits.length == 2) {
-//				String pubMedId = bits[1];
-//				if (StringUtils.isNotEmpty(pubMedId)) {
-//					return getPublication(pubMedId);
-//				}
-//			}
-//		}
-//		return null;
-//	}
 
 	/**
 	 * Retrieve the proteins to be updated

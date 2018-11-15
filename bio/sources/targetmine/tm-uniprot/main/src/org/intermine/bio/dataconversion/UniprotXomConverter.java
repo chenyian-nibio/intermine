@@ -38,6 +38,8 @@ public class UniprotXomConverter extends BioFileConverter {
 
 	private static final Logger LOG = Logger.getLogger(UniprotXomConverter.class);
 
+	private static final String NAMESPACE_URI = "http://uniprot.org/uniprot";
+
 	private static final String DATA_SOURCE_NAME = "UniProt";
 	private static final int POSTGRES_INDEX_SIZE = 2712;
 	private static final String FEATURE_TYPES = "initiator methionine, signal peptide, transit peptide, propeptide, chain, peptide, topological domain, transmembrane region, intramembrane region, domain, repeat, calcium-binding region, zinc finger region, DNA-binding region, nucleotide phosphate-binding region, region of interest, coiled-coil region, short sequence motif, compositionally biased region, active site, metal ion-binding site, binding site, site, non-standard amino acid, modified residue, lipid moiety-binding region, glycosylation site, disulfide bond, cross-link";
@@ -105,7 +107,7 @@ public class UniprotXomConverter extends BioFileConverter {
 					Document doc = parser.build(new ByteArrayInputStream(sb.toString().getBytes()));
 					Element entry = doc.getRootElement();
 
-					Elements accessions = entry.getChildElements("accession");
+					Elements accessions = entry.getChildElements("accession", NAMESPACE_URI);
 					String accession = accessions.get(0).getValue();
 					Set<String> otherAccessions = new HashSet<String>();
 					for (int i = 1; i < accessions.size(); i++) {
@@ -122,11 +124,11 @@ public class UniprotXomConverter extends BioFileConverter {
 										dataSource));
 
 						/* primaryAccession, primaryIdentifier, name, etc */
-						String primaryIdentifier = entry.getFirstChildElement("name").getValue();
+						String primaryIdentifier = entry.getFirstChildElement("name", NAMESPACE_URI).getValue();
 
-						Element proteinElement = entry.getFirstChildElement("protein");
+						Element proteinElement = entry.getFirstChildElement("protein", NAMESPACE_URI);
 						Elements nameElements = proteinElement.getChildElements();
-						String proteinName = nameElements.get(0).getFirstChildElement("fullName")
+						String proteinName = nameElements.get(0).getFirstChildElement("fullName", NAMESPACE_URI)
 								.getValue();
 						protein.setAttribute("name", proteinName);
 						for (int i = 0; i < nameElements.size(); i++) {
@@ -164,7 +166,7 @@ public class UniprotXomConverter extends BioFileConverter {
 						protein.setAttribute("isUniprotCanonical", "true");
 
 						/* sequence */
-						Element sequence = entry.getFirstChildElement("sequence");
+						Element sequence = entry.getFirstChildElement("sequence", NAMESPACE_URI);
 						protein.setAttribute("isFragment",
 								sequence.getAttributeValue("fragment") == null ? "false" : "true");
 						String length = sequence.getAttributeValue("length");
@@ -176,15 +178,15 @@ public class UniprotXomConverter extends BioFileConverter {
 						protein.setReference("sequence", allSequences.get(md5Checksum));
 						protein.setAttribute("md5checksum", md5Checksum);
 
-						String taxonId = entry.getFirstChildElement("organism")
-								.getFirstChildElement("dbReference").getAttributeValue("id");
+						String taxonId = entry.getFirstChildElement("organism", NAMESPACE_URI)
+								.getFirstChildElement("dbReference", NAMESPACE_URI).getAttributeValue("id");
 						protein.setReference("organism", getOrganism(taxonId));
 
 						/* publications */
-						Elements publications = entry.getChildElements("reference");
+						Elements publications = entry.getChildElements("reference", NAMESPACE_URI);
 						for (int i = 0; i < publications.size(); i++) {
-							Elements dbRefs = publications.get(i).getFirstChildElement("citation")
-									.getChildElements("dbReference");
+							Elements dbRefs = publications.get(i).getFirstChildElement("citation", NAMESPACE_URI)
+									.getChildElements("dbReference", NAMESPACE_URI);
 							for (int d = 0; d < dbRefs.size(); d++) {
 								if ("PubMed".equals(dbRefs.get(d).getAttributeValue("type"))) {
 									String pubMedId = dbRefs.get(d).getAttributeValue("id");
@@ -197,16 +199,16 @@ public class UniprotXomConverter extends BioFileConverter {
 						// Extract pubmedId from evidence
 						// Only looking for ECO:0000269, which means 
 						// "manually curated information for which there is published experimental evidence"
-						Elements evidences = entry.getChildElements("evidence");
+						Elements evidences = entry.getChildElements("evidence", NAMESPACE_URI);
 						Map<String,String> evidPubMap = new HashMap<String, String>();
 						for (int i = 0; i < evidences.size(); i++) {
 							Element evidenceEle = evidences.get(i);
 							String key = evidenceEle.getAttributeValue("key");
 							String type = evidenceEle.getAttributeValue("type");
 							if (type.equals("ECO:0000269")) {
-								Element sourceEle = evidenceEle.getFirstChildElement("source");
+								Element sourceEle = evidenceEle.getFirstChildElement("source", NAMESPACE_URI);
 								if (sourceEle != null) {
-									Element dbReferenceEle = sourceEle.getFirstChildElement("dbReference");
+									Element dbReferenceEle = sourceEle.getFirstChildElement("dbReference", NAMESPACE_URI);
 									if (dbReferenceEle != null && "PubMed".equals(dbReferenceEle.getAttributeValue("type"))) {
 										evidPubMap.put(key, dbReferenceEle.getAttributeValue("id"));
 									}
@@ -215,10 +217,10 @@ public class UniprotXomConverter extends BioFileConverter {
 						}
 
 						/* comments */
-						Elements comments = entry.getChildElements("comment");
+						Elements comments = entry.getChildElements("comment", NAMESPACE_URI);
 						for (int i = 0; i < comments.size(); i++) {
 							Element comment = comments.get(i);
-							Element text = comment.getFirstChildElement("text");
+							Element text = comment.getFirstChildElement("text", NAMESPACE_URI);
 							if (text != null) {
 								String commentText = text.getValue();
 								Item item = createItem("Comment");
@@ -248,7 +250,7 @@ public class UniprotXomConverter extends BioFileConverter {
 						}
 
 						/* keywords */
-						Elements keywordElements = entry.getChildElements("keyword");
+						Elements keywordElements = entry.getChildElements("keyword", NAMESPACE_URI);
 						for (int i = 0; i < keywordElements.size(); i++) {
 							String title = keywordElements.get(i).getValue();
 							String id = keywordElements.get(i).getAttributeValue("id");
@@ -267,7 +269,7 @@ public class UniprotXomConverter extends BioFileConverter {
 
 						/* dbrefs */
 						Set<String> geneIds = new HashSet<String>();
-						Elements dbReferences = entry.getChildElements("dbReference");
+						Elements dbReferences = entry.getChildElements("dbReference", NAMESPACE_URI);
 						for (int i = 0; i < dbReferences.size(); i++) {
 							Element dbRef = dbReferences.get(i);
 							String type = dbRef.getAttributeValue("type");
@@ -282,7 +284,7 @@ public class UniprotXomConverter extends BioFileConverter {
 							if (type.equals("GeneID")) {
 								geneIds.add(id);
 							} else if (type.equals("Ensembl")) {
-								Elements properties = dbRef.getChildElements("property");
+								Elements properties = dbRef.getChildElements("property", NAMESPACE_URI);
 								for (int p = 0; p < properties.size(); p++) {
 									if (properties.get(p).getAttributeValue("type")
 											.equals("protein sequence ID")) {
@@ -318,7 +320,7 @@ public class UniprotXomConverter extends BioFileConverter {
 						}
 
 						/* features */
-						Elements features = entry.getChildElements("feature");
+						Elements features = entry.getChildElements("feature", NAMESPACE_URI);
 						Set<String> modificationSet = new HashSet<String>();
 						for (int i = 0; i < features.size(); i++) {
 							Element feature = features.get(i);
@@ -343,16 +345,16 @@ public class UniprotXomConverter extends BioFileConverter {
 							if (!StringUtils.isEmpty(featureDescription)) {
 								featureItem.setAttribute("description", featureDescription);
 							}
-							Element location = feature.getFirstChildElement("location");
-							Element position = location.getFirstChildElement("position");
+							Element location = feature.getFirstChildElement("location", NAMESPACE_URI);
+							Element position = location.getFirstChildElement("position", NAMESPACE_URI);
 							String modiPos = null;
 							if (position != null) {
 								modiPos = position.getAttributeValue("position");
 								featureItem.setAttribute("start", modiPos);
 								featureItem.setAttribute("end", modiPos);
 							} else {
-								Element beginElement = location.getFirstChildElement("begin");
-								Element endElement = location.getFirstChildElement("end");
+								Element beginElement = location.getFirstChildElement("begin", NAMESPACE_URI);
+								Element endElement = location.getFirstChildElement("end", NAMESPACE_URI);
 								if (beginElement != null && endElement != null) {
 									// beware that some entries contain unknown position
 									// e.g. <end status="unknown"/>
@@ -446,12 +448,12 @@ public class UniprotXomConverter extends BioFileConverter {
 						doneEntries.add(accession);
 
 						/* components */
-						Elements components = proteinElement.getChildElements("component");
+						Elements components = proteinElement.getChildElements("component", NAMESPACE_URI);
 						for (int i = 0; i < components.size(); i++) {
-							Element ele = components.get(i).getFirstChildElement("recommendedName");
+							Element ele = components.get(i).getFirstChildElement("recommendedName", NAMESPACE_URI);
 							if (ele != null) {
 								Item item = createItem("Component");
-								item.setAttribute("name", ele.getFirstChildElement("fullName")
+								item.setAttribute("name", ele.getFirstChildElement("fullName", NAMESPACE_URI)
 										.getValue());
 								item.setReference("protein", protein);
 								store(item);
