@@ -930,6 +930,7 @@
                      jspName="model/modificationPspInfoDisplayer.jsp"
                      replacesFields=""
                      types="Modification"/>
+
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.GenericReportDisplayer"
                      jspName="model/relationExtraInfoDisplayer.jsp"
                      replacesFields=""
