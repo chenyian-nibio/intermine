@@ -264,12 +264,15 @@ public class MissingPublicationXomRetriever {
 								sList.add(absTexts.get(l).getValue());
 							}
 						}
-						String abstractText = "(not available)";
+						String abstractText = "";
 						if (sList.size() != 0) {
 							abstractText = StringUtils.join(sList, " ");
 						}
-						publication.setAttribute("abstractText", abstractText);
-
+						if (!StringUtils.isEmpty(abstractText)) {
+							publication.setAttribute("abstractText", abstractText);
+						} else {
+							publication.setAttribute("abstractText", "(not available)");
+						}
 
 						writer.write(FullRenderer.render(publication));
 						i++;
