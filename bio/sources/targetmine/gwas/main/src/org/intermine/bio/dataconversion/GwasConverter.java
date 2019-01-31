@@ -68,6 +68,11 @@ public class GwasConverter extends BioFileConverter {
 				gwaItem.setAttribute("reportedGenes", cols[13]);
 			}
 			gwaItem.setAttribute("pvalue", cols[27]);
+			try {
+				Double.parseDouble(cols[27]);
+			} catch (NumberFormatException e) {
+				throw new RuntimeException(String.format("Not a double value! accession: %s; pvalue: %s", cols[36], cols[27]));
+			}
 			if (!StringUtils.isEmpty(cols[29])) {
 				gwaItem.setAttribute("pvalueNote", cols[29]);
 			}
@@ -78,17 +83,34 @@ public class GwasConverter extends BioFileConverter {
 					if (split[0].contains("-")) {
 						gwaItem.setAttribute("frequencyNote", cols[26]);
 					} else {
-						gwaItem.setAttribute("frequency", split[0].replaceAll("\\xA0", ""));
+						String freqValue = split[0].replaceAll("\\xA0", "");
+						gwaItem.setAttribute("frequency", freqValue);
 						gwaItem.setAttribute("frequencyNote", split[1].replaceAll("\\(|\\)", ""));
+						try {
+							Double.parseDouble(freqValue);
+						} catch (NumberFormatException e) {
+							throw new RuntimeException(String.format("Not a double value! accession: %s; frequency: %s", cols[36], freqValue));
+						}
 					}
 				} else if (cols[26].contains("-")) {
 					gwaItem.setAttribute("frequencyNote", cols[26]);
 				} else {
-					gwaItem.setAttribute("frequency", cols[26].replaceAll("\\xA0", ""));
+					String freqValue = cols[26].replaceAll("\\xA0", "");
+					gwaItem.setAttribute("frequency", freqValue);
+					try {
+						Double.parseDouble(freqValue);
+					} catch (NumberFormatException e) {
+						throw new RuntimeException(String.format("Not a double value! accession: %s; frequency: %s", cols[36], freqValue));
+					}
 				}
 			}
 			if (!StringUtils.isEmpty(cols[30])) {
 				gwaItem.setAttribute("orBeta", cols[30]);
+				try {
+					Double.parseDouble(cols[30]);
+				} catch (NumberFormatException e) {
+					throw new RuntimeException(String.format("Not a double value! accession: %s; orBeta: %s", cols[36], cols[30]));
+				}
 			}
 			if (!StringUtils.isEmpty(cols[31])) {
 				gwaItem.setAttribute("confidenceInterval", cols[31]);
