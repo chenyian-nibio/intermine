@@ -1,8 +1,0 @@
-TargetMine Source Distributions
---------------------------------
-
-See LICENSE file for licensing information.
-
-TargetMine requires the InterMine library. A modified version of InterMine is included in this distribution.
-See the files README.intermine, LICENCE.intermine and LICENSE.intermine.LIBS for InterMine licensing information.
-
