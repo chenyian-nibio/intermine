@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import nu.xom.Attribute;
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.Element;
@@ -161,7 +162,18 @@ public class UniprotXomConverter extends BioFileConverter {
 						}
 
 						protein.setAttribute("primaryIdentifier", primaryIdentifier);
+						// TODO do we really need this?
 						protein.setAttribute("uniprotName", primaryIdentifier);
+						
+						Element geneEntity = entry.getFirstChildElement("gene", NAMESPACE_URI);
+						if (geneEntity != null) {
+							String geneSymbol = geneEntity
+									.getFirstChildElement("name", NAMESPACE_URI).getValue();
+							protein.setAttribute("geneSymbol", geneSymbol);
+						} else {
+							LOG.info(String.format("No gene entity: %s", primaryIdentifier));
+							protein.setAttribute("geneSymbol", primaryIdentifier);
+						}
 
 						protein.setAttribute("isUniprotCanonical", "true");
 

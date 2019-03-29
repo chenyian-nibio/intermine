@@ -16,6 +16,7 @@
 		<attribute name="isUniprotCanonical" type="java.lang.Boolean"/>
 		<attribute name="uniprotAccession" type="java.lang.String"/>
 		<attribute name="uniprotName" type="java.lang.String"/>
+		<attribute name="geneSymbol" type="java.lang.String"/>
 		<collection name="comments" referenced-type="Comment" />
 		<collection name="components" referenced-type="Component" reverse-reference="protein" />
 		<collection name="keywords" referenced-type="OntologyTerm" />
