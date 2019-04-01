@@ -92,6 +92,7 @@
                                     <h3><c:out value="${WEB_PROPERTIES['begin.thirdBox.title']}" /></h3>
                                 </c:otherwise>
                             </c:choose>
+                                <!--
                                 <c:choose>
 	                                <c:when test="${fn:substring(pageContext.request.locale, 0, 2) == 'ja'}">
 	                                    <div class="jaMessage"><c:out value="${WEB_PROPERTIES['begin.thirdBox.descriptionJa']}" escapeXml="false" /> </div>
@@ -100,6 +101,7 @@
                                         <br />
                                     </c:otherwise>
                                 </c:choose>
+                                -->
                                 <c:choose>
                                     <c:when test="${!isNewUser && !empty (WEB_PROPERTIES['begin.thirdBox.visitedDescription'])}">
                                         <p><c:out value="${WEB_PROPERTIES['begin.thirdBox.visitedDescription']}" escapeXml="false" /></p>
