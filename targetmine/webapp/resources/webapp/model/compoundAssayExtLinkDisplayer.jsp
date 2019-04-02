@@ -24,7 +24,7 @@
   		<td>
     	<c:choose>
   			<c:when test="${assay.source == 'ChEMBL'}">
-  					ChEMBL Assay report: <a href="https://www.ebi.ac.uk/chembl/assay/inspect/${assay.originalId}" target="_blank">${assay.originalId}</a> 
+  					ChEMBL Assay report: <a href="https://www.ebi.ac.uk/chembl/assay_report_card/${assay.originalId}/" target="_blank">${assay.originalId}</a> 
 			</c:when>
 			<c:otherwise>
   					PubChen BioAssay: <a href="http://pubchem.ncbi.nlm.nih.gov/assay/assay.cgi?aid=${assay.originalId}" target="_blank">AID ${assay.originalId}</a> 
