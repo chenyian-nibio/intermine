@@ -4,10 +4,13 @@ import java.io.Reader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.intermine.dataconversion.ItemWriter;
 import org.intermine.metadata.Model;
 import org.intermine.objectstore.ObjectStoreException;
@@ -18,7 +21,7 @@ import org.intermine.xml.full.Item;
  * @author chenyian
  */
 public class GwasConverter extends BioFileConverter {
-//	private static final Logger LOG = Logger.getLogger(GwasConverter.class);
+	private static final Logger LOG = Logger.getLogger(GwasConverter.class);
 
 	private static final String DATASET_TITLE = "GWAS Catalog";
 	private static final String DATA_SOURCE_NAME = "GWAS Catalog";
@@ -84,32 +87,58 @@ public class GwasConverter extends BioFileConverter {
 						gwaItem.setAttribute("frequencyNote", cols[26]);
 					} else {
 						String freqValue = split[0].replaceAll("\\xA0", "");
-						gwaItem.setAttribute("frequency", freqValue);
-						gwaItem.setAttribute("frequencyNote", split[1].replaceAll("\\(|\\)", ""));
 						try {
 							Double.parseDouble(freqValue);
+							gwaItem.setAttribute("frequency", freqValue);
+							gwaItem.setAttribute("frequencyNote", split[1].replaceAll("\\(|\\)", ""));
 						} catch (NumberFormatException e) {
-							throw new RuntimeException(String.format("Not a double value! accession: %s; frequency: %s", cols[36], freqValue));
+							String value = processDouble(freqValue);
+							if (value == null) {
+								LOG.info(String.format("ERROR! Not a double value! accession: %s; frequency: %s", cols[36], freqValue));
+//								throw new RuntimeException(String.format("Not a double value! accession: %s; frequency: %s", cols[36], freqValue));
+							} else {
+								LOG.info(String.format("Fix the wrong value! accession: %s; frequency: %s -> %s", cols[36], freqValue, value));
+								freqValue = value;
+								gwaItem.setAttribute("frequency", freqValue);
+								gwaItem.setAttribute("frequencyNote", split[1].replaceAll("\\(|\\)", ""));
+							}
 						}
 					}
 				} else if (cols[26].contains("-")) {
 					gwaItem.setAttribute("frequencyNote", cols[26]);
 				} else {
 					String freqValue = cols[26].replaceAll("\\xA0", "");
-					gwaItem.setAttribute("frequency", freqValue);
 					try {
 						Double.parseDouble(freqValue);
+						gwaItem.setAttribute("frequency", freqValue);
 					} catch (NumberFormatException e) {
-						throw new RuntimeException(String.format("Not a double value! accession: %s; frequency: %s", cols[36], freqValue));
+						String value = processDouble(freqValue);
+						if (value == null) {
+							LOG.info(String.format("ERROR! Not a double value! accession: %s; frequency: %s", cols[36], freqValue));
+//							throw new RuntimeException(String.format("Not a double value! accession: %s; frequency: %s", cols[36], freqValue));
+						} else {
+							LOG.info(String.format("Fix the wrong value! accession: %s; frequency: %s -> %s", cols[36], freqValue, value));
+							freqValue = value;
+							gwaItem.setAttribute("frequency", freqValue);
+						}
 					}
 				}
 			}
-			if (!StringUtils.isEmpty(cols[30])) {
-				gwaItem.setAttribute("orBeta", cols[30]);
+			String orBeta = cols[30];
+			if (!StringUtils.isEmpty(orBeta)) {
 				try {
-					Double.parseDouble(cols[30]);
+					Double.parseDouble(orBeta);
+					gwaItem.setAttribute("orBeta", orBeta);
 				} catch (NumberFormatException e) {
-					throw new RuntimeException(String.format("Not a double value! accession: %s; orBeta: %s", cols[36], cols[30]));
+					String value = processDouble(orBeta);
+					if (value == null) {
+						LOG.info(String.format("ERROR! Not a double value! accession: %s; orBeta: %s", cols[36], orBeta));
+//						throw new RuntimeException(String.format("Not a double value! accession: %s; orBeta: %s", cols[36], orBeta));
+					} else {
+						LOG.info(String.format("Fix the wrong value! accession: %s; frequency: %s -> %s", cols[36], orBeta, value));
+						orBeta = value;
+						gwaItem.setAttribute("orBeta", orBeta);
+					}
 				}
 			}
 			if (!StringUtils.isEmpty(cols[31])) {
@@ -171,22 +200,25 @@ public class GwasConverter extends BioFileConverter {
 				}
 			}
 			
-			if (!StringUtils.isEmpty(cols[23])) {
-				String dbSnpId = "rs" + cols[23];
+			String snpIntId = cols[23];
+			if (!StringUtils.isEmpty(snpIntId)) {
+				try {
+					Integer.parseInt(snpIntId);
+				} catch (NumberFormatException e) {
+					String value = processInteger(snpIntId);
+					if (value != null) {
+						LOG.info(String.format("Fix the wrong value! accession: %s; snp id: %s -> %s", cols[36], snpIntId, value));
+						snpIntId = value;
+					} else {
+						throw new RuntimeException(String.format("Invalid SNP identifier! accession: %s; value: %s", cols[36], snpIntId));
+					}
+				}
+				String dbSnpId = "rs" + snpIntId;
+
 				String snpItemRef = snpMap.get(dbSnpId);
 				if (snpItemRef == null) {
 					Item snpItem = createItem("SNP");
 					snpItem.setAttribute("identifier", dbSnpId);
-//					if (!StringUtils.isEmpty(cols[12])) {
-//						Item location = createItem("Location");
-//						location.setAttribute("start", cols[12]);
-//						location.setAttribute("end", cols[12]);
-//						if (!StringUtils.isEmpty(cols[11])) {
-//							location.setReference("locatedOn", getChromosome(cols[11], HUMAN_TAXON_ID));
-//						}
-//						store(location);
-//						snpItem.setReference("location", location);
-//					}
 					store(snpItem);
 					snpItemRef = snpItem.getIdentifier();
 					snpMap.put(dbSnpId, snpItemRef);
@@ -220,24 +252,6 @@ public class GwasConverter extends BioFileConverter {
 		return ret;
 	}
 
-//	@Override
-//	public void close() throws Exception {
-//		store(snpMap.values());
-//	}
-
-//	private String getGene(String geneId) throws ObjectStoreException {
-//		String ret = geneMap.get(geneId);
-//		if (ret == null) {
-//			Item item = createItem("Gene");
-//			item.setAttribute("primaryIdentifier", geneId);
-//			item.setAttribute("ncbiGeneId", geneId);
-//			store(item);
-//			ret = item.getIdentifier();
-//			geneMap.put(geneId, ret);
-//		}
-//		return ret;
-//	}
-
 	private String getPublication(String pubMedId) throws ObjectStoreException {
 		String ret = publicationMap.get(pubMedId);
 		if (ret == null) {
@@ -250,24 +264,21 @@ public class GwasConverter extends BioFileConverter {
 		return ret;
 	}
 
-//	private String getChromosome(String chr, String taxonId) throws ObjectStoreException {
-//		String key = chr + ":" + taxonId;
-//		String ret = chromosomeMap.get(key);
-//		if (ret == null) {
-//			Item item = createItem("Chromosome");
-//			String chrId = chr;
-//			if (chr.toLowerCase().startsWith("chr")) {
-//				chrId = chr.substring(3);
-//			}
-//			item.setAttribute("symbol", chrId);
-//			if (!StringUtils.isEmpty(taxonId)) {
-//				item.setReference("organism", getOrganism(taxonId));
-//			}
-//			store(item);
-//			ret = item.getIdentifier();
-//			chromosomeMap.put(key, ret);
-//		}
-//		return ret;
-//	}
+	private String processDouble(String value) {
+		Pattern pattern = Pattern.compile("(\\d+\\.\\d+).+");
+		Matcher matcher = pattern.matcher(value);
+		if (matcher.matches()) {
+			return matcher.group(1);
+		}
+		return null;
+	}
 
+	private String processInteger(String value) {
+		Pattern pattern = Pattern.compile("(\\d+).+");
+		Matcher matcher = pattern.matcher(value);
+		if (matcher.matches()) {
+			return matcher.group(1);
+		}
+		return null;
+	}
 }
