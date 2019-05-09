@@ -15,38 +15,9 @@ var app;
 
 class Application{
 
-  constructor(){
+  constructor(name){
     this._display = d3.select('svg');
-    this._graph = new CompoundGraph('dummy name');
-  }
-
-  /**
-   * Load a data file
-   * Read the contents of a data file and use to initialize a visualization,
-   * using the concentration column for the left axis, and the type column for
-   * the bottom axis.
-   * TO-DO a third (right) axis should be included in the visualization when 2
-   * (or more) concentration columns are available in the dataset
-   */
-  onLoadFile(){
-    /* retrieve the file to load */
-    let file = d3.select('#loadFile').node();
-    /* nothing to do if there isnt a file to read */
-    if( file.files.length === 0 ) return;
-    let url = URL.createObjectURL(file.files[0]);
-    let rqst = new XMLHttpRequest();
-    rqst.open('GET', url);
-    rqst.onreadystatechange = function(){
-      /* process once the loading of data has finished */
-      if( rqst.readyState == 4 && rqst.status == 200 ){
-        /* parse the contents of the file as an TSV table and add it to the graph */
-        console.log(rqst.responseText[0]);
-        this._graph.setData(d3.tsvParse(rqst.responseText, d3.autoType));
-        /* initialize axis selection */
-        this._initDisplay('Compound > Target Proteins > Activities > Concentration(nM)');
-      }
-    }.bind(this)
-    rqst.send();
+    this._graph = new CompoundGraph(name);
   }
 
   /**
@@ -58,13 +29,13 @@ class Application{
    * @param {string} col the name of the column used as default Y-axis for the
    * graph
    */
-  _initDisplay(col){
+  _initDisplay(X, Y){
     /* get the area available for drawing */
     let canvas = d3.select('svg#canvas');
-    let width = parseInt(canvas.style('width').replace('px',''))*.8;
-    let height = parseInt(canvas.style('height').replace('px',''));
-    let vertPadding = width *.05; // vertical padding 5% on each side
-    let horzPadding = height * .05; // horizontal padding 5% on each side
+    let width = parseInt(canvas.style('width'));
+    let height = parseInt(canvas.style('height'));
+    let hPadding = width  *.1; // horizontal padding 10% on each side
+    let vPadding = height *.1; // vertical padding 10% on each side
 
     /* init options for all select components of the DOM */
     let select = d3.selectAll('select')
@@ -76,26 +47,26 @@ class Application{
       ;
 
     /* generate a default x Axis */
-    let xAxis = this._graph.createAxis('Compound > Target Proteins > Activities > Type', 0);
-    /* remove any previous one */
-    d3.select('#bottom-axis')
+    let xAxis = this._graph.createAxis(X, 0, width-(2*hPadding));
+    /* remove previous axis */
+    canvas.select('#bottom-axis')
       .remove();
     /* and add the new one to the display */
     canvas.append('g')
       .attr('id', 'bottom-axis')
-      .attr('transform', 'translate('+horzPadding+', '+(height-vertPadding)+')')
+      .attr('transform', 'translate('+hPadding+', '+(height-vPadding)+')')
       .call(xAxis)
       ;
 
     /* generate a default y Axis */
-    let yAxis = this._graph.createAxis(col, 1);
+    let yAxis = this._graph.createAxis(Y, 1, height-(2*vPadding));
     /* remove any previous axis */
-    d3.select('#left-axis')
+    canvas.select('#left-axis')
       .remove();
     /* and add the new one to the display */
     canvas.append("g")
       .attr('id', 'left-axis')
-      .attr('transform', 'translate('+(1.25*horzPadding)+', '+vertPadding+')')
+      .attr('transform', 'translate('+hPadding+', '+vPadding+')')
       .call(yAxis)
       ;
 
@@ -103,10 +74,10 @@ class Application{
     document.getElementById('color-select').dispatchEvent(new Event('change'));
 
     /* set default shapes */
-    document.getElementById('shape-select').dispatchEvent(new Event('change'));
+    // document.getElementById('shape-select').dispatchEvent(new Event('change'));
 
     /* plot the default values */
-    this.plot();//'Compound > Target Proteins > Activities > Type', col);
+    this.plot(X, Y, hPadding, vPadding); // Type vs Concentration
   }
 
   /**
@@ -250,19 +221,21 @@ class Application{
 
 
   /**
-   *
+   * @param {string} X The column used as X axis for the graph
+   * @param {string} Y The column used as Y axis for the graph
+   * @param {number} dx The displacement used for the plotting of points on X
+   * @param {number} dy The displacement used for the plotting of points on Y
    */
-  plot( x = 'Compound > Target Proteins > Activities > Type',
-        y = 'Compound > Target Proteins > Activities > Concentration(nM)'){
-    /* get the area available for drawing */
-    let mysvg = d3.selectAll('svg');
-    let width = parseInt(mysvg.style('width').replace('px',''))*.8;
-    let height = parseInt(mysvg.style('height').replace('px',''));
-    let vertPadding = width *.05; // vertical padding 5% on each side
-    let horzPadding = height * .05; // horizontal padding 5% on each side
+  plot(X, Y, dx, dy){
+    // /* get the area available for drawing */
+    let canvas = d3.select('svg#canvas');
+    // let width = parseInt(mysvg.style('width').replace('px',''))*.8;
+    // let height = parseInt(mysvg.style('height').replace('px',''));
+    // let vertPadding = width *.05; // vertical padding 5% on each side
+    // let horzPadding = height * .05; // horizontal padding 5% on each side
 
     let color = document.getElementById('color-select').value;
-    let coords = this._graph.getPoints(x, y, color);
+    let coords = this._graph.getPoints(X, Y, color);
 
     /* filter out the points that are hidden from the visualization */
     let visible = document.getElementsByClassName('color-checkbox');
@@ -277,15 +250,14 @@ class Application{
     };
 
     /* delete any previous points */
-    d3.select('svg').select('#points')
+    canvas.select('#points')
       .remove()
     ;
 
     /* add a <g> element to group the drawing of the data points */
-    d3.select('svg')
-      .append('g')
+    canvas.append('g')
       .attr('id', 'points')
-      .attr('transform', 'translate('+horzPadding+','+vertPadding+')')
+      .attr('transform', 'translate('+dx+','+dy+')')
       ;
 
     /* for each data point, generate a group where we can add multiple svg
@@ -298,7 +270,7 @@ class Application{
           .attr('d', function(d){
             let symbol = d3.symbol()
               .size(50)
-              .type(d.shape)
+              .type(d3.symbolStar)//d.shape)
               ;
             return symbol();
           })

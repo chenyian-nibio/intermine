@@ -33,12 +33,15 @@ public class GeneActivityGraphDisplayer extends ReportDisplayer {
 
 	@Override
 	public void display(HttpServletRequest request, ReportObject reportObject) {
-    ArrayList<Map<String, String>> rows = new ArrayList<Map<String, String>>();
+    ArrayList<String> data = new ArrayList<String>();
 
 		InterMineObject compound = (InterMineObject) reportObject.getObject();
     try{
       /* Get the compound's identifier */
       String identifier = (String) compound.getFieldValue("identifier");
+
+      /* Fill the names of the columns for the data used for the visualization */
+      data.add("Primary Accession\tGene Symbol\tOrganism Name\tActivity Type\tActivity Concentration");
 
       /* Retrieve the collection of Compound-Protein interactions, and iterate
        * over it to get the details of each one */
@@ -65,25 +68,15 @@ public class GeneActivityGraphDisplayer extends ReportDisplayer {
             String type = (String) activity.getFieldValue("type");
             float concentration = (Float) activity.getFieldValue("conc");
             /* create a row with all the relevant information */
-            Map row = new HashMap<String, String>();
-            row.put("primaryAccession", primaryAccession);
-            row.put("geneSymbol", dbIdentifier);
-            row.put("organismName", organismName);
-            row.put("activityType", type);
-            row.put("activityConcentration", concentration);
-
-            /* add a new row to the list */
-            rows.add(row);
+            data.add(primaryAccession+"\t"+dbIdentifier+"\t"+organismName+"\t"+type+"\t"+concentration);
             // LOG.info(identifier+"\t"+primaryAccession+"\t"+dbIdentifier+"\t"+organismName+"\t"+type+"\t"+concentration);
-
           } // for activity
-
         }// if
-
       } // for interaction
       /* fill the resulting table with the corresponding values */
-      request.setAttribute("data", rows);
-      
+      request.setAttribute("compound", identifier);
+      request.setAttribute("data", data);
+
     } // try
     catch(IllegalAccessException e){
       LOG.error(e.getMessage());
