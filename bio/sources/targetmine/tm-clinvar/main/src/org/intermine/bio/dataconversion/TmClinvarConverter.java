@@ -213,21 +213,14 @@ public class TmClinvarConverter extends BioFileConverter {
 
 				if (!reportedPhenotypeInfo.equals("-")) {
 					for (String info : reportedPhenotypeInfo.split(";")) {
-						try {
+						if (info.contains(":")) {
+							// some disease titles contain semicolons and will be split incorrectly
+							// since the name could be recover by medgen, ignore them at this stage.
 							String id = info.substring(0, info.indexOf(":"));
-							// if (id.matches("C\\d+")) {
-							// item.addToCollection("diseaseTerms", getDiseaseTerm(id,
-							// info.substring(info.indexOf(":") + 1)));
-							// }
 							if (!id.equals("na")) {
 								item.addToCollection("diseaseTerms",
 										getDiseaseTerm(id, info.substring(info.indexOf(":") + 1)));
 							}
-						} catch (StringIndexOutOfBoundsException e) {
-							System.out.println(info);
-							System.out.println(reportedPhenotypeInfo);
-							throw new RuntimeException(
-									"StringIndexOutOfBoundsException: " + reportedPhenotypeInfo);
 						}
 					}
 				}
