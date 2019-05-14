@@ -17,7 +17,7 @@
     <%-- Visualization Container --%>
     <div class='graphDisplayer'>
       <%-- Left Column of the Visualization (main display) --%>
-      <svg class='graphDisplayer' id='canvas'></svg>
+      <svg class='graphDisplayer' id='canvas' viewbox='0 0 400 400'></svg>
       <%-- Right Column, reserved for visualization controls --%>
       <div class='rightColumn'>
 
@@ -25,20 +25,23 @@
         data points associated to specific colors in the scale  --%>
         <div id='color-div' style='flex-direction: column;'>
           <label for='color-select'>Color based on:</label>
-          <select id='color-select'  onchange='app.updateColorScale(event)'>
+          <select id='color-select'  onchange='app.updateColorScale(event.target.value)'>
             <option value=undefined>Select...</option>
           </select>
-          <table id='color-table'></table>
+          <table id='color-table'><tbody></tbody></table>
         </div>
 
       </div> <%-- Right column --%>
     </div>
 
     <script>
-      var app = new Application('${compound}');
-      app._graph.setData('${data}');
+      var graph = new CompoundGraph('${compound}');
+      graph.initData('${data}');
       setTimeout(function(){
-        app._initDisplay('Activity Type', 'Activity Concentration');
+        graph.initXAxis('Activity Type');
+        graph.initYAxis('Activity Concentration');
+        graph.initColors('Activity Type');
+        graph.plot();
       }, 0);
     </script>
 

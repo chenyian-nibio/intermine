@@ -20,65 +20,7 @@ class Application{
     this._graph = new CompoundGraph(name);
   }
 
-  /**
-   * Initialize a graph display
-   * Whenever a new data file is loaded, a graph display is initialized using a
-   * default Y-axis.
-   * Notice that the first step required to display a graph is to clear whatever
-   * content the display area might have already have.
-   * @param {string} col the name of the column used as default Y-axis for the
-   * graph
-   */
-  _initDisplay(X, Y){
-    /* get the area available for drawing */
-    let canvas = d3.select('svg#canvas');
-    let width = parseInt(canvas.style('width'));
-    let height = parseInt(canvas.style('height'));
-    let hPadding = width  *.1; // horizontal padding 10% on each side
-    let vPadding = height *.1; // vertical padding 10% on each side
 
-    /* init options for all select components of the DOM */
-    let select = d3.selectAll('select')
-      .selectAll('option').remove()
-      .data(this._graph.getDataColumns())
-      .enter().append('option')
-        .attr('value', function(d){ return d; })
-        .text(function(d){ return d; })
-      ;
-
-    /* generate a default x Axis */
-    let xAxis = this._graph.createAxis(X, 0, width-(2*hPadding));
-    /* remove previous axis */
-    canvas.select('#bottom-axis')
-      .remove();
-    /* and add the new one to the display */
-    canvas.append('g')
-      .attr('id', 'bottom-axis')
-      .attr('transform', 'translate('+hPadding+', '+(height-vPadding)+')')
-      .call(xAxis)
-      ;
-
-    /* generate a default y Axis */
-    let yAxis = this._graph.createAxis(Y, 1, height-(2*vPadding));
-    /* remove any previous axis */
-    canvas.select('#left-axis')
-      .remove();
-    /* and add the new one to the display */
-    canvas.append("g")
-      .attr('id', 'left-axis')
-      .attr('transform', 'translate('+hPadding+', '+vPadding+')')
-      .call(yAxis)
-      ;
-
-    /* set default colors */
-    document.getElementById('color-select').dispatchEvent(new Event('change'));
-
-    /* set default shapes */
-    // document.getElementById('shape-select').dispatchEvent(new Event('change'));
-
-    /* plot the default values */
-    this.plot(X, Y, hPadding, vPadding); // Type vs Concentration
-  }
 
   /**
    * Update the graph for a user selected obsice coordinate
@@ -118,36 +60,7 @@ class Application{
     /* update the colors used for the given column */
     let colors = this._graph.setColors(col);
 
-    /* select the table where we will add elements and remove any previous data */
-    let table = document.getElementById('color-table');
-    while(table.lastChild){
-      table.removeChild(table.lastChild);
-    }
 
-    Object.keys(colors).forEach(function(k){
-      let row = table.insertRow(-1);
-
-      let check = row.insertCell(-1);
-      check.style.width = '10%';
-
-      let inp = document.createElement('input');
-      inp.className = 'color-checkbox';
-      inp.setAttribute("type", "checkbox");
-      inp.setAttribute('data-color', colors[k]);
-      inp.checked = true;
-      inp.addEventListener('change', function(){self.plot();});
-      check.append(inp);
-
-      let color = row.insertCell(-1);
-      color.style.width = '10%';
-      color.style.backgroundColor = colors[k];
-
-      let label = row.insertCell(-1);
-      label.setAttribute('id', 'color-label');
-      label.innerHTML = k;
-    });
-
-    this.plot();
   }
 
   /**
