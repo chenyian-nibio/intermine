@@ -21,13 +21,13 @@ import org.intermine.web.logic.results.ReportObject;
 /**
  *
  */
-public class GeneActivityGraphDisplayer extends ReportDisplayer {
+public class BioActivityGraphDisplayer extends ReportDisplayer {
 
   /* log messages */
   /* log output printed to catalina.out */
-  protected static final Logger LOG = Logger.getLogger(GeneActivityGraphDisplayer.class);
+  protected static final Logger LOG = Logger.getLogger(BioActivityGraphDisplayer.class);
 
-	public GeneActivityGraphDisplayer(ReportDisplayerConfig config, InterMineAPI im) {
+	public BioActivityGraphDisplayer(ReportDisplayerConfig config, InterMineAPI im) {
 		super(config, im);
 	}
 
@@ -69,7 +69,6 @@ public class GeneActivityGraphDisplayer extends ReportDisplayer {
             float concentration = (Float) activity.getFieldValue("conc");
             /* create a row with all the relevant information */
             data.add(primaryAccession+"\t"+dbIdentifier+"\t"+organismName+"\t"+type+"\t"+concentration);
-            // LOG.info(identifier+"\t"+primaryAccession+"\t"+dbIdentifier+"\t"+organismName+"\t"+type+"\t"+concentration);
           } // for activity
         }// if
       } // for interaction

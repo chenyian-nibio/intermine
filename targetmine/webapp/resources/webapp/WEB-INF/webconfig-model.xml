@@ -884,8 +884,8 @@
 <!-- reportdisplayers -->
   <reportdisplayers>
 
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.GeneActivityGraphDisplayer"
-                     jspName="model/geneActivityGraphDisplayer.jsp"
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.BioActivityGraphDisplayer"
+                     jspName="model/bioActivityGraphDisplayer.jsp"
                      replacesFields=""
                      types="Compound"/>
 
