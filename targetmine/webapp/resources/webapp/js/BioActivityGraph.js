@@ -34,32 +34,32 @@ class BioActivityGraph{
     /* init listeners for interface components */
     let self = this;
     $jq(document).on('change', '#color-select', function(evt){
+      console.log('CHANGE: color selection');
       self._updateColorScale('#color-select');
       self.plot(self._xPlot, self._yPlot);
     });
+    $jq(document).on('change', '#shape-select', function(evt){
+      console.log('CHANGE: shape selection');
+      self._updateShapeScale('#shape-select');
+      self.plot(self._xPlot, self._yPlot);
+    })
 
-    // draw a backgound for the svg element
-    // TO-DO REMOVE LATER AS ITS ONLY FOR DRAWING SETTING PURPOSE
-    // -------------------------------------------------------------
-    let svg = d3.select('svg#canvas');
-    svg.selectAll().remove();
-    let bckg = svg.append('g')
-      .attr('id', 'background')
-      .append("rect")
-        .attr('fill', '#ddf1f1')
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("width", 400)
-        .attr("height", 400)
-      ;
-    // -------------------------------------------------------------
-    let graph = svg.append('g')
+    /* Add a base component to the SVG element. All posterior drawing will be
+     * done nested to this basic component */
+    let graph = d3.select('svg#canvas').append('g')
       .attr('id', 'graph')
       .attr('transform', 'translate('+margin.left+','+margin.top+')')
     ;
   }
 
   /**
+   * Find individual values for a given column.
+   * Indiviudual values are required to construct the categorical scales used
+   * for color and shape, later used to map distinctive points at the time of
+   * display.
+   *
+   * @param {string} column The column in the data for which we are trying to
+   * find all individual values
    * @return An array with all the distinctive values found for a given column
    * in the data - Used to define the domain of a categorical scale.
    */
@@ -73,25 +73,7 @@ class BioActivityGraph{
   }
 
   /**
-   * @param {string} column The name of the column (from the array of columns)
-   * available in the _data array, for which we are defining an axis
-   */
-  _getPoints(dimx, dimy, color='Activity Type', shape='Organism Name'){
-    let points = [];
-    this._data.forEach(function(item){
-      let p = {};
-      p.x = xscale(row[dimx]);
-      p.y = yscale(row[dimy]);
-      p.color = self._colors[row[color]];
-      // p.shape = self._shapes.find(x => x.name === row[shape]).shape;
-      p.label = row['Activity Type']+': '+row['Activity Concentration']
-      points.push(p);
-    },this);
-    return points;
-  }
-
-  /**
-   * Init the set of colors used in the display of data.
+   * Update the color scale used in the display of data.
    * Since the data to be visualized is multi-dimensional in nature, any of the
    * fields that are present can be used to define a categorical color scale.
    * Currently, a fixed amount of 10 base colours are sequentially assigned to
@@ -121,35 +103,7 @@ class BioActivityGraph{
     },this);
 
     /* create the actual table of values  */
-    let table = $jq('#color-table > tbody');
-    table.empty();
-    values.forEach(function(k, i){
-      /* A checkbox is used to display/hide all elements of the give color */
-      let inp = $jq('<input>');
-      inp.addClass('color-checkbox');
-      inp.attr('type', 'checkbox');
-      inp.attr('data-color', k);
-      inp.attr('checked', 'true');
-
-      let check = $jq('<td>');// let check = row.insertCell(-1);
-      check.append(inp);
-      check.css('width', '10%'); //check.style.width = '10%';
-
-      let ctd = $jq('<td>'); // let color = row.insertCell(-1);
-      ctd.css('width', '10%'); //color.style.width = '10%';
-      ctd.css('background-color', this._colors[k]);//color.html); //color.style.backgroundColor = colors[k];
-
-      let label = $jq('<td>'); // let label = row.insertCell(-1);
-      label.attr('id', 'color-label'); //label.setAttribute('id', 'color-label');
-      label.text(k);//color.key); //label.innerHTML = k;
-
-      let row = $jq('<tr>'); //let row = table.insertRow(-1);
-      row.append(check);
-      row.append(ctd);
-      row.append(label);
-
-      table.append(row);
-    }, this);
+    this._updateTable('color');
 
     /* Add a listener to show/hide elements based in color */
     $jq(document).on('click', '.color-checkbox', function(evt){
@@ -157,9 +111,36 @@ class BioActivityGraph{
     });
   }
 
+  _updateShapeScale(id){
+    let self = this;
+    /* retrieve the option based on which to define the color scale */
+    let key = $jq(id).val();
+
+    /* define the set of individual values that the current key takes, so that
+     * we can assign an specific color to each of them */
+    let values = this._individualValues(key);
+    this._shapes = {};
+    values.forEach(function(k, i){
+      this._shapes[k] = d3.symbols[i%7];
+    }, this );
+
+    /* Modify the color field according to the new list of values for each data
+     * point */
+    this._data.forEach(function (item){
+      item['shape'] = this._shapes[item[key]];
+    },this);
+
+    /* update the table */
+    this._updateTable('shape');
+
+    /* Add a listener to show/hide elements based in color */
+    $jq(document).on('click', '.shape-checkbox', function(evt){
+      self.plot(self._xPlot, self._yPlot);
+    });
+  }
+
   /**
    * Update the options available for a given Select DOM element.
-   *
    * Given the id of a select element, it updates the options available based on
    * the names of the columns of the data array.
    *
@@ -183,6 +164,72 @@ class BioActivityGraph{
         opt.prop('selected', 'selected');
       select.append(opt);
     }, this);
+  }
+
+  _updateTable(type){
+    /* Generate an array of data elements that we can use to generate a 'table'
+     * of elements using D3 */
+    let self = this;
+    let values = (type === 'color') ? Object.keys(this._colors) : Object.keys(this._shapes);
+    let data = values.reduce( function(prev, current){
+      prev.push(
+        {
+          'key': current,
+          'value': (type === 'color') ? self._colors[current] : self._shapes[current],
+        }
+      )
+      return prev;
+    }, []);
+
+    /* Before we can (re)build the 'table' we need to clean any previous elements */
+    let table = d3.select('#'+type+'-table')
+      .selectAll('div').remove();
+
+    /* We use D3 to build all the rows in the table at the same time */
+    table = d3.select('#'+type+'-table').selectAll('div')
+      .data(data);
+
+    /* create each row */
+    let row = table.enter().append('div')
+      .attr('class', 'flex-row')
+      ;
+
+    /* first cell: checkbox input */
+    row.append('div')
+      .attr('class', 'flex-cell')
+      .append('input')
+        .attr('class', type+'-checkbox')
+        .attr('type', 'checkbox')
+        .attr('data-'+type, function(d){ return d.key; } )
+        .property('checked', 'true')
+
+    /* second cell: a simple color background or an svg element with a symbol */
+    let cell = row.append('div')
+      .attr('class', 'flex-cell')
+      ;
+    if( type === 'color' )
+      cell.style('background-color', function(d){ return d.value; });
+    else{ // shape
+      cell.append('svg')
+        .attr('viewBox', '-5 -5 10 10')
+        .style('height', 'inherit')
+        .append('path')
+          .attr('fill', 'black')
+          .attr('d', function(d){
+            let symbol = d3.symbol()
+              .size(10)
+              .type(d.value)
+            ;
+            return symbol();
+          })
+      ;
+    }
+
+    /* third cell: label */
+    row.append('div')
+      .attr('class', 'flex-cell label')
+      .text( function(d){ return d.key; } )
+      ;
   }
 
   /**
@@ -278,6 +325,7 @@ class BioActivityGraph{
     /* update the select components in the interface according to the columns
      * available in the graph's data */
     this._updateOptions('#color-select', this._xPlot);
+    this._updateOptions('#shape-select', this._xPlot);
 
     /* update the axis of the graph */
     this._updateXAxis(this._xPlot);
@@ -285,6 +333,9 @@ class BioActivityGraph{
 
     /* update the colors used for the data points in the graph */
     this._updateColorScale('#color-select');
+
+    /* update the shapes used for the data points in the graph */
+    this._updateShapeScale('#shape-select');
 
     /* plot the data points */
     this.plot(this._xPlot, this._yPlot);
@@ -300,7 +351,7 @@ class BioActivityGraph{
    * graph
    */
   plot(X, Y){
-    console.log('PLOT CALLED', this);
+    let self = this;
 
     /* Generate an array of data points positions and colors based on the scale
      * defined for each axis */
@@ -311,17 +362,28 @@ class BioActivityGraph{
     $jq.map($jq('.color-checkbox:checked'), function(obj, k){
       cb.push(obj.dataset.color);
     });
+    $jq.map($jq('.shape-checkbox:checked'), function(obj, k){
+      cb.push(obj.dataset.shape);
+    })
 
     let colorMap = $jq('#color-select').val();
+    let shapeMap = $jq('#shape-select').val();
+
     let points = this._data.reduce(function(prev, current){
       /* filter out the points that are hidden from the visualization */
-      if( cb.includes(current[colorMap]) ){
-        prev.push( { x: xscale(current[X]), y: yscale(current[Y]), 'color':current['color'] } );
+      if( cb.includes(current[colorMap]) && cb.includes(current[shapeMap]) ){
+        prev.push(
+          {
+            x: xscale(current[X]),
+            y: yscale(current[Y]),
+            'color':current['color'],
+            'shape':current['shape'],
+            'label': current[self._yPlot],
+          }
+        );
       }
       return prev;
     }, []);
-
-    console.log('points', points);
 
     /* redraw the points, using the updated positions and colors */
     let canvas = d3.select('svg#canvas > g#graph');
@@ -338,17 +400,17 @@ class BioActivityGraph{
     let point = pts.enter().append('g')
         .attr('class', 'data-point')
         .append('path')
-          .attr('transform', function(d){ console.log(d);return 'translate('+d.x+','+d.y+')'; })
+          .attr('transform', function(d){ return 'translate('+d.x+','+d.y+')'; })
           .attr('fill', function(d){return d.color;})
           .attr('d', function(d){
             let symbol = d3.symbol()
               .size(50)
-              .type(d3.symbolStar)//d.shape)
+              .type(d.shape)
             ;
             return symbol();
           })
-        // .append("svg:title")
-        //   .text(function(d){ return d.label; })
+        .append("svg:title")
+          .text(function(d){ return d.label; })
       ;
   }
 }

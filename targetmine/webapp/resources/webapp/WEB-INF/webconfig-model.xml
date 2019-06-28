@@ -884,11 +884,6 @@
 <!-- reportdisplayers -->
   <reportdisplayers>
 
-    <reportdisplayer javaClass="org.intermine.bio.web.displayer.BioActivityGraphDisplayer"
-                     jspName="model/bioActivityGraphDisplayer.jsp"
-                     replacesFields=""
-                     types="Compound"/>
-
     <reportdisplayer javaClass="org.intermine.bio.web.displayer.HomologInfoDisplayer"
                      jspName="model/homologInfoDisplayer.jsp"
                      replacesFields="keggOrthology"
@@ -1021,6 +1016,10 @@
                      replacesFields=""
                      types="Publication"/>
  -->
+    <reportdisplayer javaClass="org.intermine.bio.web.displayer.BioActivityGraphDisplayer"
+                  jspName="model/bioActivityGraphDisplayer.jsp"
+                  replacesFields=""
+                  types="Compound"/>
 
   </reportdisplayers>
 

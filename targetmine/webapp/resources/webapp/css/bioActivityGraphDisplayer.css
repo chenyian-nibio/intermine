@@ -1,0 +1,54 @@
+div.BioActivityGraph{
+  display: flex;
+  /* background-color: lightyellow; */
+  flex-direction: row;
+  flex-grow: 1;
+  width: 100%;
+  height: 400px;
+}
+
+svg.BioActivityGraphSVG{
+  /* background-color: lightcyan; */
+  /* border: 1px solid #84c754; */
+  flex-grow: 1;
+  width: 100%;
+  height: auto;
+}
+
+svg.flex-cell{
+  /* background-color: lightcoral; */
+  width: 100%;
+  height: 25px;
+}
+
+div.rightColumn{
+  flex-direction: column;
+  /* background-color: lightsteelblue */
+  width: 20%;
+}
+
+div.flex-table{
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: column;
+}
+
+div.flex-row{
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: row;
+}
+
+div.flex-cell{
+  display: flex;
+  box-sizing: border-box;
+  justify-content: center;
+  align-items: center;
+  width: 10%;
+  height: 20px;
+}
+
+div.label{
+  justify-content: left;
+  width: 80%;
+}
